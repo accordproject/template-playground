@@ -40,7 +40,7 @@ concept TemplateData {
     o Integer age optional
     o MonetaryAmount salary
     o String[] favoriteColors
-    o Order order optional
+    o Order order
 }`;
 
 const INITIAL_TEMPLATE = `### Welcome {{name}}!
