@@ -22,6 +22,17 @@ concept Address {
     o String country
 }
 
+concept OrderLine {
+    o String sku
+    o Integer quantity
+    o Double price
+}
+
+concept Order {
+    o DateTime createdAt
+    o OrderLine[] orderLines
+}
+
 @template
 concept TemplateData {
     o String name
@@ -29,25 +40,35 @@ concept TemplateData {
     o Integer age optional
     o MonetaryAmount salary
     o String[] favoriteColors
+    o Order order
 }`;
 
 const INITIAL_TEMPLATE = `### Welcome {{name}}!
 
-Today is **{{% return now.format('DD MMMM YYYY') %}}.**
-
 {{#clause address}}  
 #### Address
-{{line1}}  
-{{city}}, {{state}}  
-{{country}}  
-{{/clause}}
+> {{line1}},  
+ {{city}}, {{state}},  
+ {{country}}  
+ {{/clause}}
 
 - You are *{{age}}* years old
 - Your monthly salary is {{salary as "0,0.00 CCC"}}
 - Your favorite colours are {{#join favoriteColors}}
 
-> “Without deviation from the norm, progress is not possible.” 
- ― Frank Zappa
+## Orders
+
+{{#clause order}}
+Your last order was placed {{createdAt as "D MMMM YYYY"}} ({{% return now.diff(order.createdAt, 'day')%}} days ago).
+
+{{#ulist orderLines}}
+- {{quantity}}x _{{sku}}_ @ £{{price as "0,0.00"}}
+{{/ulist}}
+{{/clause}}
+
+Order total: {{% return '£' + order.orderLines.map(ol => ol.price).reduce((sum, cur) => sum + cur);%}}
+
+Thank you.
 `;
 
 const INITIAL_DATA = {
@@ -65,7 +86,26 @@ const INITIAL_DATA = {
         "doubleValue": 1500,
         "currencyCode": "EUR"
     },
-    "favoriteColors" : ['red', 'green', 'blue']
+    "favoriteColors" : ['red', 'green', 'blue'],
+    "order" : {
+        "createdAt" : "2023-05-01",
+        "$class" : "hello@1.0.0.Order",
+        "orderLines":
+        [
+        {
+            "$class" : "hello@1.0.0.OrderLine",
+            "sku" : "ABC-123",
+            "quantity" : 3,
+            "price" : 29.99
+        },
+        {
+            "$class" : "hello@1.0.0.OrderLine",
+            "sku" : "DEF-456",
+            "quantity" : 5,
+            "price" : 19.99
+        }
+    ]
+    }
 }
 
 interface AppState {
