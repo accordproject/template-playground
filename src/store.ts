@@ -40,7 +40,7 @@ concept TemplateData {
     o Integer age optional
     o MonetaryAmount salary
     o String[] favoriteColors
-    o Order order
+    o Order order optional
 }`;
 
 const INITIAL_TEMPLATE = `### Welcome {{name}}!
@@ -138,6 +138,23 @@ async function rebuild(template: string, model: string, dataString: string) {
     return await transform(ciceroMark.toJSON(), 'ciceromark_parsed', ['html'], {}, { verbose: false });
 }
 
+function formatError(error:any) : string {
+    console.log(error);
+    if(typeof error === 'string') {
+        return error;
+    }
+    else if(Array.isArray(error)) {
+        return error.map( e => formatError(e)).join('\n');
+    }
+    else if(error.code) {
+        const sub = error.errors ? formatError(error.errors) : '';
+        const msg = error.renderedMessage ? error.renderedMessage : '';
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        return `Error: ${error.code} ${sub} ${msg}`;
+    }
+    return error.toString();
+}
+
 const useAppStore = create<AppState>()(
     immer(
         devtools(
@@ -153,8 +170,7 @@ const useAppStore = create<AppState>()(
                         set(() => ({ agreementHtml: result, error: undefined }));
                     }
                     catch(error:any) {
-                        console.log(error);
-                        set(() => ({ error: error.toString() }));
+                        set(() => ({ error: formatError(error) }));
                     }
                 },
                 setTemplateMarkdown: async (template: string) => {
@@ -163,8 +179,7 @@ const useAppStore = create<AppState>()(
                         set(() => ({ agreementHtml: result, error: undefined }));
                     }
                     catch(error:any) {
-                        console.log(error);
-                        set(() => ({ error: error.toString() }));
+                        set(() => ({ error: formatError(error) }));
                     }
                     set(() => ({ templateMarkdown: template }))
                 },
@@ -174,8 +189,7 @@ const useAppStore = create<AppState>()(
                         set(() => ({ agreementHtml: result, error: undefined }));
                     }
                     catch(error:any) {
-                        console.log(error);
-                        set(() => ({ error: error.toString() }));
+                        set(() => ({ error: formatError(error) }));
                     }
                     set(() => ({ modelCto: model }))
                 },
@@ -185,8 +199,7 @@ const useAppStore = create<AppState>()(
                         set(() => ({ agreementHtml: result, error: undefined }));
                     }
                     catch(error:any) {
-                        console.log(error);
-                        set(() => ({ error: error.toString() }));
+                        set(() => ({ error: formatError(error) }));
                     }
                     set(() => ({ data }))
                 }

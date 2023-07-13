@@ -20,13 +20,13 @@ function App() {
         <img src='APLogo.png' height={50}/>
         <h1>Template Playground</h1>
       </header>
+      <Errors/>
       <div className="row">
       <TemplateMarkdown/>
       <TemplateModel/>
       <AgreementData/>
       <AgreementHtml/>
       </div>
-      <Errors/>
     </div>
   );
 }
