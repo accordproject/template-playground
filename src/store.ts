@@ -57,17 +57,15 @@ const INITIAL_TEMPLATE = `### Welcome {{name}}!
 - Your monthly salary is {{salary as "0,0.00 CCC"}}
 - Your favorite colours are {{#join favoriteColors}}
 
-## Orders
-
 {{#clause order}}
+## Orders
 Your last order was placed {{createdAt as "D MMMM YYYY"}} ({{% return now.diff(order.createdAt, 'day')%}} days ago).
 
 {{#ulist orderLines}}
 - {{quantity}}x _{{sku}}_ @ £{{price as "0,0.00"}}
 {{/ulist}}
-{{/clause}}
-
 Order total: {{% return '£' + order.orderLines.map(ol => ol.price).reduce((sum, cur) => sum + cur);%}}
+{{/clause}}
 
 Thank you.
 `;
