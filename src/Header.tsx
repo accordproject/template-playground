@@ -10,7 +10,7 @@ function Header() {
                 <img src='APLogo.png' height={50} />
             </div>
             <div className="column">
-              <h2>Template Playground</h2>
+              <h2>Template Playground (Beta)</h2>
             </div>
             <div className="column">
               <p></p>
