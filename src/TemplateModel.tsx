@@ -5,8 +5,10 @@ function TemplateModel() {
   const model = useAppStore((state) => state.modelCto)
   const setModelCto = useAppStore((state) => state.setModelCto)
 
-  function onChange(event: { target: { value: string; }; }) {
-    void setModelCto(event.target.value);
+  function onChange(value: string|undefined) {
+    if(value) {
+      void setModelCto(value);
+    }
   }
 
   return <div className="column">

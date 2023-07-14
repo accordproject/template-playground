@@ -1,14 +1,13 @@
-import { ChangeEventHandler } from "react";
-import ControlledTextArea from "./ControlledTextArea";
+import Editor from '@monaco-editor/react';
 
-export default function MarkdownEditor( {readOnly, value, onChange} : {readOnly?: boolean, value: string, onChange?: ChangeEventHandler<HTMLTextAreaElement>} ) {
+const options = {
+  minimap: { enabled: false }
+}
+
+export default function MarkdownEditor( {value, onChange} : {value: string, onChange?: (value:string|undefined) => void} ) {
   return (
     <div className="textwrapper">
-        <ControlledTextArea readOnly={readOnly}
-          rows={20}
-          value={value}
-          onChange={onChange}
-        />
+        <Editor options={ options } height="50vh" defaultValue={value} onChange={onChange}/>
     </div>
   );
 }

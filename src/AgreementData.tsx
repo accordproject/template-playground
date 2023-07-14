@@ -5,8 +5,10 @@ function AgreementData() {
   const agreementData = useAppStore((state) => state.data);
   const setData = useAppStore((state) => state.setData)
 
-  function onChange(event: { target: { value: string; }; }) {
-    void setData(event.target.value);
+  function onChange(value: string|undefined) {
+    if(value) {
+      void setData(value);
+    }
   }
 
   return <div className="column">

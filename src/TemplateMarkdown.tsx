@@ -5,8 +5,10 @@ function TemplateMarkdown() {
   const templateMarkdown = useAppStore((state) => state.templateMarkdown)
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown)
 
-  function onChange(event: { target: { value: string; }; }) {
-    void setTemplateMarkdown(event.target.value);
+  function onChange(value: string|undefined) {
+    if(value) {
+      void setTemplateMarkdown(value);
+    }
   }
 
   return <div className="column">
