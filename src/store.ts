@@ -46,6 +46,8 @@ concept TemplateData {
 
 const INITIAL_TEMPLATE = `### Welcome {{name}}!
 
+<img src="https://avatars.githubusercontent.com/u/29445438?s=200&v=4" width="64px"/>
+
 {{#clause address}}  
 #### Address
 > {{line1}},  
