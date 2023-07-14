@@ -64,7 +64,7 @@ Your last order was placed {{createdAt as "D MMMM YYYY"}} ({{% return now.diff(o
 {{#ulist orderLines}}
 - {{quantity}}x _{{sku}}_ @ £{{price as "0,0.00"}}
 {{/ulist}}
-Order total: {{% return '£' + order.orderLines.map(ol => ol.price).reduce((sum, cur) => sum + cur);%}}
+Order total: {{% return '£' + order.orderLines.map(ol => ol.price * ol.quantity).reduce((sum, cur) => sum + cur).toFixed(2);%}}
 {{/clause}}
 
 Thank you.
