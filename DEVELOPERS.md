@@ -3,27 +3,29 @@
 ## ❗ Accord Project Development Guide ❗
 We'd love for you to help develop improvements to Concerto technology! Please refer to the [Accord Project Development guidelines][apdev] we'd like you to follow.
 
-## Concerto Specific Information
+## Template Playground Specific Information
 
 ### Development Setup
 
-#### Building Concerto
+#### Building Template Playground
 
-To build Concerto, you clone the source code repository and use lerna to build:
+To build Concerto, you clone the source code repository and use npm to build:
 
 ```shell
 # Clone your Github repository:
-git clone https://github.com/<GITHUB_USERNAME>/concerto.git
+git clone https://github.com/<GITHUB_USERNAME>/template-playground.git
 
-# Go to the Concerto directory:
-cd concerto
+# Go to the template-playground directory:
+cd template-playground
 
-# Add the main Concerto repository as an upstream remote to your repository:
-git remote add upstream "https://github.com/accordproject/concerto.git"
+# Add the main template-playground repository as an upstream remote to your repository:
+git remote add upstream "https://github.com/accordproject/template-playground.git"
 
 # Install node.js dependencies:
-npm install -g lerna
-lerna bootstrap
+npm i
+
+# Run
+npm run dev
 ```
 
 [apdev]: https://github.com/accordproject/techdocs/blob/master/DEVELOPERS.md
