@@ -45,7 +45,7 @@ jobs:
         with:
           args: --acl public-read --follow-symlinks --delete
         env:
-          SOURCE_DIR: 'build'
+          SOURCE_DIR: 'dist'
 
       - name: Invalidate Cloudfront
         uses: chetan/invalidate-cloudfront-action@master
