@@ -7,4 +7,6 @@ A web playground for Accord Project templates:
 3. TypeScript for logic within the templates
 4. Markdown-transform to transform the output to HTML, PDF etc.
 
-<a href="https://playground.accordproject.org"><h1>Online Playground</h1></a>
+## Demo
+
+This code is deployed at: [https://playground.accordproject.org](https://playground.accordproject.org)
