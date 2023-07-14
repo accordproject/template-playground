@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { debounce } from "ts-debounce";
 
 import { ModelManager } from '@accordproject/concerto-core';
 import { TemplateMarkInterpreter } from '@accordproject/template-engine';
@@ -138,6 +139,8 @@ async function rebuild(template: string, model: string, dataString: string) {
     return await transform(ciceroMark.toJSON(), 'ciceromark_parsed', ['html'], {}, { verbose: false });
 }
 
+const rebuildDeBounce = debounce(rebuild, 500);
+
 function formatError(error:any) : string {
     console.log(error);
     if(typeof error === 'string') {
@@ -166,7 +169,7 @@ const useAppStore = create<AppState>()(
                 error: undefined,
                 rebuild: async() => {
                     try {
-                        const result = await rebuild(get().templateMarkdown, get().modelCto, get().data);
+                        const result = await rebuildDeBounce(get().templateMarkdown, get().modelCto, get().data);
                         set(() => ({ agreementHtml: result, error: undefined }));
                     }
                     catch(error:any) {
@@ -175,7 +178,7 @@ const useAppStore = create<AppState>()(
                 },
                 setTemplateMarkdown: async (template: string) => {
                     try {
-                        const result = await rebuild(template, get().modelCto, get().data);
+                        const result = await rebuildDeBounce(template, get().modelCto, get().data);
                         set(() => ({ agreementHtml: result, error: undefined }));
                     }
                     catch(error:any) {
@@ -185,7 +188,7 @@ const useAppStore = create<AppState>()(
                 },
                 setModelCto: async (model: string) => {
                     try {
-                        const result = await rebuild(get().templateMarkdown, model, get().data);
+                        const result = await rebuildDeBounce(get().templateMarkdown, model, get().data);
                         set(() => ({ agreementHtml: result, error: undefined }));
                     }
                     catch(error:any) {
@@ -195,7 +198,7 @@ const useAppStore = create<AppState>()(
                 },
                 setData: async (data: string) => {
                     try {
-                        const result = await rebuild(get().templateMarkdown, get().modelCto, data);
+                        const result = await rebuildDeBounce(get().templateMarkdown, get().modelCto, data);
                         set(() => ({ agreementHtml: result, error: undefined }));
                     }
                     catch(error:any) {
