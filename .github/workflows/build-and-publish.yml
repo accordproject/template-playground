@@ -32,7 +32,7 @@ jobs:
         run: npm install
 
       - name: NPM Build
-        run: SERVER_ROOT=https://playground.accordproject.org && npm run build
+        run: SERVER_ROOT=https://playground.accordproject.org && NODE_OPTIONS=--max_old_space_size=8192 npm run build
         if: github.ref == 'refs/heads/main'
 
       - name: Set S3 
