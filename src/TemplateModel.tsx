@@ -12,7 +12,9 @@ function TemplateModel() {
   }
 
   return <div className="column">
-    <h2>Model</h2>
+    <div className="tooltip"><h3>Concerto Model</h3>
+      <span className="tooltiptext">Defines the data model for the template and its logic.</span>
+    </div>
     <MarkdownEditor value={model} onChange={onChange}/>
   </div>;
 }

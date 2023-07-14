@@ -6,6 +6,8 @@ import Errors from './Errors';
 import TemplateMarkdown from './TemplateMarkdown';
 import TemplateModel from './TemplateModel';
 import useAppStore from './store';
+import Header from './Header';
+import Footer from './Footer';
 
 function App() {
   const rebuild = useAppStore((state) => state.rebuild);
@@ -16,10 +18,7 @@ function App() {
 
   return (
     <div>
-      <header className="App-header">
-        <img src='APLogo.png' height={50}/>
-        <h1>Template Playground</h1>
-      </header>
+      <Header/>
       <Errors/>
       <div className="row">
       <TemplateMarkdown/>
@@ -27,6 +26,7 @@ function App() {
       <AgreementData/>
       <AgreementHtml/>
       </div>
+      <Footer/>
     </div>
   );
 }

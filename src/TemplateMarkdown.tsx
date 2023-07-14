@@ -5,15 +5,17 @@ function TemplateMarkdown() {
   const templateMarkdown = useAppStore((state) => state.templateMarkdown)
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown)
 
-  function onChange(value: string|undefined) {
-    if(value) {
+  function onChange(value: string | undefined) {
+    if (value) {
       void setTemplateMarkdown(value);
     }
   }
 
   return <div className="column">
-    <h2>Template</h2>
-    <MarkdownEditor value={templateMarkdown} onChange={onChange}/>
+    <div className="tooltip"><h3>TemplateMark</h3>
+      <span className="tooltiptext">A natural language template with embedded variables, conditional sections and TypeScript code.</span>
+    </div>
+    <MarkdownEditor value={templateMarkdown} onChange={onChange} />
   </div>;
 }
 

@@ -12,7 +12,9 @@ function AgreementData() {
   }
 
   return <div className="column">
-    <h2>Data</h2>
+    <div className="tooltip"><h3>Data</h3>
+      <span className="tooltiptext">JSON data (an instance of the Concerto model) used to preview output from the template.</span>
+    </div>
     <MarkdownEditor value={agreementData} onChange={onChange}/>
   </div>;
 }
