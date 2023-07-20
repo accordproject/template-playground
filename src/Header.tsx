@@ -1,4 +1,5 @@
 import './App.css';
+import SampleDropdown from './SampleDropdown';
 
 function Header() {
   return (
@@ -11,6 +12,9 @@ function Header() {
             </div>
             <div className="column">
               <h2>Template Playground (Beta)</h2>
+            </div>
+            <div className="column">
+            <SampleDropdown/>
             </div>
             <div className="column">
               <p></p>

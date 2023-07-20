@@ -29,7 +29,8 @@ concept TemplateData {
     o Order order
 }`;
 
-const TEMPLATE = `### Welcome {{name}}!
+const TEMPLATE = `> A general sample that uses a range of features
+### Welcome {{name}}!
 
 ![AP Logo](https://avatars.githubusercontent.com/u/29445438?s=64)
 

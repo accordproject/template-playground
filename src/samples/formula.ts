@@ -5,9 +5,11 @@ concept HelloWorld {
     o String name
 }`;
 
-const TEMPLATE = `> The one, the only...
+const TEMPLATE = `> Includes a TypeScript formula.
 
-### Hello {{name}}!
+### Welcome {{name}}!
+
+Your name has {{% return name.length %}} characters.
 `;
 
 const DATA = {
@@ -15,5 +17,5 @@ const DATA = {
     "name": "John Doe"
 };
 
-const NAME = 'Hello World';
+const NAME = 'Formula';
 export {NAME, MODEL,DATA,TEMPLATE};

@@ -6,6 +6,8 @@ import * as clause from './clause';
 import * as list from './list';
 import * as optional from './optional';
 import * as markdown from './markdown';
+import * as formula from './formula';
+import * as clausecondition from './clausecondition';
 
 export type Sample = {
     NAME: string,
@@ -17,9 +19,11 @@ export type Sample = {
 export const SAMPLES:Array<Sample> = [
     playground,
     helloworld,
+    formula,
     formulanow,
     join,
     clause,
+    clausecondition,
     list,
     optional,
     markdown

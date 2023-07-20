@@ -14,7 +14,7 @@ import { TemplateMarkTransformer } from '@accordproject/markdown-template';
 import { transform } from '@accordproject/markdown-transform';
 
 import {SAMPLES, Sample} from './samples';
-import * as playground from './samples/helloworld';
+import * as playground from './samples/playground';
 
 interface AppState {
     templateMarkdown: string

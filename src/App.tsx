@@ -8,7 +8,6 @@ import TemplateModel from './TemplateModel';
 import useAppStore from './store';
 import Header from './Header';
 import Footer from './Footer';
-import SampleDropdown from './SampleDropdown';
 
 function App() {
   const init = useAppStore((state) => state.init);
@@ -20,7 +19,6 @@ function App() {
   return (
     <div>
       <Header/>
-      <SampleDropdown/>
       <Errors/>
       <div className="row">
       <TemplateMarkdown/>

@@ -5,10 +5,20 @@ concept Person {
     o String[] middleNames
 }`;
 
-const TEMPLATE = `## Middle Names
+const TEMPLATE = `> Ordered and unorded list expansion
+
+## Lists
+
+Ordered:
 {{#olist middleNames}}
 - {{this}}
 {{/olist}}
+
+Unordered:
+{{#ulist middleNames}}
+- {{this}}
+{{/ulist}}
+
 `;
 
 const DATA = {
