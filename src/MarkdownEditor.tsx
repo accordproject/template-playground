@@ -7,7 +7,7 @@ const options = {
 export default function MarkdownEditor( {value, onChange} : {value: string, onChange?: (value:string|undefined) => void} ) {
   return (
     <div className="editorwrapper">
-        <Editor options={ options } height="60vh" defaultValue={value} onChange={onChange}/>
+        <Editor options={ options } height="60vh" value={value} onChange={onChange}/>
     </div>
   );
 }

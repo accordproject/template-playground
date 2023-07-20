@@ -8,17 +8,19 @@ import TemplateModel from './TemplateModel';
 import useAppStore from './store';
 import Header from './Header';
 import Footer from './Footer';
+import SampleDropdown from './SampleDropdown';
 
 function App() {
-  const rebuild = useAppStore((state) => state.rebuild);
+  const init = useAppStore((state) => state.init);
 
   useEffect( () => {
-    void rebuild();
-  }, [rebuild])
+    void init();
+  }, [init])
 
   return (
     <div>
       <Header/>
+      <SampleDropdown/>
       <Errors/>
       <div className="row">
       <TemplateMarkdown/>
