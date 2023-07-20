@@ -4,7 +4,7 @@ const MODEL = `namespace hello@1.0.0
 concept Empty {
 }`;
 
-const TEMPLATE = `
+const TEMPLATE = `> Most markdown can be used in a template.
 
 # h1 Heading 8-)
 ## h2 Heading

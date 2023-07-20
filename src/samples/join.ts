@@ -10,7 +10,9 @@ concept Insurance {
     o ItemType[] items
 }`;
 
-const TEMPLATE = `## en Locale
+const TEMPLATE = `> Joins lists using formatting options
+
+## en Locale
 
 ## Style
 

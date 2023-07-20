@@ -5,7 +5,7 @@ concept HelloWorld {
     o String name
 }`;
 
-const TEMPLATE = `Hello {{name}}! 
+const TEMPLATE = `> Includes a TypeScript formula that references the implicit \`now\` variable. 
 
 Today is **{{% return now.toISOString() %}}**.
 `;

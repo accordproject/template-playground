@@ -10,29 +10,25 @@ concept Address {
 
 @template
 concept Customer {
-    o Address address
+    o Address address optional
 }`;
 
 const TEMPLATE = `
-> Renders an object using the \`#clause\` block.
+> Renders an optional object using the \`#clause\` block with a conditional expression.
 
-{{#clause address}}  
+{{#clause address condition="return address!==undefined"}}  
 #### Address
 {{line1}},  
 {{city}}, {{state}},  
 {{country}}  
 {{/clause}}
+
+Done.
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.Customer",
-    "address" : {
-        "line1" : "1 Main Street",
-        "city" : "Boson",
-        "state" : "MA",
-        "country" : "USA"
-    }
+    "$class" : "hello@1.0.0.Customer"
 };
 
-const NAME = 'Clause';
+const NAME = 'Clause with Condition';
 export {NAME, MODEL,DATA,TEMPLATE};
