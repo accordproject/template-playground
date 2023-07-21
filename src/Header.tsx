@@ -1,34 +1,16 @@
-import './App.css';
-import SampleDropdown from './SampleDropdown';
+import { Button, Divider } from "antd";
 
-function Header() {
+function AppHeader() {
   return (
     <div>
-      <header className="App-header">
-        <div>
-          <div className="row">
-            <div className="column">
-                <img src='APLogo.png' height={50} />
-            </div>
-            <div className="column">
-              <h2>Template Playground (Beta)</h2>
-            </div>
-            <div className="column">
-            <SampleDropdown/>
-            </div>
-            <div className="column">
-              <p></p>
-            </div>
-            <div className="column">
-              <a href="https://github.com/accordproject/template-engine/blob/main/README.md" target="_blank" rel="noopener noreferrer">Documentation</a> <br />
-              <a href="https://github.com/accordproject/template-playground/issues" target="_blank" rel="noopener noreferrer">Issues</a><br />
-              <a href="https://discord.gg/Zm99SKhhtA" target="_blank" rel="noopener noreferrer">Community</a>
-            </div>
-          </div>
-        </div>
-      </header>
+        <Divider type="vertical"/>
+        <Button type="link" onClick={() =>  window.location.href='https://github.com/accordproject/template-engine/blob/main/README.md'}>Documentation</Button>
+        <Divider type="vertical"/>
+        <Button type="link" onClick={() =>  window.location.href='https://github.com/accordproject/template-playground/issues'}>Issues</Button>
+        <Divider type="vertical"/>
+        <Button type="link" onClick={() =>  window.location.href='https://discord.gg/Zm99SKhhtA'}>Community</Button>
     </div >
   );
 }
 
-export default Header;
+export default AppHeader;

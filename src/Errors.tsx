@@ -1,10 +1,11 @@
 import useAppStore from './store';
+import { Alert, Space } from 'antd';
 
 function Errors() {
   const error = useAppStore((state) => state.error)
-  return <div className="error">
-    <pre>{error}</pre>
-  </div>;
+  return error ? <Space direction="vertical" style={{ width: '100%' }}>
+    <Alert message={error} type="error" />
+  </Space> : <></>
 }
 
 export default Errors;

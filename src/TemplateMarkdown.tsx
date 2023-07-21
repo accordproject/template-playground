@@ -12,9 +12,8 @@ function TemplateMarkdown() {
   }
 
   return <div className="column">
-    <div className="tooltip"><h3>TemplateMark</h3>
-      <span className="tooltiptext">A natural language template with embedded variables, conditional sections and TypeScript code.</span>
-    </div>
+    <h2>TemplateMark</h2>
+    <p>A natural language template with embedded variables, conditional sections and TypeScript code.</p>
     <MarkdownEditor value={templateMarkdown} onChange={onChange} />
   </div>;
 }
