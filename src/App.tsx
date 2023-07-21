@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { App as AntdApp, Typography, Col, Collapse, Row } from 'antd';
 import { Layout, theme } from 'antd';
-const { Header, Content, Footer } = Layout;
+const { Header, Content } = Layout;
 
 import AgreementData from './AgreementData';
 import AgreementHtml from './AgreementHtml';
