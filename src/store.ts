@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -22,7 +17,7 @@ interface AppState {
     data: string
     agreementHtml: string
     error: string|undefined
-    samples: Array<Sample>;
+    samples: Array<Sample>
     sampleName: string;
     setTemplateMarkdown: (template: string) => Promise<void>
     setModelCto: (model: string) => Promise<void>
