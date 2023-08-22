@@ -14,11 +14,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@accordproject/concerto-core": "^3.8.2",
-    "@accordproject/markdown-common": "^0.16.13",
-    "@accordproject/markdown-template": "^0.16.13",
-    "@accordproject/markdown-transform": "^0.16.13",
-    "@accordproject/template-engine": "^2.3.2",
+    "@accordproject/concerto-core": "^3.11.1",
+    "@accordproject/markdown-common": "^0.16.19",
+    "@accordproject/markdown-template": "^0.16.19",
+    "@accordproject/markdown-transform": "^0.16.19",
+    "@accordproject/template-engine": "^2.3.5",
     "@monaco-editor/react": "^4.5.1",
     "antd": "^5.7.2",
     "core-js": "^3.31.1",
