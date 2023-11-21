@@ -1,4 +1,4 @@
-import MarkdownEditor from './MarkdownEditor';
+import ConcertoEditor from './ConcertoEditor';
 import useAppStore from './store';
 
 function TemplateModel() {
@@ -15,7 +15,7 @@ function TemplateModel() {
     <div className="tooltip"><h3>Concerto Model</h3>
       <span className="tooltiptext">Defines the data model for the template and its logic.</span>
     </div>
-    <MarkdownEditor value={model} onChange={onChange}/>
+    <ConcertoEditor value={model} onChange={onChange}/>
   </div>;
 }
 
