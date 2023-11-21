@@ -1,4 +1,4 @@
-import MarkdownEditor from './MarkdownEditor';
+import JSONEditor from './JSONEditor';
 import useAppStore from './store';
 
 function AgreementData() {
@@ -15,7 +15,7 @@ function AgreementData() {
     <div className="tooltip"><h3>Data</h3>
       <span className="tooltiptext">JSON data (an instance of the Concerto model) used to preview output from the template.</span>
     </div>
-    <MarkdownEditor value={agreementData} onChange={onChange}/>
+    <JSONEditor value={agreementData} onChange={onChange}/>
   </div>;
 }
 
