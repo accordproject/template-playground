@@ -1,5 +1,7 @@
 import * as monaco from '@monaco-editor/react';
-import { editor } from 'monaco-editor';
+import { editor, MarkerSeverity } from 'monaco-editor';
+import useAppStore from './store';
+import { useEffect, useMemo } from 'react';
 
 const options:editor.IStandaloneEditorConstructionOptions = {
   minimap: { enabled: false },
@@ -10,6 +12,34 @@ const concertoTypes = ['String','Integer','Double','DateTime','Long','Boolean']
 
 export default function ConcertoEditor( {value, onChange} : {value: string, onChange?: (value:string|undefined) => void} ) {
 
+    const monacoEditor = monaco.useMonaco();
+    const error = useAppStore((state) => state.error);
+    const ctoErr = useMemo(() => {
+        if (error && error.startsWith("c:")) {
+        return error;
+        }
+    }, [error]);
+    useEffect(() => {
+        let model = monacoEditor?.editor.getModels()[0];
+        if (ctoErr && monacoEditor) {
+        const match = ctoErr.match(/Line (\d+) column (\d+)/);
+
+        const lineNumber = parseInt(match[1]);
+        const columnNumber = parseInt(match[2]) - 1;
+        monacoEditor?.editor.setModelMarkers(model, "customMarker", [
+            {
+            startLineNumber: lineNumber,
+            startColumn: columnNumber - 1,
+            endLineNumber: lineNumber,
+            endColumn: columnNumber + 1,
+            message: ctoErr,
+            severity: MarkerSeverity.Error,
+            },
+        ]);
+        } else {
+        monacoEditor?.editor.setModelMarkers(model, "customMarker", []);
+        }
+    }, [ctoErr,monacoEditor]);
     function handleEditorWillMount(monaco:monaco.Monaco) {
         monaco.languages.register({
             id: 'concerto',
