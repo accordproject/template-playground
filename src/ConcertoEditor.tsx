@@ -45,7 +45,7 @@ export default function ConcertoEditor( {value, onChange} : {value: string, onCh
             id: 'concerto',
             extensions: ['.cto'],
             aliases: ['Concerto', 'concerto'],
-            mimetypes: ['application/concerto'],
+            mimetypes: ['application/vnd.accordproject.concerto'],
         });
       
         monaco.languages.setMonarchTokensProvider('concerto', {
