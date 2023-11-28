@@ -25,7 +25,7 @@ export default function ConcertoEditor( {value, onChange} : {value: string, onCh
         const match = ctoErr.match(/Line (\d+) column (\d+)/);
 
         const lineNumber = parseInt(match[1]);
-        const columnNumber = parseInt(match[2]) - 1;
+        const columnNumber = parseInt(match[2]) ;
         monacoEditor?.editor.setModelMarkers(model, "customMarker", [
             {
             startLineNumber: lineNumber,
