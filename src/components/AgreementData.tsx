@@ -1,12 +1,12 @@
 import JSONEditor from './JSONEditor';
-import useAppStore from './store';
+import useAppStore from '../store/store';
 
 function AgreementData() {
   const agreementData = useAppStore((state) => state.data);
   const setData = useAppStore((state) => state.setData)
 
-  function onChange(value: string|undefined) {
-    if(value) {
+  function onChange(value: string | undefined) {
+    if (value) {
       void setData(value);
     }
   }
@@ -15,7 +15,7 @@ function AgreementData() {
     <div className="tooltip"><h3>Data</h3>
       <span className="tooltiptext">JSON data (an instance of the Concerto model) used to preview output from the template.</span>
     </div>
-    <JSONEditor value={agreementData} onChange={onChange}/>
+    <JSONEditor value={agreementData} onChange={onChange} />
   </div>;
 }
 

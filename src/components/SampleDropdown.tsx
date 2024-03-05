@@ -3,7 +3,7 @@ import type { MenuProps } from 'antd';
 import { Button, Dropdown, Space, message } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 
-import useAppStore from './store';
+import useAppStore from '../store/store';
 
 function SampleDropdown() {
   const samples = useAppStore((state) => state.samples)
@@ -31,8 +31,8 @@ function SampleDropdown() {
   return <Space>
     <Dropdown menu={menuProps}>
       <Button>
-          Load Sample
-          <DownOutlined />
+        Load Sample
+        <DownOutlined />
       </Button>
     </Dropdown>
   </Space >

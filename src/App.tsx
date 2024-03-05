@@ -3,15 +3,15 @@ import { App as AntdApp, Typography, Col, Collapse, Row } from 'antd';
 import { Layout, theme } from 'antd';
 const { Header, Content } = Layout;
 
-import AgreementData from './AgreementData';
-import AgreementHtml from './AgreementHtml';
-import './App.css';
-import Errors from './Errors';
-import TemplateMarkdown from './TemplateMarkdown';
-import TemplateModel from './TemplateModel';
-import useAppStore from './store';
-import SampleDropdown from './SampleDropdown';
-import Links from './Links';
+import AgreementData from './components/AgreementData';
+import AgreementHtml from './components/AgreementHtml';
+import './styles/App.css';
+import Errors from './components/Errors';
+import TemplateMarkdown from './components/TemplateMarkdown';
+import TemplateModel from './components/TemplateModel';
+import useAppStore from './store/store';
+import SampleDropdown from './components/SampleDropdown';
+import Links from './components/Links';
 
 function App() {
   const init = useAppStore((state) => state.init);
