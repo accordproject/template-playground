@@ -1,17 +1,16 @@
+import { App as AntdApp, Col, Collapse, Layout, Row, Typography, theme } from 'antd';
 import { useEffect, useState } from 'react';
-import { App as AntdApp, Typography, Col, Collapse, Row } from 'antd';
-import { Layout, theme } from 'antd';
 const { Header, Content } = Layout;
 
 import AgreementData from './components/AgreementData';
 import AgreementHtml from './components/AgreementHtml';
-import './styles/App.css';
 import Errors from './components/Errors';
+import Links from './components/Links';
+import SampleDropdown from './components/SampleDropdown';
 import TemplateMarkdown from './components/TemplateMarkdown';
 import TemplateModel from './components/TemplateModel';
 import useAppStore from './store/store';
-import SampleDropdown from './components/SampleDropdown';
-import Links from './components/Links';
+import './styles/App.css';
 
 function App() {
   const init = useAppStore((state) => state.init);

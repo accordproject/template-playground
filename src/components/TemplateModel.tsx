@@ -1,5 +1,5 @@
-import ConcertoEditor from './ConcertoEditor';
 import useAppStore from '../store/store';
+import ConcertoEditor from './ConcertoEditor';
 
 function TemplateModel() {
   const model = useAppStore((state) => state.modelCto)

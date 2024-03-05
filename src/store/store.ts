@@ -1,12 +1,12 @@
+import { debounce } from "ts-debounce";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { debounce } from "ts-debounce";
 
 import { ModelManager } from "@accordproject/concerto-core";
-import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
+import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
