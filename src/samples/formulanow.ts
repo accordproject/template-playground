@@ -11,9 +11,9 @@ Today is **{{% return now.toISOString() %}}**.
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.HelloWorld",
-    "name": "John Doe"
+  $class: "hello@1.0.0.HelloWorld",
+  name: "John Doe",
 };
 
-const NAME = 'Formula Now';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Formula Now";
+export { NAME, MODEL, DATA, TEMPLATE };
