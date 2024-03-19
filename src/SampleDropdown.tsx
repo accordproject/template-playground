@@ -1,10 +1,12 @@
-import type { MenuProps } from "antd";
+import React, { useState } from "react";
 import { Button, Dropdown, Space, message } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 
 import useAppStore from "./store";
 
 function SampleDropdown() {
+  const [loading, setLoading] = useState(false);
+
   const samples = useAppStore((state) => state.samples);
   const loadSample = useAppStore((state) => state.loadSample);
   const selectedSample = useAppStore((state) => state.sampleName);
@@ -14,10 +16,17 @@ function SampleDropdown() {
     key: s.NAME,
   }));
 
-  const handleMenuClick: MenuProps["onClick"] = (e) => {
+  const handleMenuClick = async (e: any) => {
     if (e.key) {
-      loadSample(e.key);
-      message.info(`Loaded ${e.key} sample`);
+      setLoading(true);
+      try {
+        await loadSample(e.key);
+        message.info(`Loaded ${e.key} sample`);
+      } catch (error) {
+        message.error("Failed to load sample");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
