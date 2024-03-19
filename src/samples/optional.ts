@@ -17,12 +17,12 @@ Done.
 `;
 
 const DATA = {
-    "$class" : "test@1.0.0.TemplateData",
-    "loyaltyStatus" : {
-        $class: "test@1.0.0.LoyaltyStatus",
-        level: "Gold"
-    }
+  $class: "test@1.0.0.TemplateData",
+  loyaltyStatus: {
+    $class: "test@1.0.0.LoyaltyStatus",
+    level: "Gold",
+  },
 };
 
-const NAME = 'Optional';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Optional";
+export { NAME, MODEL, DATA, TEMPLATE };
