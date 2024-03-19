@@ -44,6 +44,13 @@ async function rebuild(template: string, model: string, dataString: string) {
 
   const data = JSON.parse(dataString);
 
+  // Check if 'last' property is provided in the data
+  if ("last" in data) {
+    throw new Error(
+      "Error: 'last' is an optional property and should not be provided in the data."
+    );
+  }
+
   const ciceroMark = await engine.generate(templateMarkDom, data);
   return await transform(
     ciceroMark.toJSON(),
