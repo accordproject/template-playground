@@ -10,7 +10,6 @@ import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
 
 const { Content } = Layout;
-
 const App = () => {
   const init = useAppStore((state) => state.init);
   const [activePanel, setActivePanel] = useState<string | string[]>();
