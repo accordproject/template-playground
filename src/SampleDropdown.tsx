@@ -1,25 +1,23 @@
+import type { MenuProps } from "antd";
+import { Button, Dropdown, Space, message } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 
-import type { MenuProps } from 'antd';
-import { Button, Dropdown, Space, message } from 'antd';
-import { DownOutlined } from '@ant-design/icons';
-
-import useAppStore from './store';
+import useAppStore from "./store";
 
 function SampleDropdown() {
-  const samples = useAppStore((state) => state.samples)
-  const loadSample = useAppStore((state) => state.loadSample)
+  const samples = useAppStore((state) => state.samples);
+  const loadSample = useAppStore((state) => state.loadSample);
+  const selectedSample = useAppStore((state) => state.sampleName);
 
-  const items = samples.map(s => {
-    return {
-      label: s.NAME,
-      key: s.NAME,
-    }
-  })
+  const items = samples.map((s) => ({
+    label: s.NAME,
+    key: s.NAME,
+  }));
 
-  const handleMenuClick: MenuProps['onClick'] = (e) => {
+  const handleMenuClick: MenuProps["onClick"] = (e) => {
     if (e.key) {
-      void loadSample(e.key);
-      void message.info(`Loaded ${e.key} sample`);
+      loadSample(e.key);
+      message.info(`Loaded ${e.key} sample`);
     }
   };
 
@@ -28,14 +26,16 @@ function SampleDropdown() {
     onClick: handleMenuClick,
   };
 
-  return <Space>
-    <Dropdown menu={menuProps}>
-      <Button>
-          Load Sample
+  return (
+    <Space>
+      <Dropdown menu={menuProps}>
+        <Button>
+          {selectedSample ? selectedSample : "Load Sample"}
           <DownOutlined />
-      </Button>
-    </Dropdown>
-  </Space >
+        </Button>
+      </Dropdown>
+    </Space>
+  );
 }
 
 export default SampleDropdown;
