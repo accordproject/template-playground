@@ -1,25 +1,31 @@
+import React, { useState } from "react";
+import { Button, Dropdown, Space, message } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 
-import type { MenuProps } from 'antd';
-import { Button, Dropdown, Space, message } from 'antd';
-import { DownOutlined } from '@ant-design/icons';
-
-import useAppStore from './store';
+import useAppStore from "./store";
 
 function SampleDropdown() {
-  const samples = useAppStore((state) => state.samples)
-  const loadSample = useAppStore((state) => state.loadSample)
+  const [loading, setLoading] = useState(false);
 
-  const items = samples.map(s => {
-    return {
-      label: s.NAME,
-      key: s.NAME,
-    }
-  })
+  const samples = useAppStore((state) => state.samples);
+  const loadSample = useAppStore((state) => state.loadSample);
 
-  const handleMenuClick: MenuProps['onClick'] = (e) => {
+  const items = samples.map((s) => ({
+    label: s.NAME,
+    key: s.NAME,
+  }));
+
+  const handleMenuClick = async (e: any) => {
     if (e.key) {
-      void loadSample(e.key);
-      void message.info(`Loaded ${e.key} sample`);
+      setLoading(true);
+      try {
+        await loadSample(e.key);
+        message.info(`Loaded ${e.key} sample`);
+      } catch (error) {
+        message.error("Failed to load sample");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -28,14 +34,15 @@ function SampleDropdown() {
     onClick: handleMenuClick,
   };
 
-  return <Space>
-    <Dropdown menu={menuProps}>
-      <Button>
-          Load Sample
-          <DownOutlined />
-      </Button>
-    </Dropdown>
-  </Space >
+  return (
+    <Space>
+      <Dropdown menu={menuProps} trigger={["click"]}>
+        <Button loading={loading}>
+          Load Sample <DownOutlined />
+        </Button>
+      </Dropdown>
+    </Space>
+  );
 }
 
 export default SampleDropdown;
