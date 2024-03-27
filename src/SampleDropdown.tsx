@@ -1,3 +1,4 @@
+import type { MenuProps } from "ant
 import React, { useState } from "react";
 import { Button, Dropdown, Space, message } from "antd";
 import { DownOutlined } from "@ant-design/icons";
@@ -5,15 +6,16 @@ import { DownOutlined } from "@ant-design/icons";
 import useAppStore from "./store";
 
 function SampleDropdown() {
-  const [loading, setLoading] = useState(false);
-
   const samples = useAppStore((state) => state.samples);
   const loadSample = useAppStore((state) => state.loadSample);
+  const selectedSample = useAppStore((state) => state.sampleName);
+  const [loading, setLoading] = useState(false);
 
   const items = samples.map((s) => ({
     label: s.NAME,
     key: s.NAME,
   }));
+
 
   const handleMenuClick = async (e: any) => {
     if (e.key) {
@@ -36,9 +38,10 @@ function SampleDropdown() {
 
   return (
     <Space>
-      <Dropdown menu={menuProps} trigger={["click"]}>
-        <Button loading={loading}>
-          Load Sample <DownOutlined />
+      <Dropdown menu={menuProps}>
+        <Button>
+          {selectedSample ? selectedSample : "Load Sample"}
+          <DownOutlined />
         </Button>
       </Dropdown>
     </Space>
