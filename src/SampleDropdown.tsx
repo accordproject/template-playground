@@ -5,11 +5,10 @@ import { DownOutlined } from "@ant-design/icons";
 import useAppStore from "./store";
 
 function SampleDropdown() {
-  const [loading, setLoading] = useState(false);
-
   const samples = useAppStore((state) => state.samples);
-  const selectedSample = useAppStore((state) => state.sampleName);
   const loadSample = useAppStore((state) => state.loadSample);
+  const selectedSample = useAppStore((state) => state.sampleName);
+  const [loading, setLoading] = useState(false);
 
   const items = samples.map((s) => ({
     label: s.NAME,
