@@ -1,4 +1,4 @@
-import type { MenuProps } from "ant
+import type { MenuProps } from "antd";
 import React, { useState } from "react";
 import { Button, Dropdown, Space, message } from "antd";
 import { DownOutlined } from "@ant-design/icons";
@@ -15,7 +15,6 @@ function SampleDropdown() {
     label: s.NAME,
     key: s.NAME,
   }));
-
 
   const handleMenuClick = async (e: any) => {
     if (e.key) {
