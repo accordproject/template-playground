@@ -52,7 +52,7 @@ The Template Playground is deployed at: [https://playground.accordproject.org](h
 
 <p align="center">
   <a href="https://www.accordproject.org/">
-    <img src="assets/images/APLogo.png" alt="Accord Project Logo" width="400" />
+    <img src="public/APLogo.png" alt="Accord Project Logo" width="400" />
   </a>
 </p>
 
