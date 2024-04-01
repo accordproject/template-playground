@@ -6,7 +6,6 @@ const options: editor.IStandaloneEditorConstructionOptions = {
   wordWrap: "on",
 };
 const concertoKeywords = [
-  "map",
   "concept",
   "from",
   "optional",
