@@ -52,43 +52,23 @@ export default function ConcertoEditor({
       mimetypes: ["application/concerto"],
     });
 
-    function handleEditorWillMount(monaco:monaco.Monaco) {
-        monaco.languages.register({
-            id: 'concerto',
-            extensions: ['.cto'],
-            aliases: ['Concerto', 'concerto'],
-            mimetypes: ['application/vnd.accordproject.concerto'],
-        });
-      
-        monaco.languages.setMonarchTokensProvider('concerto', {
-            keywords: concertoKeywords,
-            typeKeywords: concertoTypes,
-            operators: ['=', '{', '}', '@', '"'],
-            symbols: /[=}{@"]+/,
-            escapes: /\\(?:[btnfru"'\\]|\\u[0-9A-Fa-f]{4})/,
-            tokenizer: {
-            root: [
-                { include: '@whitespace' },
-                [/[a-zA-Z_]\w*/, {
-                cases: {
-                    '@keywords': 'keyword',
-                    '@typeKeywords': 'type',
-                    '@default': 'identifier',
-                },
-                }],
-                [/"([^"\\]|\\.)*$/, 'string.invalid'],  // non-terminated string
-                [/"/, 'string', '@string'],
-            ],
-            string: [
-                [/[^\\"]+/, 'string'],
-                [/@escapes/, 'string.escape'],
-                [/\\./, 'string.escape.invalid'],
-                [/"/, 'string', '@pop'],
-            ],
-            whitespace: [
-                [/\s+/, 'white'],
-                [/(\/\/.*)/, 'comment'],
-            ],
+    monaco.languages.setMonarchTokensProvider("concerto", {
+      keywords: concertoKeywords,
+      typeKeywords: concertoTypes,
+      operators: ["=", "{", "}", "@", '"'],
+      symbols: /[=}{@"]+/,
+      escapes: /\\(?:[btnfru"'\\]|\\u[0-9A-Fa-f]{4})/,
+      tokenizer: {
+        root: [
+          { include: "@whitespace" },
+          [
+            /[a-zA-Z_]\w*/,
+            {
+              cases: {
+                "@keywords": "keyword",
+                "@typeKeywords": "type",
+                "@default": "identifier",
+              },
             },
           ],
           [/"([^"\\]|\\.)*$/, "string.invalid"], // non-terminated string
