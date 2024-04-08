@@ -8,8 +8,6 @@
 
 This repository hosts the Accord Project Template-Playground. Templates are resourced using the [Template-Engine](https://github.com/accordproject/template-engine), rich-text templates are defined in TemplateMark (either as markdown files, or JSON documents) and are then merged with JSON data to produce output documents.
 
-The build system for this repository publishes the templates to: [https://playground.accordproject.org](https://playground.accordproject.org)
-
 ## Accord Project Playground
 
 **Project Overview**
