@@ -21,7 +21,6 @@ The Accord Project Template-Playground is a web-based platform designed to empow
    This playground aims to bridge the gap between static documentation and active learning by providing:
 
 - **Interactive Template Samples:** Users can directly edit and test template samples and see the corresponding output in a live preview environment, fostering a hands-on learning experience.
-- **Integrated Learning Resources:** Comprehensive documentation, tutorials, and search functionality will be readily accessible within the playground, allowing for deeper dives into specific concepts.
 
 **Interactive Features**
 
