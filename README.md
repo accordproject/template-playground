@@ -12,7 +12,7 @@ This repository hosts the Accord Project Template-Playground. Templates are reso
 
 **Project Overview**
 
-The Accord Project Playground is a web-based platform designed to empower developers of all backgrounds to learn and experiment with Accord Project functionalities in a user-friendly and interactive environment. It is a Web playground for Accord Project templates:
+The Accord Project Template-Playground is a web-based platform designed to empower developers of all backgrounds to learn and experiment with Accord Project functionalities in a user-friendly and interactive environment. It is a Web playground for Accord Project templates:
 
 1. TemplateMark for the natural language text
 2. [Concerto](https://docs.accordproject.org/docs/model-concerto.html) for the data model
