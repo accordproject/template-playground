@@ -36,16 +36,6 @@ The Accord Project Playground is an open-source project, welcoming contributions
 - **Functionality Enhancements:** Improve existing features based on user feedback and project needs.
 - **Documentation and Tutorials:** Contribute to comprehensive documentation and tutorials that guide users through the platform effectively.
 
-**Next Steps**
-
-Want to contribute and need further information? We have a detailed contributors guide below, Find out what's coming and join the community on discord to get involved.
-
-Checkout our [blog][apblog].
-
-Join the Accord Project Technology [Discord server][apslack] to get involved!
-
-For code contributions, read our [CONTRIBUTING guide][contributing] and information for [DEVELOPERS][developers].
-
 ## Demo
 
 The Template Playground is deployed at: [https://playground.accordproject.org](https://playground.accordproject.org)
