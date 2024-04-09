@@ -14,11 +14,11 @@ This repository hosts the Accord Project Template-Playground. Templates are reso
 
 The Accord Project Template-Playground is a web-based platform designed to empower developers of all backgrounds to learn and experiment with Accord Project functionalities in a user-friendly and interactive environment. It is a Web playground for Accord Project templates:
 
-1. TemplateMark for the natural language text
-2. [Concerto](https://docs.accordproject.org/docs/model-concerto.html) for the data model
-3. TypeScript for logic within the templates
+1. TemplateMark for the natural language text.
+2. [Concerto](https://docs.accordproject.org/docs/model-concerto.html) for the data model.
+3. TypeScript for logic within the templates.
 4. [Markdown-Transform](https://github.com/accordproject/markdown-transform) to transform the output to HTML, PDF etc.
-5. [Template-Engine](https://github.com/accordproject/template-engine) to convert TemplateMark + JSON data to AgreementMark
+5. [Template-Engine](https://github.com/accordproject/template-engine) to convert TemplateMark + JSON data to AgreementMark.
    This playground aims to bridge the gap between static documentation and active learning by providing:
 
 - **Interactive Template Samples:** Users can directly edit and test template samples and see the corresponding output in a live preview environment, fostering a hands-on learning experience.
