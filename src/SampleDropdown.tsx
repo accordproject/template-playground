@@ -8,6 +8,7 @@ function SampleDropdown() {
   const [loading, setLoading] = useState(false);
 
   const samples = useAppStore((state) => state.samples);
+  const selectedSample = useAppStore((state) => state.sampleName);
   const loadSample = useAppStore((state) => state.loadSample);
 
   const items = samples.map((s) => ({
@@ -38,7 +39,7 @@ function SampleDropdown() {
     <Space>
       <Dropdown menu={menuProps} trigger={["click"]}>
         <Button loading={loading}>
-          Load Sample <DownOutlined />
+          {selectedSample} <DownOutlined />
         </Button>
       </Dropdown>
     </Space>
