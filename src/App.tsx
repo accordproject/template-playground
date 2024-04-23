@@ -1,21 +1,26 @@
-import { useEffect, useState } from "react";
-import { App as AntdApp, Typography, Col, Collapse, Row } from "antd";
-import { Layout, theme } from "antd";
+import React, { useEffect, useState } from "react";
+import { App as AntdApp, Layout, Row, Col, Collapse, theme } from "antd";
 import Navbar from "./Navbar";
-const { Header, Content } = Layout;
-
 import AgreementData from "./AgreementData";
 import AgreementHtml from "./AgreementHtml";
-import "./App.css";
 import Errors from "./Errors";
 import TemplateMarkdown from "./TemplateMarkdown";
 import TemplateModel from "./TemplateModel";
 import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
 
-function App() {
+const { Content } = Layout;
+
+const App = () => {
   const init = useAppStore((state) => state.init);
   const [activePanel, setActivePanel] = useState<string | string[]>();
+
+  const scrollToExplore = () => {
+    const exploreContent = document.getElementById("explore");
+    if (exploreContent) {
+      exploreContent.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const {
     token: { colorBgContainer },
@@ -51,7 +56,7 @@ function App() {
     <AntdApp>
       <Layout>
         <Layout>
-          <Navbar />
+          <Navbar scrollToExplore={scrollToExplore} />
           <Content>
             <div
               style={{
@@ -61,7 +66,7 @@ function App() {
                 background: colorBgContainer,
               }}
             >
-              <Row>
+              <Row id="explore">
                 <Col span={4}>
                   <SampleDropdown />
                 </Col>
@@ -95,6 +100,6 @@ function App() {
       </Layout>
     </AntdApp>
   );
-}
+};
 
 export default App;
