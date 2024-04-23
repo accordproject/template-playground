@@ -72,7 +72,7 @@ The Accord Project technology is being developed as open source. All the softwar
 
 Find out what’s coming on our [blog][apblog].
 
-Join the Accord Project Technology Working Group [Discord channel][apslack] to get involved!
+Join the Accord Project Technology Working Group [Discord channel][apdiscord] to get involved!
 
 For code contributions, read our [CONTRIBUTING guide][contributing] and information for [DEVELOPERS][developers].
 
@@ -96,7 +96,7 @@ Copyright 2018-2019 Clause, Inc. All trademarks are the property of their respec
 [apmain]: https://accordproject.org/
 [apblog]: https://accordproject.org/news
 [apdoc]: https://docs.accordproject.org/
-[apslack]: https://discord.gg/Zm99SKhhtA
+[apdiscord]: https://discord.gg/Zm99SKhhtA
 [contributing]: https://github.com/accordproject/models/blob/master/CONTRIBUTING.md
 [developers]: https://github.com/accordproject/models/blob/master/DEVELOPERS.md
 [apache]: https://github.com/accordproject/models/blob/master/LICENSE
