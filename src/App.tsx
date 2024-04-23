@@ -3,16 +3,6 @@ import { App as AntdApp, Typography, Col, Collapse, Row } from "antd";
 import { Layout, theme } from "antd";
 import Navbar from "./Navbar";
 const { Header, Content } = Layout;
-import {
-  Container,
-  Divider,
-  Dropdown,
-  Grid,
-  Image,
-  List,
-  Menu,
-  Segment,
-} from "semantic-ui-react";
 
 import AgreementData from "./AgreementData";
 import AgreementHtml from "./AgreementHtml";
@@ -22,7 +12,6 @@ import TemplateMarkdown from "./TemplateMarkdown";
 import TemplateModel from "./TemplateModel";
 import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
-import Links from "./Links";
 
 function App() {
   const init = useAppStore((state) => state.init);
@@ -76,11 +65,8 @@ function App() {
                 <Col span={4}>
                   <SampleDropdown />
                 </Col>
-                <Col span={14}>
+                <Col span={18}>
                   <Errors />
-                </Col>
-                <Col span={6}>
-                  <Links />
                 </Col>
               </Row>
               <div
