@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { App as AntdApp, Typography, Col, Collapse, Row } from "antd";
 import { Layout, theme } from "antd";
+import Navbar from "./Navbar";
 const { Header, Content } = Layout;
 import {
   Container,
@@ -73,46 +74,11 @@ function App() {
               <span style={{ fontSize: "80%", color: "#87CEEB" }}>(BETA)</span>
             </Typography.Title>
           </Header> */}
-          <Menu
-            fixed="top"
-            inverted
-            style={{ background: "#1b2540", height: "65px" }}
-          >
-            <Container>
-              <Menu.Item as="a" header>
-                <Image
-                  size="small"
-                  href="https://www.accordproject.org"
-                  src="/logo.png"
-                  style={{ marginRight: "1.5em" }}
-                  target="_blank"
-                />
-                Project Name
-              </Menu.Item>
-              <Menu.Item as="a">Home</Menu.Item>
-
-              <Dropdown item simple text="Dropdown">
-                <Dropdown.Menu>
-                  <Dropdown.Item>List Item</Dropdown.Item>
-                  <Dropdown.Item>List Item</Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Header>Header Item</Dropdown.Header>
-                  <Dropdown.Item>
-                    <i className="dropdown icon" />
-                    <span className="text">Submenu</span>
-                    <Dropdown.Menu>
-                      <Dropdown.Item>List Item</Dropdown.Item>
-                      <Dropdown.Item>List Item</Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown.Item>
-                  <Dropdown.Item>List Item</Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </Container>
-          </Menu>
+          <Navbar />
           <Content>
             <div
               style={{
+                marginTop: 60,
                 padding: 24,
                 minHeight: 360,
                 background: colorBgContainer,
