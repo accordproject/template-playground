@@ -7,7 +7,7 @@ import {
   Menu,
 } from "semantic-ui-react";
 
-function Navbar() {
+function Navbar({ scrollToExplore }: { scrollToExplore: any}) {
   return (
     <Menu
       fixed="top"
@@ -25,7 +25,9 @@ function Navbar() {
           />
           Template Playground{" "}
         </Menu.Item>
-        <Menu.Item as="a">Explore</Menu.Item>
+        <Menu.Item as="a" onClick={scrollToExplore}>
+          Explore
+        </Menu.Item>
 
         <Dropdown item simple text="Help">
           <Dropdown.Menu>
