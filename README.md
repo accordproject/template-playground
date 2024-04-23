@@ -94,7 +94,7 @@ Copyright 2018-2019 Clause, Inc. All trademarks are the property of their respec
 [linuxfound]: https://www.linuxfoundation.org
 [charter]: https://github.com/accordproject/governance/blob/master/accord-project-technical-charter.md
 [apmain]: https://accordproject.org/
-[apblog]: https://medium.com/@accordhq
+[apblog]: https://accordproject.org/news
 [apdoc]: https://docs.accordproject.org/
 [apslack]: https://discord.gg/Zm99SKhhtA
 [contributing]: https://github.com/accordproject/models/blob/master/CONTRIBUTING.md
