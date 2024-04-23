@@ -7,7 +7,7 @@ import {
   Menu,
 } from "semantic-ui-react";
 
-function Navbar({ scrollToExplore }: { scrollToExplore: any}) {
+function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
   return (
     <Menu
       fixed="top"
@@ -59,6 +59,9 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any}) {
             </Menu.Item>
           </Dropdown.Menu>
         </Dropdown>
+        <Menu.Item as="a" position="right">
+          <Icon name="github" size="large" style={{ color: "white" }} /> Github
+        </Menu.Item>
       </Container>
     </Menu>
   );
