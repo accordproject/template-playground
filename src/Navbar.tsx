@@ -1,12 +1,10 @@
 import {
   Container,
-  Divider,
   Dropdown,
-  Grid,
+  Header,
+  Icon,
   Image,
-  List,
   Menu,
-  Segment,
 } from "semantic-ui-react";
 
 function Navbar() {
@@ -27,23 +25,36 @@ function Navbar() {
           />
           Template Playground{" "}
         </Menu.Item>
-        <Menu.Item as="a">Home</Menu.Item>
+        <Menu.Item as="a">Explore</Menu.Item>
 
-        <Dropdown item simple text="Dropdown">
+        <Dropdown item simple text="Help">
           <Dropdown.Menu>
-            <Dropdown.Item>List Item</Dropdown.Item>
-            <Dropdown.Item>List Item</Dropdown.Item>
-            <Dropdown.Divider />
-            <Dropdown.Header>Header Item</Dropdown.Header>
-            <Dropdown.Item>
-              <i className="dropdown icon" />
-              <span className="text">Submenu</span>
-              <Dropdown.Menu>
-                <Dropdown.Item>List Item</Dropdown.Item>
-                <Dropdown.Item>List Item</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown.Item>
-            <Dropdown.Item>List Item</Dropdown.Item>
+            <Header as="h4">Info</Header>
+            <Menu.Item
+              href="https://github.com/accordproject/template-playground/blob/main/README.md"
+              target="_blank"
+            >
+              <Icon name="question" /> About
+            </Menu.Item>
+            <Menu.Item
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+            >
+              <Icon name="user" /> Community
+            </Menu.Item>
+            <Menu.Item
+              href="https://github.com/accordproject/template-playground/issues"
+              target="_blank"
+            >
+              <Icon name="info" /> Issues
+            </Menu.Item>
+            <Header as="h4">Documentation</Header>
+            <Menu.Item
+              href="https://github.com/accordproject/template-engine/blob/main/README.md"
+              target="_blank"
+            >
+              <Icon name="book" /> Documentaion
+            </Menu.Item>
           </Dropdown.Menu>
         </Dropdown>
       </Container>
