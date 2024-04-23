@@ -62,18 +62,6 @@ function App() {
     <AntdApp>
       <Layout>
         <Layout>
-          {/* <Header
-            style={{
-              textAlign: "center",
-              padding: 0,
-              background: colorBgContainer,
-            }}
-          >
-            <Typography.Title level={2} style={{ fontWeight: 700 }}>
-              Template Playground{" "}
-              <span style={{ fontSize: "80%", color: "#87CEEB" }}>(BETA)</span>
-            </Typography.Title>
-          </Header> */}
           <Navbar />
           <Content>
             <div
