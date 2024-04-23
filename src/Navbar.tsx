@@ -59,7 +59,12 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             </Menu.Item>
           </Dropdown.Menu>
         </Dropdown>
-        <Menu.Item as="a" position="right">
+        <Menu.Item
+          as="a"
+          position="right"
+          href="https://github.com/accordproject/template-playground"
+          target="_blank"
+        >
           <Icon name="github" size="large" style={{ color: "white" }} /> Github
         </Menu.Item>
       </Container>
