@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Row, Col, Collapse, theme } from "antd";
-import Navbar from "./Navbar";
+import {
+  Container,
+  Header,
+  Grid,
+  Segment,
+  Accordion,
+  AccordionTitleProps,
+} from "semantic-ui-react";
+
 import AgreementData from "./AgreementData";
 import AgreementHtml from "./AgreementHtml";
 import Errors from "./Errors";
@@ -9,25 +16,19 @@ import TemplateModel from "./TemplateModel";
 import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
 
-const { Content } = Layout;
-
 const App = () => {
   const init = useAppStore((state) => state.init);
-  const [activePanel, setActivePanel] = useState<string | string[]>();
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
 
-  const scrollToExplore = () => {
-    const exploreContent = document.getElementById("explore");
-    if (exploreContent) {
-      exploreContent.scrollIntoView({ behavior: "smooth" });
+  const handleAccordionClick = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    titleProps: AccordionTitleProps
+  ) => {
+    const { index } = titleProps;
+    if (typeof index === "number") {
+      const newIndex = activeIndex === index ? -1 : index;
+      setActiveIndex(newIndex);
     }
-  };
-
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
-
-  const onChange = (key: string | string[]) => {
-    setActivePanel(key);
   };
 
   useEffect(() => {
@@ -38,67 +39,64 @@ const App = () => {
     {
       key: "templateMark",
       label: "TemplateMark",
-      children: <TemplateMarkdown />,
+      content: { content: <TemplateMarkdown />, key: "templateMark" },
     },
     {
       key: "model",
       label: "Concerto Model",
-      children: <TemplateModel />,
+      content: { content: <TemplateModel />, key: "model" },
     },
     {
       key: "data",
       label: "Preview Data",
-      children: <AgreementData />,
+      content: { content: <AgreementData />, key: "data" },
     },
   ];
 
   return (
-    <AntdApp>
-      <Layout>
-        <Layout>
-          <Navbar scrollToExplore={scrollToExplore} />
-          <Content>
-            <div
-              style={{
-                marginTop: 60,
-                padding: 24,
-                minHeight: 360,
-                background: colorBgContainer,
-              }}
-            >
-              <Row id="explore">
-                <Col span={4}>
-                  <SampleDropdown />
-                </Col>
-                <Col span={18}>
-                  <Errors />
-                </Col>
-              </Row>
-              <div
-                style={{
-                  padding: 24,
-                  minHeight: 360,
-                  background: colorBgContainer,
-                }}
-              >
-                <Row gutter={24}>
-                  <Col span={16}>
-                    <Collapse
-                      defaultActiveKey={activePanel}
-                      onChange={onChange}
-                      items={panels}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <AgreementHtml />
-                  </Col>
-                </Row>
-              </div>
-            </div>
-          </Content>
-        </Layout>
-      </Layout>
-    </AntdApp>
+    <Container>
+      <Segment>
+        <Header as="h2" textAlign="center">
+          Template Playground{" "}
+          <span style={{ fontSize: "80%", color: "#87CEEB" }}>(BETA)</span>
+        </Header>
+      </Segment>
+      <Segment>
+        <Grid>
+          <Grid.Row>
+            <Grid.Column width={4}>
+              <SampleDropdown />
+            </Grid.Column>
+            <Grid.Column width={8}>
+              <Errors />
+            </Grid.Column>
+          </Grid.Row>
+          <Grid.Row>
+            <Grid.Column width={10}>
+              <Accordion fluid styled>
+                {panels.map((panel, index) => (
+                  <div key={panel.key}>
+                    <Accordion.Title
+                      active={activeIndex === index}
+                      index={index}
+                      onClick={handleAccordionClick}
+                    >
+                      {panel.label}
+                    </Accordion.Title>
+                    <Accordion.Content active={activeIndex === index}>
+                      {panel.content.content}
+                    </Accordion.Content>
+                  </div>
+                ))}
+              </Accordion>
+            </Grid.Column>
+            <Grid.Column width={6}>
+              <AgreementHtml />
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+      </Segment>
+    </Container>
   );
 };
 
