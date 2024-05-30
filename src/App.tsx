@@ -67,6 +67,12 @@ const App = () => {
             <Grid.Column width={8}>
               <Errors />
             </Grid.Column>
+<<<<<<< HEAD
+=======
+            <Grid.Column width={4}>
+              <Links />
+            </Grid.Column>
+>>>>>>> 50e4f74 (dev: migrated application index and error and component from antd to semantic-ui)
           </Grid.Row>
           <Grid.Row>
             <Grid.Column width={10}>
