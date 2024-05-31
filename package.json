@@ -29,10 +29,7 @@
     "react-dom": "^18.2.0",
     "react-dropdown": "^1.11.0",
     "regenerator-runtime": "^0.13.11",
-<<<<<<< HEAD
-=======
     "semantic-ui-css": "^2.5.0",
->>>>>>> 50e4f74 (dev: migrated application index and error and component from antd to semantic-ui)
     "semantic-ui-react": "^2.1.5",
     "ts-debounce": "^4.0.0",
     "zustand": "^4.3.9"
