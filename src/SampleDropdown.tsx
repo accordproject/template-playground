@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Button, Dropdown, Space, message } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { Dropdown, DropdownProps } from "semantic-ui-react";
 
 import useAppStore from "./store";
 
@@ -11,37 +10,38 @@ function SampleDropdown() {
   const loadSample = useAppStore((state) => state.loadSample);
 
   const items = samples.map((s) => ({
-    label: s.NAME,
-    key: s.NAME,
+    text: s.NAME,
+    value: s.NAME,
   }));
 
-  const handleMenuClick = async (e: any) => {
-    if (e.key) {
-      setLoading(true);
-      try {
-        await loadSample(e.key);
-        message.info(`Loaded ${e.key} sample`);
-      } catch (error) {
-        message.error("Failed to load sample");
-      } finally {
-        setLoading(false);
+  const handleMenuClick = async (data: DropdownProps) => {
+    const { value } = data;
+    setLoading(true);
+    try {
+      if (typeof value === "string") {
+        await loadSample(value);
+        alert(`Loaded ${value} sample`);
+      } else {
+        throw new Error("Invalid sample value");
       }
+    } catch (error) {
+      alert("Failed to load sample");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const menuProps = {
-    items,
-    onClick: handleMenuClick,
-  };
-
   return (
-    <Space>
-      <Dropdown menu={menuProps} trigger={["click"]}>
-        <Button loading={loading}>
-          Load Sample <DownOutlined />
-        </Button>
-      </Dropdown>
-    </Space>
+    <Dropdown
+      placeholder="Select Sample"
+      options={items}
+      loading={loading}
+      onChange={handleMenuClick}
+      button
+      className="icon"
+      search
+      selection
+    />
   );
 }
 

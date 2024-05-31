@@ -20,10 +20,7 @@ const App = () => {
   const init = useAppStore((state) => state.init);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
 
-  const handleAccordionClick = (
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    titleProps: AccordionTitleProps
-  ) => {
+  const handleAccordionClick = (titleProps: AccordionTitleProps) => {
     const { index } = titleProps;
     if (typeof index === "number") {
       const newIndex = activeIndex === index ? -1 : index;
