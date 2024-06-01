@@ -9,7 +9,6 @@ jobs:
 
   publish:
     name: Deploy playground
-    if: ${{ success() && github.event_name == 'push' && github.repository_owner == 'accordproject' }}
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
