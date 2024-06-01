@@ -9,9 +9,35 @@ on:
       - main
 
 jobs:
-
   build:
+    name: Build playground
+    runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: NPM Install
+        run: npm install
+
+      - name: NPM Build
+        run: SERVER_ROOT=https://playground.accordproject.org && NODE_OPTIONS=--max_old_space_size=8192 npm run build
+
+
+  publish:
+    needs:
+      - build
+    name: Deploy playground
+    if: ${{ success() && github.event_name == 'push' && github.repository_owner == 'accordproject' }}
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
