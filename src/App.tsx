@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme } from "antd";
 import Navbar from "./Navbar";
 import AgreementData from "./AgreementData";
