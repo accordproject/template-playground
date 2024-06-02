@@ -57,17 +57,17 @@ const App = () => {
     {
       key: "templateMark",
       label: "TemplateMark",
-      content: <TemplateMarkdown />,
+      children: <TemplateMarkdown />,
     },
     {
       key: "model",
       label: "Concerto Model",
-      content: <TemplateModel />,
+      children: <TemplateModel />,
     },
     {
       key: "data",
       label: "Preview Data",
-      content: <AgreementData />,
+      children: <AgreementData />,
     },
   ];
 
