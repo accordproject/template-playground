@@ -57,17 +57,17 @@ const App = () => {
     {
       key: "templateMark",
       label: "TemplateMark",
-      content: <TemplateMarkdown />,
+      content: () => <TemplateMarkdown />,
     },
     {
       key: "model",
       label: "Concerto Model",
-      content: <TemplateModel />,
+      content: () => <TemplateModel />,
     },
     {
       key: "data",
       label: "Preview Data",
-      content: <AgreementData />,
+      content: () => <AgreementData />,
     },
   ];
 
@@ -112,7 +112,7 @@ const App = () => {
                         {panel.label}
                       </Accordion.Title>
                       <Accordion.Content active={activeIndex.includes(index)}>
-                        {panel.content}
+                        {panel.content()}
                       </Accordion.Content>
                     </div>
                   ))}
