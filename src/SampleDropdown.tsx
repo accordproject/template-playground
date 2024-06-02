@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Dropdown, DropdownProps, Loader } from "semantic-ui-react";
+import { toast } from "react-hot-toast";
 import useAppStore from "./store";
 
 function SampleDropdown() {
@@ -23,9 +24,9 @@ function SampleDropdown() {
       setLoading(true);
       try {
         await loadSample(value);
-        alert(`Loaded ${value} sample`);
+        toast.success(`Loaded ${value} sample`);
       } catch (error) {
-        alert("Failed to load sample");
+        toast.error("Failed to load sample");
       } finally {
         setLoading(false);
       }
@@ -33,7 +34,7 @@ function SampleDropdown() {
   };
 
   return (
-    <div>
+    <div style={{ position: "relative" }}>
       <Dropdown
         placeholder="Select Sample"
         fluid
@@ -43,7 +44,18 @@ function SampleDropdown() {
         onChange={handleDropdownChange}
         disabled={loading}
       />
-      {loading && <Loader active inline="centered" />}
+      {loading && (
+        <Loader
+          active
+          size="mini"
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: 0,
+            transform: "translateY(-50%)",
+          }}
+        />
+      )}
     </div>
   );
 }

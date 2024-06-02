@@ -27,6 +27,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropdown": "^1.11.0",
+    "react-hot-toast": "^2.4.1",
     "regenerator-runtime": "^0.13.11",
     "semantic-ui-css": "^2.5.0",
     "semantic-ui-react": "^2.1.5",

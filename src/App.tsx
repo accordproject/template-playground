@@ -5,6 +5,7 @@ import {
   Segment,
   Accordion,
   AccordionTitleProps,
+  Icon,
 } from "semantic-ui-react";
 
 import Navbar from "./Navbar";
@@ -99,7 +100,15 @@ const App = () => {
                         active={activeIndex.includes(index)}
                         index={index}
                         onClick={handleAccordionClick}
+                        style={{ color: "#777", cursor: "pointer" }}
                       >
+                        <Icon
+                          name={
+                            activeIndex.includes(index)
+                              ? "angle down"
+                              : "angle right"
+                          }
+                        />
                         {panel.label}
                       </Accordion.Title>
                       <Accordion.Content active={activeIndex.includes(index)}>
