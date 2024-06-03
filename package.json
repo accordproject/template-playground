@@ -20,7 +20,7 @@
     "@accordproject/markdown-transform": "^0.16.19",
     "@accordproject/template-engine": "^2.3.5",
     "@monaco-editor/react": "^4.5.1",
-    "antd": "^5.7.2",
+    "antd": "^5.18.0",
     "core-js": "^3.31.1",
     "immer": "^10.0.2",
     "lz-string": "^1.5.0",
