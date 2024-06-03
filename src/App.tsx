@@ -1,21 +1,26 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Typography, Col, Collapse, Row } from "antd";
-import { Layout, theme } from "antd";
-const { Header, Content } = Layout;
-
+import { App as AntdApp, Layout, Row, Col, Collapse, theme } from "antd";
+import Navbar from "./Navbar";
 import AgreementData from "./AgreementData";
 import AgreementHtml from "./AgreementHtml";
-import "./App.css";
 import Errors from "./Errors";
 import TemplateMarkdown from "./TemplateMarkdown";
 import TemplateModel from "./TemplateModel";
 import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
-import Links from "./Links";
 
-function App() {
+const { Content } = Layout;
+
+const App = () => {
   const init = useAppStore((state) => state.init);
   const [activePanel, setActivePanel] = useState<string | string[]>();
+
+  const scrollToExplore = () => {
+    const exploreContent = document.getElementById("explore");
+    if (exploreContent) {
+      exploreContent.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const {
     token: { colorBgContainer },
@@ -51,35 +56,22 @@ function App() {
     <AntdApp>
       <Layout>
         <Layout>
-          <Header
-            style={{
-              textAlign: "center",
-              padding: 0,
-              background: colorBgContainer,
-            }}
-          >
-            <Typography.Title level={2} style={{ fontWeight: 700 }}>
-              Template Playground{" "}
-              <span style={{ fontSize: "80%", color: "#87CEEB" }}>(BETA)</span>
-            </Typography.Title>
-          </Header>
+          <Navbar scrollToExplore={scrollToExplore} />
           <Content>
             <div
               style={{
+                marginTop: 60,
                 padding: 24,
                 minHeight: 360,
                 background: colorBgContainer,
               }}
             >
-              <Row>
+              <Row id="explore">
                 <Col span={4}>
                   <SampleDropdown />
                 </Col>
-                <Col span={14}>
+                <Col span={18}>
                   <Errors />
-                </Col>
-                <Col span={6}>
-                  <Links />
                 </Col>
               </Row>
               <div
@@ -108,6 +100,6 @@ function App() {
       </Layout>
     </AntdApp>
   );
-}
+};
 
 export default App;
