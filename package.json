@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && NODE_OPTIONS=--max-old-space-size=8192 vite build",
+    "build": "tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
