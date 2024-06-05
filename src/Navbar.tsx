@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Menu, Dropdown, Button, Image } from "antd";
 import {
   GithubOutlined,
@@ -9,6 +10,10 @@ import {
 } from "@ant-design/icons";
 
 function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
+  const [hovered, setHovered] = useState<
+    null | "home" | "explore" | "help" | "github"
+  >(null);
+
   const menu = (
     <Menu>
       <Menu.ItemGroup title="Info">
@@ -54,6 +59,15 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
     </Menu>
   );
 
+  const menuItemStyle = (key: any) => ({
+    display: "flex",
+    alignItems: "center",
+    borderRight: "1.5px solid rgba(255, 255, 255, 0.1)",
+    backgroundColor:
+      hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
+    height: "65px",
+  });
+
   return (
     <Menu
       mode="horizontal"
@@ -62,19 +76,17 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
         background: "#1b2540",
         height: "65px",
         lineHeight: "65px",
-        paddingLeft: 40,
-        paddingRight: 40,
         display: "flex",
         alignItems: "center",
+        paddingLeft: 40,
+        paddingRight: 40,
       }}
     >
       <Menu.Item
         key="home"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          borderRight: "1.5px solid rgba(255, 255, 255, 0.1)",
-        }}
+        style={menuItemStyle("home")}
+        onMouseEnter={() => setHovered("home")}
+        onMouseLeave={() => setHovered(null)}
       >
         <a
           href="https://www.accordproject.org"
@@ -92,22 +104,16 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
       <Menu.Item
         key="explore"
         onClick={scrollToExplore}
-        style={{
-          height: "65px",
-          display: "flex",
-          alignItems: "center",
-          borderRight: "1.5px solid rgba(255, 255, 255, 0.1)",
-        }}
+        style={menuItemStyle("explore")}
+        onMouseEnter={() => setHovered("explore")}
+        onMouseLeave={() => setHovered(null)}
       >
         Explore
       </Menu.Item>
       <Menu.Item
-        style={{
-          height: "65px",
-          display: "flex",
-          alignItems: "center",
-          borderRight: "1.5px solid rgba(255, 255, 255, 0.1)",
-        }}
+        style={menuItemStyle("help")}
+        onMouseEnter={() => setHovered("help")}
+        onMouseLeave={() => setHovered(null)}
       >
         <Dropdown overlay={menu}>
           <Button
@@ -121,7 +127,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             }}
           >
             Help
-            <CaretDownFilled style={{ fontSize: "10px" }} />
+            <CaretDownFilled style={{ fontSize: "10px", marginLeft: "5px" }} />
           </Button>
         </Dropdown>
       </Menu.Item>
@@ -133,16 +139,23 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           display: "flex",
           alignItems: "center",
           borderLeft: "1.5px solid rgba(255, 255, 255, 0.1)",
+          backgroundColor:
+            hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
         }}
+        onMouseEnter={() => setHovered("github")}
+        onMouseLeave={() => setHovered(null)}
       >
         <a
           href="https://github.com/accordproject/template-playground"
           target="_blank"
           rel="noopener noreferrer"
+          style={{ display: "flex", alignItems: "center", color: "white" }}
         >
-          <GithubOutlined style={{ fontSize: "24px", color: "white" }} />
+          <GithubOutlined
+            style={{ fontSize: "20px", color: "white", marginRight: "5px" }}
+          />
+          <span>Github</span>
         </a>
-        <span style={{ color: "white" }}>Github</span>
       </Menu.Item>
     </Menu>
   );
