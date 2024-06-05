@@ -29,7 +29,6 @@
     "react-dom": "^18.2.0",
     "react-dropdown": "^1.11.0",
     "regenerator-runtime": "^0.13.11",
-    "semantic-ui-react": "^2.1.5",
     "ts-debounce": "^4.0.0",
     "zustand": "^4.3.9"
   },
