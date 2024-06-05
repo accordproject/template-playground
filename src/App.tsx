@@ -60,7 +60,6 @@ const App = () => {
           <Content>
             <div
               style={{
-                marginTop: 60,
                 padding: 24,
                 minHeight: 360,
                 background: colorBgContainer,
