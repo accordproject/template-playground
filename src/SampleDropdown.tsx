@@ -9,6 +9,7 @@ function SampleDropdown() {
 
   const samples = useAppStore((state) => state.samples);
   const loadSample = useAppStore((state) => state.loadSample);
+  const selectedSample = useAppStore((state) => state.sampleName);
 
   const items = samples.map((s) => ({
     label: s.NAME,
@@ -36,9 +37,10 @@ function SampleDropdown() {
 
   return (
     <Space>
-      <Dropdown menu={menuProps} trigger={["click"]}>
+      <Dropdown menu={menuProps} disabled={loading}>
         <Button loading={loading}>
-          Load Sample <DownOutlined />
+          {selectedSample ? selectedSample : "Load Sample"}
+          <DownOutlined />
         </Button>
       </Dropdown>
     </Space>
