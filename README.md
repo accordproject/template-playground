@@ -6,7 +6,7 @@
   </a>
 </p>
 
-This repository hosts the Accord Project Template-Playground. Templates are resourced using the [Template-Engine](https://github.com/accordproject/template-engine), rich-text templates are defined in TemplateMark (either as markdown files, or JSON documents) and are then merged with JSON data to produce output documents.
+This repository hosts the Accord Project Template-Playground. Templates are resourced using the [Template-Engine](https://github.com/accordproject/template-engine), rich-text templates are defined in TemplateMark (either as markdown files, or JSON documents) and are then merged with JSON data to produce output documents. 
 
 ## Accord Project Playground
 
