@@ -59,7 +59,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
     </Menu>
   );
 
-  const menuItemStyle = (key: any) => ({
+  const menuItemStyle = (key: string) => ({
     display: "flex",
     alignItems: "center",
     borderRight: "1.5px solid rgba(255, 255, 255, 0.1)",
@@ -95,6 +95,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
         >
           <Image
             src="/logo.png"
+            alt="Template Playground"
             preview={false}
             style={{ paddingRight: "1.5em", height: "26px" }}
           />
@@ -111,11 +112,12 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
         Explore
       </Menu.Item>
       <Menu.Item
+        key="help"
         style={menuItemStyle("help")}
         onMouseEnter={() => setHovered("help")}
         onMouseLeave={() => setHovered(null)}
       >
-        <Dropdown overlay={menu}>
+        <Dropdown overlay={menu} trigger={["click"]}>
           <Button
             style={{
               background: "transparent",

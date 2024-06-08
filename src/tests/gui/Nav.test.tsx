@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import "@testing-library/jest-dom/extend-expect";
+import "@testing-library/jest-dom";
 import Navbar from "../../Navbar";
 
 const renderNavbar = (scrollToExplore: () => void) => {
@@ -26,14 +26,34 @@ describe("Navbar Component", () => {
   });
 
   it("renders the Help dropdown with correct links", () => {
-    renderNavbar(() => {});
+    render(<Navbar scrollToExplore={() => {}} />);
     const helpButton = screen.getByText("Help");
-    fireEvent.mouseEnter(helpButton);
+    fireEvent.click(helpButton);
 
-    const aboutLink = screen.getByText("About");
-    const communityLink = screen.getByText("Community");
-    const issuesLink = screen.getByText("Issues");
-    const documentationLink = screen.getByText("Documentation");
+    const aboutLink = screen.getByText(
+      (content, element) =>
+        element !== null &&
+        element.tagName.toLowerCase() === "a" &&
+        content.includes("About")
+    );
+    const communityLink = screen.getByText(
+      (content, element) =>
+        element !== null &&
+        element.tagName.toLowerCase() === "a" &&
+        content.includes("Community")
+    );
+    const issuesLink = screen.getByText(
+      (content, element) =>
+        element !== null &&
+        element.tagName.toLowerCase() === "a" &&
+        content.includes("Issues")
+    );
+    const documentationLink = screen.getByText(
+      (content, element) =>
+        element !== null &&
+        element.tagName.toLowerCase() === "a" &&
+        content.includes("Documentation")
+    );
 
     expect(aboutLink).toBeInTheDocument();
     expect(communityLink).toBeInTheDocument();
