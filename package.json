@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && NODE_OPTIONS=--max-old-space-size=8192 vite build",
+    "build": "tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "npm run test:unit",
@@ -31,7 +31,6 @@
     "react-dom": "^18.2.0",
     "react-dropdown": "^1.11.0",
     "regenerator-runtime": "^0.13.11",
-    "semantic-ui-react": "^2.1.5",
     "ts-debounce": "^4.0.0",
     "zustand": "^4.3.9"
   },
