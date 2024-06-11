@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme } from "antd";
-import Navbar from "./Navbar";
+import Navbar from "./components/Navbar";
 import AgreementData from "./AgreementData";
 import AgreementHtml from "./AgreementHtml";
 import Errors from "./Errors";
