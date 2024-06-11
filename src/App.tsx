@@ -8,6 +8,7 @@ import TemplateMarkdown from "./TemplateMarkdown";
 import TemplateModel from "./TemplateModel";
 import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
+import CustomFooter from "./components/Footer";
 
 const { Content } = Layout;
 const App = () => {
@@ -94,6 +95,7 @@ const App = () => {
               </div>
             </div>
           </Content>
+          <CustomFooter />
         </Layout>
       </Layout>
     </AntdApp>
