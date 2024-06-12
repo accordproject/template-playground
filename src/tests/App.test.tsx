@@ -1,9 +1,9 @@
-import { render } from '@testing-library/react';
+import { render } from "@testing-library/react";
 
-import Header from '../Header';
+import Footer from "../components/Footer";
 
-describe('Header', () => {
-  it('renders header', () => {
-    render(<Header />);
+describe("Footer", () => {
+  it("renders Footer", () => {
+    render(<Footer />);
   });
 });
