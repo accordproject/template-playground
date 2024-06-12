@@ -15,10 +15,14 @@ const CustomFooter: React.FC = () => {
 
   return (
     <Footer
-      style={{ background: "#001529", color: "white", padding: "20px 50px" }}
+      style={{
+        background: "#1b2540",
+        color: "white",
+        padding: "80px 50px 20px 50px",
+      }}
     >
       <Row justify="space-between" align="top">
-        <Col span={6}>
+        <Col span={7}>
           <Space direction="vertical" size="middle">
             <a
               href="https://www.accordproject.org"
@@ -43,127 +47,144 @@ const CustomFooter: React.FC = () => {
             </Button>
           </Space>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Space direction="vertical" size="middle">
-            <Text strong style={{ color: "white" }}>
+            <Text
+              strong
+              style={{
+                color: "rgba(255, 255, 255, 0.65)",
+                fontSize: "11px",
+                letterSpacing: "0.1em",
+              }}
+            >
               ABOUT
             </Text>
-            <Link href="/about" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+            <Link href="/about" style={{ color: "white", fontSize: "15px" }}>
               About the AP
             </Link>
-            <Link href="/faq" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+            <Link href="/faq" style={{ color: "white", fontSize: "15px" }}>
               FAQ
             </Link>
           </Space>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Space direction="vertical" size="middle">
-            <Text strong style={{ color: "white" }}>
+            <Text
+              strong
+              style={{
+                color: "rgba(255, 255, 255, 0.65)",
+                fontSize: "11px",
+                letterSpacing: "0.1em",
+              }}
+            >
               COMMUNITY
             </Text>
             <Link
               href="/contribute"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               Contribute
             </Link>
-            <Link
-              href="/tech-wg"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
-            >
+            <Link href="/tech-wg" style={{ color: "white", fontSize: "15px" }}>
               Tech WG
             </Link>
             <Link
               href="https://discord.com/invite/Zm99SKhhtA"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               Join Discord
             </Link>
           </Space>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Space direction="vertical" size="middle">
-            <Text strong style={{ color: "white" }}>
+            <Text
+              strong
+              style={{
+                color: "rgba(255, 255, 255, 0.65)",
+                fontSize: "11px",
+                letterSpacing: "0.1em",
+              }}
+            >
               PROJECTS
             </Text>
-            <Link href="/cicero" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+            <Link href="/cicero" style={{ color: "white", fontSize: "15px" }}>
               Cicero
             </Link>
-            <Link href="/ergo" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+            <Link href="/ergo" style={{ color: "white", fontSize: "15px" }}>
               Ergo
             </Link>
-            <Link
-              href="/concerto"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
-            >
+            <Link href="/concerto" style={{ color: "white", fontSize: "15px" }}>
               Concerto
             </Link>
             <Link
               href="/template-studio"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               Template Studio
             </Link>
           </Space>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Space direction="vertical" size="middle">
-            <Text strong style={{ color: "white" }}>
+            <Text
+              strong
+              style={{
+                color: "rgba(255, 255, 255, 0.65)",
+                fontSize: "11px",
+                letterSpacing: "0.1em",
+              }}
+            >
               RESOURCES
             </Text>
             <Link
               href="/template-studio"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               Template Studio
             </Link>
             <Link
               href="/template-library"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               Template Library
             </Link>
             <Link
               href="/model-repository"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               Model Repository
             </Link>
             <Link
               href="/vscode-extension"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               VS Code Extension
             </Link>
-            <Link href="/videos" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+            <Link href="/videos" style={{ color: "white", fontSize: "15px" }}>
               Videos
             </Link>
             <Link
               href="https://github.com/accordproject"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               GitHub
             </Link>
             <Link
               href="/documentation"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color: "white", fontSize: "15px" }}
             >
               Documentation
             </Link>
           </Space>
         </Col>
       </Row>
-      <Row justify="space-between" align="middle" style={{ marginTop: "20px" }}>
+      <Row justify="space-between" align="middle" style={{ marginTop: "80px" }}>
         <Col>
           <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
-            copyright © 2017-{year} accord project &bull; trademark policy
-            &bull; brand assets
-            {/* <Link
-              href="https://lfprojects.org"
-              target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
-            ></Link> */}
+            copyright © {year} accord project &bull; trademark policy &bull;
+            brand assets
           </Text>
         </Col>
         <Col>
@@ -173,28 +194,28 @@ const CustomFooter: React.FC = () => {
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
-              <GithubOutlined style={{ fontSize: "20px" }} />
+              <GithubOutlined style={{ fontSize: "17px" }} />
             </Link>
             <Link
               href="https://twitter.com/accordproject"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
-              <TwitterOutlined style={{ fontSize: "20px" }} />
+              <TwitterOutlined style={{ fontSize: "17px" }} />
             </Link>
             <Link
               href="https://discord.com/invite/Zm99SKhhtA"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
-              <MailOutlined style={{ fontSize: "20px" }} />
+              <MailOutlined style={{ fontSize: "17px" }} />
             </Link>
             <Link
               href="https://www.linkedin.com/company/accord-project"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
-              <LinkedinOutlined style={{ fontSize: "20px" }} />
+              <LinkedinOutlined style={{ fontSize: "17px" }} />
             </Link>
           </Space>
         </Col>
