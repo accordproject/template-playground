@@ -43,10 +43,13 @@ const footerSections = [
         title: "Concerto",
         href: "https://accordproject.org/projects/concerto/",
       },
-      { title: "Cicero", href: "https://accordproject.org/projects/cicero/" },
       {
         title: "VS Code Extension",
         href: "https://marketplace.visualstudio.com/items?itemName=accordproject.cicero-vscode-extension",
+      },
+      {
+        title: "Template Playground",
+        href: "https://playground.accordproject.org/",
       },
     ],
   },
@@ -144,10 +147,27 @@ const CustomFooter: React.FC = () => {
       <Row justify="space-between" align="middle" style={{ marginTop: "80px" }}>
         <Col>
           <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
-            copyright © {year} accord project &bull; trademark policy &bull;
-            brand assets
+            copyright © {year} accord project &bull;{" "}
+            <Link
+              strong
+              href="https://accordproject.org/privacy"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+            >
+              trademark policy
+            </Link>{" "}
+            &bull;{" "}
+            <Link
+              strong
+              href="https://accordproject.org/brand-assets"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+            >
+              brand assets
+            </Link>
           </Text>
         </Col>
+
         <Col>
           <Space>
             <Link
@@ -158,21 +178,21 @@ const CustomFooter: React.FC = () => {
               <GithubOutlined style={{ fontSize: "17px" }} />
             </Link>
             <Link
-              href="https://twitter.com/accordproject"
+              href="https://twitter.com/AccordHQ"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
               <TwitterOutlined style={{ fontSize: "17px" }} />
             </Link>
             <Link
-              href="https://discord.com/invite/Zm99SKhhtA"
+              href="mailto:admin@accordproject.org"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
               <MailOutlined style={{ fontSize: "17px" }} />
             </Link>
             <Link
-              href="https://www.linkedin.com/company/accord-project"
+              href="https://www.linkedin.com/company/accordproject/"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
