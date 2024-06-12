@@ -10,6 +10,53 @@ import {
 const { Footer } = Layout;
 const { Text, Link } = Typography;
 
+const footerSections = [
+  {
+    title: "ABOUT",
+    links: [
+      { title: "About the AP", href: "/about" },
+      { title: "FAQ", href: "/faq" },
+    ],
+  },
+  {
+    title: "COMMUNITY",
+    links: [
+      { title: "Contribute", href: "/contribute" },
+      { title: "Tech WG", href: "/tech-wg" },
+      {
+        title: "Join Discord",
+        href: "https://discord.com/invite/Zm99SKhhtA",
+        external: true,
+      },
+    ],
+  },
+  {
+    title: "PROJECTS",
+    links: [
+      { title: "Cicero", href: "/cicero" },
+      { title: "Ergo", href: "/ergo" },
+      { title: "Concerto", href: "/concerto" },
+      { title: "Template Studio", href: "/template-studio" },
+    ],
+  },
+  {
+    title: "RESOURCES",
+    links: [
+      { title: "Template Studio", href: "/template-studio" },
+      { title: "Template Library", href: "/template-library" },
+      { title: "Model Repository", href: "/model-repository" },
+      { title: "VS Code Extension", href: "/vscode-extension" },
+      { title: "Videos", href: "/videos" },
+      {
+        title: "GitHub",
+        href: "https://github.com/accordproject",
+        external: true,
+      },
+      { title: "Documentation", href: "/documentation" },
+    ],
+  },
+];
+
 const CustomFooter: React.FC = () => {
   const year = new Date().getFullYear();
 
@@ -33,7 +80,7 @@ const CustomFooter: React.FC = () => {
                 src="/logo.png"
                 alt="Template Playground"
                 preview={false}
-                style={{ paddingRight: "1.5em", height: "26px" }}
+                style={{ paddingRight: "1.5em", height: "36px" }}
               />
             </a>
             <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
@@ -42,143 +89,41 @@ const CustomFooter: React.FC = () => {
             <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
               admin@accordproject.org
             </Text>
-            <Button type="primary" shape="round">
+            <Button
+              type="primary"
+              shape="round"
+              size="large"
+              style={{ padding: "2px 24px" }}
+            >
               Join
             </Button>
           </Space>
         </Col>
-        <Col span={3}>
-          <Space direction="vertical" size="middle">
-            <Text
-              strong
-              style={{
-                color: "rgba(255, 255, 255, 0.65)",
-                fontSize: "11px",
-                letterSpacing: "0.1em",
-              }}
-            >
-              ABOUT
-            </Text>
-            <Link href="/about" style={{ color: "white", fontSize: "15px" }}>
-              About the AP
-            </Link>
-            <Link href="/faq" style={{ color: "white", fontSize: "15px" }}>
-              FAQ
-            </Link>
-          </Space>
-        </Col>
-        <Col span={3}>
-          <Space direction="vertical" size="middle">
-            <Text
-              strong
-              style={{
-                color: "rgba(255, 255, 255, 0.65)",
-                fontSize: "11px",
-                letterSpacing: "0.1em",
-              }}
-            >
-              COMMUNITY
-            </Text>
-            <Link
-              href="/contribute"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              Contribute
-            </Link>
-            <Link href="/tech-wg" style={{ color: "white", fontSize: "15px" }}>
-              Tech WG
-            </Link>
-            <Link
-              href="https://discord.com/invite/Zm99SKhhtA"
-              target="_blank"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              Join Discord
-            </Link>
-          </Space>
-        </Col>
-        <Col span={3}>
-          <Space direction="vertical" size="middle">
-            <Text
-              strong
-              style={{
-                color: "rgba(255, 255, 255, 0.65)",
-                fontSize: "11px",
-                letterSpacing: "0.1em",
-              }}
-            >
-              PROJECTS
-            </Text>
-            <Link href="/cicero" style={{ color: "white", fontSize: "15px" }}>
-              Cicero
-            </Link>
-            <Link href="/ergo" style={{ color: "white", fontSize: "15px" }}>
-              Ergo
-            </Link>
-            <Link href="/concerto" style={{ color: "white", fontSize: "15px" }}>
-              Concerto
-            </Link>
-            <Link
-              href="/template-studio"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              Template Studio
-            </Link>
-          </Space>
-        </Col>
-        <Col span={3}>
-          <Space direction="vertical" size="middle">
-            <Text
-              strong
-              style={{
-                color: "rgba(255, 255, 255, 0.65)",
-                fontSize: "11px",
-                letterSpacing: "0.1em",
-              }}
-            >
-              RESOURCES
-            </Text>
-            <Link
-              href="/template-studio"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              Template Studio
-            </Link>
-            <Link
-              href="/template-library"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              Template Library
-            </Link>
-            <Link
-              href="/model-repository"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              Model Repository
-            </Link>
-            <Link
-              href="/vscode-extension"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              VS Code Extension
-            </Link>
-            <Link href="/videos" style={{ color: "white", fontSize: "15px" }}>
-              Videos
-            </Link>
-            <Link
-              href="https://github.com/accordproject"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              GitHub
-            </Link>
-            <Link
-              href="/documentation"
-              style={{ color: "white", fontSize: "15px" }}
-            >
-              Documentation
-            </Link>
-          </Space>
-        </Col>
+        {footerSections.map((section) => (
+          <Col span={3} key={section.title}>
+            <Space direction="vertical" size="middle">
+              <Text
+                strong
+                style={{
+                  color: "rgba(255, 255, 255, 0.65)",
+                  fontSize: "11px",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {section.title}
+              </Text>
+              {section.links.map((link) => (
+                <Link
+                  href={link.href}
+                  key={link.title}
+                  style={{ color: "white", fontSize: "15px" }}
+                >
+                  {link.title}
+                </Link>
+              ))}
+            </Space>
+          </Col>
+        ))}
       </Row>
       <Row justify="space-between" align="middle" style={{ marginTop: "80px" }}>
         <Col>
