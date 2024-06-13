@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme } from "antd";
+
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+
 import AgreementData from "./AgreementData";
 import AgreementHtml from "./AgreementHtml";
 import Errors from "./Errors";
@@ -8,7 +11,6 @@ import TemplateMarkdown from "./TemplateMarkdown";
 import TemplateModel from "./TemplateModel";
 import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
-import CustomFooter from "./components/Footer";
 
 const { Content } = Layout;
 const App = () => {
@@ -95,7 +97,7 @@ const App = () => {
               </div>
             </div>
           </Content>
-          <CustomFooter />
+          <Footer />
         </Layout>
       </Layout>
     </AntdApp>
