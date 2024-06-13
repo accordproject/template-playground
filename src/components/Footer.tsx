@@ -65,7 +65,6 @@ const footerSections = [
       {
         title: "GitHub",
         href: "https://github.com/accordproject",
-        external: true,
       },
       { title: "Documentation", href: "https://docs.accordproject.org/" },
     ],
