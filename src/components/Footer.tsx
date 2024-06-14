@@ -6,74 +6,10 @@ import {
   DiscordFilled,
   LinkedinFilled,
 } from "@ant-design/icons";
+import FOOTER_SECTION from "../constants/content/footer.json";
 
 const { Footer } = Layout;
 const { Text, Link } = Typography;
-
-const footerSections = [
-  {
-    title: "ABOUT",
-    links: [
-      { title: "About the AP", href: "https://accordproject.org/about/" },
-      {
-        title: "FAQ",
-        href: "https://accordproject.org/frequently-asked-questions/",
-      },
-      {
-        title: "White Paper",
-        href: "https://accordproject.org/whitepaper-2024/",
-      },
-    ],
-  },
-  {
-    title: "COMMUNITY",
-    links: [
-      { title: "Contribute", href: "https://accordproject.org/contribute/" },
-      {
-        title: "Tech WG",
-        href: "https://accordproject.org/working-groups/technology/",
-      },
-      {
-        title: "Join Discord",
-        href: "https://discord.com/invite/Zm99SKhhtA",
-        external: true,
-      },
-    ],
-  },
-  {
-    title: "PROJECTS",
-    links: [
-      {
-        title: "Concerto",
-        href: "https://accordproject.org/projects/concerto/",
-      },
-      {
-        title: "VS Code Extension",
-        href: "https://marketplace.visualstudio.com/items?itemName=accordproject.cicero-vscode-extension",
-      },
-      {
-        title: "Markdown Transform",
-        href: "https://github.com/accordproject/markdown-transform",
-      },
-    ],
-  },
-  {
-    title: "RESOURCES",
-    links: [
-      {
-        title: "Template Library",
-        href: "https://templates.accordproject.org/",
-      },
-      { title: "Model Repository", href: "https://models.accordproject.org/" },
-      { title: "Videos", href: "https://vimeo.com/accordproject" },
-      {
-        title: "GitHub",
-        href: "https://github.com/accordproject",
-      },
-      { title: "Documentation", href: "https://docs.accordproject.org/" },
-    ],
-  },
-];
 
 const CustomFooter: React.FC = () => {
   const year = new Date().getFullYear();
@@ -117,7 +53,7 @@ const CustomFooter: React.FC = () => {
             </Link>
           </Space>
         </Col>
-        {footerSections.map((section) => (
+        {FOOTER_SECTION.sections.map((section: any) => (
           <Col span={3} key={section.title}>
             <Space direction="vertical" size="middle">
               <Text
@@ -130,7 +66,7 @@ const CustomFooter: React.FC = () => {
               >
                 {section.title}
               </Text>
-              {section.links.map((link) => (
+              {section.links.map((link: any) => (
                 <Link
                   href={link.href}
                   key={link.title}
