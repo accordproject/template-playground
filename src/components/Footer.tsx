@@ -19,6 +19,10 @@ const footerSections = [
         title: "FAQ",
         href: "https://accordproject.org/frequently-asked-questions/",
       },
+      {
+        title: "White Paper",
+        href: "https://accordproject.org/whitepaper-2024/",
+      },
     ],
   },
   {
@@ -48,8 +52,8 @@ const footerSections = [
         href: "https://marketplace.visualstudio.com/items?itemName=accordproject.cicero-vscode-extension",
       },
       {
-        title: "Model Repository",
-        href: "https://models.accordproject.org/",
+        title: "Markdown Transform",
+        href: "https://github.com/accordproject/markdown-transform",
       },
     ],
   },
