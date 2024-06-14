@@ -48,8 +48,8 @@ const footerSections = [
         href: "https://marketplace.visualstudio.com/items?itemName=accordproject.cicero-vscode-extension",
       },
       {
-        title: "Template Playground",
-        href: "https://playground.accordproject.org/",
+        title: "Model Repository",
+        href: "https://models.accordproject.org/",
       },
     ],
   },
