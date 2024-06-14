@@ -2,9 +2,9 @@ import React from "react";
 import { Layout, Row, Col, Typography, Space, Button, Image } from "antd";
 import {
   GithubOutlined,
-  TwitterOutlined,
-  MailOutlined,
-  LinkedinOutlined,
+  XOutlined,
+  DiscordFilled,
+  LinkedinFilled,
 } from "@ant-design/icons";
 
 const { Footer } = Layout;
@@ -181,21 +181,21 @@ const CustomFooter: React.FC = () => {
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
-              <TwitterOutlined style={{ fontSize: "17px" }} />
+              <XOutlined style={{ fontSize: "17px" }} />
             </Link>
             <Link
-              href="mailto:admin@accordproject.org"
+              href="https://discord.com/invite/Zm99SKhhtA"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
-              <MailOutlined style={{ fontSize: "17px" }} />
+              <DiscordFilled style={{ fontSize: "17px" }} />
             </Link>
             <Link
               href="https://www.linkedin.com/company/accordproject/"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
             >
-              <LinkedinOutlined style={{ fontSize: "17px" }} />
+              <LinkedinFilled style={{ fontSize: "17px" }} />
             </Link>
           </Space>
         </Col>
