@@ -85,18 +85,14 @@ const CustomFooter: React.FC = () => {
       <Row justify="space-between" align="top">
         <Col span={7}>
           <Space direction="vertical" size="middle">
-            <a
-              href="https://www.accordproject.org"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <Link href="https://www.accordproject.org" target="_blank">
               <Image
                 src="/logo.png"
                 alt="Template Playground"
                 preview={false}
                 style={{ paddingRight: "1.5em", height: "36px" }}
               />
-            </a>
+            </Link>
             <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
               The open source smart legal contract stack
             </Text>
