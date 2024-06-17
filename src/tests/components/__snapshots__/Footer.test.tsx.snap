@@ -116,7 +116,7 @@ exports[`CustomFooter > matches the snapshot 1`] = `
               href="https://accordproject.org/about/"
               style="color: white; font-size: 15px;"
             >
-              About the AP
+              About Accord Project
             </a>
           </div>
           <div
