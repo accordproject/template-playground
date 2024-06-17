@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme } from "antd";
-import Navbar from "./Navbar";
+
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+
 import AgreementData from "./AgreementData";
 import AgreementHtml from "./AgreementHtml";
 import Errors from "./Errors";
@@ -60,6 +63,7 @@ const App = () => {
             <div
               style={{
                 padding: 24,
+                paddingBottom: 100,
                 minHeight: 360,
                 background: colorBgContainer,
               }}
@@ -94,6 +98,7 @@ const App = () => {
               </div>
             </div>
           </Content>
+          <Footer />
         </Layout>
       </Layout>
     </AntdApp>

@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import Navbar from "../../Navbar";
+import Navbar from "../../components/Navbar";
 
 const renderNavbar = (scrollToExplore: () => void) => {
   return render(<Navbar scrollToExplore={scrollToExplore} />);
