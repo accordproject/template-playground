@@ -1,16 +1,8 @@
-import { useEffect, useState } from "react";
 import { Spin } from "antd";
 import useAppStore from "./store";
 
-function AgreementHtml() {
+function AgreementHtml({ loading }: { loading: any }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (agreementHtml) {
-      setLoading(false);
-    }
-  }, [agreementHtml]);
 
   return (
     <div

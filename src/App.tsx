@@ -13,9 +13,11 @@ import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
 
 const { Content } = Layout;
+
 const App = () => {
   const init = useAppStore((state) => state.init);
   const [activePanel, setActivePanel] = useState<string | string[]>();
+  const [loading, setLoading] = useState(true);
 
   const scrollToExplore = () => {
     const exploreContent = document.getElementById("explore");
@@ -33,7 +35,11 @@ const App = () => {
   };
 
   useEffect(() => {
-    void init();
+    const initializeApp = async () => {
+      await init();
+      setLoading(false);
+    };
+    initializeApp();
   }, [init]);
 
   const panels = [
@@ -69,7 +75,7 @@ const App = () => {
           >
             <Row id="explore">
               <Col span={4}>
-                <SampleDropdown />
+                <SampleDropdown setLoading={setLoading} />
               </Col>
               <Col span={18}>
                 <Errors />
@@ -91,7 +97,8 @@ const App = () => {
                   />
                 </Col>
                 <Col span={8}>
-                  <AgreementHtml />
+                  <AgreementHtml loading={loading} />{" "}
+                  {/* Pass loading state as a prop */}
                 </Col>
               </Row>
             </div>
