@@ -58,7 +58,7 @@ const App = () => {
     <AntdApp>
       <Layout style={{ minHeight: "100vh" }}>
         <Navbar scrollToExplore={scrollToExplore} />
-        <Content style={{ height: "calc(100vh - 64px)", overflowY: "auto" }}>
+        <Content style={{ height: "calc(100vh - 14px)", overflowY: "auto" }}>
           <div
             style={{
               padding: 24,
