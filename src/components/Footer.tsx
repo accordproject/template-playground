@@ -20,6 +20,7 @@ const CustomFooter: React.FC = () => {
         background: "#1b2540",
         color: "white",
         padding: "80px 50px 20px 50px",
+        marginTop: "auto",
       }}
     >
       <Row justify="space-between" align="top">

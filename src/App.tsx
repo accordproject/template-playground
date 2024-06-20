@@ -56,50 +56,48 @@ const App = () => {
 
   return (
     <AntdApp>
-      <Layout>
-        <Layout>
-          <Navbar scrollToExplore={scrollToExplore} />
-          <Content>
+      <Layout style={{ minHeight: "100vh" }}>
+        <Navbar scrollToExplore={scrollToExplore} />
+        <Content style={{ flex: "1 0 auto" }}>
+          <div
+            style={{
+              padding: 24,
+              paddingBottom: 100,
+              minHeight: 360,
+              background: colorBgContainer,
+            }}
+          >
+            <Row id="explore">
+              <Col span={4}>
+                <SampleDropdown />
+              </Col>
+              <Col span={18}>
+                <Errors />
+              </Col>
+            </Row>
             <div
               style={{
                 padding: 24,
-                paddingBottom: 100,
                 minHeight: 360,
                 background: colorBgContainer,
               }}
             >
-              <Row id="explore">
-                <Col span={4}>
-                  <SampleDropdown />
+              <Row gutter={24}>
+                <Col span={16}>
+                  <Collapse
+                    defaultActiveKey={activePanel}
+                    onChange={onChange}
+                    items={panels}
+                  />
                 </Col>
-                <Col span={18}>
-                  <Errors />
+                <Col span={8}>
+                  <AgreementHtml />
                 </Col>
               </Row>
-              <div
-                style={{
-                  padding: 24,
-                  minHeight: 360,
-                  background: colorBgContainer,
-                }}
-              >
-                <Row gutter={24}>
-                  <Col span={16}>
-                    <Collapse
-                      defaultActiveKey={activePanel}
-                      onChange={onChange}
-                      items={panels}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <AgreementHtml />
-                  </Col>
-                </Row>
-              </div>
             </div>
-          </Content>
-          <Footer />
-        </Layout>
+          </div>
+        </Content>
+        <Footer />
       </Layout>
     </AntdApp>
   );
