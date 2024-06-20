@@ -62,7 +62,7 @@ const App = () => {
           <div
             style={{
               padding: 24,
-              paddingBottom: 100,
+              paddingBottom: 150,
               minHeight: 360,
               background: colorBgContainer,
             }}
