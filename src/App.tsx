@@ -98,7 +98,6 @@ const App = () => {
                 </Col>
                 <Col span={8}>
                   <AgreementHtml loading={loading} />{" "}
-                  {/* Pass loading state as a prop */}
                 </Col>
               </Row>
             </div>
