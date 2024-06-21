@@ -13,9 +13,11 @@ import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
 
 const { Content } = Layout;
+
 const App = () => {
   const init = useAppStore((state) => state.init);
   const [activePanel, setActivePanel] = useState<string | string[]>();
+  const [loading, setLoading] = useState(true);
 
   const scrollToExplore = () => {
     const exploreContent = document.getElementById("explore");
@@ -33,7 +35,11 @@ const App = () => {
   };
 
   useEffect(() => {
-    void init();
+    const initializeApp = async () => {
+      await init();
+      setLoading(false);
+    };
+    initializeApp();
   }, [init]);
 
   const panels = [
@@ -56,50 +62,48 @@ const App = () => {
 
   return (
     <AntdApp>
-      <Layout>
-        <Layout>
-          <Navbar scrollToExplore={scrollToExplore} />
-          <Content>
+      <Layout style={{ minHeight: "100vh" }}>
+        <Navbar scrollToExplore={scrollToExplore} />
+        <Content>
+          <div
+            style={{
+              padding: 24,
+              paddingBottom: 150,
+              minHeight: 360,
+              background: colorBgContainer,
+            }}
+          >
+            <Row id="explore">
+              <Col span={4}>
+                <SampleDropdown setLoading={setLoading} />
+              </Col>
+              <Col span={18}>
+                <Errors />
+              </Col>
+            </Row>
             <div
               style={{
                 padding: 24,
-                paddingBottom: 100,
                 minHeight: 360,
                 background: colorBgContainer,
               }}
             >
-              <Row id="explore">
-                <Col span={4}>
-                  <SampleDropdown />
+              <Row gutter={24}>
+                <Col span={16}>
+                  <Collapse
+                    defaultActiveKey={activePanel}
+                    onChange={onChange}
+                    items={panels}
+                  />
                 </Col>
-                <Col span={18}>
-                  <Errors />
+                <Col span={8}>
+                  <AgreementHtml loading={loading} />{" "}
                 </Col>
               </Row>
-              <div
-                style={{
-                  padding: 24,
-                  minHeight: 360,
-                  background: colorBgContainer,
-                }}
-              >
-                <Row gutter={24}>
-                  <Col span={16}>
-                    <Collapse
-                      defaultActiveKey={activePanel}
-                      onChange={onChange}
-                      items={panels}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <AgreementHtml />
-                  </Col>
-                </Row>
-              </div>
             </div>
-          </Content>
-          <Footer />
-        </Layout>
+          </div>
+        </Content>
+        <Footer />
       </Layout>
     </AntdApp>
   );

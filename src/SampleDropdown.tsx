@@ -1,12 +1,9 @@
-import { useState } from "react";
 import { Button, Dropdown, Space, message } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 
 import useAppStore from "./store";
 
-function SampleDropdown() {
-  const [loading, setLoading] = useState(false);
-
+function SampleDropdown({ setLoading }: { setLoading: any }) {
   const samples = useAppStore((state) => state.samples);
   const loadSample = useAppStore((state) => state.loadSample);
 
@@ -37,7 +34,7 @@ function SampleDropdown() {
   return (
     <Space>
       <Dropdown menu={menuProps} trigger={["click"]}>
-        <Button loading={loading}>
+        <Button>
           Load Sample <DownOutlined />
         </Button>
       </Dropdown>
