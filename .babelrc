@@ -3,7 +3,7 @@
     [
       "@babel/preset-env",
       {
-        "targets": ">0.2%, not dead, not op_mini all",
+        "targets": ">0.2%, not dead, not op_mini all, last 2 versions, not ie <= 11",
         "useBuiltIns": "entry",
         "corejs": 3
       }

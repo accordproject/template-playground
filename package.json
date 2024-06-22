@@ -69,6 +69,7 @@
     "not dead",
     "not op_mini all",
     "last 2 versions",
-    "not ie <= 11"
+    "not ie <= 11",
+    "Safari >= 10"
   ]
 }
