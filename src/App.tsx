@@ -74,11 +74,8 @@ const App = () => {
             }}
           >
             <Row id="explore">
-              <Col span={4}>
+              <Col span={24}>
                 <SampleDropdown setLoading={setLoading} />
-              </Col>
-              <Col span={18}>
-                <Errors />
               </Col>
             </Row>
             <div
@@ -89,15 +86,15 @@ const App = () => {
               }}
             >
               <Row gutter={24}>
-                <Col span={16}>
+                <Col xs={24} sm={16}>
                   <Collapse
                     defaultActiveKey={activePanel}
                     onChange={onChange}
                     items={panels}
                   />
                 </Col>
-                <Col span={8}>
-                  <AgreementHtml loading={loading} />{" "}
+                <Col xs={24} sm={8}>
+                  <AgreementHtml loading={loading} />
                 </Col>
               </Row>
             </div>
