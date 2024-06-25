@@ -86,7 +86,7 @@ const App = () => {
               }}
             >
               <Row gutter={24}>
-                <Col xs={24} sm={16}>
+                <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
                   <Collapse
                     defaultActiveKey={activePanel}
                     onChange={onChange}
