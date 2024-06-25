@@ -1,5 +1,5 @@
 import React from "react";
-import { Layout, Row, Col, Typography, Space, Button, Image } from "antd";
+import { Layout, Row, Col, Typography, Space, Button, Image, Grid } from "antd";
 import {
   GithubOutlined,
   XOutlined,
@@ -10,9 +10,15 @@ import FOOTER_SECTION from "../constants/content/footer.json";
 
 const { Footer } = Layout;
 const { Text, Link } = Typography;
+const { useBreakpoint } = Grid;
 
 const CustomFooter: React.FC = () => {
   const year = new Date().getFullYear();
+  const screens = useBreakpoint();
+
+  if (!screens.md) {
+    return null;
+  }
 
   return (
     <Footer

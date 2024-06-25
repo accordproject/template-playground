@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Row, Col, Collapse, theme } from "antd";
+import { App as AntdApp, Layout, Row, Col, Collapse, theme, Grid } from "antd";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -13,6 +13,7 @@ import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
 
 const { Content } = Layout;
+const { useBreakpoint } = Grid;
 
 const App = () => {
   const init = useAppStore((state) => state.init);
@@ -41,6 +42,8 @@ const App = () => {
     };
     initializeApp();
   }, [init]);
+
+  const screens = useBreakpoint();
 
   const panels = [
     {
@@ -104,6 +107,19 @@ const App = () => {
           </div>
         </Content>
         <Footer />
+        {!screens.md && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "10px 0",
+              background: "#1b2540",
+              color: "white",
+              fontSize: "12px",
+            }}
+          >
+            Best viewed on desktop
+          </div>
+        )}
       </Layout>
     </AntdApp>
   );
