@@ -74,8 +74,11 @@ const App = () => {
             }}
           >
             <Row id="explore">
-              <Col span={24}>
+              <Col span={4}>
                 <SampleDropdown setLoading={setLoading} />
+              </Col>
+              <Col span={18}>
+                <Errors />
               </Col>
             </Row>
             <div
