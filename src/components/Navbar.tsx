@@ -105,7 +105,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             preview={false}
             style={{
               paddingRight: screens.md ? "1.5em" : "10px",
-              height: "26px",
+              height: "1.625em",
             }}
           />
           <span style={{ color: "white" }}>Template Playground</span>
