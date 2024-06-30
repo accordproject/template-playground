@@ -2,6 +2,7 @@
 
 html,
 body {
+  font-family: "Graphik", Helvetica, Arial, sans-serif;
   height: 100vh;
   margin: 0;
   padding: 0;
