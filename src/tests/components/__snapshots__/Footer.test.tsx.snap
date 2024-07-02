@@ -1,5 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`CustomFooter > matches snapshot 1`] = `<DocumentFragment />`;
+
 exports[`CustomFooter > matches the snapshot 1`] = `
 <DocumentFragment>
   <footer
@@ -519,3 +521,5 @@ exports[`CustomFooter > matches the snapshot 1`] = `
   </footer>
 </DocumentFragment>
 `;
+
+exports[`Footer > matches the snapshot 1`] = `<DocumentFragment />`;

@@ -84,7 +84,7 @@ beforeAll(() => {
   }));
 });
 
-describe("CustomFooter", () => {
+describe("Footer", () => {
   it("matches the snapshot", () => {
     const { asFragment } = render(<Footer />);
     expect(asFragment()).toMatchSnapshot();
