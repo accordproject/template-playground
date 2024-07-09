@@ -11,6 +11,7 @@ import TemplateMarkdown from "./TemplateMarkdown";
 import TemplateModel from "./TemplateModel";
 import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
+import FullScreenModal from "./FullScreenModal";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -99,7 +100,8 @@ const App = () => {
                     items={panels}
                   />
                 </Col>
-                <Col xs={24} sm={8}>
+                <Col xs={24} sm={8} >
+                  <FullScreenModal />
                   <AgreementHtml loading={loading} />
                 </Col>
               </Row>
