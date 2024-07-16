@@ -11,7 +11,7 @@ import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
 import FullScreenModal from "./FullScreenModal";
 import { useSearchParams } from "react-router-dom";
-import UseShare from "./components/useShare";
+import UseShare from "./components/UseShare";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
