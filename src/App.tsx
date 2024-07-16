@@ -84,8 +84,18 @@ const App = () => {
             }}
           >
             <Row id="explore">
-              <Col span={4}>
-                <SampleDropdown setLoading={setLoading} />
+              <Col xs={24} sm={8}>
+                <Row
+                  style={{
+                    marginLeft: "25px",
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: "10px",
+                  }}
+                >
+                  <SampleDropdown setLoading={setLoading} />
+                  <UseShare />
+                </Row>
               </Col>
               <Col span={18}>
                 <Errors />
@@ -107,17 +117,13 @@ const App = () => {
                   />
                 </Col>
                 <Col xs={24} sm={8}>
-                  <Row
+                  <div
                     style={{
-                      marginBottom: "20px",
-                      display: "flex",
-                      flexDirection: "row",
-                      justifyContent: "space-between",
+                      marginBottom: "10px",
                     }}
                   >
-                    <UseShare />
                     <FullScreenModal />
-                  </Row>
+                  </div>
                   <AgreementHtml loading={loading} />
                 </Col>
               </Row>
