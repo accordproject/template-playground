@@ -9,6 +9,7 @@ const options: editor.IStandaloneEditorConstructionOptions = {
   automaticLayout: true,
   scrollBeyondLastLine: false,
 };
+
 const concertoKeywords = [
   "map",
   "concept",
@@ -32,6 +33,7 @@ const concertoKeywords = [
   "transaction",
   "event",
 ];
+
 const concertoTypes = [
   "String",
   "Integer",
@@ -55,27 +57,30 @@ export default function ConcertoEditor({
       return error;
     }
   }, [error]);
-  useEffect(() => {
-    let model = monacoEditor?.editor.getModels()[0];
-    if (ctoErr && monacoEditor) {
-      const match = ctoErr.match(/Line (\d+) column (\d+)/);
 
-      const lineNumber = parseInt(match[1]);
-      const columnNumber = parseInt(match[2]);
-      monacoEditor?.editor.setModelMarkers(model, "customMarker", [
-        {
-          startLineNumber: lineNumber,
-          startColumn: columnNumber - 1,
-          endLineNumber: lineNumber,
-          endColumn: columnNumber + 1,
-          message: ctoErr,
-          severity: MarkerSeverity.Error,
-        },
-      ]);
-    } else {
-      monacoEditor?.editor.setModelMarkers(model, "customMarker", []);
+  useEffect(() => {
+    const model = monacoEditor?.editor.getModels()[0];
+    if (ctoErr && monacoEditor && model) {
+      const match = ctoErr.match(/Line (\d+) column (\d+)/);
+      if (match) {
+        const lineNumber = parseInt(match[1], 10);
+        const columnNumber = parseInt(match[2], 10);
+        monacoEditor.editor.setModelMarkers(model, "customMarker", [
+          {
+            startLineNumber: lineNumber,
+            startColumn: columnNumber - 1,
+            endLineNumber: lineNumber,
+            endColumn: columnNumber + 1,
+            message: ctoErr,
+            severity: MarkerSeverity.Error,
+          },
+        ]);
+      }
+    } else if (monacoEditor && model) {
+      monacoEditor.editor.setModelMarkers(model, "customMarker", []);
     }
   }, [ctoErr, monacoEditor]);
+
   function handleEditorWillMount(monaco: monaco.Monaco) {
     monaco.languages.register({
       id: "concerto",
@@ -118,6 +123,7 @@ export default function ConcertoEditor({
         ],
       },
     });
+
     monaco.editor.defineTheme("concertoTheme", {
       base: "vs",
       inherit: true,
