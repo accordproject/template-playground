@@ -150,7 +150,7 @@ const useAppStore = create<AppState>()(
           modelCto: state.modelCto,
           data: state.data,
         });
-        return `${window.location.origin}?data=${compressedData}`;
+        return `${window.location.origin}/v1?data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
         try {
