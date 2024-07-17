@@ -23,25 +23,28 @@ export default function ConcertoEditor( {value, onChange} : {value: string, onCh
     }, [error]);
     useEffect(() => {
         let model = monacoEditor?.editor.getModels()[0];
-        if (ctoErr && monacoEditor) {
+        if (ctoErr && monacoEditor && model) {
         const match = ctoErr.match(/Line (\d+) column (\d+)/);
 
-        const lineNumber = parseInt(match[1]);
-        const columnNumber = parseInt(match[2]) ;
-        monacoEditor?.editor.setModelMarkers(model, "customMarker", [
-            {
-            startLineNumber: lineNumber,
-            startColumn: columnNumber - 1,
-            endLineNumber: lineNumber,
-            endColumn: columnNumber + 1,
-            message: ctoErr,
-            severity: MarkerSeverity.Error,
-            },
-        ]);
+        if (match) {
+            const lineNumber = parseInt(match[1]);
+            const columnNumber = parseInt(match[2]);
+            monacoEditor?.editor.setModelMarkers(model, "customMarker", [
+                {
+                startLineNumber: lineNumber,
+                startColumn: columnNumber - 1,
+                endLineNumber: lineNumber,
+                endColumn: columnNumber + 1,
+                message: ctoErr,
+                severity: MarkerSeverity.Error,
+                },
+            ]);
         } else {
-        monacoEditor?.editor.setModelMarkers(model, "customMarker", []);
+            monacoEditor?.editor.setModelMarkers(model, "customMarker", []);
+        }
         }
     }, [ctoErr,monacoEditor]);
+
     function handleEditorWillMount(monaco:monaco.Monaco) {
         monaco.languages.register({
             id: 'concerto',
