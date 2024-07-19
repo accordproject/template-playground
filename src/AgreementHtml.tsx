@@ -1,3 +1,4 @@
+import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store";
 
@@ -33,7 +34,7 @@ function AgreementHtml({ loading }: { loading: any }) {
             alignItems: "center",
           }}
         >
-          <Spin tip="Loading..." size="large" />
+          <Spin indicator={<LoadingOutlined style={{ fontSize: 42 }} spin />} />
         </div>
       ) : (
         <div

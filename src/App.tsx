@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme, Grid } from "antd";
-
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-
 import AgreementData from "./AgreementData";
 import AgreementHtml from "./AgreementHtml";
 import Errors from "./Errors";
@@ -12,14 +10,18 @@ import TemplateModel from "./TemplateModel";
 import useAppStore from "./store";
 import SampleDropdown from "./SampleDropdown";
 import FullScreenModal from "./FullScreenModal";
+import { useSearchParams } from "react-router-dom";
+import UseShare from "./components/UseShare";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
 
 const App = () => {
   const init = useAppStore((state) => state.init);
+  const loadFromLink = useAppStore((state) => state.loadFromLink);
   const [activePanel, setActivePanel] = useState<string | string[]>();
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
 
   const scrollToExplore = () => {
     const exploreContent = document.getElementById("explore");
@@ -39,10 +41,14 @@ const App = () => {
   useEffect(() => {
     const initializeApp = async () => {
       await init();
+      const compressedData = searchParams.get("data");
+      if (compressedData) {
+        await loadFromLink(compressedData);
+      }
       setLoading(false);
     };
     initializeApp();
-  }, [init]);
+  }, [init, loadFromLink, searchParams]);
 
   const screens = useBreakpoint();
 
@@ -78,8 +84,18 @@ const App = () => {
             }}
           >
             <Row id="explore">
-              <Col span={4}>
-                <SampleDropdown setLoading={setLoading} />
+              <Col xs={24} sm={8}>
+                <Row
+                  style={{
+                    marginLeft: "25px",
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: "10px",
+                  }}
+                >
+                  <SampleDropdown setLoading={setLoading} />
+                  <UseShare />
+                </Row>
               </Col>
               <Col span={18}>
                 <Errors />
@@ -100,8 +116,14 @@ const App = () => {
                     items={panels}
                   />
                 </Col>
-                <Col xs={24} sm={8} >
-                  <FullScreenModal />
+                <Col xs={24} sm={8}>
+                  <div
+                    style={{
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <FullScreenModal />
+                  </div>
                   <AgreementHtml loading={loading} />
                 </Col>
               </Row>

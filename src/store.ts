@@ -2,14 +2,13 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
-
 import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
-
 import { SAMPLES, Sample } from "./samples";
 import * as playground from "./samples/playground";
+import { compress, decompress } from "../utils/compression/compression";
 
 interface AppState {
   templateMarkdown: string;
@@ -25,6 +24,14 @@ interface AppState {
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
+  generateShareableLink: () => string;
+  loadFromLink: (compressedData: string) => Promise<void>;
+}
+
+export interface DecompressedData {
+  templateMarkdown: string;
+  modelCto: string;
+  data: string;
 }
 
 async function rebuild(template: string, model: string, dataString: string) {
@@ -32,18 +39,14 @@ async function rebuild(template: string, model: string, dataString: string) {
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
   const engine = new TemplateMarkInterpreter(modelManager, {});
-
   const templateMarkTransformer = new TemplateMarkTransformer();
-
   const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
     { content: template },
     modelManager,
     "contract",
     { verbose: false }
   );
-
   const data = JSON.parse(dataString);
-
   const ciceroMark = await engine.generate(templateMarkDom, data);
   return await transform(
     ciceroMark.toJSON(),
@@ -56,20 +59,6 @@ async function rebuild(template: string, model: string, dataString: string) {
 
 const rebuildDeBounce = debounce(rebuild, 500);
 
-function formatError(error: any): string {
-  console.log(error);
-  if (typeof error === "string") {
-    return error;
-  } else if (Array.isArray(error)) {
-    return error.map((e) => formatError(e)).join("\n");
-  } else if (error.code) {
-    const sub = error.errors ? formatError(error.errors) : "";
-    const msg = error.renderedMessage ? error.renderedMessage : "";
-    return `Error: ${error.code} ${sub} ${msg}`;
-  }
-  return error.toString();
-}
-
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => ({
@@ -81,7 +70,13 @@ const useAppStore = create<AppState>()(
       error: undefined,
       samples: SAMPLES,
       init: async () => {
-        return get().rebuild();
+        const params = new URLSearchParams(window.location.search);
+        const compressedData = params.get("data");
+        if (compressedData) {
+          await get().loadFromLink(compressedData);
+        } else {
+          await get().rebuild();
+        }
       },
       loadSample: async (name: string) => {
         const sample = SAMPLES.find((s) => s.NAME === name);
@@ -148,8 +143,49 @@ const useAppStore = create<AppState>()(
         }
         set(() => ({ data }));
       },
+      generateShareableLink: () => {
+        const state = get();
+        const compressedData = compress({
+          templateMarkdown: state.templateMarkdown,
+          modelCto: state.modelCto,
+          data: state.data,
+        });
+        return `${window.location.origin}/v1?data=${compressedData}`;
+      },
+      loadFromLink: async (compressedData: string) => {
+        try {
+          const { templateMarkdown, modelCto, data } =
+            decompress(compressedData);
+          set(() => ({
+            templateMarkdown,
+            modelCto,
+            data,
+            agreementHtml: "",
+            error: undefined,
+          }));
+          await rebuildDeBounce(templateMarkdown, modelCto, data);
+        } catch (error) {
+          set(() => ({
+            error: "Failed to load data from the link",
+          }));
+        }
+      },
     }))
   )
 );
 
 export default useAppStore;
+
+function formatError(error: any): string {
+  console.error(error);
+  if (typeof error === "string") {
+    return error;
+  } else if (Array.isArray(error)) {
+    return error.map((e) => formatError(e)).join("\n");
+  } else if (error.code) {
+    const sub = error.errors ? formatError(error.errors) : "";
+    const msg = error.renderedMessage ? error.renderedMessage : "";
+    return `Error: ${error.code} ${sub} ${msg}`;
+  }
+  return error.toString();
+}
