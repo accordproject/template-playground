@@ -7,7 +7,7 @@ import AgreementHtml from "./AgreementHtml";
 import Errors from "./Errors";
 import TemplateMarkdown from "./TemplateMarkdown";
 import TemplateModel from "./TemplateModel";
-import useAppStore from "./store";
+import useAppStore from "./store/store";
 import SampleDropdown from "./SampleDropdown";
 import FullScreenModal from "./FullScreenModal";
 import { useSearchParams } from "react-router-dom";

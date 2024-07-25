@@ -1,7 +1,7 @@
 import { Button, Dropdown, Space, message } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 
-import useAppStore from "./store";
+import useAppStore from "./store/store";
 
 function SampleDropdown({ setLoading }: { setLoading: any }) {
   const samples = useAppStore((state) => state.samples);

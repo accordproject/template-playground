@@ -1,6 +1,6 @@
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
-import useAppStore from "./store";
+import useAppStore from "./store/store";
 
 function AgreementHtml({ loading }: { loading: any }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
