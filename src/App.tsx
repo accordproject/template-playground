@@ -4,12 +4,12 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AgreementData from "./editors/editorsContainer/AgreementData";
 import AgreementHtml from "./AgreementHtml";
-import Errors from "./Errors";
+import Errors from "./helpers/Errors";
 import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
 import TemplateModel from "./editors/editorsContainer/TemplateModel";
 import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
-import FullScreenModal from "./FullScreenModal";
+import FullScreenModal from "./components/FullScreenModal";
 import { useSearchParams } from "react-router-dom";
 import UseShare from "./components/UseShare";
 
