@@ -1,5 +1,5 @@
-import MarkdownEditor from "./editors/MarkdownEditor";
-import useAppStore from "./store/store";
+import MarkdownEditor from "../MarkdownEditor";
+import useAppStore from "../../store/store";
 
 function TemplateMarkdown() {
   const templateMarkdown = useAppStore((state) => state.templateMarkdown);
