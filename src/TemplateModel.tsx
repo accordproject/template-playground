@@ -1,4 +1,4 @@
-import ConcertoEditor from "./ConcertoEditor";
+import ConcertoEditor from "./editors/ConcertoEditor";
 import useAppStore from "./store/store";
 
 function TemplateModel() {

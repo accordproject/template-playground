@@ -1,4 +1,4 @@
-import JSONEditor from "./JSONEditor";
+import JSONEditor from "./editors/JSONEditor";
 import useAppStore from "./store/store";
 
 function AgreementData() {

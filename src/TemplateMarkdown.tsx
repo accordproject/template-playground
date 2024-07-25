@@ -1,4 +1,4 @@
-import MarkdownEditor from "./MarkdownEditor";
+import MarkdownEditor from "./editors/MarkdownEditor";
 import useAppStore from "./store/store";
 
 function TemplateMarkdown() {
