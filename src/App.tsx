@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AgreementData from "./editors/editorsContainer/AgreementData";
 import AgreementHtml from "./AgreementHtml";
-import Errors from "../utils/helpers/Errors";
+import Errors from "./utils/helpers/Errors";
 import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
 import TemplateModel from "./editors/editorsContainer/TemplateModel";
 import useAppStore from "./store/store";
