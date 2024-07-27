@@ -1,5 +1,5 @@
-import JSONEditor from "./JSONEditor";
-import useAppStore from "./store";
+import JSONEditor from "../JSONEditor";
+import useAppStore from "../../store/store";
 
 function AgreementData() {
   const agreementData = useAppStore((state) => state.data);
