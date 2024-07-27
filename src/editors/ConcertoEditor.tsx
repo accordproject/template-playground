@@ -1,6 +1,6 @@
 import * as monaco from "@monaco-editor/react";
 import { editor, MarkerSeverity } from "monaco-editor";
-import useAppStore from "./store";
+import useAppStore from "../store/store";
 import { useEffect, useMemo } from "react";
 
 const options: editor.IStandaloneEditorConstructionOptions = {

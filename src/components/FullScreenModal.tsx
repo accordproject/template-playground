@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Modal } from "antd";
-import AgreementHtml from "./AgreementHtml";
+import AgreementHtml from "../AgreementHtml";
 import { FullscreenOutlined } from "@ant-design/icons";
 
 const FullScreenModal: React.FC = () => {
