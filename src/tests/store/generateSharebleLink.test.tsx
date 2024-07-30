@@ -10,6 +10,7 @@ describe("useAppStore", () => {
       templateMarkdown: "Sample Template",
       modelCto: "Sample Model",
       data: '{"key": "value"}',
+      agreementHtml: "<p>Sample Agreement</p>",
     };
 
     // Mock compress function to return a sample compressed string
@@ -21,6 +22,7 @@ describe("useAppStore", () => {
     await store.setTemplateMarkdown(initialState.templateMarkdown);
     await store.setModelCto(initialState.modelCto);
     await store.setData(initialState.data);
+    store.agreementHtml = initialState.agreementHtml;
 
     const shareableLink = store.generateShareableLink();
 
