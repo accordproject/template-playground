@@ -32,6 +32,7 @@ export interface DecompressedData {
   templateMarkdown: string;
   modelCto: string;
   data: string;
+  agreementHtml: string;
 }
 
 async function rebuild(template: string, model: string, dataString: string) {
@@ -149,21 +150,21 @@ const useAppStore = create<AppState>()(
           templateMarkdown: state.templateMarkdown,
           modelCto: state.modelCto,
           data: state.data,
+          agreementHtml: state.agreementHtml,
         });
         return `${window.location.origin}/v1?data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
         try {
-          const { templateMarkdown, modelCto, data } =
+          const { templateMarkdown, modelCto, data, agreementHtml } =
             decompress(compressedData);
           set(() => ({
             templateMarkdown,
             modelCto,
             data,
-            agreementHtml: "",
+            agreementHtml,
             error: undefined,
           }));
-          await rebuildDeBounce(templateMarkdown, modelCto, data);
         } catch (error) {
           set(() => ({
             error: "Failed to load data from the link",
