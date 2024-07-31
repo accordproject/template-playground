@@ -43,7 +43,7 @@ const CustomFooter: React.FC = () => {
               The open source smart legal contract stack
             </Text>
             <Link href="mailto:admin@accordproject.org">
-              <Text strong style={{ color: "#19c6c7" }}>
+              <Text strong style={{ color: "rgba(255, 255, 255, 0.65)" }}>
                 admin@accordproject.org
               </Text>
             </Link>
