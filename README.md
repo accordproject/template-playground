@@ -21,7 +21,7 @@ The Accord Project Template-Playground is a web-based platform designed to empow
 5. [Template-Engine](https://github.com/accordproject/template-engine) to convert TemplateMark + JSON data to AgreementMark.
    This playground aims to bridge the gap between static documentation and active learning by providing:
 
-**Interactive Template Samples** Users can directly edit and test template samples and see the corresponding output in a live preview environment, fostering a hands-on learning experience.
+**Interactive Template Samples** Users can directly edit, test and share template samples and see the corresponding output in a live preview environment, fostering a hands-on learning experience.
 
 **Interactive Features:**
 
