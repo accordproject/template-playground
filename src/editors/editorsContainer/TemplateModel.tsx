@@ -1,15 +1,26 @@
 import ConcertoEditor from "../ConcertoEditor";
 import useAppStore from "../../store/store";
+import { useCallback } from 'react';
+import { debounce } from "ts-debounce";
 
 function TemplateModel() {
-  const model = useAppStore((state) => state.modelCto);
+  const editorModelCto = useAppStore((state) => state.editorModelCto);
+  const setEditorModelCto = useAppStore((state) => state.setEditorModelCto);
   const setModelCto = useAppStore((state) => state.setModelCto);
 
-  function onChange(value: string | undefined) {
-    if (value) {
+  const debouncedSetModelCto = useCallback(
+    debounce((value: string) => {
       void setModelCto(value);
+    }, 500),
+    [setModelCto]
+  );
+
+  const handleChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      setEditorModelCto(value);
+      debouncedSetModelCto(value);
     }
-  }
+  };
 
   return (
     <div className="column">
@@ -19,7 +30,7 @@ function TemplateModel() {
           Defines the data model for the template and its logic.
         </span>
       </div>
-      <ConcertoEditor value={model} onChange={onChange} />
+      <ConcertoEditor value={editorModelCto} onChange={handleChange} />
     </div>
   );
 }
