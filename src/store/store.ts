@@ -1,3 +1,4 @@
+// Update the store with editorModelCto and setEditorModelCto
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
@@ -12,15 +13,21 @@ import { compress, decompress } from "../utils/compression/compression";
 
 interface AppState {
   templateMarkdown: string;
+  editorValue: string;
   modelCto: string;
+  editorModelCto: string;
   data: string;
+  editorAgreementData: string;
   agreementHtml: string;
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
   setTemplateMarkdown: (template: string) => Promise<void>;
+  setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
+  setEditorModelCto: (value: string) => void;
   setData: (data: string) => Promise<void>;
+  setEditorAgreementData: (value: string) => void;
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
@@ -65,8 +72,11 @@ const useAppStore = create<AppState>()(
     devtools((set, get) => ({
       sampleName: playground.NAME,
       templateMarkdown: playground.TEMPLATE,
+      editorValue: playground.TEMPLATE,
       modelCto: playground.MODEL,
+      editorModelCto: playground.MODEL,
       data: JSON.stringify(playground.DATA, null, 2),
+      editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       agreementHtml: "",
       error: undefined,
       samples: SAMPLES,
@@ -87,8 +97,11 @@ const useAppStore = create<AppState>()(
             agreementHtml: undefined,
             error: undefined,
             templateMarkdown: sample.TEMPLATE,
+            editorValue: sample.TEMPLATE,
             modelCto: sample.MODEL,
+            editorModelCto: sample.MODEL,
             data: JSON.stringify(sample.DATA, null, 2),
+            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
           }));
           await get().rebuild();
         }
@@ -118,6 +131,9 @@ const useAppStore = create<AppState>()(
         }
         set(() => ({ templateMarkdown: template }));
       },
+      setEditorValue: (value: string) => {
+        set(() => ({ editorValue: value }));
+      },
       setModelCto: async (model: string) => {
         try {
           const result = await rebuildDeBounce(
@@ -131,6 +147,9 @@ const useAppStore = create<AppState>()(
         }
         set(() => ({ modelCto: model }));
       },
+      setEditorModelCto: (value: string) => {
+        set(() => ({ editorModelCto: value }));
+      },
       setData: async (data: string) => {
         try {
           const result = await rebuildDeBounce(
@@ -143,6 +162,9 @@ const useAppStore = create<AppState>()(
           set(() => ({ error: formatError(error) }));
         }
         set(() => ({ data }));
+      },
+      setEditorAgreementData: (value: string) => {
+        set(() => ({ editorAgreementData: value }));
       },
       generateShareableLink: () => {
         const state = get();
@@ -160,8 +182,11 @@ const useAppStore = create<AppState>()(
             decompress(compressedData);
           set(() => ({
             templateMarkdown,
+            editorValue: templateMarkdown,
             modelCto,
+            editorModelCto: modelCto,
             data,
+            editorAgreementData: data,
             agreementHtml,
             error: undefined,
           }));

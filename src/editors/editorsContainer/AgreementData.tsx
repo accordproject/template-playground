@@ -1,15 +1,26 @@
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
+import { useCallback } from 'react';
+import { debounce } from "ts-debounce";
 
 function AgreementData() {
-  const agreementData = useAppStore((state) => state.data);
+  const editorAgreementData = useAppStore((state) => state.editorAgreementData);
+  const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
   const setData = useAppStore((state) => state.setData);
 
-  function onChange(value: string | undefined) {
-    if (value) {
+  const debouncedSetData = useCallback(
+    debounce((value: string) => {
       void setData(value);
+    }, 500),
+    [setData]
+  );
+
+  const handleChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      setEditorAgreementData(value); // Immediate state update
+      debouncedSetData(value); // Debounced state update
     }
-  }
+  };
 
   return (
     <div className="column">
@@ -20,7 +31,7 @@ function AgreementData() {
           from the template.
         </span>
       </div>
-      <JSONEditor value={agreementData} onChange={onChange} />
+      <JSONEditor value={editorAgreementData} onChange={handleChange} />
     </div>
   );
 }
