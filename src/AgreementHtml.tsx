@@ -34,7 +34,14 @@ function AgreementHtml({ loading }: { loading: any }) {
             alignItems: "center",
           }}
         >
-          <Spin indicator={<LoadingOutlined style={{ fontSize: 42 }} spin />} />
+          <Spin
+            indicator={
+              <LoadingOutlined
+                style={{ fontSize: 42, color: "#19c6c7" }}
+                spin
+              />
+            }
+          />
         </div>
       ) : (
         <div
