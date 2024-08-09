@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme, Grid } from "antd";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import tour from "./components/Tour";
 import AgreementData from "./editors/editorsContainer/AgreementData";
+import LearnNow from "./pages/LearnNow";
 import AgreementHtml from "./AgreementHtml";
 import Errors from "./utils/helpers/Errors";
 import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
@@ -49,6 +51,23 @@ const App = () => {
     };
     initializeApp();
   }, [init, loadFromLink, searchParams]);
+
+  // useEffect(() => {
+  //   // Check if the user is visiting for the first time
+  //   if (!localStorage.getItem("hasVisited")) {
+  //     tour.start();
+  //     localStorage.setItem("hasVisited", "true");
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    const showTour = searchParams.get("showTour") === "true";
+
+    if (showTour || !localStorage.getItem("hasVisited")) {
+      tour.start();
+      localStorage.setItem("hasVisited", "true");
+    }
+  }, [searchParams]);
 
   const screens = useBreakpoint();
 

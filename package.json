@@ -34,7 +34,9 @@
     "react-dom": "^18.2.0",
     "react-dropdown": "^1.11.0",
     "react-router-dom": "^6.24.1",
+    "react-shepherd": "^6.1.1",
     "regenerator-runtime": "^0.13.11",
+    "shepherd.js": "^13.0.3",
     "ts-debounce": "^4.0.0",
     "zustand": "^4.3.9"
   },

@@ -7,7 +7,7 @@ const FullScreenModal: React.FC = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div style={{ textAlign: "right" }}>
+    <div style={{ textAlign: "right" }} className="preview-element">
       <FullscreenOutlined
         style={{ fontSize: "24px", cursor: "pointer", marginRight: "10px" }}
         onClick={() => setOpen(true)}

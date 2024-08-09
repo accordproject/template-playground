@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, Dropdown, Button, Image, Grid } from "antd";
+import { Menu, Dropdown, Button, Image, Grid, Typography } from "antd";
 import {
   GithubOutlined,
   QuestionOutlined,
@@ -10,10 +10,11 @@ import {
 } from "@ant-design/icons";
 
 const { useBreakpoint } = Grid;
+const { Link } = Typography;
 
 function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
   const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github"
+    null | "home" | "explore" | "help" | "github" | "join"
   >(null);
   const screens = useBreakpoint();
 
@@ -105,7 +106,8 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             preview={false}
             style={{
               paddingRight: screens.md ? "24px" : "10px",
-              height: "26px", maxWidth: screens.md ? '184.17px' : '36.67px',
+              height: "26px",
+              maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
           <span style={{ color: "white" }}>Template Playground</span>
@@ -154,39 +156,74 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
       )}
       <div
         style={{
-          marginLeft: screens.md ? "auto" : "unset",
-          height: "65px",
           display: "flex",
+          marginLeft: "auto",
           alignItems: "center",
-          borderLeft: screens.md
-            ? "1.5px solid rgba(255, 255, 255, 0.1)"
-            : "none",
-          paddingLeft: screens.md ? "20px" : "0",
-          backgroundColor:
-            hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
-          cursor: "pointer",
-          position: screens.md ? "relative" : "absolute",
-          right: screens.md ? "auto" : "10px",
-          paddingRight: screens.md ? 0 : "10px",
+          height: "65px",
         }}
-        onMouseEnter={() => setHovered("github")}
-        onMouseLeave={() => setHovered(null)}
       >
-        <a
-          href="https://github.com/accordproject/template-playground"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ display: "flex", alignItems: "center", color: "white" }}
+        <div
+          style={{
+            marginLeft: screens.md ? "20px" : "0",
+            height: "65px",
+            display: "flex",
+            alignItems: "center",
+            backgroundColor:
+              hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+            cursor: "pointer",
+          }}
+          onMouseEnter={() => setHovered("join")}
+          onMouseLeave={() => setHovered(null)}
         >
-          <GithubOutlined
-            style={{
-              fontSize: "20px",
-              color: "white",
-              marginRight: screens.md ? "5px" : "0",
-            }}
-          />
-          {screens.md && <span>Github</span>}
-        </a>
+          <Link href="/learn-now" className="learnNow-button">
+            <Button
+              shape="round"
+              size="large"
+              style={{
+                padding: "5px 30px",
+                backgroundColor: "#19c6c7",
+                color: "#050c40",
+                textAlign: "center",
+                border: "none",
+                marginRight: "15px",
+              }}
+            >
+              Learn
+            </Button>
+          </Link>
+        </div>
+        <div
+          style={{
+            height: "65px",
+            display: "flex",
+            alignItems: "center",
+            borderLeft: screens.md
+              ? "1.5px solid rgba(255, 255, 255, 0.1)"
+              : "none",
+            paddingLeft: screens.md ? "20px" : "0",
+            backgroundColor:
+              hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+            cursor: "pointer",
+          }}
+          onMouseEnter={() => setHovered("github")}
+          onMouseLeave={() => setHovered(null)}
+        >
+          <a
+            href="https://github.com/accordproject/template-playground"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", color: "white" }}
+          >
+            <GithubOutlined
+              style={{
+                fontSize: "20px",
+                color: "white",
+                marginRight: screens.md ? "5px" : "0",
+              }}
+            />
+            {screens.md && <span>Github</span>}
+          </a>
+        </div>
       </div>
     </div>
   );

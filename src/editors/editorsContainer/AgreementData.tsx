@@ -1,11 +1,13 @@
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
-import { useCallback } from 'react';
+import { useCallback } from "react";
 import { debounce } from "ts-debounce";
 
 function AgreementData() {
   const editorAgreementData = useAppStore((state) => state.editorAgreementData);
-  const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
+  const setEditorAgreementData = useAppStore(
+    (state) => state.setEditorAgreementData
+  );
   const setData = useAppStore((state) => state.setData);
 
   const debouncedSetData = useCallback(

@@ -21,9 +21,11 @@ const UseShare = () => {
   };
 
   return (
-    <Button icon={<ShareAltOutlined />} onClick={handleCopy}>
-      {copied ? "Copied!" : "Share"}
-    </Button>
+    <div className="share-element">
+      <Button icon={<ShareAltOutlined />} onClick={handleCopy}>
+        {copied ? "Copied!" : "Share"}
+      </Button>
+    </div>
   );
 };
 

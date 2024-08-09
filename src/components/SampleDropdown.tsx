@@ -34,9 +34,11 @@ function SampleDropdown({ setLoading }: { setLoading: any }) {
   return (
     <Space>
       <Dropdown menu={menuProps} trigger={["click"]}>
-        <Button>
-          Load Sample <DownOutlined />
-        </Button>
+        <div className="samples-element">
+          <Button>
+            Load Sample <DownOutlined />
+          </Button>
+        </div>
       </Dropdown>
     </Space>
   );
