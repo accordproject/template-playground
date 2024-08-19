@@ -52,14 +52,6 @@ const App = () => {
     initializeApp();
   }, [init, loadFromLink, searchParams]);
 
-  // useEffect(() => {
-  //   // Check if the user is visiting for the first time
-  //   if (!localStorage.getItem("hasVisited")) {
-  //     tour.start();
-  //     localStorage.setItem("hasVisited", "true");
-  //   }
-  // }, []);
-
   useEffect(() => {
     const showTour = searchParams.get("showTour") === "true";
 
