@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme, Grid } from "antd";
+import { Routes, Route, useSearchParams } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import tour from "./components/Tour";
@@ -12,7 +13,6 @@ import TemplateModel from "./editors/editorsContainer/TemplateModel";
 import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
 import FullScreenModal from "./components/FullScreenModal";
-import { useSearchParams } from "react-router-dom";
 import UseShare from "./components/UseShare";
 
 const { Content } = Layout;
@@ -94,60 +94,69 @@ const App = () => {
       <Layout style={{ minHeight: "100vh" }}>
         <Navbar scrollToExplore={scrollToExplore} />
         <Content>
-          <div
-            style={{
-              padding: 24,
-              paddingBottom: 150,
-              minHeight: 360,
-              background: colorBgContainer,
-            }}
-          >
-            <Row id="explore">
-              <Col xs={24} sm={8}>
-                <Row
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <div
                   style={{
-                    marginLeft: "25px",
-                    display: "flex",
-                    flexDirection: "row",
-                    gap: "10px",
+                    padding: 24,
+                    paddingBottom: 150,
+                    minHeight: 360,
+                    background: colorBgContainer,
                   }}
                 >
-                  <SampleDropdown setLoading={setLoading} />
-                  <UseShare />
-                </Row>
-              </Col>
-              <Col span={18}>
-                <Errors />
-              </Col>
-            </Row>
-            <div
-              style={{
-                padding: 24,
-                minHeight: 360,
-                background: colorBgContainer,
-              }}
-            >
-              <Row gutter={24}>
-                <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
-                  <Collapse
-                    defaultActiveKey={activePanel}
-                    onChange={onChange}
-                    items={panels}
-                  />
-                </Col>
-                <Col xs={24} sm={8}>
+                  <Row id="explore">
+                    <Col xs={24} sm={8}>
+                      <Row
+                        style={{
+                          marginLeft: "25px",
+                          display: "flex",
+                          flexDirection: "row",
+                          gap: "10px",
+                        }}
+                      >
+                        <SampleDropdown setLoading={setLoading} />
+                        <UseShare />
+                      </Row>
+                    </Col>
+                    <Col span={18}>
+                      <Errors />
+                    </Col>
+                  </Row>
                   <div
                     style={{
-                      marginBottom: "10px",
+                      padding: 24,
+                      minHeight: 360,
+                      background: colorBgContainer,
                     }}
                   >
-                    <FullScreenModal />
+                    <Row gutter={24}>
+                      <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
+                        <Collapse
+                          defaultActiveKey={activePanel}
+                          onChange={onChange}
+                          items={panels}
+                        />
+                      </Col>
+                      <Col xs={24} sm={8}>
+                        <div
+                          style={{
+                            marginBottom: "10px",
+                          }}
+                        >
+                          <FullScreenModal />
+                        </div>
+                        <AgreementHtml loading={loading} />
+                      </Col>
+                    </Row>
                   </div>
-                  <AgreementHtml loading={loading} />
-                </Col>
-              </Row>
-            </div>
-          </div>
+                </div>
+              }
+            />
+            <Route path="/learn-now" element={<LearnNow />} />
+            <Route path="/learn-now/:step" element={<LearnNow />} />
+          </Routes>
         </Content>
         <Footer />
         {!screens.md && (

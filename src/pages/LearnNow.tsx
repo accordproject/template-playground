@@ -3,13 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Content from "../components/Content";
 import fetchContent from "../utils/fetchContent";
-import "../styles/learnNow.css";
+import { LearnNowContainer } from "../styles/pages/LearnNow";
 
 const LearnNow: React.FC = () => {
   const { step } = useParams<{ step: string }>();
   const navigate = useNavigate();
   const [steps, setSteps] = useState<{ title: string; link: string }[]>([]);
-  const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,9 +22,7 @@ const LearnNow: React.FC = () => {
           stepTitles.map((title, index) => ({ title, link: stepLinks[index] }))
         );
 
-        const initialStep = step || "intro.md"; // Use `intro.md` if no step provided
-        const contentData = await fetchContent(initialStep);
-        setContent(contentData);
+        await fetchContent(step || "intro.md");
       } catch (err: any) {
         setError("Failed to load content");
       } finally {
@@ -36,7 +33,6 @@ const LearnNow: React.FC = () => {
     loadContent();
   }, [step]);
 
-  // Redirect to `intro.md` if no `step` is provided
   useEffect(() => {
     if (!step) {
       navigate("/learn-now/intro.md");
@@ -47,10 +43,10 @@ const LearnNow: React.FC = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="learn-now">
+    <LearnNowContainer>
       <Sidebar steps={steps} />
       <Content />
-    </div>
+    </LearnNowContainer>
   );
 };
 
