@@ -6,6 +6,8 @@ import {
   NavigationButtons,
   NavigationButton,
 } from "../styles/components/Content";
+import { LoadingOutlined } from "@ant-design/icons";
+import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
 
 const Content: React.FC = () => {
@@ -50,7 +52,23 @@ const Content: React.FC = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Spin
+          indicator={
+            <LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />
+          }
+        />
+      </div>
+    );
   if (error) return <div>{error}</div>;
 
   return (

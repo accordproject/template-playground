@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import { LoadingOutlined } from "@ant-design/icons";
+import { Spin } from "antd";
 import Content from "../components/Content";
 import fetchContent from "../utils/fetchContent";
 import { LearnNowContainer } from "../styles/pages/LearnNow";
@@ -39,7 +41,23 @@ const LearnNow: React.FC = () => {
     }
   }, [step, navigate]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Spin
+          indicator={
+            <LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />
+          }
+        />
+      </div>
+    );
   if (error) return <div>Error: {error}</div>;
 
   return (
