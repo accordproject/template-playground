@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { useNavigate } from "react-router-dom";
 import {
   ContentContainer,
   NavigationButtons,
@@ -8,6 +9,7 @@ import {
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
+import { steps } from "../constants/learningSteps/steps";
 
 interface LearnContentProps {
   file: string;
@@ -17,12 +19,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const steps = [
-    { title: "Introduction", link: "/learn/intro" },
-    { title: "Module 1", link: "/learn/module1" },
-    { title: "Module 2", link: "/learn/module2" },
-  ];
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadContent = async () => {
@@ -47,13 +44,13 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
-      window.location.href = steps[currentIndex - 1].link;
+      navigate(steps[currentIndex - 1].link);
     }
   };
 
   const handleNext = () => {
     if (currentIndex < steps.length - 1) {
-      window.location.href = steps[currentIndex + 1].link;
+      navigate(steps[currentIndex + 1].link);
     }
   };
 
