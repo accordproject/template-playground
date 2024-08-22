@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import {
   ContentContainer,
@@ -10,22 +9,26 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
 
-const Content: React.FC = () => {
-  const { step } = useParams<{ step: string }>();
-  const navigate = useNavigate();
+interface LearnContentProps {
+  file: string;
+}
+
+const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ⚠️ should be updated only based on actual steps and new contents
-  const steps = ["intro.md", "module1.md", "module2.md"];
+  const steps = [
+    { title: "Introduction", link: "/learn/intro" },
+    { title: "Module 1", link: "/learn/module1" },
+    { title: "Module 2", link: "/learn/module2" },
+  ];
 
   useEffect(() => {
     const loadContent = async () => {
-      if (!step) return;
       try {
         setLoading(true);
-        const content = await fetchContent(`${step}`);
+        const content = await fetchContent(file);
         setContent(content);
         setError(null);
       } catch (err: any) {
@@ -36,23 +39,25 @@ const Content: React.FC = () => {
     };
 
     loadContent();
-  }, [step]);
+  }, [file]);
 
-  const currentIndex = steps.indexOf(step ?? "");
+  const currentIndex = steps.findIndex((step) =>
+    step.link.includes(file.split(".")[0])
+  );
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
-      navigate(`/learn-now/${steps[currentIndex - 1]}`);
+      window.location.href = steps[currentIndex - 1].link;
     }
   };
 
   const handleNext = () => {
     if (currentIndex < steps.length - 1) {
-      navigate(`/learn-now/${steps[currentIndex + 1]}`);
+      window.location.href = steps[currentIndex + 1].link;
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div
         style={{
@@ -69,7 +74,11 @@ const Content: React.FC = () => {
         />
       </div>
     );
-  if (error) return <div>{error}</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <ContentContainer>
@@ -92,4 +101,4 @@ const Content: React.FC = () => {
   );
 };
 
-export default Content;
+export default LearnContent;

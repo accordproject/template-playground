@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Menu, Dropdown, Button, Image, Grid, Typography } from "antd";
+import { Menu, Dropdown, Button, Image, Grid } from "antd";
 import { useSpring, animated } from "react-spring";
+import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
   QuestionOutlined,
@@ -11,13 +12,13 @@ import {
 } from "@ant-design/icons";
 
 const { useBreakpoint } = Grid;
-const { Link } = Typography;
 
 function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
   const screens = useBreakpoint();
+  const location = useLocation();
 
   const props = useSpring({
     to: async (next) => {
@@ -94,6 +95,8 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
       screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
   });
 
+  const isLearnPage = location.pathname.startsWith("/learn");
+
   return (
     <div
       style={{
@@ -115,8 +118,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
         onMouseLeave={() => setHovered(null)}
       >
         <a
-          href="https://www.accordproject.org"
-          target="_blank"
+          href="/"
           rel="noopener noreferrer"
           style={{ display: "flex", alignItems: "center" }}
         >
@@ -182,36 +184,38 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           height: "65px",
         }}
       >
-        <div
-          style={{
-            marginLeft: screens.md ? "20px" : "0",
-            height: "65px",
-            display: "flex",
-            alignItems: "center",
-            backgroundColor:
-              hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
-            cursor: "pointer",
-          }}
-          onMouseEnter={() => setHovered("join")}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <Link href="/learn-now" className="learnNow-button">
-            <animated.button
-              style={{
-                ...props,
-                padding: "10px 22px",
-                backgroundColor: "#19c6c7",
-                color: "#050c40",
-                border: "none",
-                borderRadius: "5px",
-                marginRight: "15px",
-                cursor: "pointer",
-              }}
-            >
-              Learn
-            </animated.button>
-          </Link>
-        </div>
+        {!isLearnPage && (
+          <div
+            style={{
+              marginLeft: screens.md ? "20px" : "0",
+              height: "65px",
+              display: "flex",
+              alignItems: "center",
+              backgroundColor:
+                hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+              cursor: "pointer",
+            }}
+            onMouseEnter={() => setHovered("join")}
+            onMouseLeave={() => setHovered(null)}
+          >
+            <Link to="/learn/intro" className="learnNow-button">
+              <animated.button
+                style={{
+                  ...props,
+                  padding: "10px 22px",
+                  backgroundColor: "#19c6c7",
+                  color: "#050c40",
+                  border: "none",
+                  borderRadius: "5px",
+                  marginRight: "15px",
+                  cursor: "pointer",
+                }}
+              >
+                Learn
+              </animated.button>
+            </Link>
+          </div>
+        )}
         <div
           style={{
             height: "65px",

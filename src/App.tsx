@@ -14,6 +14,7 @@ import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
 import FullScreenModal from "./components/FullScreenModal";
 import UseShare from "./components/UseShare";
+import LearnContent from "./components/Content";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -146,8 +147,19 @@ const App = () => {
                 </div>
               }
             />
-            <Route path="/learn-now" element={<LearnNow />} />
-            <Route path="/learn-now/:step" element={<LearnNow />} />
+
+            <Route path="/learn" element={<LearnNow />}>
+              {/* ❕ learning-module routes */}
+              <Route path="intro" element={<LearnContent file="intro.md" />} />
+              <Route
+                path="module1"
+                element={<LearnContent file="module1.md" />}
+              />
+              <Route
+                path="module2"
+                element={<LearnContent file="module2.md" />}
+              />
+            </Route>
           </Routes>
         </Content>
         <Footer />

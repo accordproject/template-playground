@@ -17,7 +17,7 @@ const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
       <SidebarList>
         {steps.map((step, index) => (
           <SidebarListItem key={index}>
-            <Link to={`/learn-now/${step.link}`}>
+            <Link to={step.link}>
               <SidebarLink>{step.title}</SidebarLink>
             </Link>
           </SidebarListItem>
