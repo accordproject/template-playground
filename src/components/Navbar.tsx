@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Menu, Dropdown, Button, Image, Grid, Typography } from "antd";
+import { useSpring, animated } from "react-spring";
 import {
   GithubOutlined,
   QuestionOutlined,
@@ -17,6 +18,25 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
   const screens = useBreakpoint();
+
+  const props = useSpring({
+    to: async (next) => {
+      while (true) {
+        await next({
+          opacity: 1,
+          boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)",
+        });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await next({
+          opacity: 0.9,
+          boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
+        });
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+      }
+    },
+    from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+    config: { duration: 1000 },
+  });
 
   const menu = (
     <Menu>
@@ -176,20 +196,20 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           onMouseLeave={() => setHovered(null)}
         >
           <Link href="/learn-now" className="learnNow-button">
-            <Button
-              shape="round"
-              size="large"
+            <animated.button
               style={{
-                padding: "5px 30px",
+                ...props,
+                padding: "10px 22px",
                 backgroundColor: "#19c6c7",
                 color: "#050c40",
-                textAlign: "center",
                 border: "none",
+                borderRadius: "5px",
                 marginRight: "15px",
+                cursor: "pointer",
               }}
             >
               Learn
-            </Button>
+            </animated.button>
           </Link>
         </div>
         <div

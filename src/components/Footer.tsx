@@ -49,11 +49,11 @@ const CustomFooter: React.FC = () => {
             </Link>
             <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank">
               <Button
-                shape="round"
                 size="large"
                 style={{
                   padding: "5px 30px",
                   backgroundColor: "#19c6c7",
+                  borderRadius: "5px",
                   color: "#050c40",
                   textAlign: "center",
                   border: "none",

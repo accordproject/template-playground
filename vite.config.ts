@@ -6,6 +6,9 @@ import nodePolyfills from "vite-plugin-node-stdlib-browser";
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
   plugins: [nodePolyfills(), react()],
+  optimizeDeps: {
+    include: ["immer"],
+  },
 });
 
 // https://vitest.dev/config/
