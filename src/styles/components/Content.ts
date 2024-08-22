@@ -74,7 +74,8 @@ export const ContentContainer = styled.div`
 `;
 
 export const NavigationButtons = styled.div`
-  margin-top: 20px;
+  margin-top: 60px;
+  margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
 
@@ -90,19 +91,42 @@ export const NavigationButtons = styled.div`
 
 export const NavigationButton = styled.button`
   padding: 10px 20px;
-  border: none;
+  border: 2px solid #19c6c7;
   border-radius: 4px;
-  background-color: #007bff;
-  color: white;
+  background-color: white;
+  color: #1b2540;
   cursor: pointer;
+  font-weight: 600;
   font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:disabled {
     background-color: #e0e0e0;
+    color: #9e9e9e;
     cursor: not-allowed;
+    border-color: #e0e0e0;
   }
 
   &:hover:not(:disabled) {
-    background-color: #0056b3;
+    background-color: #19c6c7; /* Hover background color */
+    color: white; /* Text color on hover */
+    text-decoration: underline; /* Underline text on hover */
+  }
+
+  svg {
+    margin-right: 8px; /* Space between icon and text */
+  }
+
+  &:nth-child(1) svg {
+    margin-right: 8px; /* Adjust for left arrow icon */
+  }
+
+  &:nth-child(2) {
+    svg {
+      margin-right: 0;
+      margin-left: 8px; /* Adjust for right arrow icon */
+    }
   }
 `;

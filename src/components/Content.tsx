@@ -10,6 +10,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
+import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
 interface LearnContentProps {
   file: string;
@@ -85,13 +86,13 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
           onClick={handlePrevious}
           disabled={currentIndex === 0}
         >
-          Previous
+          <LeftOutlined /> Previous
         </NavigationButton>
         <NavigationButton
           onClick={handleNext}
           disabled={currentIndex === steps.length - 1}
         >
-          Next
+          Next <RightOutlined />
         </NavigationButton>
       </NavigationButtons>
     </ContentContainer>

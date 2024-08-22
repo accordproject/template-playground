@@ -48,7 +48,7 @@ export const SidebarLink = styled(NavLink)`
     background-color: #e0e0e0;
     color: #1b2540;
     font-weight: 600;
-    border-left: 3px solid #19c6c7;
+    border-left: 2.5px solid #19c6c7;
   }
 
   &:hover {
