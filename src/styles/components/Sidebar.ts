@@ -66,7 +66,7 @@ export const HelperBox = styled.div`
   font-size: 0.9rem;
 
   @media (max-width: 768px) {
-    display: none; /* Hide on mobile */
+    display: none;
   }
 `;
 

@@ -41,9 +41,9 @@ const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
           <BulbOutlined />
         </HelperIcon>
         <HelperText>
-          Welcome to the Learning Pathway! Here you'll find a structured guide
-          to help you navigate through the content. Follow the steps in the
-          sidebar to get started. For more resources, check out the links:
+          Welcome to the Learning Pathway! Use the sidebar to follow the guide.
+          Open the Template Playground in another tab to experiment as you
+          learn. Check the links for additional resources. -
           <Link
             to="#"
             onClick={() => handleExternalLink("https://example.com/resource1")}

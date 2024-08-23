@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import rehypeHighlight from "rehype-highlight";
 import { useNavigate } from "react-router-dom";
 import {
   ContentContainer,
   NavigationButtons,
   NavigationButton,
 } from "../styles/components/Content";
-import { LoadingOutlined } from "@ant-design/icons";
+import {
+  LoadingOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+
+// markdown syntax highlighting theme
+import "highlight.js/styles/github.css";
 
 interface LearnContentProps {
   file: string;
@@ -80,7 +88,20 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
 
   return (
     <ContentContainer>
-      {content && <ReactMarkdown>{content}</ReactMarkdown>}
+      {content && (
+        <ReactMarkdown
+          rehypePlugins={[rehypeRaw, rehypeHighlight]}
+          components={{
+            img: ({ node, ...props }) => (
+              <div className="image-container">
+                <img {...props} alt={props.alt || ""} />
+              </div>
+            ),
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      )}
       <NavigationButtons>
         <NavigationButton
           onClick={handlePrevious}

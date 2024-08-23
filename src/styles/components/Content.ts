@@ -27,32 +27,12 @@ export const ContentContainer = styled.div`
   }
 
   a {
-    color: #007bff;
+    color: #19c6c7;
     text-decoration: none;
 
     &:hover {
       text-decoration: underline;
     }
-  }
-
-  code {
-    background: #f1f1f1;
-    padding: 2px 4px;
-    border-radius: 4px;
-  }
-
-  pre {
-    background: #f1f1f1;
-    padding: 1em;
-    border-radius: 4px;
-    overflow: auto;
-  }
-
-  blockquote {
-    border-left: 4px solid #007bff;
-    padding-left: 1em;
-    margin: 1em 0;
-    color: #555;
   }
 
   ul,
@@ -62,6 +42,18 @@ export const ContentContainer = styled.div`
     li {
       margin-bottom: 0.5em;
     }
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .image-container {
+    display: flex;
+    justify-content: center;
   }
 
   @media (max-width: 1200px) {
@@ -110,23 +102,23 @@ export const NavigationButton = styled.button`
   }
 
   &:hover:not(:disabled) {
-    background-color: #19c6c7; /* Hover background color */
-    color: white; /* Text color on hover */
-    text-decoration: underline; /* Underline text on hover */
+    background-color: #19c6c7;
+    color: white;
+    text-decoration: underline;
   }
 
   svg {
-    margin-right: 8px; /* Space between icon and text */
+    margin-right: 8px;
   }
 
   &:nth-child(1) svg {
-    margin-right: 8px; /* Adjust for left arrow icon */
+    margin-right: 8px;
   }
 
   &:nth-child(2) {
     svg {
       margin-right: 0;
-      margin-left: 8px; /* Adjust for right arrow icon */
+      margin-left: 8px;
     }
   }
 `;
