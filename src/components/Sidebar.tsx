@@ -42,21 +42,11 @@ const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
         </HelperIcon>
         <HelperText>
           Welcome to the Learning Pathway! Use the sidebar to follow the guide.
-          Open the Template Playground in another tab to experiment as you
-          learn. Check the links for additional resources. -
-          <Link
-            to="#"
-            onClick={() => handleExternalLink("https://example.com/resource1")}
-          >
-            Resource
-          </Link>
-          &nbsp;
-          <Link
-            to="#"
-            onClick={() => handleExternalLink("https://example.com/resource2")}
-          >
-            Resource 2
-          </Link>
+          Open the{" "}
+          <Link to="/" onClick={() => handleExternalLink("/")}>
+            Template Playground
+          </Link>{" "}
+          in another tab to experiment as you learn.
         </HelperText>
       </HelperBox>
     </SidebarContainer>

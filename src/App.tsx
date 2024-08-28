@@ -159,6 +159,7 @@ const App = () => {
                 path="module2"
                 element={<LearnContent file="module2.md" />}
               />
+
               <Route
                 path="module3"
                 element={<LearnContent file="module3.md" />}
