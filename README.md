@@ -6,11 +6,11 @@
   </a>
 </p>
 
-This repository hosts the Accord Project Template-Playground. Templates are resourced using the [Template-Engine](https://github.com/accordproject/template-engine), rich-text templates are defined in TemplateMark (either as markdown files, or JSON documents), and are then merged with JSON data to produce output documents.
+This repository hosts the Accord Project Template-Playground. Templates are resourced using the [Template-Engine](https://github.com/accordproject/template-engine), rich-text templates are defined in TemplateMark (either as markdown files, or JSON documents) and are then merged with JSON data to produce output documents.
 
 ## Accord Project Playground
 
-### **Project Overview**
+**Project Overview**
 
 The Accord Project Template-Playground is a web-based platform designed to empower developers of all backgrounds to learn and experiment with Accord Project functionalities in a user-friendly and interactive environment. It is a Web playground for Accord Project templates:
 
@@ -19,25 +19,27 @@ The Accord Project Template-Playground is a web-based platform designed to empow
 3. TypeScript for logic within the templates.
 4. [Markdown-Transform](https://github.com/accordproject/markdown-transform) to transform the output to HTML, PDF etc.
 5. [Template-Engine](https://github.com/accordproject/template-engine) to convert TemplateMark + JSON data to AgreementMark.
+   This playground aims to bridge the gap between static documentation and active learning by providing:
 
-This playground aims to bridge the gap between static documentation and active learning by providing:
+**Interactive Template Samples** Users can directly edit, test and share template samples and see the corresponding output in a live preview environment, fostering a hands-on learning experience.
 
-### **Interactive Features**
+**Interactive Features:**
 
-- **Live Template Testing and Editing**: Users can directly edit, test, and share template samples. The platform offers syntax highlighting, error checking, and real-time feedback in a live preview environment, fostering a hands-on learning experience.
-- **Shareable Links**: Easily share your edited templates with other users through generated shareable links, facilitating collaboration and knowledge sharing.
-- **Learning Pathway**: A newly introduced learning pathway allows users to engage in guided learning experiences. Users can explore creating, navigating, and using templates through structured modules.
+- Live template testing and editing with syntax highlighting and error checking.
+- Real-time preview of code execution results.
+- Share your edited templates with other users through generated shareable links.
+- A newly introduced learning pathway allows users to engage in guided learning experiences. Users can explore creating, navigating, and using templates through structured modules.
 
-### **Getting Involved**
+**Getting Involved**
 
 The Accord Project Playground is an open-source project, welcoming contributions from the developer community. Here are some ways to participate:
 
-- **Feature Implementation**: Help build core functionalities like interactive code editing, live preview, and integrated learning resources.
-- **Learning Module Development**: Create interactive modules to showcase specific Accord Project functionalities, particularly around the new learning pathway.
-- **Functionality Enhancements**: Improve existing features based on user feedback and project needs, such as expanding the learning pathway or enhancing template editing capabilities.
-- **Documentation and Tutorials**: Contribute to comprehensive documentation and tutorials that guide users through the platform effectively.
+- **Feature Implementation:** Help build core functionalities like interactive code editing, live preview, and integrated learning resources.
+- **Learning Module Development:** Create interactive modules to showcase specific Accord Project functionalities.
+- **Functionality Enhancements:** Improve existing features based on user feedback and project needs.
+- **Documentation and Tutorials:** Contribute to comprehensive documentation and tutorials that guide users through the platform effectively.
 
-## **Demo**
+## Demo
 
 The Template Playground is deployed at: [https://playground.accordproject.org](https://playground.accordproject.org)
 
@@ -58,17 +60,17 @@ The Template Playground is deployed at: [https://playground.accordproject.org](h
   </a>
 </p>
 
-Accord Project is an open-source, non-profit initiative working to transform contract management and contract automation by digitizing contracts. Accord Project operates under the umbrella of the [Linux Foundation][linuxfound]. The technical charter for the Accord Project can be found [here][charter].
+Accord Project is an open source, non-profit, initiative working to transform contract management and contract automation by digitizing contracts. Accord Project operates under the umbrella of the [Linux Foundation][linuxfound]. The technical charter for the Accord Project can be found [here][charter].
 
-## **Learn More About Accord Project**
+## Learn More About Accord Project
 
 ### [Overview][apmain]
 
 ### [Documentation][apdoc]
 
-## **Contributing**
+## Contributing
 
-The Accord Project technology is being developed as open-source. All the software packages are being actively maintained on GitHub, and we encourage organizations and individuals to contribute requirements, documentation, issues, new templates, and code.
+The Accord Project technology is being developed as open source. All the software packages are being actively maintained on GitHub and we encourage organizations and individuals to contribute requirements, documentation, issues, new templates, and code.
 
 Find out what’s coming on our [blog][apblog].
 
@@ -76,7 +78,7 @@ Join the Accord Project Technology Working Group [Discord channel][apdiscord] to
 
 For code contributions, read our [CONTRIBUTING guide][contributing] and information for [DEVELOPERS][developers].
 
-### **README Badge**
+### README Badge
 
 Using Accord Project? Add a README badge to let everyone know: [![accord project](https://img.shields.io/badge/powered%20by-accord%20project-19C6C8.svg)](https://www.accordproject.org/)
 
@@ -84,7 +86,7 @@ Using Accord Project? Add a README badge to let everyone know: [![accord project
 [![accord project](https://img.shields.io/badge/powered%20by-accord%20project-19C6C8.svg)](https://www.accordproject.org/)
 ```
 
-## **License** <a name="license"></a>
+## License <a name="license"></a>
 
 Accord Project source code files are made available under the [Apache License, Version 2.0][apache].
 Accord Project documentation files are made available under the [Creative Commons Attribution 4.0 International License][creativecommons] (CC-BY-4.0).
