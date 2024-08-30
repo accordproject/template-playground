@@ -16,10 +16,6 @@ import { BulbOutlined } from "@ant-design/icons";
 const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
   steps,
 }) => {
-  const handleExternalLink = (url: string) => {
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
   return (
     <SidebarContainer>
       <SidebarTitle>Learning Pathway</SidebarTitle>
@@ -43,13 +39,7 @@ const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
         <HelperText>
           Welcome to the Learning Pathway! Use the sidebar to follow the guide.
           Open the{" "}
-          <Link
-            to="/"
-            onClick={(e) => {
-              e.preventDefault();
-              window.open("/", "_blank");
-            }}
-          >
+          <Link to="/" target="_blank" rel="noopener noreferrer">
             Template Playground
           </Link>{" "}
           in another tab to experiment as you learn.
