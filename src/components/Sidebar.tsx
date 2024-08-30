@@ -43,7 +43,13 @@ const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
         <HelperText>
           Welcome to the Learning Pathway! Use the sidebar to follow the guide.
           Open the{" "}
-          <Link to="/" onClick={() => handleExternalLink("/")}>
+          <Link
+            to="/"
+            onClick={(e) => {
+              e.preventDefault();
+              window.open("/", "_blank");
+            }}
+          >
             Template Playground
           </Link>{" "}
           in another tab to experiment as you learn.
