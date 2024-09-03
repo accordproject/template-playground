@@ -28,7 +28,7 @@ The Accord Project Template-Playground is a web-based platform designed to empow
 - Live template testing and editing with syntax highlighting and error checking.
 - Real-time preview of code execution results.
 - Share your edited templates with other users through generated shareable links.
-
+- A newly introduced learning pathway allows users to engage in guided learning experiences. Users can explore creating, navigating, and using templates through structured modules.
 **Getting Involved**
 
 The Accord Project Playground is an open-source project, welcoming contributions from the developer community. Here are some ways to participate:
