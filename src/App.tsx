@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme, Grid } from "antd";
+import { Routes, Route, useSearchParams } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import tour from "./components/Tour";
 import AgreementData from "./editors/editorsContainer/AgreementData";
+import LearnNow from "./pages/LearnNow";
 import AgreementHtml from "./AgreementHtml";
 import Errors from "./utils/helpers/Errors";
 import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
@@ -10,8 +13,8 @@ import TemplateModel from "./editors/editorsContainer/TemplateModel";
 import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
 import FullScreenModal from "./components/FullScreenModal";
-import { useSearchParams } from "react-router-dom";
 import UseShare from "./components/UseShare";
+import LearnContent from "./components/Content";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -50,6 +53,15 @@ const App = () => {
     initializeApp();
   }, [init, loadFromLink, searchParams]);
 
+  useEffect(() => {
+    const showTour = searchParams.get("showTour") === "true";
+
+    if (showTour || !localStorage.getItem("hasVisited")) {
+      tour.start();
+      localStorage.setItem("hasVisited", "true");
+    }
+  }, [searchParams]);
+
   const screens = useBreakpoint();
 
   const panels = [
@@ -75,60 +87,85 @@ const App = () => {
       <Layout style={{ minHeight: "100vh" }}>
         <Navbar scrollToExplore={scrollToExplore} />
         <Content>
-          <div
-            style={{
-              padding: 24,
-              paddingBottom: 150,
-              minHeight: 360,
-              background: colorBgContainer,
-            }}
-          >
-            <Row id="explore">
-              <Col xs={24} sm={8}>
-                <Row
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <div
                   style={{
-                    marginLeft: "25px",
-                    display: "flex",
-                    flexDirection: "row",
-                    gap: "10px",
+                    padding: 24,
+                    paddingBottom: 150,
+                    minHeight: 360,
+                    background: colorBgContainer,
                   }}
                 >
-                  <SampleDropdown setLoading={setLoading} />
-                  <UseShare />
-                </Row>
-              </Col>
-              <Col span={18}>
-                <Errors />
-              </Col>
-            </Row>
-            <div
-              style={{
-                padding: 24,
-                minHeight: 360,
-                background: colorBgContainer,
-              }}
-            >
-              <Row gutter={24}>
-                <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
-                  <Collapse
-                    defaultActiveKey={activePanel}
-                    onChange={onChange}
-                    items={panels}
-                  />
-                </Col>
-                <Col xs={24} sm={8}>
+                  <Row id="explore">
+                    <Col xs={24} sm={8}>
+                      <Row
+                        style={{
+                          marginLeft: "25px",
+                          display: "flex",
+                          flexDirection: "row",
+                          gap: "10px",
+                        }}
+                      >
+                        <SampleDropdown setLoading={setLoading} />
+                        <UseShare />
+                      </Row>
+                    </Col>
+                    <Col span={18}>
+                      <Errors />
+                    </Col>
+                  </Row>
                   <div
                     style={{
-                      marginBottom: "10px",
+                      padding: 24,
+                      minHeight: 360,
+                      background: colorBgContainer,
                     }}
                   >
-                    <FullScreenModal />
+                    <Row gutter={24}>
+                      <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
+                        <Collapse
+                          defaultActiveKey={activePanel}
+                          onChange={onChange}
+                          items={panels}
+                        />
+                      </Col>
+                      <Col xs={24} sm={8}>
+                        <div
+                          style={{
+                            marginBottom: "10px",
+                          }}
+                        >
+                          <FullScreenModal />
+                        </div>
+                        <AgreementHtml loading={loading} />
+                      </Col>
+                    </Row>
                   </div>
-                  <AgreementHtml loading={loading} />
-                </Col>
-              </Row>
-            </div>
-          </div>
+                </div>
+              }
+            />
+
+            <Route path="/learn" element={<LearnNow />}>
+              {/* ❕ learning-module routes */}
+              <Route path="intro" element={<LearnContent file="intro.md" />} />
+              <Route
+                path="module1"
+                element={<LearnContent file="module1.md" />}
+              />
+              <Route
+                path="module2"
+                element={<LearnContent file="module2.md" />}
+              />
+
+              <Route
+                path="module3"
+                element={<LearnContent file="module3.md" />}
+              />
+            </Route>
+          </Routes>
         </Content>
         <Footer />
         {!screens.md && (

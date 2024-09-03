@@ -1,6 +1,6 @@
 import MarkdownEditor from "../MarkdownEditor";
 import useAppStore from "../../store/store";
-import { useCallback } from 'react';
+import { useCallback } from "react";
 import { debounce } from "ts-debounce";
 
 function TemplateMarkdown() {

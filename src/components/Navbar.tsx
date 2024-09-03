@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Menu, Dropdown, Button, Image, Grid } from "antd";
+import { useSpring, animated } from "react-spring";
+import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
   QuestionOutlined,
@@ -13,9 +15,29 @@ const { useBreakpoint } = Grid;
 
 function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
   const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github"
+    null | "home" | "explore" | "help" | "github" | "join"
   >(null);
   const screens = useBreakpoint();
+  const location = useLocation();
+
+  const props = useSpring({
+    to: async (next) => {
+      while (true) {
+        await next({
+          opacity: 1,
+          boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)",
+        });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await next({
+          opacity: 0.9,
+          boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
+        });
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+      }
+    },
+    from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+    config: { duration: 1000 },
+  });
 
   const menu = (
     <Menu>
@@ -73,6 +95,8 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
       screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
   });
 
+  const isLearnPage = location.pathname.startsWith("/learn");
+
   return (
     <div
       style={{
@@ -94,8 +118,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
         onMouseLeave={() => setHovered(null)}
       >
         <a
-          href="https://www.accordproject.org"
-          target="_blank"
+          href="/"
           rel="noopener noreferrer"
           style={{ display: "flex", alignItems: "center" }}
         >
@@ -105,7 +128,8 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             preview={false}
             style={{
               paddingRight: screens.md ? "24px" : "10px",
-              height: "26px", maxWidth: screens.md ? '184.17px' : '36.67px',
+              height: "26px",
+              maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
           <span style={{ color: "white" }}>Template Playground</span>
@@ -154,39 +178,76 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
       )}
       <div
         style={{
-          marginLeft: screens.md ? "auto" : "unset",
-          height: "65px",
           display: "flex",
+          marginLeft: "auto",
           alignItems: "center",
-          borderLeft: screens.md
-            ? "1.5px solid rgba(255, 255, 255, 0.1)"
-            : "none",
-          paddingLeft: screens.md ? "20px" : "0",
-          backgroundColor:
-            hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
-          cursor: "pointer",
-          position: screens.md ? "relative" : "absolute",
-          right: screens.md ? "auto" : "10px",
-          paddingRight: screens.md ? 0 : "10px",
+          height: "65px",
         }}
-        onMouseEnter={() => setHovered("github")}
-        onMouseLeave={() => setHovered(null)}
       >
-        <a
-          href="https://github.com/accordproject/template-playground"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ display: "flex", alignItems: "center", color: "white" }}
-        >
-          <GithubOutlined
+        {!isLearnPage && (
+          <div
             style={{
-              fontSize: "20px",
-              color: "white",
-              marginRight: screens.md ? "5px" : "0",
+              marginLeft: screens.md ? "20px" : "0",
+              height: "65px",
+              display: "flex",
+              alignItems: "center",
+              backgroundColor:
+                hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+              cursor: "pointer",
             }}
-          />
-          {screens.md && <span>Github</span>}
-        </a>
+            onMouseEnter={() => setHovered("join")}
+            onMouseLeave={() => setHovered(null)}
+          >
+            <Link to="/learn/intro" className="learnNow-button">
+              <animated.button
+                style={{
+                  ...props,
+                  padding: "10px 22px",
+                  backgroundColor: "#19c6c7",
+                  color: "#050c40",
+                  border: "none",
+                  borderRadius: "5px",
+                  marginRight: "15px",
+                  cursor: "pointer",
+                }}
+              >
+                Learn
+              </animated.button>
+            </Link>
+          </div>
+        )}
+        <div
+          style={{
+            height: "65px",
+            display: "flex",
+            alignItems: "center",
+            borderLeft: screens.md
+              ? "1.5px solid rgba(255, 255, 255, 0.1)"
+              : "none",
+            paddingLeft: screens.md ? "20px" : "0",
+            backgroundColor:
+              hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+            cursor: "pointer",
+          }}
+          onMouseEnter={() => setHovered("github")}
+          onMouseLeave={() => setHovered(null)}
+        >
+          <a
+            href="https://github.com/accordproject/template-playground"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", color: "white" }}
+          >
+            <GithubOutlined
+              style={{
+                fontSize: "20px",
+                color: "white",
+                marginRight: screens.md ? "5px" : "0",
+              }}
+            />
+            {screens.md && <span>Github</span>}
+          </a>
+        </div>
       </div>
     </div>
   );

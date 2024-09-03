@@ -1,10 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Navbar from "../../components/Navbar";
+import { MemoryRouter } from "react-router-dom";
+
+const renderNavbar = () => {
+  render(
+    <MemoryRouter>
+      <Navbar scrollToExplore={() => {}} />
+    </MemoryRouter>
+  );
+};
 
 describe("Navbar", () => {
   it("renders logo and title on small screens", () => {
-    render(<Navbar scrollToExplore={() => {}} />);
+    renderNavbar();
 
     const logoImage = screen.getByRole("img", { name: /Template Playground/i });
     expect(logoImage).toBeInTheDocument();
@@ -14,14 +23,14 @@ describe("Navbar", () => {
   });
 
   it("renders Github link on all screens", () => {
-    render(<Navbar scrollToExplore={() => {}} />);
+    renderNavbar();
 
     const githubLink = screen.getByRole("link", { name: /Github/i });
     expect(githubLink).toBeInTheDocument();
   });
 
   it("shows hover effect on menu items", () => {
-    render(<Navbar scrollToExplore={() => {}} />);
+    renderNavbar();
 
     const homeMenuItem = screen
       .getByText(/Template Playground/i)
