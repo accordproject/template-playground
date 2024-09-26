@@ -8,8 +8,10 @@ const viteConfig = defineViteConfig({
   plugins: [nodePolyfills(), react()],
   optimizeDeps: {
     include: ["immer"],
+    needsInterop: ['@accordproject/template-engine'],
   },
 });
+
 
 // https://vitest.dev/config/
 const vitestConfig = defineVitestConfig({
