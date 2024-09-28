@@ -1,0 +1,26 @@
+[
+  {
+    "key": "about",
+    "icon": "QuestionOutlined",
+    "label": "About",
+    "href": "https://github.com/accordproject/template-playground/blob/main/README.md"
+  },
+  {
+    "key": "community",
+    "icon": "UserOutlined",
+    "label": "Community",
+    "href": "https://discord.com/invite/Zm99SKhhtA"
+  },
+  {
+    "key": "issues",
+    "icon": "InfoOutlined",
+    "label": "Issues",
+    "href": "https://github.com/accordproject/template-playground/issues"
+  },
+  {
+    "key": "documentation",
+    "icon": "BookOutlined",
+    "label": "Documentation",
+    "href": "https://github.com/accordproject/template-engine/blob/main/README.md"
+  }
+]
