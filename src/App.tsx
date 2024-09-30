@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse, theme, Grid } from "antd";
 import { Routes, Route, useSearchParams } from "react-router-dom";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/Navbar/Navbar.tsx";
 import Footer from "./components/Footer";
 import tour from "./components/Tour";
 import AgreementData from "./editors/editorsContainer/AgreementData";
