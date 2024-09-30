@@ -10,6 +10,7 @@ import * as formula from "./formula";
 import * as clausecondition from "./clausecondition";
 import * as invitation from "./invitation";
 import * as announcement from "./announcement";
+import * as blank from "./blank";
 
 export type Sample = {
   NAME: string;
@@ -28,6 +29,7 @@ export const SAMPLES: Array<Sample> = [
   clausecondition,
   invitation,
   announcement,
+  blank,
   list,
   optional,
   markdown,
