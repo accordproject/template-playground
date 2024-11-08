@@ -7,6 +7,7 @@ function TemplateModel() {
   const editorModelCto = useAppStore((state) => state.editorModelCto);
   const setEditorModelCto = useAppStore((state) => state.setEditorModelCto);
   const setModelCto = useAppStore((state) => state.setModelCto);
+  const textColor = useAppStore((state) => state.textColor);
 
   const debouncedSetModelCto = useCallback(
     debounce((value: string) => {
@@ -25,8 +26,8 @@ function TemplateModel() {
   return (
     <div className="column">
       <div className="tooltip">
-        <h3>Concerto Model</h3>
-        <span className="tooltiptext">
+        <h3 style={{ color: textColor }}>Concerto Model</h3>
+        <span style={{ color: textColor }} className="tooltiptext">
           Defines the data model for the template and its logic.
         </span>
       </div>

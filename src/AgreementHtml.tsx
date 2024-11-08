@@ -4,6 +4,8 @@ import useAppStore from "./store/store";
 
 function AgreementHtml({ loading }: { loading: any }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
+  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const textColor = useAppStore((state) => state.textColor);
 
   return (
     <div
@@ -18,7 +20,7 @@ function AgreementHtml({ loading }: { loading: any }) {
         flexDirection: "column",
       }}
     >
-      <div style={{ textAlign: "center" }}>
+      <div style={{ textAlign: "center", color: textColor }}>
         <h2>Preview Output</h2>
         <p>
           The result of merging the JSON data with the template. This is
@@ -47,7 +49,7 @@ function AgreementHtml({ loading }: { loading: any }) {
         <div
           className="agreement"
           dangerouslySetInnerHTML={{ __html: agreementHtml }}
-          style={{ flex: 1 }}
+          style={{ flex: 1, color: textColor, backgroundColor: backgroundColor }}
         />
       )}
     </div>

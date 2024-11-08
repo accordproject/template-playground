@@ -15,6 +15,7 @@ import SampleDropdown from "./components/SampleDropdown";
 import FullScreenModal from "./components/FullScreenModal";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
+import ToggleDarkMode from "./components/ToggleDarkMode";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -22,6 +23,8 @@ const { useBreakpoint } = Grid;
 const App = () => {
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
+  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const textColor = useAppStore((state) => state.textColor);
   const [activePanel, setActivePanel] = useState<string | string[]>();
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
@@ -33,9 +36,6 @@ const App = () => {
     }
   };
 
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
 
   const onChange = (key: string | string[]) => {
     setActivePanel(key);
@@ -51,7 +51,26 @@ const App = () => {
       setLoading(false);
     };
     initializeApp();
-  }, [init, loadFromLink, searchParams]);
+
+    // DarkMode Styles
+    const style = document.createElement("style");
+    style.innerHTML = `
+  .ant-collapse-header {
+    color: ${textColor} !important;
+  }
+  .ant-collapse-content {
+    background-color: ${backgroundColor} !important;
+  }
+  .ant-collapse-content-active {
+    background-color: ${backgroundColor} !important;
+  }
+`;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, [init, loadFromLink, searchParams, textColor, backgroundColor]);
 
   useEffect(() => {
     const showTour = searchParams.get("showTour") === "true";
@@ -96,7 +115,7 @@ const App = () => {
                     padding: 24,
                     paddingBottom: 150,
                     minHeight: 360,
-                    background: colorBgContainer,
+                    background: backgroundColor,
                   }}
                 >
                   <Row id="explore">
@@ -121,7 +140,7 @@ const App = () => {
                     style={{
                       padding: 24,
                       minHeight: 360,
-                      background: colorBgContainer,
+                      background: backgroundColor,
                     }}
                   >
                     <Row gutter={24}>
@@ -138,7 +157,10 @@ const App = () => {
                             marginBottom: "10px",
                           }}
                         >
-                          <FullScreenModal />
+                          <div style={{ display: "flex" }}>
+                            <ToggleDarkMode />
+                            <FullScreenModal />
+                          </div>
                         </div>
                         <AgreementHtml loading={loading} />
                       </Col>

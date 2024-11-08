@@ -21,6 +21,8 @@ interface AppState {
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
+  backgroundColor: string;
+  textColor: string;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
@@ -32,6 +34,7 @@ interface AppState {
   loadSample: (name: string) => Promise<void>;
   generateShareableLink: () => string;
   loadFromLink: (compressedData: string) => Promise<void>;
+  toggleDarkMode: () => void;
 }
 
 export interface DecompressedData {
@@ -69,6 +72,17 @@ const rebuildDeBounce = debounce(rebuild, 500);
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => ({
+      backgroundColor: '#ffffff',
+      textColor: '#121212',
+      toggleDarkMode: () => {
+        set((state) => {
+          const isDark = state.backgroundColor === '#121212';
+          return {
+            backgroundColor: isDark ? '#ffffff' : '#121212',
+            textColor: isDark ? '#121212' : '#ffffff',
+          };
+        });
+      },
       sampleName: playground.NAME,
       templateMarkdown: playground.TEMPLATE,
       editorValue: playground.TEMPLATE,

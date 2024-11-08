@@ -7,6 +7,8 @@ function TemplateMarkdown() {
   const editorValue = useAppStore((state) => state.editorValue);
   const setEditorValue = useAppStore((state) => state.setEditorValue);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
+  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const textColor = useAppStore((state) => state.textColor);
 
   const debouncedSetTemplateMarkdown = useCallback(
     debounce((value: string) => {
@@ -23,9 +25,9 @@ function TemplateMarkdown() {
   };
 
   return (
-    <div className="column">
-      <h2>TemplateMark</h2>
-      <p>
+    <div className="column" style={{ backgroundColor: backgroundColor }}>
+      <h2 style={{ color: textColor }}>TemplateMark</h2>
+      <p style={{ color: textColor }}>
         A natural language template with embedded variables, conditional
         sections, and TypeScript code.
       </p>
