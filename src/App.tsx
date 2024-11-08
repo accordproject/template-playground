@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Row, Col, Collapse, theme, Grid } from "antd";
+import { App as AntdApp, Layout, Row, Col, Collapse, Grid } from "antd";
 import { Routes, Route, useSearchParams } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
