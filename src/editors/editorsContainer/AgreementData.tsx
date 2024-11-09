@@ -9,6 +9,7 @@ function AgreementData() {
     (state) => state.setEditorAgreementData
   );
   const setData = useAppStore((state) => state.setData);
+  const textColor = useAppStore((state) => state.textColor);
 
   const debouncedSetData = useCallback(
     debounce((value: string) => {
@@ -27,8 +28,8 @@ function AgreementData() {
   return (
     <div className="column">
       <div className="tooltip">
-        <h3>Data</h3>
-        <span className="tooltiptext">
+        <h3 style={{ color: textColor }}>Data</h3>
+        <span style={{ color: textColor }} className="tooltiptext">
           JSON data (an instance of the Concerto model) used to preview output
           from the template.
         </span>
