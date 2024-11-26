@@ -1,0 +1,13 @@
+/* @import "normalize.css"; */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  @apply h-screen w-screen;
+}
+
+#root {
+  @apply h-full w-full;
+}

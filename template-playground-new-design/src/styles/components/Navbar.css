@@ -1,0 +1,82 @@
+/* styles.css */
+.navbar {
+  @apply bg-[#1A2541];
+}
+
+.container {
+  @apply max-w-7xl px-2 sm:px-6 lg:px-8;
+}
+
+.navbar-content {
+  @apply relative flex h-16 items-center justify-between;
+}
+
+.mobile-menu-btn {
+  @apply relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white;
+}
+
+.logo {
+  @apply h-8 w-auto;
+}
+
+.nav-links {
+  @apply hidden sm:ml-6 sm:block;
+}
+
+.nav-link {
+  @apply rounded-md px-3 py-2 text-sm font-medium;
+}
+
+.nav-link-active {
+  @apply bg-gray-900 text-white;
+}
+
+.nav-link-inactive {
+  @apply text-gray-300 hover:bg-gray-700 hover:text-white;
+}
+
+.user-actions {
+  @apply absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0;
+}
+
+.notification-btn {
+  @apply relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800;
+}
+
+.profile-menu-btn {
+  @apply relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800;
+}
+
+.menu-items {
+  @apply absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in;
+}
+
+.menu-item {
+  @apply block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none;
+}
+
+.mobile-menu-panel {
+  @apply sm:hidden;
+}
+
+.mobile-menu-item {
+  @apply block rounded-md px-3 py-2 text-base font-medium;
+}
+
+.mobile-menu-link-active {
+  @apply bg-gray-900 text-white;
+}
+
+.mobile-menu-link-inactive {
+  @apply text-gray-300 hover:bg-gray-700 hover:text-white;
+}
+
+.dark-mode-toggle {
+    overflow: visible !important;
+    display: flex;
+    padding-left: 10px !important;
+  }
+
+.dark-mode-toggle-container{
+    @apply flex justify-end overflow-hidden;
+}
