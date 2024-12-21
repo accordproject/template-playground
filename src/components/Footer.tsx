@@ -31,10 +31,14 @@ const CustomFooter: React.FC = () => {
       <Row justify="space-between" align="top">
         <Col span={7}>
           <Space direction="vertical" size="middle">
-            <Link href="https://www.accordproject.org" target="_blank">
+            <Link
+              href="https://www.accordproject.org"
+              target="_blank"
+              aria-label="Visit Accord Project homepage" // Added for screen readers
+            >
               <Image
                 src="/logo.png"
-                alt="Template Playground"
+                alt="Template Playground logo" // Updated alt for meaningful description
                 preview={false}
                 style={{ paddingRight: "1.5em", height: "36px" }}
               />
@@ -42,12 +46,19 @@ const CustomFooter: React.FC = () => {
             <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
               The open source smart legal contract stack
             </Text>
-            <Link href="mailto:admin@accordproject.org">
+            <Link
+              href="mailto:admin@accordproject.org"
+              aria-label="Send an email to admin@accordproject.org" // Added for better navigation
+            >
               <Text strong style={{ color: "rgba(255, 255, 255, 0.65)" }}>
                 admin@accordproject.org
               </Text>
             </Link>
-            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank">
+            <Link
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+              aria-label="Join Accord Project Discord community" // Added for screen readers
+            >
               <Button
                 size="large"
                 style={{
@@ -74,6 +85,7 @@ const CustomFooter: React.FC = () => {
                   fontSize: "11px",
                   letterSpacing: "0.1em",
                 }}
+                aria-label={`Section: ${section.title}`} // Added for section identification
               >
                 {section.title}
               </Text>
@@ -82,6 +94,7 @@ const CustomFooter: React.FC = () => {
                   href={link.href}
                   key={link.title}
                   style={{ color: "white", fontSize: "15px" }}
+                  aria-label={`Link to ${link.title}`} // Added for link identification
                 >
                   {link.title}
                 </Link>
@@ -99,6 +112,7 @@ const CustomFooter: React.FC = () => {
               href="https://accordproject.org/privacy"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              aria-label="Read Accord Project's trademark policy" // Added for screen readers
             >
               trademark policy
             </Link>{" "}
@@ -108,6 +122,7 @@ const CustomFooter: React.FC = () => {
               href="https://accordproject.org/brand-assets"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              aria-label="Access Accord Project's brand assets" // Added for screen readers
             >
               brand assets
             </Link>
@@ -120,6 +135,7 @@ const CustomFooter: React.FC = () => {
               href="https://github.com/accordproject"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              aria-label="Visit Accord Project GitHub profile" // Added for clarity
             >
               <GithubOutlined style={{ fontSize: "17px" }} />
             </Link>
@@ -127,6 +143,7 @@ const CustomFooter: React.FC = () => {
               href="https://twitter.com/AccordHQ"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              aria-label="Visit Accord Project Twitter profile" // Added for clarity
             >
               <XOutlined style={{ fontSize: "17px" }} />
             </Link>
@@ -134,6 +151,7 @@ const CustomFooter: React.FC = () => {
               href="https://discord.com/invite/Zm99SKhhtA"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              aria-label="Join Accord Project on Discord" // Added for clarity
             >
               <DiscordFilled style={{ fontSize: "17px" }} />
             </Link>
@@ -141,6 +159,7 @@ const CustomFooter: React.FC = () => {
               href="https://www.linkedin.com/company/accordproject/"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              aria-label="Visit Accord Project LinkedIn profile" // Added for clarity
             >
               <LinkedinFilled style={{ fontSize: "17px" }} />
             </Link>
