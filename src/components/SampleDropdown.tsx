@@ -33,9 +33,14 @@ function SampleDropdown({ setLoading }: { setLoading: any }) {
 
   return (
     <Space>
-      <Dropdown menu={menuProps} trigger={["click"]}>
+      <Dropdown
+        menu={menuProps}
+        trigger={["click"]}
+        aria-label="Dropdown menu for selecting a sample" // Added aria-label to describe the dropdown
+      >
         <div className="samples-element">
-          <Button>
+          <Button aria-label="Open the dropdown to load a sample"> 
+            {/* Added aria-label to the button to clarify its purpose */}
             Load Sample <DownOutlined />
           </Button>
         </div>

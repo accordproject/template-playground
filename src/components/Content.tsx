@@ -75,7 +75,11 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
       >
         <Spin
           indicator={
-            <LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />
+            <LoadingOutlined
+              style={{ fontSize: 42, color: "#19c6c7" }}
+              spin
+              aria-label="Content is loading"
+            />
           }
         />
       </div>
@@ -83,11 +87,15 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div role="alert" aria-label="Error loading content">
+        Error: {error}
+      </div>
+    );
   }
 
   return (
-    <ContentContainer>
+    <ContentContainer aria-live="polite">
       {content && (
         <ReactMarkdown
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
@@ -106,12 +114,14 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
         <NavigationButton
           onClick={handlePrevious}
           disabled={currentIndex === 0}
+          aria-label="Go to the previous step"
         >
           <LeftOutlined /> Previous
         </NavigationButton>
         <NavigationButton
           onClick={handleNext}
           disabled={currentIndex === steps.length - 1}
+          aria-label="Go to the next step"
         >
           Next <RightOutlined />
         </NavigationButton>

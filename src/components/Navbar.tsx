@@ -47,6 +47,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             href="https://github.com/accordproject/template-playground/blob/main/README.md"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Learn more about this project" // Added aria-label
           >
             <QuestionOutlined /> About
           </a>
@@ -56,6 +57,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             href="https://discord.com/invite/Zm99SKhhtA"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Join the community on Discord" // Added aria-label
           >
             <UserOutlined /> Community
           </a>
@@ -65,6 +67,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             href="https://github.com/accordproject/template-playground/issues"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="View issues on GitHub" // Added aria-label
           >
             <InfoOutlined /> Issues
           </a>
@@ -76,6 +79,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             href="https://github.com/accordproject/template-engine/blob/main/README.md"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Read the documentation" // Added aria-label
           >
             <BookOutlined /> Documentation
           </a>
@@ -83,17 +87,6 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
       </Menu.ItemGroup>
     </Menu>
   );
-
-  const menuItemStyle = (key: string, isLast: boolean) => ({
-    display: "flex",
-    alignItems: "center",
-    padding: screens.md ? "0 20px" : "0",
-    backgroundColor:
-      hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
-    height: "65px",
-    borderRight:
-      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
-  });
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
@@ -108,14 +101,15 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
         paddingLeft: screens.md ? 40 : 10,
         paddingRight: screens.md ? 40 : 10,
       }}
+      aria-label="Main navigation bar" // Added aria-label for the main navigation
     >
       <div
         style={{
           cursor: "pointer",
-          ...menuItemStyle("home", false),
         }}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
+        aria-label="Navigate to home" // Added aria-label
       >
         <a
           href="/"
@@ -124,7 +118,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
         >
           <Image
             src={screens.md ? "/logo.png" : "/accord_logo.png"}
-            alt="Template Playground"
+            alt="Template Playground logo" // Improved alt text
             preview={false}
             style={{
               paddingRight: screens.md ? "24px" : "10px",
@@ -139,22 +133,22 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
         <>
           <div
             style={{
-              ...menuItemStyle("explore", false),
               cursor: "pointer",
             }}
             onClick={scrollToExplore}
             onMouseEnter={() => setHovered("explore")}
             onMouseLeave={() => setHovered(null)}
+            aria-label="Scroll to explore section" // Added aria-label
           >
             <span style={{ color: "white" }}>Explore</span>
           </div>
           <div
             style={{
-              ...menuItemStyle("help", false),
               cursor: "pointer",
             }}
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
+            aria-label="Open help menu" // Added aria-label
           >
             <Dropdown overlay={menu} trigger={["click"]}>
               <Button
@@ -166,10 +160,12 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
                   display: "flex",
                   alignItems: "center",
                 }}
+                aria-label="Help options" // Added aria-label
               >
                 Help
                 <CaretDownFilled
                   style={{ fontSize: "10px", marginLeft: "5px" }}
+                  aria-hidden="true" // Screen readers can ignore this decorative icon
                 />
               </Button>
             </Dropdown>
@@ -197,6 +193,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             }}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
+            aria-label="Navigate to learn section" // Added aria-label
           >
             <Link to="/learn/intro" className="learnNow-button">
               <animated.button
@@ -210,6 +207,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
                   marginRight: "15px",
                   cursor: "pointer",
                 }}
+                aria-label="Start learning" // Added aria-label
               >
                 Learn
               </animated.button>
@@ -231,6 +229,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           }}
           onMouseEnter={() => setHovered("github")}
           onMouseLeave={() => setHovered(null)}
+          aria-label="Navigate to GitHub repository" // Added aria-label
         >
           <a
             href="https://github.com/accordproject/template-playground"
@@ -244,6 +243,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
                 color: "white",
                 marginRight: screens.md ? "5px" : "0",
               }}
+              aria-hidden="true" // Screen readers can ignore this decorative icon
             />
             {screens.md && <span>Github</span>}
           </a>

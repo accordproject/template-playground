@@ -36,7 +36,6 @@ const App = () => {
     }
   };
 
-
   const onChange = (key: string | string[]) => {
     setActivePanel(key);
   };
@@ -104,7 +103,7 @@ const App = () => {
   return (
     <AntdApp>
       <Layout style={{ minHeight: "100vh" }}>
-        <Navbar scrollToExplore={scrollToExplore} />
+        <Navbar scrollToExplore={scrollToExplore} aria-label="Main navigation" />
         <Content>
           <Routes>
             <Route
@@ -128,12 +127,12 @@ const App = () => {
                           gap: "10px",
                         }}
                       >
-                        <SampleDropdown setLoading={setLoading} />
-                        <UseShare />
+                        <SampleDropdown setLoading={setLoading} aria-label="Sample Dropdown" />
+                        <UseShare aria-label="Share options" />
                       </Row>
                     </Col>
                     <Col span={18}>
-                      <Errors />
+                      <Errors aria-live="assertive" />
                     </Col>
                   </Row>
                   <div
@@ -149,6 +148,7 @@ const App = () => {
                           defaultActiveKey={activePanel}
                           onChange={onChange}
                           items={panels}
+                          aria-label="Collapse panels for templates and model"
                         />
                       </Col>
                       <Col xs={24} sm={8}>
@@ -158,11 +158,11 @@ const App = () => {
                           }}
                         >
                           <div style={{ display: "flex" }}>
-                            <ToggleDarkMode />
-                            <FullScreenModal />
+                            <ToggleDarkMode aria-label="Toggle dark mode" />
+                            <FullScreenModal aria-label="Fullscreen modal" />
                           </div>
                         </div>
-                        <AgreementHtml loading={loading} />
+                        <AgreementHtml loading={loading} aria-label="Agreement preview" />
                       </Col>
                     </Row>
                   </div>
@@ -181,7 +181,6 @@ const App = () => {
                 path="module2"
                 element={<LearnContent file="module2.md" />}
               />
-
               <Route
                 path="module3"
                 element={<LearnContent file="module3.md" />}
@@ -189,7 +188,7 @@ const App = () => {
             </Route>
           </Routes>
         </Content>
-        <Footer />
+        <Footer aria-label="Footer content" />
         {!screens.md && (
           <div
             style={{
@@ -199,6 +198,7 @@ const App = () => {
               color: "white",
               fontSize: "12px",
             }}
+            aria-label="Mobile view message"
           >
             Best viewed on desktop
           </div>
