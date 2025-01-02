@@ -19,6 +19,7 @@ function AgreementHtml({ loading }: { loading: any }) {
         display: "flex",
         flexDirection: "column",
       }}
+      aria-label="Agreement preview container" // Added aria-label for the main container
     >
       <div style={{ textAlign: "center", color: textColor }}>
         <h2>Preview Output</h2>
@@ -41,6 +42,7 @@ function AgreementHtml({ loading }: { loading: any }) {
               <LoadingOutlined
                 style={{ fontSize: 42, color: "#19c6c7" }}
                 spin
+                aria-label="Loading agreement content" // Added aria-label for the spinner
               />
             }
           />
@@ -50,6 +52,7 @@ function AgreementHtml({ loading }: { loading: any }) {
           className="agreement"
           dangerouslySetInnerHTML={{ __html: agreementHtml }}
           style={{ flex: 1, color: textColor, backgroundColor: backgroundColor }}
+          aria-label="Agreement content preview" // Added aria-label for the agreement content
         />
       )}
     </div>
