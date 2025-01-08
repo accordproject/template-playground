@@ -117,6 +117,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
       <div
         style={{
           cursor: "pointer",
+          ...menuItemStyle("home", false),
         }}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
@@ -145,6 +146,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           <div
             style={{
               cursor: "pointer",
+              ...menuItemStyle("explore", false),
             }}
             onClick={scrollToExplore}
             onMouseEnter={() => setHovered("explore")}
@@ -155,6 +157,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           </div>
           <div
             style={{
+              ...menuItemStyle("explore", false),
               cursor: "pointer",
             }}
             onMouseEnter={() => setHovered("help")}
