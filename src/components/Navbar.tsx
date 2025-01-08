@@ -88,6 +88,17 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
     </Menu>
   );
 
+  const menuItemStyle = (key: string, isLast: boolean) => ({
+    display: "flex",
+    alignItems: "center",
+    padding: screens.md ? "0 20px" : "0",
+    backgroundColor:
+      hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
+    height: "65px",
+    borderRight:
+      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
+  });
+
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
