@@ -31,10 +31,22 @@ const FullScreenModal: React.FC = () => {
   }, [textColor, backgroundColor]);
 
   return (
-    <div style={{ textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", width: "100%", color: textColor, }} className="preview-element">
+    <div
+      style={{
+        textAlign: "right",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        width: "100%",
+        color: textColor,
+      }}
+      className="preview-element"
+    >
+      {/* Add aria-label to the fullscreen icon for screen readers */}
       <FullscreenOutlined
         style={{ fontSize: "24px", cursor: "pointer", marginRight: "10px" }}
         onClick={() => setOpen(true)}
+        aria-label="Open full screen modal" // Describes the action of the icon
       />
       <Modal
         title="Output"
@@ -43,8 +55,15 @@ const FullScreenModal: React.FC = () => {
         onOk={() => setOpen(false)}
         onCancel={() => setOpen(false)}
         width={1000}
+        aria-labelledby="modal-title" // Links the modal to its title for accessibility
+        aria-describedby="modal-content" // Provides a reference for the content description
       >
-        <AgreementHtml loading={false} />
+        {/* Add ID to associate with aria-labelledby */}
+        <h2 id="modal-title">Output</h2>
+        {/* Add ID for aria-describedby */}
+        <div id="modal-content">
+          <AgreementHtml loading={false} />
+        </div>
       </Modal>
     </div>
   );

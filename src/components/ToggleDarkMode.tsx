@@ -23,6 +23,7 @@ const ToggleDarkMode: React.FC = () => {
         onChange={handleChange}
         checked={isDarkMode}
         size={80}
+        aria-label="Toggle dark mode" // Added aria-label for accessibility
       />
     </ToggleDarkModeContainer>
   );

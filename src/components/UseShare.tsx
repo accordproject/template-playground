@@ -22,7 +22,12 @@ const UseShare = () => {
 
   return (
     <div className="share-element">
-      <Button icon={<ShareAltOutlined />} onClick={handleCopy}>
+      <Button
+        icon={<ShareAltOutlined />}
+        onClick={handleCopy}
+        // Added aria-label to describe the button's purpose
+        aria-label={copied ? "Link copied to clipboard" : "Share a link"}
+      >
         {copied ? "Copied!" : "Share"}
       </Button>
     </div>
