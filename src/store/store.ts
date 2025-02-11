@@ -44,6 +44,8 @@ export interface DecompressedData {
   agreementHtml: string;
 }
 
+const rebuildDeBounce = debounce(rebuild, 500);
+
 async function rebuild(template: string, model: string, dataString: string) {
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
@@ -66,8 +68,6 @@ async function rebuild(template: string, model: string, dataString: string) {
     { verbose: false }
   );
 }
-
-const rebuildDeBounce = debounce(rebuild, 500);
 
 const useAppStore = create<AppState>()(
   immer(
@@ -120,45 +120,42 @@ const useAppStore = create<AppState>()(
         }
       },
       rebuild: async () => {
+        const { templateMarkdown, modelCto, data } = get();
         try {
-          const result = await rebuildDeBounce(
-            get().templateMarkdown,
-            get().modelCto,
-            get().data
-          );
+          const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
           set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
       },
       setTemplateMarkdown: async (template: string) => {
+        const { modelCto, data } = get();
         try {
-          const result = await rebuildDeBounce(
-            template,
-            get().modelCto,
-            get().data
-          );
-          set(() => ({ agreementHtml: result, error: undefined }));
+          const result = await rebuildDeBounce(template, modelCto, data);
+          set(() => ({
+            templateMarkdown: template,
+            agreementHtml: result,
+            error: undefined,
+          }));
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
-        set(() => ({ templateMarkdown: template }));
       },
       setEditorValue: (value: string) => {
         set(() => ({ editorValue: value }));
       },
       setModelCto: async (model: string) => {
+        const { templateMarkdown, data } = get();
         try {
-          const result = await rebuildDeBounce(
-            get().templateMarkdown,
-            model,
-            get().data
-          );
-          set(() => ({ agreementHtml: result, error: undefined }));
+          const result = await rebuildDeBounce(templateMarkdown, model, data);
+          set(() => ({
+            modelCto: model,
+            agreementHtml: result,
+            error: undefined,
+          }));
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
-        set(() => ({ modelCto: model }));
       },
       setEditorModelCto: (value: string) => {
         set(() => ({ editorModelCto: value }));
