@@ -1,19 +1,25 @@
-import { Button, Dropdown, Space, message } from "antd";
+import { Button, Dropdown, Space, message, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
 
-function SampleDropdown({ setLoading }: { setLoading: any }) {
+function SampleDropdown({
+  setLoading,
+}: {
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}): JSX.Element {
   const { samples, loadSample } = useAppStore(
     (state) => ({
       samples: state.samples,
-      loadSample: state.loadSample,
+      loadSample: state.loadSample as (key: string) => Promise<void>,
     }),
     shallow
   );
 
-  const items = useMemo(
+  const [selectedSample, setSelectedSample] = useState<string | null>(null);
+
+  const items: MenuProps["items"] = useMemo(
     () =>
       samples.map((s) => ({
         label: s.NAME,
@@ -29,6 +35,7 @@ function SampleDropdown({ setLoading }: { setLoading: any }) {
         try {
           await loadSample(e.key);
           message.info(`Loaded ${e.key} sample`);
+          setSelectedSample(e.key);
         } catch (error) {
           message.error("Failed to load sample");
         } finally {
@@ -44,7 +51,7 @@ function SampleDropdown({ setLoading }: { setLoading: any }) {
       <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={["click"]}>
         <div className="samples-element">
           <Button>
-            Load Sample <DownOutlined />
+            {selectedSample ? selectedSample : "Load Sample"} <DownOutlined />
           </Button>
         </div>
       </Dropdown>
