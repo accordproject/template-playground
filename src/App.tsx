@@ -157,7 +157,7 @@ const App = () => {
                             marginBottom: "10px",
                           }}
                         >
-                          <div style={{ display: "flex" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
                             <ToggleDarkMode />
                             <FullScreenModal />
                           </div>
