@@ -1,42 +1,57 @@
-import { Button, Dropdown, Space, message } from "antd";
+import { Button, Dropdown, Space, message, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
-
+import { memo, useCallback, useMemo, useState } from "react";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 
-function SampleDropdown({ setLoading }: { setLoading: any }) {
-  const samples = useAppStore((state) => state.samples);
-  const loadSample = useAppStore((state) => state.loadSample);
+function SampleDropdown({
+  setLoading,
+}: {
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}): JSX.Element {
+  const { samples, loadSample } = useAppStore(
+    (state) => ({
+      samples: state.samples,
+      loadSample: state.loadSample as (key: string) => Promise<void>,
+    }),
+    shallow
+  );
 
-  const items = samples.map((s) => ({
-    label: s.NAME,
-    key: s.NAME,
-  }));
+  const [selectedSample, setSelectedSample] = useState<string | null>(null);
 
-  const handleMenuClick = async (e: any) => {
-    if (e.key) {
-      setLoading(true);
-      try {
-        await loadSample(e.key);
-        message.info(`Loaded ${e.key} sample`);
-      } catch (error) {
-        message.error("Failed to load sample");
-      } finally {
-        setLoading(false);
+  const items: MenuProps["items"] = useMemo(
+    () =>
+      samples.map((s) => ({
+        label: s.NAME,
+        key: s.NAME,
+      })),
+    [samples]
+  );
+
+  const handleMenuClick = useCallback(
+    async (e: any) => {
+      if (e.key) {
+        setLoading(true);
+        try {
+          await loadSample(e.key);
+          message.info(`Loaded ${e.key} sample`);
+          setSelectedSample(e.key);
+        } catch (error) {
+          message.error("Failed to load sample");
+        } finally {
+          setLoading(false);
+        }
       }
-    }
-  };
-
-  const menuProps = {
-    items,
-    onClick: handleMenuClick,
-  };
+    },
+    [loadSample, setLoading]
+  );
 
   return (
     <Space>
-      <Dropdown menu={menuProps} trigger={["click"]}>
+      <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={["click"]}>
         <div className="samples-element">
           <Button>
-            Load Sample <DownOutlined />
+            {selectedSample ? selectedSample : "Load Sample"} <DownOutlined />
           </Button>
         </div>
       </Dropdown>
@@ -44,4 +59,4 @@ function SampleDropdown({ setLoading }: { setLoading: any }) {
   );
 }
 
-export default SampleDropdown;
+export default memo(SampleDropdown);
