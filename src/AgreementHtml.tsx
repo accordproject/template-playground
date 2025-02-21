@@ -1,6 +1,8 @@
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
+import ToggleDarkMode from "./components/ToggleDarkMode";
+import FullScreenModal from "./components/FullScreenModal";
 
 function AgreementHtml({ loading }: { loading: any }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -20,6 +22,10 @@ function AgreementHtml({ loading }: { loading: any }) {
         flexDirection: "column",
       }}
     >
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <ToggleDarkMode />
+        <FullScreenModal />
+      </div>
       <div style={{ textAlign: "center", color: textColor }}>
         <h2>Preview Output</h2>
         <p>
@@ -49,7 +55,11 @@ function AgreementHtml({ loading }: { loading: any }) {
         <div
           className="agreement"
           dangerouslySetInnerHTML={{ __html: agreementHtml }}
-          style={{ flex: 1, color: textColor, backgroundColor: backgroundColor }}
+          style={{
+            flex: 1,
+            color: textColor,
+            backgroundColor: backgroundColor,
+          }}
         />
       )}
     </div>
