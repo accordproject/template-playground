@@ -75,6 +75,21 @@ tour.addStep({
 });
 
 tour.addStep({
+  id: "darkmode",
+  text: "Toggle between light and dark mode for a comfortable viewing experience. Switch themes to suit your preference while working on your template.",
+  attachTo: {
+    element: ".dark-mode-toggle",
+    on: "bottom",
+  },
+  buttons: [
+    {
+      text: "Next",
+      action: tour.next,
+    },
+  ],
+});
+
+tour.addStep({
   id: "learnNow",
   text: 'Click the "Learn Now" button to access the Learning Pathway. Here, you will find comprehensive documentation and tutorials to help you create templates effectively.',
   attachTo: {
