@@ -44,7 +44,7 @@ const FullScreenModal: React.FC = () => {
         onCancel={() => setOpen(false)}
         width={1000}
       >
-        <AgreementHtml loading={false} />
+        <AgreementHtml loading={false} isModal={true} />
       </Modal>
     </div>
   );
