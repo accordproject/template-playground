@@ -156,7 +156,7 @@ const App = () => {
                           }}
                         >
                         </div>
-                        <AgreementHtml loading={loading} />
+                        <AgreementHtml loading={loading} isModal={false} />
                       </Col>
                     </Row>
                   </div>

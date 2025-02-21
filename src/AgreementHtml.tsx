@@ -4,7 +4,7 @@ import useAppStore from "./store/store";
 import ToggleDarkMode from "./components/ToggleDarkMode";
 import FullScreenModal from "./components/FullScreenModal";
 
-function AgreementHtml({ loading }: { loading: any }) {
+function AgreementHtml({ loading, isModal }: { loading: any; isModal?: boolean }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -22,10 +22,12 @@ function AgreementHtml({ loading }: { loading: any }) {
         flexDirection: "column",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <ToggleDarkMode />
-        <FullScreenModal />
-      </div>
+      {!isModal && (
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <ToggleDarkMode />
+          <FullScreenModal />
+        </div>
+      )}
       <div style={{ textAlign: "center", color: textColor }}>
         <h2>Preview Output</h2>
         <p>
