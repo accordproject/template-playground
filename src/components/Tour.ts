@@ -63,7 +63,7 @@ tour.addStep({
   id: "preview",
   text: "This section shows the live preview of your template. View the results of your edits and see how your template renders.",
   attachTo: {
-    element: ".preview-element",
+    element: ".anticon-fullscreen",
     on: "bottom",
   },
   buttons: [
