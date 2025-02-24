@@ -1,10 +1,15 @@
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
-import ToggleDarkMode from "./components/ToggleDarkMode";
 import FullScreenModal from "./components/FullScreenModal";
 
-function AgreementHtml({ loading, isModal }: { loading: any; isModal?: boolean }) {
+function AgreementHtml({
+  loading,
+  isModal,
+}: {
+  loading: any;
+  isModal?: boolean;
+}) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -22,19 +27,30 @@ function AgreementHtml({ loading, isModal }: { loading: any; isModal?: boolean }
         flexDirection: "column",
       }}
     >
-      {!isModal && (
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <ToggleDarkMode />
-          <FullScreenModal />
-        </div>
-      )}
-      <div style={{ textAlign: "center", color: textColor }}>
-        <h2>Preview Output</h2>
-        <p>
-          The result of merging the JSON data with the template. This is
-          AgreementMark converted to HTML.
-        </p>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          textAlign: "center",
+          color: textColor,
+        }}
+      >
+        <h2
+          style={{
+            flexGrow: 1,
+            textAlign: "center",
+            paddingLeft: "34px",
+            color: textColor,
+          }}
+        >
+          Preview Output
+        </h2>
+        {!isModal && <FullScreenModal />}
       </div>
+      <p style={{ textAlign: "center", color: textColor }}>
+        The result of merging the JSON data with the template. This is
+        AgreementMark converted to HTML.
+      </p>
       {loading ? (
         <div
           style={{
