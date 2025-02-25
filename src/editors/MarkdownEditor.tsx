@@ -1,13 +1,9 @@
-import { useEffect } from "react";
-import Editor, { useMonaco } from "@monaco-editor/react";
+import { lazy, Suspense, useMemo, useCallback } from "react";
 import useAppStore from "../store/store";
 
-const options = {
-  minimap: { enabled: false },
-  wordWrap: "on" as const,
-  automaticLayout: true,
-  scrollBeyondLastLine: false,
-};
+const MonacoEditor = lazy(() =>
+  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
+);
 
 export default function MarkdownEditor({
   value,
@@ -16,47 +12,41 @@ export default function MarkdownEditor({
   value: string;
   onChange?: (value: string | undefined) => void;
 }) {
-  const monaco = useMonaco();
   const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const textColor = useAppStore((state) => state.textColor);
 
-  useEffect(() => {
-    if (monaco) {
-      monaco.editor.defineTheme("lightTheme", {
-        base: "vs",
-        inherit: true,
-        rules: [],
-        colors: {
-          "editor.background": backgroundColor,
-          "editor.foreground": textColor,
-          "editor.lineHighlightBorder": "#EDE8DC",
-        },
-      });
+  const themeName = useMemo(
+    () => (backgroundColor ? "darkTheme" : "lightTheme"),
+    [backgroundColor]
+  );
 
-      monaco.editor.defineTheme("darkTheme", {
-        base: "vs-dark",
-        inherit: true,
-        rules: [],
-        colors: {
-          "editor.background": backgroundColor,
-          "editor.foreground": textColor,
-          "editor.lineHighlightBorder": "#EDE8DC",
-        },
-      });
-      monaco.editor.setTheme(backgroundColor ? "darkTheme" : "lightTheme");
-    }
-  }, [monaco, backgroundColor, textColor]);
+  const editorOptions = {
+    minimap: { enabled: false },
+    wordWrap: "on" as const,
+    automaticLayout: true,
+    scrollBeyondLastLine: false,
+  };
+
+  const options = useMemo(() => editorOptions, []);
+
+  const handleChange = useCallback(
+    (val: string | undefined) => {
+      if (onChange) onChange(val);
+    },
+    [onChange]
+  );
 
   return (
     <div className="editorwrapper">
-      <Editor
-        options={options}
-        language="markdown"
-        height="60vh"
-        value={value}
-        onChange={onChange}
-        theme={backgroundColor ? "darkTheme" : "lightTheme"}
-      />
+      <Suspense fallback={<div>Loading Editor...</div>}>
+        <MonacoEditor
+          options={options}
+          language="markdown"
+          height="60vh"
+          value={value}
+          onChange={handleChange}
+          theme={themeName}
+        />
+      </Suspense>
     </div>
   );
 }
