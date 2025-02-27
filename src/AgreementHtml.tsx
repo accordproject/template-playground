@@ -16,7 +16,7 @@ function AgreementHtml({
 
   return (
     <div
-      className="column"
+      className="column preview-component"
       style={{
         border: "1px solid #d9d9d9",
         borderRadius: "8px",
