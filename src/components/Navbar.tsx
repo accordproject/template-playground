@@ -190,6 +190,9 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
               marginLeft: screens.md ? "20px" : "0",
               height: "65px",
               display: "flex",
+              justifyContent: "center",
+              paddingLeft: "15px",
+              borderRadius: "5px",
               alignItems: "center",
               backgroundColor:
                 hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
@@ -221,6 +224,9 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             height: "65px",
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
+            padding: screens.md ? "0 20px" : "0 10px",
+            borderRadius: "5px",
             borderLeft: screens.md
               ? "1.5px solid rgba(255, 255, 255, 0.1)"
               : "none",
