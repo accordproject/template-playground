@@ -10,6 +10,7 @@ import {
   BookOutlined,
   CaretDownFilled,
 } from "@ant-design/icons";
+import ToggleDarkMode from "./ToggleDarkMode";
 
 const { useBreakpoint } = Grid;
 
@@ -184,6 +185,9 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           height: "65px",
         }}
       >
+        <div>
+          <ToggleDarkMode />
+        </div>
         {!isLearnPage && (
           <div
             style={{

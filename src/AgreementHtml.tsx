@@ -1,15 +1,22 @@
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
+import FullScreenModal from "./components/FullScreenModal";
 
-function AgreementHtml({ loading }: { loading: any }) {
+function AgreementHtml({
+  loading,
+  isModal,
+}: {
+  loading: any;
+  isModal?: boolean;
+}) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
 
   return (
     <div
-      className="column"
+      className="column preview-component"
       style={{
         border: "1px solid #d9d9d9",
         borderRadius: "8px",
@@ -20,13 +27,30 @@ function AgreementHtml({ loading }: { loading: any }) {
         flexDirection: "column",
       }}
     >
-      <div style={{ textAlign: "center", color: textColor }}>
-        <h2>Preview Output</h2>
-        <p>
-          The result of merging the JSON data with the template. This is
-          AgreementMark converted to HTML.
-        </p>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          textAlign: "center",
+          color: textColor,
+        }}
+      >
+        <h2
+          style={{
+            flexGrow: 1,
+            textAlign: "center",
+            paddingLeft: "34px",
+            color: textColor,
+          }}
+        >
+          Preview Output
+        </h2>
+        {!isModal && <FullScreenModal />}
       </div>
+      <p style={{ textAlign: "center", color: textColor }}>
+        The result of merging the JSON data with the template. This is
+        AgreementMark converted to HTML.
+      </p>
       {loading ? (
         <div
           style={{
@@ -49,7 +73,11 @@ function AgreementHtml({ loading }: { loading: any }) {
         <div
           className="agreement"
           dangerouslySetInnerHTML={{ __html: agreementHtml }}
-          style={{ flex: 1, color: textColor, backgroundColor: backgroundColor }}
+          style={{
+            flex: 1,
+            color: textColor,
+            backgroundColor: backgroundColor,
+          }}
         />
       )}
     </div>

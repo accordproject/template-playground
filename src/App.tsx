@@ -12,10 +12,8 @@ import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
 import TemplateModel from "./editors/editorsContainer/TemplateModel";
 import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
-import FullScreenModal from "./components/FullScreenModal";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
-import ToggleDarkMode from "./components/ToggleDarkMode";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -157,12 +155,8 @@ const App = () => {
                             marginBottom: "10px",
                           }}
                         >
-                          <div style={{ display: "flex" }}>
-                            <ToggleDarkMode />
-                            <FullScreenModal />
-                          </div>
                         </div>
-                        <AgreementHtml loading={loading} />
+                        <AgreementHtml loading={loading} isModal={false} />
                       </Col>
                     </Row>
                   </div>
