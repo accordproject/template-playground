@@ -19,6 +19,11 @@ const viteConfig = defineViteConfig({
     exclude: ["typescript"],
     needsInterop: ['@accordproject/template-engine'],
   },
+  build: {
+    rollupOptions: {
+      external: ["typescript"],
+    },
+  },
 });
 
 
@@ -28,11 +33,6 @@ const vitestConfig = defineVitestConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: "./src/utils/testing/setup.ts",
-  },
-  build: {
-    rollupOptions: {
-      external: ["typescript"],
-    },
   },
 });
 
