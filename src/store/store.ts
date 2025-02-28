@@ -2,12 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
-import { ModelManager } from "@accordproject/concerto-core";
-import { TemplateMarkInterpreter } from "@accordproject/template-engine";
-import { TemplateMarkTransformer } from "@accordproject/markdown-template";
-import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
-import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 
 interface AppState {
@@ -44,9 +39,22 @@ export interface DecompressedData {
   agreementHtml: string;
 }
 
-const rebuildDeBounce = debounce(rebuild, 500);
+async function loadMarkdownProcessingLibs() {
+  const [{ ModelManager }, { TemplateMarkInterpreter }, { TemplateMarkTransformer }, { transform }] =
+    await Promise.all([
+      import("@accordproject/concerto-core"),
+      import("@accordproject/template-engine"),
+      import("@accordproject/markdown-template"),
+      import("@accordproject/markdown-transform"),
+    ]);
 
-async function rebuild(template: string, model: string, dataString: string) {
+  return { ModelManager, TemplateMarkInterpreter, TemplateMarkTransformer, transform };
+}
+
+const rebuild = debounce(async (template: string, model: string, dataString: string) => {
+  const { ModelManager, TemplateMarkInterpreter, TemplateMarkTransformer, transform } =
+    await loadMarkdownProcessingLibs();
+
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
@@ -67,7 +75,7 @@ async function rebuild(template: string, model: string, dataString: string) {
     {},
     { verbose: false }
   );
-}
+}, 500);
 
 const useAppStore = create<AppState>()(
   immer(
@@ -83,13 +91,13 @@ const useAppStore = create<AppState>()(
           };
         });
       },
-      sampleName: playground.NAME,
-      templateMarkdown: playground.TEMPLATE,
-      editorValue: playground.TEMPLATE,
-      modelCto: playground.MODEL,
-      editorModelCto: playground.MODEL,
-      data: JSON.stringify(playground.DATA, null, 2),
-      editorAgreementData: JSON.stringify(playground.DATA, null, 2),
+      sampleName: "",
+      templateMarkdown: "",
+      editorValue: "",
+      modelCto: "",
+      editorModelCto: "",
+      data: "",
+      editorAgreementData: "",
       agreementHtml: "",
       error: undefined,
       samples: SAMPLES,
@@ -99,79 +107,51 @@ const useAppStore = create<AppState>()(
         if (compressedData) {
           await get().loadFromLink(compressedData);
         } else {
-          await get().rebuild();
+          await get().loadSample("default");
         }
       },
       loadSample: async (name: string) => {
-        const sample = SAMPLES.find((s) => s.NAME === name);
-        if (sample) {
-          set(() => ({
-            sampleName: sample.NAME,
-            agreementHtml: undefined,
-            error: undefined,
-            templateMarkdown: sample.TEMPLATE,
-            editorValue: sample.TEMPLATE,
-            modelCto: sample.MODEL,
-            editorModelCto: sample.MODEL,
-            data: JSON.stringify(sample.DATA, null, 2),
-            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
-          }));
-          await get().rebuild();
-        }
+        const playground = await import("../samples/playground");
+        const sample = SAMPLES.find((s) => s.NAME === name) || playground;
+        set(() => ({
+          sampleName: sample.NAME,
+          agreementHtml: undefined,
+          error: undefined,
+          templateMarkdown: sample.TEMPLATE,
+          editorValue: sample.TEMPLATE,
+          modelCto: sample.MODEL,
+          editorModelCto: sample.MODEL,
+          data: JSON.stringify(sample.DATA, null, 2),
+          editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+        }));
+        await get().rebuild();
       },
       rebuild: async () => {
         const { templateMarkdown, modelCto, data } = get();
         try {
-          const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
+          const result = await rebuild(templateMarkdown, modelCto, data);
           set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
       },
       setTemplateMarkdown: async (template: string) => {
-        const { modelCto, data } = get();
-        try {
-          const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({
-            templateMarkdown: template,
-            agreementHtml: result,
-            error: undefined,
-          }));
-        } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
-        }
+        set(() => ({ templateMarkdown: template }));
+        await get().rebuild();
       },
       setEditorValue: (value: string) => {
         set(() => ({ editorValue: value }));
       },
       setModelCto: async (model: string) => {
-        const { templateMarkdown, data } = get();
-        try {
-          const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({
-            modelCto: model,
-            agreementHtml: result,
-            error: undefined,
-          }));
-        } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
-        }
+        set(() => ({ modelCto: model }));
+        await get().rebuild();
       },
       setEditorModelCto: (value: string) => {
         set(() => ({ editorModelCto: value }));
       },
       setData: async (data: string) => {
-        try {
-          const result = await rebuildDeBounce(
-            get().templateMarkdown,
-            get().modelCto,
-            data
-          );
-          set(() => ({ agreementHtml: result, error: undefined }));
-        } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
-        }
         set(() => ({ data }));
+        await get().rebuild();
       },
       setEditorAgreementData: (value: string) => {
         set(() => ({ editorAgreementData: value }));
