@@ -6,7 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 const renderNavbar = () => {
   render(
     <MemoryRouter>
-      <Navbar scrollToExplore={() => {}} />
+      <Navbar scrollToFooter={() => {}} />
     </MemoryRouter>
   );
 };

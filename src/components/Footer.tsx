@@ -22,6 +22,7 @@ const CustomFooter: React.FC = () => {
 
   return (
     <Footer
+      id="footer"
       style={{
         background: "#1b2540",
         color: "white",

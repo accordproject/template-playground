@@ -29,8 +29,8 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
-  const scrollToExplore = () => {
-    const exploreContent = document.getElementById("explore");
+  const scrollToFooter = () => {
+    const exploreContent = document.getElementById("footer");
     if (exploreContent) {
       exploreContent.scrollIntoView({ behavior: "smooth" });
     }
@@ -104,7 +104,7 @@ const App = () => {
   return (
     <AntdApp>
       <Layout style={{ minHeight: "100vh" }}>
-        <Navbar scrollToExplore={scrollToExplore} />
+        <Navbar scrollToFooter={scrollToFooter} />
         <Content>
           <Routes>
             <Route
