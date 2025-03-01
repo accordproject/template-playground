@@ -13,7 +13,7 @@ import {
 
 const { useBreakpoint } = Grid;
 
-function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
+function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
@@ -142,7 +142,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
               ...menuItemStyle("explore", false),
               cursor: "pointer",
             }}
-            onClick={scrollToExplore}
+            onClick={scrollToFooter}
             onMouseEnter={() => setHovered("explore")}
             onMouseLeave={() => setHovered(null)}
           >
