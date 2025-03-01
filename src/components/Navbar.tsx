@@ -40,7 +40,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
     config: { duration: 1000 },
   });
 
-  const menu = (
+  const helpMenu = (
     <Menu>
       <Menu.ItemGroup title="Info">
         <Menu.Item key="about">
@@ -157,7 +157,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={menu} trigger={["click"]}>
+            <Dropdown overlay={helpMenu} trigger={["click"]}>
               <Button
                 style={{
                   background: "transparent",
