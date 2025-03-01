@@ -118,7 +118,7 @@ const App = () => {
                     background: backgroundColor,
                   }}
                 >
-                  <Row id="explore">
+                  <Row>
                     <Col xs={24} sm={8}>
                       <Row
                         style={{
