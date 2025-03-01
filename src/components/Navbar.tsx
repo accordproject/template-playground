@@ -9,11 +9,13 @@ import {
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
+  CompassOutlined,
 } from "@ant-design/icons";
+import tour from "../components/Tour";
 
 const { useBreakpoint } = Grid;
 
-function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
+function Navbar() {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
@@ -39,7 +41,11 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
     config: { duration: 1000 },
   });
 
-  const menu = (
+  const startTourEvent = () => {
+    void tour.start();
+  };  
+
+  const helpMenu = (
     <Menu>
       <Menu.ItemGroup title="Info">
         <Menu.Item key="about">
@@ -81,6 +87,13 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           </a>
         </Menu.Item>
       </Menu.ItemGroup>
+    </Menu>
+  );
+  const exploreMenu = (
+    <Menu>
+      <Menu.Item key="startTour" onClick={() => startTourEvent()}>
+        <CompassOutlined /> Start Tour
+      </Menu.Item>
     </Menu>
   );
 
@@ -142,11 +155,26 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
               ...menuItemStyle("explore", false),
               cursor: "pointer",
             }}
-            onClick={scrollToExplore}
             onMouseEnter={() => setHovered("explore")}
             onMouseLeave={() => setHovered(null)}
           >
-            <span style={{ color: "white" }}>Explore</span>
+            <Dropdown overlay={exploreMenu} trigger={["click"]}>
+              <Button
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "white",
+                  height: "65px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                Explore
+                <CaretDownFilled
+                  style={{ fontSize: "10px", marginLeft: "5px" }}
+                />
+              </Button>
+            </Dropdown>
           </div>
           <div
             style={{
@@ -156,7 +184,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={menu} trigger={["click"]}>
+            <Dropdown overlay={helpMenu} trigger={["click"]}>
               <Button
                 style={{
                   background: "transparent",
