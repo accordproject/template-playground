@@ -62,13 +62,9 @@ const TEMPLATE = `> Joins lists using formatting options
 `;
 
 const DATA = {
-    "$class": "com.acme.insurance.auto@1.0.0.Insurance",
-    "items": [
-      "CAR",
-      "ACCESSORIES",
-      "SPARE_PARTS"
-    ]
-  };
+  $class: "com.acme.insurance.auto@1.0.0.Insurance",
+  items: ["CAR", "ACCESSORIES", "SPARE_PARTS"],
+};
 
-const NAME = 'Join';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Join";
+export { NAME, MODEL, DATA, TEMPLATE };

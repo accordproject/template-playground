@@ -4,7 +4,7 @@ import { editor, MarkerSeverity } from "monaco-editor";
 import useAppStore from "../store/store";
 
 const MonacoEditor = lazy(() =>
-  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
+  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor })),
 );
 
 const concertoKeywords = [
@@ -117,7 +117,7 @@ export default function ConcertoEditor({
 
   const themeName = useMemo(
     () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
+    [backgroundColor],
   );
 
   const options: editor.IStandaloneEditorConstructionOptions = {
@@ -131,7 +131,7 @@ export default function ConcertoEditor({
     (val: string | undefined) => {
       if (onChange) onChange(val);
     },
-    [onChange]
+    [onChange],
   );
 
   useEffect(() => {

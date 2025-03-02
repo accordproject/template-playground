@@ -14,7 +14,7 @@ function TemplateMarkdown() {
     debounce((value: string) => {
       void setTemplateMarkdown(value);
     }, 500),
-    []
+    [],
   );
 
   const handleChange = (value: string | undefined) => {
