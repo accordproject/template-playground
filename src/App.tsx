@@ -36,7 +36,6 @@ const App = () => {
     }
   };
 
-
   const onChange = (key: string | string[]) => {
     setActivePanel(key);
   };

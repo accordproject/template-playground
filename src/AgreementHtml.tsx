@@ -49,7 +49,11 @@ function AgreementHtml({ loading }: { loading: any }) {
         <div
           className="agreement"
           dangerouslySetInnerHTML={{ __html: agreementHtml }}
-          style={{ flex: 1, color: textColor, backgroundColor: backgroundColor }}
+          style={{
+            flex: 1,
+            color: textColor,
+            backgroundColor: backgroundColor,
+          }}
         />
       )}
     </div>

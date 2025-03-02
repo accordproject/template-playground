@@ -100,8 +100,8 @@ Sample text here...
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.Empty",
+  $class: "hello@1.0.0.Empty",
 };
 
-const NAME = 'Markdown';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Markdown";
+export { NAME, MODEL, DATA, TEMPLATE };

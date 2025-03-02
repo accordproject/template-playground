@@ -42,7 +42,9 @@ export const SidebarLink = styled(NavLink)`
   font-size: 0.95rem;
   font-weight: 600;
   color: #717171;
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 
   &.active {
     background-color: #e0e0e0;

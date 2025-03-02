@@ -3,7 +3,7 @@ import { editor } from "monaco-editor";
 import useAppStore from "../store/store";
 
 const MonacoEditor = lazy(() =>
-  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
+  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor })),
 );
 
 export default function JSONEditor({
@@ -17,7 +17,7 @@ export default function JSONEditor({
 
   const themeName = useMemo(
     () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
+    [backgroundColor],
   );
 
   const options: editor.IStandaloneEditorConstructionOptions = useMemo(
@@ -27,14 +27,14 @@ export default function JSONEditor({
       automaticLayout: true,
       scrollBeyondLastLine: false,
     }),
-    []
+    [],
   );
 
   const handleChange = useCallback(
     (val: string | undefined) => {
       if (onChange) onChange(val);
     },
-    [onChange]
+    [onChange],
   );
 
   return (

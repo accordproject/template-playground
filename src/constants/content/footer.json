@@ -3,7 +3,10 @@
     {
       "title": "ABOUT",
       "links": [
-        { "title": "About Accord Project", "href": "https://accordproject.org/about/" },
+        {
+          "title": "About Accord Project",
+          "href": "https://accordproject.org/about/"
+        },
         {
           "title": "FAQ",
           "href": "https://accordproject.org/frequently-asked-questions/"

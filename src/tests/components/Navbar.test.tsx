@@ -7,7 +7,7 @@ const renderNavbar = () => {
   render(
     <MemoryRouter>
       <Navbar scrollToExplore={() => {}} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };
 

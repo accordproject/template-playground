@@ -5,16 +5,19 @@ import nodePolyfills from "vite-plugin-node-stdlib-browser";
 import { visualizer } from "rollup-plugin-visualizer";
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
-  plugins: [nodePolyfills(), react(), visualizer({
-    emitFile: true,
-    filename: "stats.html",
-  })],
+  plugins: [
+    nodePolyfills(),
+    react(),
+    visualizer({
+      emitFile: true,
+      filename: "stats.html",
+    }),
+  ],
   optimizeDeps: {
     include: ["immer"],
-    needsInterop: ['@accordproject/template-engine'],
+    needsInterop: ["@accordproject/template-engine"],
   },
 });
-
 
 // https://vitest.dev/config/
 const vitestConfig = defineVitestConfig({
