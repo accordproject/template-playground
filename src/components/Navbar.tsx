@@ -71,7 +71,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           >
             <BookOutlined /> Documentation
           </a>
-        </Menu.ItemGroup>
+        </Menu.Item>
       </Menu.ItemGroup>
     </Menu>
   );
