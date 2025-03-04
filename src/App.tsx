@@ -28,7 +28,7 @@ const App = () => {
   const [activePanel, setActivePanel] = useState<string | string[]>();
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-  const [padding, setPadding] = useState(window.innerWidth < 768 ? 0 :5 );
+  const [padding, setPadding] = useState(window.innerWidth < 768 ? 0 :24);
   const scrollToExplore = () => {
     const exploreContent = document.getElementById("explore");
     if (exploreContent) {
@@ -112,7 +112,7 @@ const App = () => {
     <AntdApp>
       <Layout style={{ minHeight: "100vh"}}>
         <Navbar scrollToExplore={scrollToExplore} />
-        <Content  style={{ padding:padding, margin:2}} >
+        <Content  style={{ padding:0, margin:1}} >
           <Routes>
             <Route
               path="/"
