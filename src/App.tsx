@@ -28,7 +28,7 @@ const App = () => {
   const [activePanel, setActivePanel] = useState<string | string[]>();
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-
+  const [padding, setPadding] = useState(window.innerWidth < 768 ? 0 :5 );
   const scrollToExplore = () => {
     const exploreContent = document.getElementById("explore");
     if (exploreContent) {
@@ -71,7 +71,14 @@ const App = () => {
       document.head.removeChild(style);
     };
   }, [init, loadFromLink, searchParams, textColor, backgroundColor]);
+  useEffect(() => {
+    const handleResize = () => {
+      setPadding(window.innerWidth < 768 ? 2: 24);
+    };
 
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   useEffect(() => {
     const showTour = searchParams.get("showTour") === "true";
 
@@ -103,16 +110,16 @@ const App = () => {
 
   return (
     <AntdApp>
-      <Layout style={{ minHeight: "100vh" }}>
+      <Layout style={{ minHeight: "100vh"}}>
         <Navbar scrollToExplore={scrollToExplore} />
-        <Content>
+        <Content  style={{ padding:padding, margin:2}} >
           <Routes>
             <Route
               path="/"
               element={
                 <div
                   style={{
-                    padding: 24,
+                    padding: padding,
                     paddingBottom: 150,
                     minHeight: 360,
                     background: backgroundColor,
@@ -123,12 +130,14 @@ const App = () => {
                       <Row
                         style={{
                           marginLeft: "25px",
+                          marginBottom: "10px",
+                          marginTop: "10px",
                           display: "flex",
                           flexDirection: "row",
                           gap: "10px",
                         }}
                       >
-                        <SampleDropdown setLoading={setLoading} />
+                        <SampleDropdown   setLoading={setLoading} />
                         <UseShare />
                       </Row>
                     </Col>
@@ -138,7 +147,9 @@ const App = () => {
                   </Row>
                   <div
                     style={{
-                      padding: 24,
+                      
+                      padding: padding,
+                      
                       minHeight: 360,
                       background: backgroundColor,
                     }}

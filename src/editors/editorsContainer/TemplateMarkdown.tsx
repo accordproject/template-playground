@@ -31,7 +31,7 @@ function TemplateMarkdown() {
         A natural language template with embedded variables, conditional
         sections, and TypeScript code.
       </p>
-      <MarkdownEditor value={editorValue} onChange={handleChange} />
+      <MarkdownEditor   value={editorValue} onChange={handleChange} />
     </div>
   );
 }
