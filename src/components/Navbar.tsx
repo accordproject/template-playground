@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Menu, Dropdown, Button, Image, Grid } from "antd";
+import { useState, useEffect} from "react";
+import { Menu, Dropdown, Button, Image} from "antd";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -14,17 +14,15 @@ import {
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
-const { useBreakpoint } = Grid;
-
-function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
+function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
-  const screens = useBreakpoint();
   const location = useLocation();
 
-
-  const isWideScreen = typeof window !== 'undefined' && window.innerWidth >= 954;
+  const [isWideScreen, setIsWideScreen] = useState(
+    typeof window !== 'undefined' && window.innerWidth >= 954
+  );
 
   const props = useSpring({
     to: async (next) => {
@@ -153,15 +151,13 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
-  
-  useState(() => {
-    if (typeof window !== 'undefined') {
-      const handleResize = () => {
-        setHovered(null);
-      };
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
+  useEffect(() => {
+    const handleResize = () => {
+      setIsWideScreen(window.innerWidth >= 954);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return (
