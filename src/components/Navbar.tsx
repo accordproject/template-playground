@@ -9,6 +9,8 @@ import {
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
+  MenuOutlined,
+  CompassOutlined,
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
@@ -20,6 +22,9 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
+
+
+  const isWideScreen = typeof window !== 'undefined' && window.innerWidth >= 954;
 
   const props = useSpring({
     to: async (next) => {
@@ -40,7 +45,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
     config: { duration: 1000 },
   });
 
-  const menu = (
+  const helpMenu = (
     <Menu>
       <Menu.ItemGroup title="Info">
         <Menu.Item key="about">
@@ -85,18 +90,79 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
     </Menu>
   );
 
+  const mobileMenu = (
+    <Menu>
+      <Menu.Item key="explore" onClick={scrollToFooter}>
+        <CompassOutlined /> Explore
+      </Menu.Item>
+      <Menu.SubMenu key="help" title={<span><QuestionOutlined /> Help</span>}>
+        <Menu.ItemGroup title="Info">
+          <Menu.Item key="about">
+            <a
+              href="https://github.com/accordproject/template-playground/blob/main/README.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              About
+            </a>
+          </Menu.Item>
+          <Menu.Item key="community">
+            <a
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Community
+            </a>
+          </Menu.Item>
+          <Menu.Item key="issues">
+            <a
+              href="https://github.com/accordproject/template-playground/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Issues
+            </a>
+          </Menu.Item>
+        </Menu.ItemGroup>
+        <Menu.ItemGroup title="Documentation">
+          <Menu.Item key="documentation">
+            <a
+              href="https://github.com/accordproject/template-engine/blob/main/README.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Documentation
+            </a>
+          </Menu.Item>
+        </Menu.ItemGroup>
+      </Menu.SubMenu>
+    </Menu>
+  );
+
   const menuItemStyle = (key: string, isLast: boolean) => ({
     display: "flex",
     alignItems: "center",
-    padding: screens.md ? "0 20px" : "0",
+    padding: isWideScreen ? "0 20px" : "0",
     backgroundColor:
       hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
     height: "65px",
     borderRight:
-      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
+      isWideScreen && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
   });
 
   const isLearnPage = location.pathname.startsWith("/learn");
+
+  
+  useState(() => {
+    if (typeof window !== 'undefined') {
+      const handleResize = () => {
+        setHovered(null);
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
   return (
     <div
@@ -106,8 +172,8 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
         lineHeight: "65px",
         display: "flex",
         alignItems: "center",
-        paddingLeft: screens.md ? 40 : 10,
-        paddingRight: screens.md ? 40 : 10,
+        paddingLeft: isWideScreen ? 40 : 10,
+        paddingRight: isWideScreen ? 40 : 10,
       }}
     >
       <div
@@ -124,19 +190,19 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
           style={{ display: "flex", alignItems: "center" }}
         >
           <Image
-            src={screens.md ? "/logo.png" : "/accord_logo.png"}
+            src={isWideScreen ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
             preview={false}
             style={{
-              paddingRight: screens.md ? "24px" : "10px",
+              paddingRight: isWideScreen ? "24px" : "10px",
               height: "26px",
-              maxWidth: screens.md ? "184.17px" : "36.67px",
+              maxWidth: isWideScreen ? "184.17px" : "36.67px",
             }}
           />
-          <span style={{ color: "white" }}>Template Playground</span>
+          {isWideScreen && <span style={{ color: "white" }}>Template Playground</span>}
         </a>
       </div>
-      {screens.md && (
+      {isWideScreen ? (
         <>
           <div
             style={{
@@ -157,7 +223,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={menu} trigger={["click"]}>
+            <Dropdown overlay={helpMenu} trigger={["click"]}>
               <Button
                 style={{
                   background: "transparent",
@@ -176,6 +242,20 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             </Dropdown>
           </div>
         </>
+      ) : (
+        <div style={{ marginLeft: "10px" }}>
+          <Dropdown overlay={mobileMenu} trigger={["click"]}>
+            <Button
+              style={{
+                background: "transparent",
+                border: "none",
+                padding: 0,
+              }}
+            >
+              <MenuOutlined style={{ fontSize: "20px", color: "white" }} />
+            </Button>
+          </Dropdown>
+        </div>
       )}
       <div
         style={{
@@ -191,7 +271,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
         {!isLearnPage && (
           <div
             style={{
-              marginLeft: screens.md ? "20px" : "0",
+              marginLeft: isWideScreen ? "20px" : "0",
               height: "65px",
               display: "flex",
               justifyContent: "center",
@@ -229,12 +309,12 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: screens.md ? "0 20px" : "0 10px",
+            padding: isWideScreen ? "0 20px" : "0 10px",
             borderRadius: "5px",
-            borderLeft: screens.md
+            borderLeft: isWideScreen
               ? "1.5px solid rgba(255, 255, 255, 0.1)"
               : "none",
-            paddingLeft: screens.md ? "20px" : "0",
+            paddingLeft: isWideScreen ? "20px" : "0",
             backgroundColor:
               hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
             cursor: "pointer",
@@ -252,10 +332,10 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
               style={{
                 fontSize: "20px",
                 color: "white",
-                marginRight: screens.md ? "5px" : "0",
+                marginRight: isWideScreen ? "5px" : "0",
               }}
             />
-            {screens.md && <span>Github</span>}
+            {isWideScreen && <span>Github</span>}
           </a>
         </div>
       </div>
