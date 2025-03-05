@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Menu, Dropdown, Button, Image, Grid } from "antd";
+import { MenuOutlined } from "@ant-design/icons"; // Import MenuOutlined icon
+
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -15,9 +17,7 @@ import ToggleDarkMode from "./ToggleDarkMode";
 const { useBreakpoint } = Grid;
 
 function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
-  const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github" | "join"
-  >(null);
+  const [hovered, setHovered] = useState<null | "home" | "explore" | "help" | "github" | "join">(null);
   const screens = useBreakpoint();
   const location = useLocation();
 
@@ -89,11 +89,9 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
     display: "flex",
     alignItems: "center",
     padding: screens.md ? "0 20px" : "0",
-    backgroundColor:
-      hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
+    backgroundColor: hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
     height: "65px",
-    borderRight:
-      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
+    borderRight: screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
   });
 
   const isLearnPage = location.pathname.startsWith("/learn");
@@ -133,10 +131,10 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
               maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
-          <span style={{ color: "white" }}>Template Playground</span>
+          {screens.md && <span style={{ color: "white" }}>Template Playground</span>} {/* Show only on medium and larger screens */}
         </a>
       </div>
-      {screens.md && (
+      {screens.md ? ( // Existing help button for medium and larger screens
         <>
           <div
             style={{
@@ -176,6 +174,23 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             </Dropdown>
           </div>
         </>
+      ) : (
+        <div style={{ marginLeft: "auto" }}>
+          <Dropdown overlay={menu} trigger={["click"]}>
+            <Button
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "white",
+                height: "65px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <MenuOutlined style={{ fontSize: "20px" }} />
+            </Button>
+          </Dropdown>
+        </div>
       )}
       <div
         style={{
@@ -198,8 +213,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
               paddingLeft: "15px",
               borderRadius: "5px",
               alignItems: "center",
-              backgroundColor:
-                hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+              backgroundColor: hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
               cursor: "pointer",
             }}
             onMouseEnter={() => setHovered("join")}
@@ -231,12 +245,9 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             justifyContent: "center",
             padding: screens.md ? "0 20px" : "0 10px",
             borderRadius: "5px",
-            borderLeft: screens.md
-              ? "1.5px solid rgba(255, 255, 255, 0.1)"
-              : "none",
+            borderLeft: screens.md ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
             paddingLeft: screens.md ? "20px" : "0",
-            backgroundColor:
-              hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+            backgroundColor: hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
             cursor: "pointer",
           }}
           onMouseEnter={() => setHovered("github")}
