@@ -40,41 +40,55 @@ export interface DecompressedData {
 }
 
 async function loadMarkdownProcessingLibs() {
-  const [{ ModelManager }, { TemplateMarkInterpreter }, { TemplateMarkTransformer }, { transform }] =
-    await Promise.all([
-      import("@accordproject/concerto-core"),
-      import("@accordproject/template-engine"),
-      import("@accordproject/markdown-template"),
-      import("@accordproject/markdown-transform"),
-    ]);
+  try {
+    const [{ ModelManager }, { TemplateMarkInterpreter }, { TemplateMarkTransformer }, { transform }] =
+      await Promise.all([
+        import("@accordproject/concerto-core"),
+        import("@accordproject/template-engine"),
+        import("@accordproject/markdown-template"),
+        import("@accordproject/markdown-transform"),
+      ]);
 
-  return { ModelManager, TemplateMarkInterpreter, TemplateMarkTransformer, transform };
+    return { ModelManager, TemplateMarkInterpreter, TemplateMarkTransformer, transform };
+  } catch (error) {
+    console.error("Failed to load Accord processing libraries:", error);
+    throw new Error("Error loading Accord processing libraries");
+  }
 }
 
 const rebuild = debounce(async (template: string, model: string, dataString: string) => {
-  const { ModelManager, TemplateMarkInterpreter, TemplateMarkTransformer, transform } =
-    await loadMarkdownProcessingLibs();
+  try {
+    const { ModelManager, TemplateMarkInterpreter, TemplateMarkTransformer, transform } =
+      await loadMarkdownProcessingLibs();
 
-  const modelManager = new ModelManager({ strict: true });
-  modelManager.addCTOModel(model, undefined, true);
-  await modelManager.updateExternalModels();
-  const engine = new TemplateMarkInterpreter(modelManager, {});
-  const templateMarkTransformer = new TemplateMarkTransformer();
-  const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
-    { content: template },
-    modelManager,
-    "contract",
-    { verbose: false }
-  );
-  const data = JSON.parse(dataString);
-  const ciceroMark = await engine.generate(templateMarkDom, data);
-  return await transform(
-    ciceroMark.toJSON(),
-    "ciceromark_parsed",
-    ["html"],
-    {},
-    { verbose: false }
-  );
+    const modelManager = new ModelManager({ strict: true });
+    modelManager.addCTOModel(model, undefined, true);
+    await modelManager.updateExternalModels();
+
+    const engine = new TemplateMarkInterpreter(modelManager, {});
+    const templateMarkTransformer = new TemplateMarkTransformer();
+
+    const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
+      { content: template },
+      modelManager,
+      "contract",
+      { verbose: false }
+    );
+
+    const data = JSON.parse(dataString);
+
+    const ciceroMark = await engine.generate(templateMarkDom, data);
+    return await transform(
+      ciceroMark.toJSON(),
+      "ciceromark_parsed",
+      ["html"],
+      {},
+      { verbose: false }
+    );
+  } catch (error) {
+    console.error("Error rebuilding the template:", error);
+    throw new Error("Failed to process the template");
+  }
 }, 500);
 
 const useAppStore = create<AppState>()(

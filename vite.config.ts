@@ -16,13 +16,7 @@ const viteConfig = defineViteConfig({
   }), getPlugins()],
   optimizeDeps: {
     include: ["immer", "zustand"],
-    exclude: ["typescript"],
     needsInterop: ['@accordproject/template-engine'],
-  },
-  build: {
-    rollupOptions: {
-      external: ["typescript"],
-    },
   },
 });
 
