@@ -133,7 +133,12 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
               maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
-          <span style={{ color: "white" }}>Template Playground</span>
+          <span style={{
+            color: "white", 
+            lineHeight: "1.2", 
+            fontSize: screens.md ? "16px" : "14px",
+            paddingRight : screens.md? "0" : "10px"
+          }}>Template Playground</span>
         </a>
       </div>
       {screens.md && (
