@@ -11,7 +11,7 @@ vi.mock("../../components/ToggleDarkMode", () => ({
 const renderNavbar = () => {
   render(
     <MemoryRouter>
-      <Navbar scrollToExplore={() => {}} />
+      <Navbar scrollToFooter={() => {}} />
     </MemoryRouter>
   );
 };
