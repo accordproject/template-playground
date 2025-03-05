@@ -6,7 +6,7 @@ import {
   DiscordFilled,
   LinkedinFilled,
 } from "@ant-design/icons";
-import FOOTER_SECTION from "../constants/content/footer.json";
+import FOOTER_SECTION from "@constants/content/footer.json";
 
 const { Footer } = Layout;
 const { Text, Link } = Typography;

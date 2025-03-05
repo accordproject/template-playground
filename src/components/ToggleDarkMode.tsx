@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { ToggleDarkModeContainer } from "../styles/components/ToggleDarkMode";
+import { ToggleDarkModeContainer } from "@styles/components/ToggleDarkMode";
 import DarkModeToggle from "react-dark-mode-toggle";
-import useAppStore from "../store/store";
+import useAppStore from "@store/store";
 
 const ToggleDarkMode: React.FC = () => {
   const { backgroundColor, toggleDarkMode } = useAppStore();

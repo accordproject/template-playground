@@ -1,5 +1,5 @@
-import useAppStore, { DecompressedData } from "../../store/store";
-import { compress } from "../../utils/compression/compression";
+import useAppStore, { DecompressedData } from "@store/store";
+import { compress } from "@utils/compression/compression";
 import { vi } from "vitest";
 
 vi.mock("../../utils/compression/compression");

@@ -1,5 +1,5 @@
-import MarkdownEditor from "../MarkdownEditor";
-import useAppStore from "../../store/store";
+import MarkdownEditor from "@editors/MarkdownEditor";
+import useAppStore from "@store/store";
 import { useCallback } from "react";
 import { debounce } from "ts-debounce";
 

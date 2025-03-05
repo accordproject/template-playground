@@ -10,7 +10,7 @@ import {
   BookOutlined,
   CaretDownFilled,
 } from "@ant-design/icons";
-import ToggleDarkMode from "./ToggleDarkMode";
+import ToggleDarkMode from "@components/ToggleDarkMode";
 
 const { useBreakpoint } = Grid;
 

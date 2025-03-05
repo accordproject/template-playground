@@ -1,5 +1,5 @@
-import ConcertoEditor from "../ConcertoEditor";
-import useAppStore from "../../store/store";
+import ConcertoEditor from "@editors/ConcertoEditor";
+import useAppStore from "@store/store";
 import { useCallback } from "react";
 import { debounce } from "ts-debounce";
 

@@ -1,7 +1,7 @@
 import { useMonaco } from "@monaco-editor/react";
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
 import { editor, MarkerSeverity } from "monaco-editor";
-import useAppStore from "../store/store";
+import useAppStore from "@store/store";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))

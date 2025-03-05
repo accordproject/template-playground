@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, message } from "antd";
 import { ShareAltOutlined } from "@ant-design/icons";
-import useAppStore from "../store/store";
+import useAppStore from "@store/store";
 
 const UseShare = () => {
   const generateShareableLink = useAppStore(

@@ -10,7 +10,7 @@ import {
   HelperIcon,
   HelperText,
   DividerLine,
-} from "../styles/components/Sidebar";
+} from "@styles/components/Sidebar";
 import { BulbOutlined } from "@ant-design/icons";
 
 const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({

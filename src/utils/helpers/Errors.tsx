@@ -1,4 +1,4 @@
-import useAppStore from "../../store/store";
+import useAppStore from "@store/store";
 import { Alert, Space } from "antd";
 
 function Errors() {

@@ -19,8 +19,23 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+
+    "baseUrl": "src",
+    "paths": {
+      "@/*" : ["*"],
+      "@editors/*": ["editors/*"],
+      "@pages/*": ["pages/*"], 
+      "@samples/*": ["samples/*"],
+      "@components/*": ["components/*"],
+      "@utils/*": ["utils/*"],
+      "@services/*": ["services/*"],
+      "@store/*": ["store/*"],
+      "@constants/*": ["constants/*"],
+      "@styles/*": ["styles/*"]
+    }
   },
   "include": ["src"],
+
   "references": [{ "path": "./tsconfig.node.json" }]
 }

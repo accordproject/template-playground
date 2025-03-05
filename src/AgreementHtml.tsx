@@ -1,7 +1,7 @@
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
-import useAppStore from "./store/store";
-import FullScreenModal from "./components/FullScreenModal";
+import useAppStore from "@store/store";
+import FullScreenModal from "@components/FullScreenModal";
 
 function AgreementHtml({
   loading,
