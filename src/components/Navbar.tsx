@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect} from "react";
 import { Menu, Dropdown, Button, Image} from "antd";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
@@ -14,13 +14,12 @@ import {
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
-function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
+const Navbar: React.FC<{ scrollToFooter: () => void }> = ({ scrollToFooter }) =>  {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
   const location = useLocation();
 
-  // Check if screen is wide enough for full menu (>= 954px)
   const [isWideScreen, setIsWideScreen] = useState(
     typeof window !== 'undefined' && window.innerWidth >= 954
   );
@@ -152,7 +151,6 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
-  // Add resize listener
   useEffect(() => {
     const handleResize = () => {
       setIsWideScreen(window.innerWidth >= 954);
