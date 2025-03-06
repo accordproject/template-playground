@@ -2,6 +2,7 @@ import { useState, useEffect} from "react";
 import { Menu, Dropdown, Button, Image} from "antd";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
+import useAppStore from "../store/store";
 import {
   GithubOutlined,
   QuestionOutlined,
@@ -23,7 +24,11 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
   const [isWideScreen, setIsWideScreen] = useState(
     typeof window !== 'undefined' && window.innerWidth >= 954
   );
-
+  const { backgroundColor } = useAppStore();
+  useEffect(() => {
+    const theme = backgroundColor === "#121212" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [backgroundColor]);
   const props = useSpring({
     to: async (next) => {
       while (true) {
