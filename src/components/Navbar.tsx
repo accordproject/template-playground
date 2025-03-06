@@ -22,25 +22,16 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
   const location = useLocation();
 
   const props = useSpring({
-    to: async (next) => {
-      while (true) {
-        await next({
-          opacity: 1,
-          boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)",
-        });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        await next({
-          opacity: 0.9,
-          boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
-        });
-        await new Promise((resolve) => setTimeout(resolve, 4000));
-      }
-    },
+    loop: true,
     from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+    to: [
+      { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
+      { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+    ],
     config: { duration: 1000 },
   });
 
-  const menu = (
+  const helpMenu = (
     <Menu>
       <Menu.ItemGroup title="Info">
         <Menu.Item key="about">
@@ -157,7 +148,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={menu} trigger={["click"]}>
+            <Dropdown overlay={helpMenu} trigger={["click"]}>
               <Button
                 style={{
                   background: "transparent",
