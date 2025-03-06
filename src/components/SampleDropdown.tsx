@@ -3,15 +3,13 @@ import { DownOutlined } from "@ant-design/icons";
 import { useCallback, useMemo, useState } from "react";
 import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
-import { useStoreWithEqualityFn } from "zustand/traditional";
 
 function SampleDropdown({
   setLoading,
 }: {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
-  const { samples, loadSample } = useStoreWithEqualityFn(
-    useAppStore,
+  const { samples, loadSample } = useAppStore(
     (state) => ({
       samples: state.samples,
       loadSample: state.loadSample as (key: string) => Promise<void>,
@@ -23,15 +21,20 @@ function SampleDropdown({
 
   const items: MenuProps["items"] = useMemo(
     () =>
-      samples.map((s) => ({
+      samples?.map((s) => ({
         label: s.NAME,
         key: s.NAME,
-      })),
+      })) || [],
     [samples]
   );
 
-  const handleMenuClick = useCallback(
-    async (e: any) => {
+  const handleMenuClick: MenuProps["onClick"] = useCallback(
+    async (e) => {
+      if (!loadSample) {
+        message.error("Load function is not available");
+        return;
+      }
+
       if (e.key) {
         setLoading(true);
         try {
@@ -52,7 +55,7 @@ function SampleDropdown({
     <Space>
       <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={["click"]}>
         <div className="samples-element">
-          <Button>
+          <Button aria-label="Load sample dropdown">
             {selectedSample ? selectedSample : "Load Sample"} <DownOutlined />
           </Button>
         </div>
