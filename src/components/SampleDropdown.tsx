@@ -11,7 +11,7 @@ function SampleDropdown({
 }): JSX.Element {
   const { samples, loadSample } = useAppStore(
     (state) => ({
-      samples: state.samples,
+      samples: state.samples || [],
       loadSample: state.loadSample as (key: string) => Promise<void>,
     }),
     shallow
@@ -29,23 +29,25 @@ function SampleDropdown({
   );
 
   const handleMenuClick: MenuProps["onClick"] = useCallback(
-    async (e) => {
+    (e: { key: string }) => { 
       if (!loadSample) {
-        message.error("Load function is not available");
+        void message.error("Load function is not available");
         return;
       }
 
       if (e.key) {
         setLoading(true);
-        try {
-          await loadSample(e.key);
-          message.info(`Loaded ${e.key} sample`);
-          setSelectedSample(e.key);
-        } catch (error) {
-          message.error("Failed to load sample");
-        } finally {
-          setLoading(false);
-        }
+        loadSample(e.key)
+          .then(() => {
+            void message.info(`Loaded ${e.key} sample`);
+            setSelectedSample(e.key);
+          })
+          .catch(() => {
+            void message.error("Failed to load sample");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
       }
     },
     [loadSample, setLoading]
