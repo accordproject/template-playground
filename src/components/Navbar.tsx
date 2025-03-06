@@ -20,9 +20,8 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
   const screens = useBreakpoint();
   const location = useLocation();
 
-  // Fixed code with loop: true to prevent infinite loop causing memory leaks
   const props = useSpring({
-    loop: true, // Enable looping without using an infinite loop
+    loop: true,
     from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
     to: [
       { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
