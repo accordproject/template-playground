@@ -9,10 +9,7 @@ export const SidebarContainer = styled.div`
   border-radius: 4px;
   position: relative;
   overflow-y: auto;
-  border-right: 1px solid var(--border-color) !important;
-  height: 100vh; 
-  margin: 0;
-
+  border-right: 1px solid #ddd;
   @media (max-width: 768px) {
     width: 100%;
     height: auto;
@@ -48,15 +45,15 @@ export const SidebarLink = styled(NavLink)`
   transition: background-color 0.3s, color 0.3s;
 
   &.active {
-    background-color: var(--bg-color) !important;
-    color: var(--text-color) !important;
+    background-color: var(--active-bg-color) !important;
+    color: var(--active-text-color) !important;
     font-weight: 600;
     border-left: 2.5px solid #19c6c7;
   }
 
   &:hover {
-    background-color: var(--bg-color) !important;
-    color: var(--text-color) !important;
+    background-color: var(--hover-bg-color) !important;
+    color: var(--hover-text-color) !important;
     text-decoration: underline;
   }
 `;
@@ -64,7 +61,7 @@ export const SidebarLink = styled(NavLink)`
 export const HelperBox = styled.div`
   margin-top: 1rem;
   padding: 0.8rem 1rem;
-  background-color: var(--bg-color) !important;
+  background-color: #e6f7ff;
   border-radius: 4px;
   font-size: 0.9rem;
 
@@ -81,10 +78,10 @@ export const HelperIcon = styled.div`
 
 export const HelperText = styled.div`
   flex: 1;
-  color: var(--text-color) !important;
+  color: #333;
 
   a {
-    color: #19c6c7;
+    color: #111;
     text-decoration: none;
 
     &:hover {
@@ -99,6 +96,6 @@ export const HelperText = styled.div`
 
 export const DividerLine = styled.div`
   height: 1px;
-  background-color: var(--border-color) !important;
+  background-color: #ddd;
   margin: 7rem 0 1rem 0;
 `;
