@@ -14,11 +14,7 @@ import useAppStore from "@store/store";
 import SampleDropdown from "@components/SampleDropdown";
 import UseShare from "@components/UseShare";
 import LearnContent from "@components/Content";
-<<<<<<< HEAD
-import FloatingFAB from "./components/FabButton";
-=======
 import FloatingFAB from "@/components/FabButton";
->>>>>>> 8e83c1f (Resolved merge conflicts from main)
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
