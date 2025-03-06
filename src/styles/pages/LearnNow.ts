@@ -2,6 +2,12 @@ import styled from "styled-components";
 
 export const LearnNowContainer = styled.div`
   display: flex;
+
+  @media (max-width:700px){
+  display:flex;
+  flex-direction:column
+  
+  }
 `;
 
 export const SidebarContainer = styled.div`
@@ -27,6 +33,7 @@ export const SidebarContainer = styled.div`
     text-decoration: none;
     color: #333;
   }
+  
 `;
 
 export const ContentContainer = styled.div`

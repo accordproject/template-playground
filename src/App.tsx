@@ -62,6 +62,7 @@ const App = () => {
   .ant-collapse-content-active {
     background-color: ${backgroundColor} !important;
   }
+  
 `;
     document.head.appendChild(style);
 

@@ -8,12 +8,16 @@ export const SidebarContainer = styled.div`
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   position: relative;
-  overflow-y: auto;
+  // overflow-y: auto;
 
   @media (max-width: 768px) {
     width: 100%;
-    height: auto;
+    height: 35vh;
+    margin-bottom:10px
     position: static;
+   
+   
+    
   }
 `;
 
@@ -22,6 +26,8 @@ export const SidebarTitle = styled.h2`
   font-weight: 500;
   margin-bottom: 1rem;
   color: #333;
+
+
 `;
 
 export const SidebarList = styled.ul`
