@@ -14,6 +14,7 @@ import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
+import FloatingFAB from "./components/FabButton";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -160,6 +161,7 @@ const App = () => {
                       </Col>
                     </Row>
                   </div>
+                  <FloatingFAB />
                 </div>
               }
             />
