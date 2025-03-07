@@ -31,19 +31,9 @@ const FullScreenModal: React.FC = () => {
   }, [textColor, backgroundColor]);
 
   return (
-    <div
-      style={{
-        textAlign: "right",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        width: "100%",
-        color: textColor,
-      }}
-      className="preview-element"
-    >
+    <div style={{ textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", width: "100%", color: textColor, }} className="preview-element">
       <FullscreenOutlined
-        style={{ fontSize: "24px", cursor: "pointer", marginRight: "10px" }}
+        style={{ fontSize: "24px", cursor: "pointer", margin: "5px" }}
         onClick={() => setOpen(true)}
       />
       <Modal
@@ -54,7 +44,7 @@ const FullScreenModal: React.FC = () => {
         onCancel={() => setOpen(false)}
         width={1000}
       >
-        <AgreementHtml loading={false} />
+        <AgreementHtml loading={false} isModal={true} />
       </Modal>
     </div>
   );

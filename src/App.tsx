@@ -12,10 +12,9 @@ import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
 import TemplateModel from "./editors/editorsContainer/TemplateModel";
 import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
-import FullScreenModal from "./components/FullScreenModal";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
-import ToggleDarkMode from "./components/ToggleDarkMode";
+import FloatingFAB from "./components/FabButton";
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -29,8 +28,8 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
-  const scrollToExplore = () => {
-    const exploreContent = document.getElementById("explore");
+  const scrollToFooter = () => {
+    const exploreContent = document.getElementById("footer");
     if (exploreContent) {
       exploreContent.scrollIntoView({ behavior: "smooth" });
     }
@@ -103,7 +102,7 @@ const App = () => {
   return (
     <AntdApp>
       <Layout style={{ minHeight: "100vh" }}>
-        <Navbar scrollToExplore={scrollToExplore} />
+        <Navbar scrollToFooter={scrollToFooter} />
         <Content>
           <Routes>
             <Route
@@ -117,7 +116,7 @@ const App = () => {
                     background: backgroundColor,
                   }}
                 >
-                  <Row id="explore">
+                  <Row>
                     <Col xs={24} sm={8}>
                       <Row
                         style={{
@@ -156,15 +155,12 @@ const App = () => {
                             marginBottom: "10px",
                           }}
                         >
-                          <div style={{ display: "flex" }}>
-                            <ToggleDarkMode />
-                            <FullScreenModal />
-                          </div>
                         </div>
-                        <AgreementHtml loading={loading} />
+                        <AgreementHtml loading={loading} isModal={false} />
                       </Col>
                     </Row>
                   </div>
+                  <FloatingFAB />
                 </div>
               }
             />
