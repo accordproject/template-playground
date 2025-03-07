@@ -46,7 +46,7 @@ vi.mock("../constants/content/footer.json", () => ({
         },
         {
           title: "VS Code Extension",
-          href: "https://marketplace.visualstudio.com/items?itemName=accordproject.cicero-vscode-extension",
+          href: "https://marketplace.visualstudio.com/items?itemName=accordproject.concerto-vscode-extension",
         },
         {
           title: "Markdown Transform",
