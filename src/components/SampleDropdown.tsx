@@ -33,7 +33,7 @@ function SampleDropdown({
   const handleMenuClick: MenuProps["onClick"] = useCallback(
     (e: { key: string }) => { 
       if (!loadSample) {
-        void message.error("Load function is not available");
+        void message.error("Failed to load sample");
         return;
       }
 
