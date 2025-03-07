@@ -63,7 +63,22 @@ tour.addStep({
   id: "preview",
   text: "This section shows the live preview of your template. View the results of your edits and see how your template renders.",
   attachTo: {
-    element: ".preview-element",
+    element: ".preview-component",
+    on: "bottom",
+  },
+  buttons: [
+    {
+      text: "Next",
+      action: tour.next,
+    },
+  ],
+});
+
+tour.addStep({
+  id: "darkmode",
+  text: "Toggle between light and dark mode for a comfortable viewing experience. Switch themes to suit your preference while working on your template.",
+  attachTo: {
+    element: ".dark-mode-toggle",
     on: "bottom",
   },
   buttons: [

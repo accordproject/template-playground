@@ -10,10 +10,11 @@ import {
   BookOutlined,
   CaretDownFilled,
 } from "@ant-design/icons";
+import ToggleDarkMode from "./ToggleDarkMode";
 
 const { useBreakpoint } = Grid;
 
-function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
+function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
@@ -21,25 +22,16 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
   const location = useLocation();
 
   const props = useSpring({
-    to: async (next) => {
-      while (true) {
-        await next({
-          opacity: 1,
-          boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)",
-        });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        await next({
-          opacity: 0.9,
-          boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
-        });
-        await new Promise((resolve) => setTimeout(resolve, 4000));
-      }
-    },
+    loop: true,
     from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+    to: [
+      { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
+      { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+    ],
     config: { duration: 1000 },
   });
 
-  const menu = (
+  const helpMenu = (
     <Menu>
       <Menu.ItemGroup title="Info">
         <Menu.Item key="about">
@@ -123,7 +115,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           style={{ display: "flex", alignItems: "center" }}
         >
           <Image
-            src={screens.md ? "/logo.png" : "/accord_logo.png"}
+            src={screens.lg ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
             preview={false}
             style={{
@@ -142,7 +134,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
               ...menuItemStyle("explore", false),
               cursor: "pointer",
             }}
-            onClick={scrollToExplore}
+            onClick={scrollToFooter}
             onMouseEnter={() => setHovered("explore")}
             onMouseLeave={() => setHovered(null)}
           >
@@ -156,7 +148,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={menu} trigger={["click"]}>
+            <Dropdown overlay={helpMenu} trigger={["click"]}>
               <Button
                 style={{
                   background: "transparent",
@@ -184,12 +176,18 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
           height: "65px",
         }}
       >
+        <div>
+          <ToggleDarkMode />
+        </div>
         {!isLearnPage && (
           <div
             style={{
               marginLeft: screens.md ? "20px" : "0",
               height: "65px",
               display: "flex",
+              justifyContent: "center",
+              paddingLeft: "15px",
+              borderRadius: "5px",
               alignItems: "center",
               backgroundColor:
                 hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
@@ -221,6 +219,9 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             height: "65px",
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
+            padding: screens.md ? "0 20px" : "0 10px",
+            borderRadius: "5px",
             borderLeft: screens.md
               ? "1.5px solid rgba(255, 255, 255, 0.1)"
               : "none",
