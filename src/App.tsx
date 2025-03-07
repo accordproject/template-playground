@@ -186,19 +186,7 @@ const App = () => {
           </Routes>
         </Content>
         <Footer />
-        {!screens.md && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "10px 0",
-              background: "#1b2540",
-              color: "white",
-              fontSize: "12px",
-            }}
-          >
-          
-          </div>
-        )}
+        
       </Layout>
     </AntdApp>
   );
