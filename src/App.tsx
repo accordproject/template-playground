@@ -154,8 +154,7 @@ const App = () => {
                           style={{
                             marginBottom: "10px",
                           }}
-                        >
-                        </div>
+                        ></div>
                         <AgreementHtml loading={loading} isModal={false} />
                       </Col>
                     </Row>

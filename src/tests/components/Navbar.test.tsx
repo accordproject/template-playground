@@ -12,8 +12,7 @@ const renderNavbar = () => {
   render(
     <MemoryRouter>
       <Navbar scrollToFooter={() => {}} />
-    </MemoryRouter>
-
+    </MemoryRouter>,
   );
 };
 
