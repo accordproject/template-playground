@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeAll } from "vitest";
-import Footer from "../../components/Footer";
+import Footer from "@components/Footer";
 
 vi.mock("../../public/logo.png", () => ({
   default: "logo.png",

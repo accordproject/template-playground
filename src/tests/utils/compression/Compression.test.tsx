@@ -1,4 +1,4 @@
-import { compress, decompress } from "../../../utils/compression/compression";
+import { compress, decompress } from "@utils/compression/compression";
 
 describe("Compression Utilities", () => {
   it("should correctly compress and decompress data", () => {

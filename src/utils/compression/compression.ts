@@ -1,5 +1,5 @@
 import LZString from "lz-string";
-import { DecompressedData } from "../../store/store";
+import { DecompressedData } from "@store/store";
 
 export const compress = (data: object): string => {
   return LZString.compressToEncodedURIComponent(JSON.stringify(data));

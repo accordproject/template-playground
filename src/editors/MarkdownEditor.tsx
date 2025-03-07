@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
-import useAppStore from "../store/store";
+import useAppStore from "@store/store";
 import { useMonaco } from "@monaco-editor/react";
 
 const MonacoEditor = lazy(() =>

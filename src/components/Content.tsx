@@ -7,15 +7,15 @@ import {
   ContentContainer,
   NavigationButtons,
   NavigationButton,
-} from "../styles/components/Content";
+} from "@styles/components/Content";
 import {
   LoadingOutlined,
   LeftOutlined,
   RightOutlined,
 } from "@ant-design/icons";
 import { Spin } from "antd";
-import fetchContent from "../utils/fetchContent";
-import { steps } from "../constants/learningSteps/steps";
+import fetchContent from "@utils/fetchContent";
+import { steps } from "@constants/learningSteps/steps";
 
 // markdown syntax highlighting theme
 import "highlight.js/styles/github.css";

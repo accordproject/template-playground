@@ -1,7 +1,7 @@
 import { Button, Dropdown, Space, message, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { useCallback, useMemo, useState } from "react";
-import useAppStore from "../store/store";
+import useAppStore from "@store/store";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 

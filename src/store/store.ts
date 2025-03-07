@@ -6,9 +6,9 @@ import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
-import { SAMPLES, Sample } from "../samples";
-import * as playground from "../samples/playground";
-import { compress, decompress } from "../utils/compression/compression";
+import { SAMPLES, Sample } from "@/samples";
+import * as playground from "@samples/playground";
+import { compress, decompress } from "@utils/compression/compression";
 
 interface AppState {
   templateMarkdown: string;

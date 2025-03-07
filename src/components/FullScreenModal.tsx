@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "antd";
-import AgreementHtml from "../AgreementHtml";
+import AgreementHtml from "@/AgreementHtml";
+
 import { FullscreenOutlined } from "@ant-design/icons";
-import useAppStore from "../store/store";
+import useAppStore from "@store/store";
 
 const FullScreenModal: React.FC = () => {
   const [open, setOpen] = useState(false);

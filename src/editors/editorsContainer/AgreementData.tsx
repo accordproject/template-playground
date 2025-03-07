@@ -1,5 +1,5 @@
-import JSONEditor from "../JSONEditor";
-import useAppStore from "../../store/store";
+import JSONEditor from "@editors/JSONEditor";
+import useAppStore from "@store/store";
 import { useCallback } from "react";
 import { debounce } from "ts-debounce";
 
