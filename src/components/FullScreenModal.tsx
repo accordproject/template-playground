@@ -5,7 +5,7 @@ import { FullscreenOutlined } from "@ant-design/icons";
 import useAppStore from "../store/store";
 
 const FullScreenModal: React.FC = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
 

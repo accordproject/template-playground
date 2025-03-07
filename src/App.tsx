@@ -42,14 +42,19 @@ const App = () => {
 
   useEffect(() => {
     const initializeApp = async () => {
+      try{
       await init();
       const compressedData = searchParams.get("data");
       if (compressedData) {
         await loadFromLink(compressedData);
       }
+    } catch(error){
+      console.error(error);
+    } finally {
       setLoading(false);
-    };
-    initializeApp();
+    }
+      };
+    void initializeApp();
 
     // DarkMode Styles
     const style = document.createElement("style");
@@ -72,10 +77,18 @@ const App = () => {
   }, [init, loadFromLink, searchParams, textColor, backgroundColor]);
 
   useEffect(() => {
+    const startTour = async () => {
+      try {
+        await tour.start();
+      } catch (error) {
+        console.error("Tour failed to start:", error);
+      }
+    };
+
     const showTour = searchParams.get("showTour") === "true";
 
     if (showTour || !localStorage.getItem("hasVisited")) {
-      tour.start();
+      void startTour();
       localStorage.setItem("hasVisited", "true");
     }
   }, [searchParams]);

@@ -7,7 +7,7 @@ function AgreementHtml({
   loading,
   isModal,
 }: {
-  loading: any;
+  loading: boolean;
   isModal?: boolean;
 }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
