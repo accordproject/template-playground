@@ -78,7 +78,7 @@ const CustomFooter: React.FC = () => {
 
           {(screens.md || expanded) && (
             <Row justify="end" gutter={[16, 16]}>
-              {FOOTER_SECTION.sections.map((section: any) => (
+              {FOOTER_SECTION.sections.map((section) => (
                 <Col xs={24} sm={12} md={6} key={section.title}>
                   <Space direction="vertical" size="middle">
                     <Text
@@ -91,7 +91,7 @@ const CustomFooter: React.FC = () => {
                     >
                       {section.title}
                     </Text>
-                    {section.links.map((link: any) => (
+                    {section.links.map((link) => (
                       <Link
                         href={link.href}
                         key={link.title}
