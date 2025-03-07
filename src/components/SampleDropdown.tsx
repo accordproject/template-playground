@@ -30,31 +30,25 @@ function SampleDropdown({
     [samples]
   );
 
-  const handleMenuClick: MenuProps["onClick"] = useCallback(
-    (e: { key: string }) => { 
-      if (!loadSample) {
-        void message.error("Failed to load sample");
-        return;
-      }
-
+  const handleMenuClick = useCallback(
+    async (e: { key: string }) => {
       if (e.key) {
         setLoading(true);
-        loadSample(e.key)
-          .then(() => {
-            void message.info(`Loaded ${e.key} sample`);
-            setSelectedSample(e.key);
-          })
-          .catch(() => {
-            void message.error("Failed to load sample");
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+        try {
+          await loadSample(e.key);
+          message.info(`Loaded ${e.key} sample`);
+          setSelectedSample(e.key);
+        } catch (error) {
+          message.error("Failed to load sample");
+        } finally {
+          setLoading(false);
+        }
       }
     },
     [loadSample, setLoading]
   );
-
+  
+  
   return (
     <Space>
       <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={["click"]}>
