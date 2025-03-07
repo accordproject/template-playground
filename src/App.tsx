@@ -196,7 +196,7 @@ const App = () => {
               fontSize: "12px",
             }}
           >
-            Best viewed on desktop
+          
           </div>
         )}
       </Layout>
