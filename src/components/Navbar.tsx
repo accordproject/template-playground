@@ -115,7 +115,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
           style={{ display: "flex", alignItems: "center" }}
         >
           <Image
-            src={screens.md ? "/logo.png" : "/accord_logo.png"}
+            src={screens.lg ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
             preview={false}
             style={{
