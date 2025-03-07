@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Row, Col, Collapse, Grid } from "antd";
+import { App as AntdApp, Layout, Row, Col, Collapse } from "antd";
 import { Routes, Route, useSearchParams } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -17,7 +17,7 @@ import LearnContent from "./components/Content";
 import FloatingFAB from "./components/FabButton";
 
 const { Content } = Layout;
-const { useBreakpoint } = Grid;
+
 
 const App = () => {
   const init = useAppStore((state) => state.init);
@@ -80,7 +80,7 @@ const App = () => {
     }
   }, [searchParams]);
 
-  const screens = useBreakpoint();
+  
 
   const panels = [
     {
