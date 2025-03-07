@@ -72,14 +72,18 @@ async function rebuild(template: string, model: string, dataString: string) {
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => ({
-      backgroundColor: '#ffffff',
-      textColor: '#121212',
+      backgroundColor: localStorage.getItem("backgroundColor") || "#ffffff",
+      textColor: localStorage.getItem("textColor") || "#121212",
       toggleDarkMode: () => {
         set((state) => {
-          const isDark = state.backgroundColor === '#121212';
+          const isDark = state.backgroundColor === "#121212";
+          const newBackgroundColor = isDark ? "#ffffff" : "#121212";
+          const newTextColor = isDark ? "#121212" : "#ffffff";
+          localStorage.setItem("backgroundColor", newBackgroundColor);
+          localStorage.setItem("textColor", newTextColor);
           return {
-            backgroundColor: isDark ? '#ffffff' : '#121212',
-            textColor: isDark ? '#121212' : '#ffffff',
+            backgroundColor: newBackgroundColor,
+            textColor: newTextColor,
           };
         });
       },
