@@ -16,7 +16,7 @@ function SampleDropdown({
       samples: state.samples,
       loadSample: state.loadSample as (key: string) => Promise<void>,
     }),
-    shallow
+    shallow,
   );
 
   const [selectedSample, setSelectedSample] = useState<string | null>(null);
@@ -27,7 +27,7 @@ function SampleDropdown({
         label: s.NAME,
         key: s.NAME,
       })),
-    [samples]
+    [samples],
   );
 
   const handleMenuClick = useCallback(
@@ -45,7 +45,7 @@ function SampleDropdown({
         }
       }
     },
-    [loadSample, setLoading]
+    [loadSample, setLoading],
   );
 
   return (

@@ -13,7 +13,7 @@ function TemplateModel() {
     debounce((value: string) => {
       void setModelCto(value);
     }, 500),
-    [setModelCto]
+    [setModelCto],
   );
 
   const handleChange = (value: string | undefined) => {

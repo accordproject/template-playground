@@ -48,7 +48,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   }, [file]);
 
   const currentIndex = steps.findIndex((step) =>
-    step.link.includes(file.split(".")[0])
+    step.link.includes(file.split(".")[0]),
   );
 
   const handlePrevious = () => {

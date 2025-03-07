@@ -35,7 +35,6 @@ const App = () => {
     }
   };
 
-
   const onChange = (key: string | string[]) => {
     setActivePanel(key);
   };
@@ -155,8 +154,7 @@ const App = () => {
                           style={{
                             marginBottom: "10px",
                           }}
-                        >
-                        </div>
+                        ></div>
                         <AgreementHtml loading={loading} isModal={false} />
                       </Col>
                     </Row>
