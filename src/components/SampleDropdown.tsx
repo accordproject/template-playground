@@ -3,15 +3,17 @@ import { DownOutlined } from "@ant-design/icons";
 import { useCallback, useMemo, useState } from "react";
 import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
+import { useStoreWithEqualityFn } from "zustand/traditional";
 
 function SampleDropdown({
   setLoading,
 }: {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
-  const { samples, loadSample } = useAppStore(
+  const { samples, loadSample } = useStoreWithEqualityFn(
+    useAppStore,
     (state) => ({
-      samples: state.samples || [],
+      samples: state.samples,
       loadSample: state.loadSample as (key: string) => Promise<void>,
     }),
     shallow
