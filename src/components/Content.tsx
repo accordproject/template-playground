@@ -16,13 +16,10 @@ import {
 import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
+import { LearnContentProps } from "../types/components/Content.types";
 
 // markdown syntax highlighting theme
 import "highlight.js/styles/github.css";
-
-interface LearnContentProps {
-  file: string;
-}
 
 const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const [content, setContent] = useState<string | null>(null);
@@ -31,20 +28,20 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadContent = async () => {
+    const loadContent = async (): Promise<void> => {
       try {
         setLoading(true);
         const content = await fetchContent(file);
         setContent(content);
         setError(null);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError("Failed to load content");
       } finally {
         setLoading(false);
       }
     };
 
-    loadContent();
+    void loadContent();
   }, [file]);
 
   const currentIndex = steps.findIndex((step) =>
@@ -92,7 +89,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
         <ReactMarkdown
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
           components={{
-            img: ({ node, ...props }) => (
+            img: ({ ...props }) => (
               <div className="image-container">
                 <img {...props} alt={props.alt || ""} />
               </div>

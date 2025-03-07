@@ -7,6 +7,7 @@ import {
   LinkedinFilled,
 } from "@ant-design/icons";
 import FOOTER_SECTION from "../constants/content/footer.json";
+import { FooterSection, FooterLink } from "../types/components/Footer.types";
 
 const { Footer } = Layout;
 const { Text, Link } = Typography;
@@ -65,7 +66,7 @@ const CustomFooter: React.FC = () => {
             </Link>
           </Space>
         </Col>
-        {FOOTER_SECTION.sections.map((section: any) => (
+        {FOOTER_SECTION.sections.map((section: FooterSection) => (
           <Col span={3} key={section.title}>
             <Space direction="vertical" size="middle">
               <Text
@@ -78,7 +79,7 @@ const CustomFooter: React.FC = () => {
               >
                 {section.title}
               </Text>
-              {section.links.map((link: any) => (
+              {section.links.map((link: FooterLink) => (
                 <Link
                   href={link.href}
                   key={link.title}

@@ -11,9 +11,9 @@ const UseShare = () => {
 
   const handleCopy = () => {
     const link = generateShareableLink();
-    navigator.clipboard.writeText(link).then(() => {
+    void navigator.clipboard.writeText(link).then(() => {
       setCopied(true);
-      message.success("Link copied to clipboard!");
+      void message.success("Link copied to clipboard!");
       setTimeout(() => {
         setCopied(false);
       }, 3000);
