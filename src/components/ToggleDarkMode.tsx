@@ -16,7 +16,6 @@ const ToggleDarkMode: React.FC = () => {
     setIsDarkMode((prev) => !prev);
     const newTheme = !isDarkMode ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", newTheme);
-    console.log('ToggleDarkMode: new isDarkMode:', !isDarkMode, 'data-theme set to:', newTheme, 'localStorage:', localStorage.getItem('darkMode'));
   };
 
   return (

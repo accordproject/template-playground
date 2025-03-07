@@ -81,7 +81,7 @@ export const HelperText = styled.div`
   color: #333;
 
   a {
-    color: #111;
+    color: #19c6c7 !important;
     text-decoration: none;
 
     &:hover {

@@ -1,8 +1,7 @@
-import { useState, useEffect} from "react";
-import { Menu, Dropdown, Button, Image} from "antd";
+import { useState } from "react";
+import { Menu, Dropdown, Button, Image, Grid } from "antd";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
-import useAppStore from "../store/store";
 import {
   GithubOutlined,
   QuestionOutlined,
@@ -10,41 +9,25 @@ import {
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
-  MenuOutlined,
-  CompassOutlined,
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
-function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
+const { useBreakpoint } = Grid;
+
+function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
+  const screens = useBreakpoint();
   const location = useLocation();
 
-  const [isWideScreen, setIsWideScreen] = useState(
-    typeof window !== 'undefined' && window.innerWidth >= 954
-  );
-  const { backgroundColor } = useAppStore();
-  useEffect(() => {
-    const theme = backgroundColor === "#121212" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [backgroundColor]);
   const props = useSpring({
-    to: async (next) => {
-      while (true) {
-        await next({
-          opacity: 1,
-          boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)",
-        });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        await next({
-          opacity: 0.9,
-          boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
-        });
-        await new Promise((resolve) => setTimeout(resolve, 4000));
-      }
-    },
+    loop: true,
     from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+    to: [
+      { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
+      { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+    ],
     config: { duration: 1000 },
   });
 
@@ -93,77 +76,18 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
     </Menu>
   );
 
-  const mobileMenu = (
-    <Menu>
-      <Menu.Item key="explore" onClick={scrollToFooter}>
-        <CompassOutlined /> Explore
-      </Menu.Item>
-      <Menu.SubMenu key="help" title={<span><QuestionOutlined /> Help</span>}>
-        <Menu.ItemGroup title="Info">
-          <Menu.Item key="about">
-            <a
-              href="https://github.com/accordproject/template-playground/blob/main/README.md"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              About
-            </a>
-          </Menu.Item>
-          <Menu.Item key="community">
-            <a
-              href="https://discord.com/invite/Zm99SKhhtA"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Community
-            </a>
-          </Menu.Item>
-          <Menu.Item key="issues">
-            <a
-              href="https://github.com/accordproject/template-playground/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Issues
-            </a>
-          </Menu.Item>
-        </Menu.ItemGroup>
-        <Menu.ItemGroup title="Documentation">
-          <Menu.Item key="documentation">
-            <a
-              href="https://github.com/accordproject/template-engine/blob/main/README.md"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Documentation
-            </a>
-          </Menu.Item>
-        </Menu.ItemGroup>
-      </Menu.SubMenu>
-    </Menu>
-  );
-
   const menuItemStyle = (key: string, isLast: boolean) => ({
     display: "flex",
     alignItems: "center",
-    padding: isWideScreen ? "0 20px" : "0",
+    padding: screens.md ? "0 20px" : "0",
     backgroundColor:
       hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
     height: "65px",
     borderRight:
-      isWideScreen && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
+      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
   });
 
   const isLearnPage = location.pathname.startsWith("/learn");
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsWideScreen(window.innerWidth >= 954);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   return (
     <div
@@ -173,8 +97,8 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
         lineHeight: "65px",
         display: "flex",
         alignItems: "center",
-        paddingLeft: isWideScreen ? 40 : 10,
-        paddingRight: isWideScreen ? 40 : 10,
+        paddingLeft: screens.md ? 40 : 10,
+        paddingRight: screens.md ? 40 : 10,
       }}
     >
       <div
@@ -191,19 +115,19 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
           style={{ display: "flex", alignItems: "center" }}
         >
           <Image
-            src={isWideScreen ? "/logo.png" : "/accord_logo.png"}
+            src={screens.lg ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
             preview={false}
             style={{
-              paddingRight: isWideScreen ? "24px" : "10px",
+              paddingRight: screens.md ? "24px" : "10px",
               height: "26px",
-              maxWidth: isWideScreen ? "184.17px" : "36.67px",
+              maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
-          {isWideScreen && <span style={{ color: "white" }}>Template Playground</span>}
+          <span style={{ color: "white" }}>Template Playground</span>
         </a>
       </div>
-      {isWideScreen ? (
+      {screens.md && (
         <>
           <div
             style={{
@@ -243,20 +167,6 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
             </Dropdown>
           </div>
         </>
-      ) : (
-        <div style={{ marginLeft: "10px" }}>
-          <Dropdown overlay={mobileMenu} trigger={["click"]}>
-            <Button
-              style={{
-                background: "transparent",
-                border: "none",
-                padding: 0,
-              }}
-            >
-              <MenuOutlined style={{ fontSize: "20px", color: "white" }} />
-            </Button>
-          </Dropdown>
-        </div>
       )}
       <div
         style={{
@@ -272,7 +182,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
         {!isLearnPage && (
           <div
             style={{
-              marginLeft: isWideScreen ? "20px" : "0",
+              marginLeft: screens.md ? "20px" : "0",
               height: "65px",
               display: "flex",
               justifyContent: "center",
@@ -310,12 +220,12 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: isWideScreen ? "0 20px" : "0 10px",
+            padding: screens.md ? "0 20px" : "0 10px",
             borderRadius: "5px",
-            borderLeft: isWideScreen
+            borderLeft: screens.md
               ? "1.5px solid rgba(255, 255, 255, 0.1)"
               : "none",
-            paddingLeft: isWideScreen ? "20px" : "0",
+            paddingLeft: screens.md ? "20px" : "0",
             backgroundColor:
               hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
             cursor: "pointer",
@@ -333,10 +243,10 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
               style={{
                 fontSize: "20px",
                 color: "white",
-                marginRight: isWideScreen ? "5px" : "0",
+                marginRight: screens.md ? "5px" : "0",
               }}
             />
-            {isWideScreen && <span>Github</span>}
+            {screens.md && <span>Github</span>}
           </a>
         </div>
       </div>
