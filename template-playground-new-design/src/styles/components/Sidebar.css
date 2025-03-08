@@ -1,0 +1,16 @@
+.sidebar {
+    @apply bg-[#1A2541] w-[5%] h-full;
+  }
+
+  .sidebar-container {
+    @apply mx-auto h-full;
+  }
+  
+  .sidebar-content {
+    @apply relative h-full;
+  }
+
+  .sidebar-options {
+    @apply cursor-pointer;
+    height: fit-content;
+  }
