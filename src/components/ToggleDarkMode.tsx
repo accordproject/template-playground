@@ -13,7 +13,6 @@ const ToggleDarkMode: React.FC = () => {
 
   const handleChange = () => {
     toggleDarkMode();
-    setIsDarkMode((prev) => !prev);
   };
 
   return (
