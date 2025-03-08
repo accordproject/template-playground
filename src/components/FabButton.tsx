@@ -30,6 +30,8 @@ const FloatingFAB = () => {
         bottom: "20px",
         right: "20px",
         zIndex: 1000,
+        marginBottom: "45px",
+        marginRight:"10px"
       }}
     >
       <Action
