@@ -23,6 +23,7 @@
     "@accordproject/template-engine": "^2.3.5",
     "@ant-design/icons": "^5.3.7",
     "@monaco-editor/react": "^4.6.0",
+    "@tailwindcss/postcss": "^4.0.12",
     "@types/styled-components": "^5.1.34",
     "antd": "^5.7.2",
     "core-js": "^3.37.1",
@@ -33,6 +34,7 @@
     "monaco-editor": "^0.50.0",
     "node-stdlib-browser": "^1.2.0",
     "normalize.css": "^8.0.1",
+    "postcss": "^8.5.3",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dark-mode-toggle": "^0.2.0",
@@ -49,6 +51,7 @@
     "rehype-raw": "^7.0.0",
     "shepherd.js": "^13.0.3",
     "styled-components": "^6.1.12",
+    "tailwindcss": "^4.0.12",
     "ts-debounce": "^4.0.0",
     "zustand": "^4.3.9"
   },
