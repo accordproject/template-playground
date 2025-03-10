@@ -23,15 +23,15 @@ function SampleDropdown({
 
   const items: MenuProps["items"] = useMemo(
     () =>
-      samples.map((s) => ({
+      samples?.map((s) => ({
         label: s.NAME,
         key: s.NAME,
-      })),
-    [samples],
+      })) || [],
+    [samples]
   );
 
   const handleMenuClick = useCallback(
-    async (e: any) => {
+    async (e: { key: string }) => {
       if (e.key) {
         setLoading(true);
         try {
@@ -47,12 +47,13 @@ function SampleDropdown({
     },
     [loadSample, setLoading],
   );
-
+  
+  
   return (
     <Space>
       <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={["click"]}>
         <div className="samples-element">
-          <Button>
+          <Button aria-label="Load sample dropdown">
             {selectedSample ? selectedSample : "Load Sample"} <DownOutlined />
           </Button>
         </div>
