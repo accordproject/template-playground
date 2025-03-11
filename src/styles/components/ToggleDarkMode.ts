@@ -6,4 +6,9 @@ export const ToggleDarkModeContainer = styled.div`
     display: flex;
     padding-left: 10px !important;
   }
+
+  .dark-mode-toggle svg {
+    stroke: white !important;
+    stroke-width: 8px;
+  }
 `;
