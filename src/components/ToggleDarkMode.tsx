@@ -11,7 +11,7 @@ const ToggleDarkMode: React.FC = () => {
     setIsDarkMode(backgroundColor === "#121212");
   }, [backgroundColor]);
 
-  const handleChange = () => {
+  const handleChange = (isChecked: boolean) => {
     toggleDarkMode();
     setIsDarkMode((prev) => !prev);
     const newTheme = !isDarkMode ? "dark" : "light";
@@ -20,14 +20,12 @@ const ToggleDarkMode: React.FC = () => {
 
   return (
     <ToggleDarkModeContainer>
-      <div className="toggle-wrapper">
-        <DarkModeToggle
-          className="dark-mode-toggle"
-          onChange={handleChange}
-          checked={isDarkMode}
-          size={60}
-        />
-      </div>
+      <DarkModeToggle
+        className="dark-mode-toggle"
+        onChange={handleChange}
+        checked={isDarkMode}
+        size={60}
+      />
     </ToggleDarkModeContainer>
   );
 };

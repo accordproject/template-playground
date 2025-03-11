@@ -4,15 +4,12 @@ export const ToggleDarkModeContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  margin-top: 22%;
+  padding: 1rem; /* Using relative units for better responsiveness */
   
   /* Prevent clicks on the outer container */
-  pointer-events: none; 
+  pointer-events: none;
 
-
-  .dark-mode-toggle svg {
-    stroke: white !important;
-    stroke-width: 8px;
+  .dark-mode-toggle {
+    pointer-events: auto; /* Enable clicks only inside the actual toggle */
   }
 `;
