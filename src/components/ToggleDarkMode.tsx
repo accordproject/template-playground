@@ -11,7 +11,7 @@ const ToggleDarkMode: React.FC = () => {
     setIsDarkMode(backgroundColor === "#121212");
   }, [backgroundColor]);
 
-  const handleChange = () => {
+  const handleChange = (isChecked: boolean) => {
     toggleDarkMode();
     setIsDarkMode((prev) => !prev);
     const newTheme = !isDarkMode ? "dark" : "light";
