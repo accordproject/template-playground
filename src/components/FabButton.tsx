@@ -27,7 +27,7 @@ const FloatingFAB = () => {
       }}
       style={{
         position: "fixed",
-        bottom: "20px",
+        bottom: "35px",
         right: "20px",
         zIndex: 1000,
       }}
