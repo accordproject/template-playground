@@ -22,9 +22,9 @@ Unordered:
 `;
 
 const DATA = {
-    "$class" : "test@1.0.0.Person",
-    "middleNames": ["Tenzin", "Isaac", "Mia"]
+  $class: "test@1.0.0.Person",
+  middleNames: ["Tenzin", "Isaac", "Mia"],
 };
 
-const NAME = 'List';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "List";
+export { NAME, MODEL, DATA, TEMPLATE };

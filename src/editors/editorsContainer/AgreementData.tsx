@@ -6,7 +6,7 @@ import { debounce } from "ts-debounce";
 function AgreementData() {
   const editorAgreementData = useAppStore((state) => state.editorAgreementData);
   const setEditorAgreementData = useAppStore(
-    (state) => state.setEditorAgreementData
+    (state) => state.setEditorAgreementData,
   );
   const setData = useAppStore((state) => state.setData);
   const textColor = useAppStore((state) => state.textColor);
@@ -15,7 +15,7 @@ function AgreementData() {
     debounce((value: string) => {
       void setData(value);
     }, 500),
-    [setData]
+    [setData],
   );
 
   const handleChange = (value: string | undefined) => {

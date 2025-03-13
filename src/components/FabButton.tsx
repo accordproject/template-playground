@@ -48,12 +48,8 @@ const FloatingFAB = () => {
           transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
           boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
         }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.transform = "scale(1.1)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.transform = "scale(1)")
-        }
+        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
       >
         <MdExplore />
       </Action>

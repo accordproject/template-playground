@@ -27,8 +27,8 @@ Done.
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.Customer"
+  $class: "hello@1.0.0.Customer",
 };
 
-const NAME = 'Clause with Condition';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Clause with Condition";
+export { NAME, MODEL, DATA, TEMPLATE };
