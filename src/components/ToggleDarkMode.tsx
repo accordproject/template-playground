@@ -24,7 +24,7 @@ const ToggleDarkMode: React.FC = () => {
         className="dark-mode-toggle"
         onChange={handleChange}
         checked={isDarkMode}
-        size={60}
+        size={50}
       />
     </ToggleDarkModeContainer>
   );
