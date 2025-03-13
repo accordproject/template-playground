@@ -76,7 +76,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
     </Menu>
   );
 
-  const menuItemStyle = (key: string, isLast: boolean) => ({
+  const menuItemStyle = (key: string) => ({
     display: "flex",
     alignItems: "center",
     padding: screens.md ? "0 20px" : "0",
@@ -102,7 +102,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
       <div
         style={{
           cursor: "pointer",
-          ...menuItemStyle("home", false),
+          ...menuItemStyle("home"),
         }}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
@@ -129,9 +129,10 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
         <>
           <div
             style={{
-              ...menuItemStyle("explore", false),
+              ...menuItemStyle("explore"),
               cursor: "pointer",
             }}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             onClick={scrollToFooter}
             onMouseEnter={() => setHovered("explore")}
             onMouseLeave={() => setHovered(null)}
@@ -140,7 +141,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
           </div>
           <div
             style={{
-              ...menuItemStyle("help", false),
+              ...menuItemStyle("help"),
               cursor: "pointer",
             }}
             onMouseEnter={() => setHovered("help")}
