@@ -29,8 +29,8 @@ function AgreementData() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ color: textColor }}>Data</h3>
         <div>
-          <FaUndo onClick={undo} style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
-          <FaRedo onClick={redo} style={{ cursor: "pointer", color: textColor }} />
+          <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
+          <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
         </div>
       </div>
       <p style={{ color: textColor }}>
