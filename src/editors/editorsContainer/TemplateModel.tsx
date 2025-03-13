@@ -29,8 +29,8 @@ function TemplateModel() {
       <div className="tooltip" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ color: textColor }}>Concerto Model</h3>
         <div>
-          <FaUndo onClick={undo} style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
-          <FaRedo onClick={redo} style={{ cursor: "pointer", color: textColor }} />
+          <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
+          <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
         </div>
       </div>
       <span style={{ color: textColor }} className="tooltiptext">
