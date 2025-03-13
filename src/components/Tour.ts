@@ -69,7 +69,7 @@ tour.addStep({
   buttons: [
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
