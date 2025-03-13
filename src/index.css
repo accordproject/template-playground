@@ -27,3 +27,22 @@ html[data-theme="light"] {
     --hover-bg-color: #e0e0e0;
     --hover-text-color: #050c40;
 }
+.hamburger-menu {
+  display: none;
+  font-size: 30px;
+  cursor: pointer;
+  position: fixed !important;
+  top: 80px;
+  right: 40px;
+  z-index: 1000;
+}
+
+.hamburger-hidden {
+  transform: translateY(-120px);
+}
+
+@media (max-width:768px) {
+  .hamburger-menu {
+    display: block;
+  }
+}
