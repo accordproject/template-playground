@@ -38,11 +38,12 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
     Template Playground
   </a>
 </Menu.Item>
-<Menu.Item key="explore">
-  <a href="#explore" rel="noopener noreferrer">
+<Menu.Item key="explore" onClick={scrollToFooter}>
+  <div style={{ cursor: "pointer" }}>
     Explore
-  </a>
+  </div>
 </Menu.Item>
+
 <Menu.ItemGroup title="Info">
         <Menu.Item key="about">
           <a href="https://github.com/accordproject/template-playground/blob/main/README.md" target="_blank" rel="noopener noreferrer">
