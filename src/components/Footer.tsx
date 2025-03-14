@@ -9,6 +9,7 @@ import {
   UpOutlined,
 } from "@ant-design/icons";
 import FOOTER_SECTION from "../constants/content/footer.json";
+import { FooterSection, FooterLink } from "../types/components/Footer.types";
 
 const { Footer } = Layout;
 const { Text, Link } = Typography;
@@ -78,7 +79,7 @@ const CustomFooter: React.FC = () => {
 
           {(screens.md || expanded) && (
             <Row justify="end" gutter={[16, 16]}>
-              {FOOTER_SECTION.sections.map((section) => (
+              {FOOTER_SECTION.sections.map((section: FooterSection) => (
                 <Col xs={24} sm={12} md={6} key={section.title}>
                   <Space direction="vertical" size="middle">
                     <Text
@@ -91,7 +92,7 @@ const CustomFooter: React.FC = () => {
                     >
                       {section.title}
                     </Text>
-                    {section.links.map((link) => (
+                    {section.links.map((link: FooterLink) => (
                       <Link
                         href={link.href}
                         key={link.title}
