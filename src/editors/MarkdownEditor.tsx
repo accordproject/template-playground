@@ -1,9 +1,12 @@
 import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
 import useAppStore from "../store/store";
 import { useMonaco } from "@monaco-editor/react";
+import { Skeleton } from "../components/Skeleton";
 
 const MonacoEditor = lazy(() =>
-  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
+  import("@monaco-editor/react").then((mod) => ({
+    default: mod.Editor,
+  }))
 );
 
 export default function MarkdownEditor({
@@ -62,7 +65,18 @@ export default function MarkdownEditor({
 
   return (
     <div className="editorwrapper">
-      <Suspense fallback={<div>Loading Editor...</div>}>
+      <Suspense
+        fallback={
+          <div>
+            <Skeleton
+              style={{
+                width: "100%",
+                height: "60vh",
+              }}
+            />
+          </div>
+        }
+      >
         <MonacoEditor
           options={options}
           language="markdown"
