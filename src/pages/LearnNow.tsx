@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { LearnNowContainer, SidebarContainer, ContentContainer } from "../styles/pages/LearnNow";
+import { LearnNowContainer} from "../styles/pages/LearnNow";
 import { steps } from "../constants/learningSteps/steps";
 
 const LearnNow: React.FC = () => {
@@ -34,12 +34,8 @@ const LearnNow: React.FC = () => {
         &#9776;
       </div>
     )}
-     <SidebarContainer>
         <Sidebar steps={steps} isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-      </SidebarContainer>
-      <ContentContainer>
         <Outlet />
-      </ContentContainer>
     </LearnNowContainer>
   );
 };
