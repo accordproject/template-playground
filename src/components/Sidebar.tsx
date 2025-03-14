@@ -10,15 +10,25 @@ import {
   HelperIcon,
   HelperText,
   DividerLine,
+  CloseButton,
 } from "../styles/components/Sidebar";
-import { BulbOutlined } from "@ant-design/icons";
+import { BulbOutlined, CloseOutlined } from "@ant-design/icons";
 
-const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
+const Sidebar: React.FC<{ steps: { title: string; link: string }[], isOpen?: boolean, toggleSidebar: () => void }> = ({
   steps,
+  isOpen,
+  toggleSidebar,
 }) => {
   return (
-    <SidebarContainer>
-      <SidebarTitle>Learning Pathway</SidebarTitle>
+    <SidebarContainer className={isOpen ? "active" : ""}>
+      <SidebarTitle>
+      Learning Pathway
+      {isOpen && ( 
+        <CloseButton onClick={toggleSidebar}>
+          <CloseOutlined />
+        </CloseButton> 
+      )}
+      </SidebarTitle>
       <SidebarList>
         {steps.map((step, index) => (
           <SidebarListItem key={index}>
