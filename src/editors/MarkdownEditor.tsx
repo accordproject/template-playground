@@ -33,6 +33,11 @@ export default function MarkdownEditor({
             "editor.background": backgroundColor,
             "editor.foreground": textColor,
             "editor.lineHighlightBorder": "#EDE8DC",
+            "editor.selectionBackground":
+              backgroundColor === "#ffffff" ? "#AACCEE" : "#264F78",
+            // Foreground (text) color for selected text
+            "editor.selectionForeground":
+              backgroundColor === "#ffffff" ? "#000000" : "#FFFFFF",
           },
         });
       };
