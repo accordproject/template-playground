@@ -9,6 +9,7 @@ export const SidebarContainer = styled.div`
   border-radius: 4px;
   position: relative;
   overflow-y: auto;
+  border-right: 1px solid #ddd;
   transition: transform 0.3s ease;
 
   @media (max-width: 768px) {
@@ -42,6 +43,7 @@ export const CloseButton = styled.button`
   font-size: 1.2rem;
   cursor: pointer;
   display: none;
+  color: var(--icon-color);
 
   @media (max-width: 768px) {
     display: block;

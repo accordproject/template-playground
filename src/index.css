@@ -16,6 +16,7 @@ html[data-theme="dark"] {
     --active-text-color: #ffffff; 
     --hover-bg-color: #444444;
     --hover-text-color: #ffffff;
+    --icon-color: #ffffff;
 }
 
 html[data-theme="light"] {
@@ -26,6 +27,7 @@ html[data-theme="light"] {
     --active-text-color: #1b2540; 
     --hover-bg-color: #e0e0e0;
     --hover-text-color: #050c40;
+    --icon-color: #121212;
 }
 .hamburger-menu {
   display: none;
@@ -35,6 +37,7 @@ html[data-theme="light"] {
   top: 80px;
   right: 40px;
   z-index: 1000;
+  color: var(--icon-color);
 }
 
 .hamburger-hidden {
