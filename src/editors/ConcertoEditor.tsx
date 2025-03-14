@@ -2,6 +2,7 @@ import { useMonaco } from "@monaco-editor/react";
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
 import { editor, MarkerSeverity } from "monaco-editor";
 import useAppStore from "../store/store";
+import { Skeleton } from "../components/Skeleton";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -163,7 +164,18 @@ export default function ConcertoEditor({
 
   return (
     <div className="editorwrapper">
-      <Suspense fallback={<div>Loading Editor...</div>}>
+      <Suspense
+        fallback={
+          <div>
+            <Skeleton
+              style={{
+                width: "100%",
+                height: "60vh",
+              }}
+            />
+          </div>
+        }
+      >
         <MonacoEditor
           options={options}
           language="concerto"
