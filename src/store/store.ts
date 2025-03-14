@@ -72,14 +72,18 @@ async function rebuild(template: string, model: string, dataString: string) {
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => ({
-      backgroundColor: '#ffffff',
-      textColor: '#121212',
+      backgroundColor: "#ffffff",
+      textColor: "#121212",
       toggleDarkMode: () => {
         set((state) => {
-          const isDark = state.backgroundColor === '#121212';
+          const isDark = state.backgroundColor === "#121212";
+          const newBackgroundColor = isDark ? "#ffffff" : "#121212";
+          const newTextColor = isDark ? "#121212" : "#ffffff";
+          localStorage.setItem("darkMode", JSON.stringify(!isDark));
+
           return {
-            backgroundColor: isDark ? '#ffffff' : '#121212',
-            textColor: isDark ? '#121212' : '#ffffff',
+            backgroundColor: newBackgroundColor,
+            textColor: newTextColor,
           };
         });
       },
@@ -96,6 +100,12 @@ const useAppStore = create<AppState>()(
       init: async () => {
         const params = new URLSearchParams(window.location.search);
         const compressedData = params.get("data");
+        const isDarkMode = JSON.parse(localStorage.getItem("darkMode") || "false");
+
+        set(() => ({
+          backgroundColor: isDarkMode ? "#121212" : "#ffffff",
+          textColor: isDarkMode ? "#ffffff" : "#121212",
+        }));
         if (compressedData) {
           await get().loadFromLink(compressedData);
         } else {
@@ -162,11 +172,7 @@ const useAppStore = create<AppState>()(
       },
       setData: async (data: string) => {
         try {
-          const result = await rebuildDeBounce(
-            get().templateMarkdown,
-            get().modelCto,
-            data
-          );
+          const result = await rebuildDeBounce(get().templateMarkdown, get().modelCto, data);
           set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
@@ -188,8 +194,7 @@ const useAppStore = create<AppState>()(
       },
       loadFromLink: async (compressedData: string) => {
         try {
-          const { templateMarkdown, modelCto, data, agreementHtml } =
-            decompress(compressedData);
+          const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
           set(() => ({
             templateMarkdown,
             editorValue: templateMarkdown,
