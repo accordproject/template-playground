@@ -1,6 +1,6 @@
 import { useMonaco } from "@monaco-editor/react";
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
-import { editor, MarkerSeverity } from "monaco-editor";
+import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
 
 const MonacoEditor = lazy(() =>
@@ -40,15 +40,15 @@ const concertoTypes = [
   "Boolean",
 ];
 
-const handleEditorWillMount = (monaco: any) => {
-  monaco.languages.register({
+const handleEditorWillMount = (monacoInstance: typeof monaco) => {
+  monacoInstance.languages.register({
     id: "concerto",
     extensions: [".cto"],
     aliases: ["Concerto", "concerto"],
     mimetypes: ["application/vnd.accordproject.concerto"],
   });
 
-  monaco.languages.setMonarchTokensProvider("concerto", {
+  monacoInstance.languages.setMonarchTokensProvider("concerto", {
     keywords: concertoKeywords,
     typeKeywords: concertoTypes,
     operators: ["=", "{", "}", "@", '"'],
@@ -83,7 +83,7 @@ const handleEditorWillMount = (monaco: any) => {
     },
   });
 
-  monaco.editor.defineTheme("concertoTheme", {
+  monacoInstance.editor.defineTheme("concertoTheme", {
     base: "vs",
     inherit: true,
     rules: [
@@ -98,7 +98,7 @@ const handleEditorWillMount = (monaco: any) => {
     colors: {},
   });
 
-  monaco.editor.setTheme("concertoTheme");
+  monacoInstance.editor.setTheme("concertoTheme");
 };
 
 interface ConcertoEditorProps {
@@ -120,7 +120,7 @@ export default function ConcertoEditor({
     [backgroundColor]
   );
 
-  const options: editor.IStandaloneEditorConstructionOptions = {
+  const options: monaco.editor.IStandaloneEditorConstructionOptions = {
     minimap: { enabled: false },
     wordWrap: "on",
     automaticLayout: true,
@@ -137,7 +137,7 @@ export default function ConcertoEditor({
   useEffect(() => {
     if (!monacoInstance) return;
 
-    const model = monacoInstance.editor.getModels()[0];
+    const model = monacoInstance.editor.getModels()?.[0];
     if (!model) return;
 
     if (ctoErr) {
@@ -152,7 +152,7 @@ export default function ConcertoEditor({
             endLineNumber: lineNumber,
             endColumn: columnNumber + 1,
             message: ctoErr,
-            severity: MarkerSeverity.Error,
+            severity: monaco.MarkerSeverity.Error,
           },
         ]);
       }
