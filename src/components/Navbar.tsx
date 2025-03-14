@@ -148,7 +148,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={helpMenu} trigger={["click"]}>
+            <Dropdown overlay={helpMenu} trigger={["hover"]}>
               <Button
                 style={{
                   background: "transparent",
