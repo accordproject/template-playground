@@ -41,7 +41,8 @@ const TEMPLATE = `> A general sample that uses a range of features
  {{country}}  
  {{/clause}}
 
-- You are *{{age}}* years old
+
+- {{% if (data.age) { return 'You are ' + data.age + ' years old'; } else { return 'Age not provided'; } %}}
 - Your monthly salary is {{salary as "0,0.00 CCC"}}
 - Your favorite colours are {{#join favoriteColors}}
 
@@ -59,41 +60,40 @@ Thank you.
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.TemplateData",
-    "name": "John Doe",
-    "address" : {
-        "line1" : "1 Main Street",
-        "city" : "Boson",
-        "state" : "MA",
-        "country" : "USA"
-    },
-    "age" : 42,
-    "salary": {
-        "$class": "org.accordproject.money@0.3.0.MonetaryAmount",
-        "doubleValue": 1500,
-        "currencyCode": "EUR"
-    },
-    "favoriteColors" : ['red', 'green', 'blue'],
-    "order" : {
-        "createdAt" : "2023-05-01",
-        "$class" : "hello@1.0.0.Order",
-        "orderLines":
-        [
-        {
-            "$class" : "hello@1.0.0.OrderLine",
-            "sku" : "ABC-123",
-            "quantity" : 3,
-            "price" : 29.99
-        },
-        {
-            "$class" : "hello@1.0.0.OrderLine",
-            "sku" : "DEF-456",
-            "quantity" : 5,
-            "price" : 19.99
-        }
-    ]
-    }
+  $class: "hello@1.0.0.TemplateData",
+  name: "John Doe",
+  address: {
+    line1: "1 Main Street",
+    city: "Boson",
+    state: "MA",
+    country: "USA",
+  },
+    age: 42,
+  salary: {
+    $class: "org.accordproject.money@0.3.0.MonetaryAmount",
+    doubleValue: 1500,
+    currencyCode: "EUR",
+  },
+  favoriteColors: ["red", "green", "blue"],
+  order: {
+    createdAt: "2023-05-01",
+    $class: "hello@1.0.0.Order",
+    orderLines: [
+      {
+        $class: "hello@1.0.0.OrderLine",
+        sku: "ABC-123",
+        quantity: 3,
+        price: 29.99,
+      },
+      {
+        $class: "hello@1.0.0.OrderLine",
+        sku: "DEF-456",
+        quantity: 5,
+        price: 19.99,
+      },
+    ],
+  },
 };
 
-const NAME = 'Customer Order';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Customer Order";
+export { NAME, MODEL, DATA, TEMPLATE };
