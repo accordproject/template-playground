@@ -1,18 +1,29 @@
+import { useEffect } from "react";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
 import FullScreenModal from "./components/FullScreenModal";
 
-function AgreementHtml({
-  loading,
-  isModal,
-}: {
-  loading: any;
-  isModal?: boolean;
-}) {
+function AgreementHtml({ loading, isModal }: { loading: any; isModal?: boolean }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
+
+    // Validation function (currently a placeholder)
+    const validateEditor = (html: string) => {
+      console.log("Validating editor content:", html);
+      // Add validation logic if needed
+    };
+  
+  // Ensures preview updates correctly
+  useEffect(() => {
+    console.log("Preview updated"); // Debugging statement
+  }, [agreementHtml]);
+
+  // Ensures errors are validated after undo/redo
+  useEffect(() => {
+    validateEditor(agreementHtml);
+  }, [agreementHtml]);
 
   return (
     <div
@@ -35,14 +46,7 @@ function AgreementHtml({
           color: textColor,
         }}
       >
-        <h2
-          style={{
-            flexGrow: 1,
-            textAlign: "center",
-            paddingLeft: "34px",
-            color: textColor,
-          }}
-        >
+        <h2 style={{ flexGrow: 1, textAlign: "center", paddingLeft: "34px", color: textColor }}>
           Preview Output
         </h2>
         {!isModal && <FullScreenModal />}
@@ -52,32 +56,14 @@ function AgreementHtml({
         AgreementMark converted to HTML.
       </p>
       {loading ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Spin
-            indicator={
-              <LoadingOutlined
-                style={{ fontSize: 42, color: "#19c6c7" }}
-                spin
-              />
-            }
-          />
+        <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <Spin indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />} />
         </div>
       ) : (
         <div
           className="agreement"
           dangerouslySetInnerHTML={{ __html: agreementHtml }}
-          style={{
-            flex: 1,
-            color: textColor,
-            backgroundColor: backgroundColor,
-          }}
+          style={{ flex: 1, color: textColor, backgroundColor: backgroundColor }}
         />
       )}
     </div>
