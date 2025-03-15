@@ -109,8 +109,8 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
-        <a
-          href="/"
+        <Link
+          to="/"
           rel="noopener noreferrer"
           style={{ display: "flex", alignItems: "center" }}
         >
@@ -125,7 +125,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             }}
           />
           <span style={{ color: "white" }}>Template Playground</span>
-        </a>
+        </Link>
       </div>
       {screens.md && (
         <>
