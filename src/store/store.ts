@@ -10,10 +10,28 @@ import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 
+const STORAGE_KEY = 'template-playground-state';
+
+interface StorageState {
+  editorValue: string;
+  sampleName: string;
+  lastSavedAt: string;
+}
+
+const persistState = (state: StorageState) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+};
+
+const loadPersistedState = (): StorageState | null => {
+  const savedState = localStorage.getItem(STORAGE_KEY);
+  return savedState ? JSON.parse(savedState) : null;
+};
+
 interface AppState {
   templateMarkdown: string;
   editorValue: string;
   modelCto: string;
+  lastSavedAt?: string;
   editorModelCto: string;
   data: string;
   editorAgreementData: string;
@@ -25,6 +43,7 @@ interface AppState {
   textColor: string;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
+  resetEditor: () => void;
   setModelCto: (model: string) => Promise<void>;
   setEditorModelCto: (value: string) => void;
   setData: (data: string) => Promise<void>;
@@ -99,12 +118,23 @@ const useAppStore = create<AppState>()(
         if (compressedData) {
           await get().loadFromLink(compressedData);
         } else {
+          const savedState = loadPersistedState();
+          if (savedState) {
+            const { editorValue, sampleName, lastSavedAt } = savedState;
+            set(() => ({
+              editorValue,
+              sampleName,
+              lastSavedAt,
+              templateMarkdown: editorValue
+            }));
+          }
           await get().rebuild();
         }
       },
       loadSample: async (name: string) => {
         const sample = SAMPLES.find((s) => s.NAME === name);
         if (sample) {
+          const lastSavedAt = new Date().toISOString();
           set(() => ({
             sampleName: sample.NAME,
             agreementHtml: undefined,
@@ -115,7 +145,9 @@ const useAppStore = create<AppState>()(
             editorModelCto: sample.MODEL,
             data: JSON.stringify(sample.DATA, null, 2),
             editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+            lastSavedAt
           }));
+          persistState({ editorValue: sample.TEMPLATE, sampleName: sample.NAME, lastSavedAt });
           await get().rebuild();
         }
       },
@@ -141,8 +173,34 @@ const useAppStore = create<AppState>()(
           set(() => ({ error: formatError(error) }));
         }
       },
-      setEditorValue: (value: string) => {
-        set(() => ({ editorValue: value }));
+      setEditorValue: async (value: string) => {
+        set((state) => {
+          state.editorValue = value;
+          state.templateMarkdown = value;
+          state.lastSavedAt = new Date().toISOString();
+          persistState({ editorValue: value, sampleName: state.sampleName, lastSavedAt: state.lastSavedAt });
+          return state;
+        });
+        await get().rebuild();
+      },
+      resetEditor: async () => {
+        localStorage.removeItem(STORAGE_KEY);
+        const currentState = get();
+        const currentSample = SAMPLES.find((s) => s.NAME === currentState.sampleName);
+        if (currentSample) {
+          set(() => ({
+            templateMarkdown: currentSample.TEMPLATE,
+            editorValue: currentSample.TEMPLATE,
+            modelCto: currentSample.MODEL,
+            editorModelCto: currentSample.MODEL,
+            data: JSON.stringify(currentSample.DATA, null, 2),
+            editorAgreementData: JSON.stringify(currentSample.DATA, null, 2),
+            lastSavedAt: new Date().toISOString(),
+            error: undefined,
+            agreementHtml: ""
+          }));
+          await get().rebuild();
+        }
       },
       setModelCto: async (model: string) => {
         const { templateMarkdown, data } = get();
