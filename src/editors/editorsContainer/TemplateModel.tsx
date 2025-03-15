@@ -8,8 +8,11 @@ import { FaUndo, FaRedo } from "react-icons/fa";
 function TemplateModel() {
   const textColor = useAppStore((state) => state.textColor);
   const setModelCto = useAppStore((state) => state.setModelCto);
-  const { value, set, undo, redo } = useUndoRedo(useAppStore((state) => state.editorModelCto));
-
+  const { value, set, undo, redo } = useUndoRedo(
+    useAppStore((state) => state.editorModelCto),
+    setModelCto // Ensures errors and preview update when undo/redo happens
+  );
+  
   const debouncedSetModelCto = useCallback(
     debounce((value: string) => {
       void setModelCto(value);
