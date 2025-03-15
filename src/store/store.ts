@@ -10,10 +10,47 @@ import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 
+const STORAGE_KEY = 'template-playground-state';
+
+interface StorageState {
+  editorValue: string;
+  sampleName: string;
+  lastSavedAt: string;
+  templateMarkdown: string;
+  modelCto: string;
+  data: string;
+  agreementHtml: string;
+}
+
+const persistState = (state: StorageState) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    editorValue: state.editorValue,
+    sampleName: state.sampleName,
+    lastSavedAt: state.lastSavedAt,
+    templateMarkdown: state.templateMarkdown,
+    modelCto: state.modelCto,
+    data: state.data,
+    agreementHtml: state.agreementHtml
+  }));
+};
+
+const loadPersistedState = (): StorageState | null => {
+  const savedState = localStorage.getItem(STORAGE_KEY);
+  return savedState ? JSON.parse(savedState) : null;
+};
+
+interface HistoryState {
+  states: StorageState[];
+  currentIndex: number;
+}
+
 interface AppState {
+  pushState: (state: StorageState) => void;
+  history: HistoryState;
   templateMarkdown: string;
   editorValue: string;
   modelCto: string;
+  lastSavedAt: string;
   editorModelCto: string;
   data: string;
   editorAgreementData: string;
@@ -25,6 +62,7 @@ interface AppState {
   textColor: string;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
+  resetEditor: () => void;
   setModelCto: (model: string) => Promise<void>;
   setEditorModelCto: (value: string) => void;
   setData: (data: string) => Promise<void>;
@@ -69,12 +107,19 @@ async function rebuild(template: string, model: string, dataString: string) {
   );
 }
 
+const MAX_HISTORY = 50;
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => ({
+  history: {
+    states: [],
+    currentIndex: -1
+  },
       backgroundColor: '#ffffff',
       textColor: '#121212',
       sampleName: playground.NAME,
+      lastSavedAt: new Date().toISOString(),
       templateMarkdown: playground.TEMPLATE,
       editorValue: playground.TEMPLATE,
       modelCto: playground.MODEL,
@@ -90,23 +135,52 @@ const useAppStore = create<AppState>()(
         if (compressedData) {
           await get().loadFromLink(compressedData);
         } else {
+          const savedState = loadPersistedState();
+          if (savedState) {
+            const { editorValue, sampleName, lastSavedAt = new Date().toISOString(), templateMarkdown, modelCto, data, agreementHtml } = savedState;
+            get().pushState(get());
+set(() => ({
+              editorValue,
+              sampleName,
+              lastSavedAt,
+              templateMarkdown,
+              modelCto,
+              editorModelCto: modelCto,
+              data,
+              editorAgreementData: data,
+              agreementHtml
+            }));
+          }
           await get().rebuild();
         }
       },
       loadSample: async (name: string) => {
         const sample = SAMPLES.find((s) => s.NAME === name);
         if (sample) {
-          set(() => ({
+          const lastSavedAt = new Date().toISOString();
+          const data = JSON.stringify(sample.DATA, null, 2);
+          get().pushState(get());
+set(() => ({
             sampleName: sample.NAME,
-            agreementHtml: undefined,
+            agreementHtml: '',
             error: undefined,
             templateMarkdown: sample.TEMPLATE,
             editorValue: sample.TEMPLATE,
             modelCto: sample.MODEL,
             editorModelCto: sample.MODEL,
-            data: JSON.stringify(sample.DATA, null, 2),
-            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+            data,
+            editorAgreementData: data,
+            lastSavedAt
           }));
+          persistState({
+            editorValue: sample.TEMPLATE,
+            sampleName: sample.NAME,
+            lastSavedAt,
+            templateMarkdown: sample.TEMPLATE,
+            modelCto: sample.MODEL,
+            data,
+            agreementHtml: ''
+          });
           await get().rebuild();
         }
       },
@@ -114,52 +188,186 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          const lastSavedAt = new Date().toISOString();
+          get().pushState(get());
+set(() => ({
+            agreementHtml: result,
+            error: undefined,
+            lastSavedAt
+          }));
+          persistState({
+            editorValue: templateMarkdown,
+            sampleName: get().sampleName,
+            lastSavedAt,
+            templateMarkdown,
+            modelCto,
+            data,
+            agreementHtml: result
+          });
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          const lastSavedAt = new Date().toISOString();
+          get().pushState(get());
+set(() => ({
+            error: formatError(error),
+            lastSavedAt
+          }));
+          persistState({
+            editorValue: templateMarkdown,
+            sampleName: get().sampleName,
+            lastSavedAt,
+            templateMarkdown,
+            modelCto,
+            data,
+            agreementHtml: get().agreementHtml
+          });
         }
       },
       setTemplateMarkdown: async (template: string) => {
-        set(() => ({ templateMarkdown: template }));
+        const lastSavedAt = new Date().toISOString();
+        get().pushState(get());
+set(() => ({
+          editorValue: template,
+          templateMarkdown: template,
+          lastSavedAt
+        }));
+        persistState({
+          editorValue: template,
+          sampleName: get().sampleName,
+          lastSavedAt,
+          templateMarkdown: template,
+          modelCto: get().modelCto,
+          data: get().data,
+          agreementHtml: get().agreementHtml
+        });
+        await get().rebuild();
+      },
+      pushState: (state: StorageState) => {
+  const { history } = get();
+  const newStates = history.states.slice(0, history.currentIndex + 1);
+  newStates.push(state);
+  set({ history: { states: newStates.slice(-MAX_HISTORY), currentIndex: newStates.length - 1 } });
+},
+undo: () => {
+  const { history } = get();
+  if (history.currentIndex > 0) {
+    const prevState = history.states[history.currentIndex - 1];
+    set({
+      ...prevState,
+      history: { states: history.states, currentIndex: history.currentIndex - 1 }
+    });
+  }
+},
+redo: () => {
+  const { history } = get();
+  if (history.currentIndex < history.states.length - 1) {
+    const nextState = history.states[history.currentIndex + 1];
+    set({
+      ...nextState,
+      history: { states: history.states, currentIndex: history.currentIndex + 1 }
+    });
+  }
+},
+setEditorValue: async (value: string) => {
         const { modelCto, data } = get();
         try {
-          const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          get().pushState(get());
+set(() => ({
+            editorValue: value,
+            templateMarkdown: value,
+            lastSavedAt: new Date().toISOString()
+          }));
+          const result = await rebuildDeBounce(value, modelCto, data);
+          get().pushState(get());
+set(() => ({
+            agreementHtml: result,
+            error: undefined
+          }));
+          persistState(get());
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          get().pushState(get());
+set(() => ({
+            error: formatError(error)
+          }));
+          persistState(get());
         }
       },
-      setEditorValue: (value: string) => {
-        set(() => ({ editorValue: value }));
+      resetEditor: async () => {
+        localStorage.removeItem(STORAGE_KEY);
+        const currentState = get();
+        const currentSample = SAMPLES.find((s) => s.NAME === currentState.sampleName);
+        if (currentSample) {
+          get().pushState(get());
+set(() => ({
+            templateMarkdown: currentSample.TEMPLATE,
+            editorValue: currentSample.TEMPLATE,
+            modelCto: currentSample.MODEL,
+            editorModelCto: currentSample.MODEL,
+            data: JSON.stringify(currentSample.DATA, null, 2),
+            editorAgreementData: JSON.stringify(currentSample.DATA, null, 2),
+            lastSavedAt: new Date().toISOString(),
+            error: undefined,
+            agreementHtml: "",
+            forceRefresh: Date.now()
+          }));
+          await get().rebuild();
+        }
       },
       setModelCto: async (model: string) => {
         set(() => ({ modelCto: model }));
         const { templateMarkdown, data } = get();
         try {
+          get().pushState(get());
+set(() => ({
+            modelCto: model,
+            lastSavedAt: new Date().toISOString()
+          }));
           const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          get().pushState(get());
+set(() => ({
+            agreementHtml: result,
+            error: undefined
+          }));
+          persistState(get());
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          get().pushState(get());
+set(() => ({ error: formatError(error) }));
+          persistState(get());
         }
       },
       setEditorModelCto: (value: string) => {
-        set(() => ({ editorModelCto: value }));
+        get().pushState(get());
+set(() => ({ editorModelCto: value }));
       },
       setData: async (data: string) => {
         set(() => ({ data }));
         try {
+          get().pushState(get());
+set(() => ({
+            data,
+            lastSavedAt: new Date().toISOString()
+          }));
           const result = await rebuildDeBounce(
             get().templateMarkdown,
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          get().pushState(get());
+set(() => ({
+            agreementHtml: result,
+            error: undefined
+          }));
+          persistState(get());
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          get().pushState(get());
+set(() => ({
+            error: formatError(error)
+          }));
+          persistState(get());
         }
       },
       setEditorAgreementData: (value: string) => {
-        set(() => ({ editorAgreementData: value }));
+        get().pushState(get());
+set(() => ({ editorAgreementData: value }));
       },
       generateShareableLink: () => {
         const state = get();
@@ -173,11 +381,10 @@ const useAppStore = create<AppState>()(
       },
       loadFromLink: async (compressedData: string) => {
         try {
-          const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
-          if (!templateMarkdown || !modelCto || !data) {
-            throw new Error("Invalid share link data");
-          }
-          set(() => ({
+          const { templateMarkdown, modelCto, data, agreementHtml } =
+            decompress(compressedData);
+          get().pushState(get());
+set(() => ({
             templateMarkdown,
             editorValue: templateMarkdown,
             modelCto,
@@ -189,8 +396,9 @@ const useAppStore = create<AppState>()(
           }));
           await get().rebuild();
         } catch (error) {
-          set(() => ({
-            error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),
+          get().pushState(get());
+set(() => ({
+            error: "Failed to load data from the link",
           }));
         }
       },
