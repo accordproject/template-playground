@@ -8,7 +8,10 @@ import { FaUndo, FaRedo } from "react-icons/fa";
 function AgreementData() {
   const textColor = useAppStore((state) => state.textColor);
   const setData = useAppStore((state) => state.setData);
-  const { value, set, undo, redo } = useUndoRedo(useAppStore((state) => state.editorAgreementData));
+  const { value, setValue, undo, redo } = useUndoRedo(
+    useAppStore((state) => state.editorAgreementData),
+    setData // Pass setData to update the preview when undo/redo happens
+  );
 
   const debouncedSetData = useCallback(
     debounce((value: string) => {
@@ -19,7 +22,7 @@ function AgreementData() {
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
-      set(value);
+      setValue(value);
       debouncedSetData(value);
     }
   };

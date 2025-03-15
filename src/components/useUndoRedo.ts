@@ -1,16 +1,14 @@
-import { useState } from "react";
-
-
-function useUndoRedo<T>(initialValue: T) {
+import { useState } from 'react';
+function useUndoRedo<T>(initialValue: T, onChange?: (value: T) => void) {
   const [past, setPast] = useState<T[]>([]);
   const [present, setPresent] = useState<T>(initialValue);
   const [future, setFuture] = useState<T[]>([]);
 
-  // Function to update the present state and track past states
-  const set = (newValue: T) => {
+  const setValue = (newValue: T) => {
     setPast((prevPast) => [...prevPast, present]);
     setPresent(newValue);
-    setFuture([]); // Clear future when new change is made
+    setFuture([]);
+    if (onChange) onChange(newValue); // Ensure preview updates
   };
 
   const undo = () => {
@@ -19,6 +17,7 @@ function useUndoRedo<T>(initialValue: T) {
     setPast((prevPast) => prevPast.slice(0, -1));
     setFuture((prevFuture) => [present, ...prevFuture]);
     setPresent(previous);
+    if (onChange) onChange(previous);
   };
 
   const redo = () => {
@@ -27,9 +26,10 @@ function useUndoRedo<T>(initialValue: T) {
     setFuture((prevFuture) => prevFuture.slice(1));
     setPast((prevPast) => [...prevPast, present]);
     setPresent(next);
+    if (onChange) onChange(next);
   };
 
-  return { value: present, set, undo, redo };
+  return { value: present, setValue, undo, redo };
 }
 
-export default useUndoRedo;
+export default useUndoRedo;

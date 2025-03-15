@@ -9,8 +9,11 @@ function TemplateMarkdown() {
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-  const { value, set, undo, redo } = useUndoRedo(useAppStore((state) => state.editorValue));
-
+  const { value, setValue, undo, redo } = useUndoRedo(
+    useAppStore((state) => state.editorValue),
+    setTemplateMarkdown // Ensures preview updates when undo/redo happens
+  );
+  
   const debouncedSetTemplateMarkdown = useCallback(
     debounce((value: string) => {
       void setTemplateMarkdown(value);
@@ -20,7 +23,7 @@ function TemplateMarkdown() {
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
-      set(value);
+      setValue(value);
       debouncedSetTemplateMarkdown(value);
     }
   };
