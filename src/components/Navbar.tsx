@@ -76,15 +76,13 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
     </Menu>
   );
 
-  const menuItemStyle = (key: string, isLast: boolean) => ({
+  const menuItemStyle = (key: string) => ({
     display: "flex",
     alignItems: "center",
     padding: screens.md ? "0 20px" : "0",
     backgroundColor:
       hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
     height: "65px",
-    borderRight:
-      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
   });
 
   const isLearnPage = location.pathname.startsWith("/learn");
@@ -104,7 +102,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
       <div
         style={{
           cursor: "pointer",
-          ...menuItemStyle("home", false),
+          ...menuItemStyle("home"),
         }}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
@@ -131,9 +129,10 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
         <>
           <div
             style={{
-              ...menuItemStyle("explore", false),
+              ...menuItemStyle("explore"),
               cursor: "pointer",
             }}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             onClick={scrollToFooter}
             onMouseEnter={() => setHovered("explore")}
             onMouseLeave={() => setHovered(null)}
@@ -142,13 +141,13 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
           </div>
           <div
             style={{
-              ...menuItemStyle("help", false),
+              ...menuItemStyle("help"),
               cursor: "pointer",
             }}
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={helpMenu} trigger={["click"]}>
+            <Dropdown overlay={helpMenu} trigger={["hover"]}>
               <Button
                 style={{
                   background: "transparent",
