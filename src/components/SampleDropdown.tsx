@@ -1,6 +1,6 @@
 import { Button, Dropdown, Space, message, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
@@ -10,16 +10,21 @@ function SampleDropdown({
 }: {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
-  const { samples, loadSample } = useStoreWithEqualityFn(
+  const { samples, loadSample, sampleName } = useStoreWithEqualityFn(
     useAppStore,
     (state) => ({
       samples: state.samples,
       loadSample: state.loadSample as (key: string) => Promise<void>,
+      sampleName: state.sampleName,
     }),
     shallow
   );
 
-  const [selectedSample, setSelectedSample] = useState<string | null>(null);
+  const [selectedSample, setSelectedSample] = useState<string | null>(sampleName);
+
+  useEffect(() => {
+    setSelectedSample(sampleName);
+  }, [sampleName]);
 
   const items: MenuProps["items"] = useMemo(
     () =>
