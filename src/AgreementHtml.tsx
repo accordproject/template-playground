@@ -37,7 +37,8 @@ function AgreementHtml({ loading, isModal }: { loading: any; isModal?: boolean }
         {!isModal && <FullScreenModal />}
       </div>
       <p style={{ textAlign: "center", color: textColor }}>
-        The result of merging the JSON data with the template.
+        The result of merging the JSON data with the template. This is
+        AgreementMark converted to HTML.
       </p>
       {loading ? (
         <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
