@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Row, Col, Collapse } from "antd";
+import { App as AntdApp, Layout, Row, Col, Collapse, Space } from "antd";
 import { Routes, Route, useSearchParams } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -15,9 +15,9 @@ import SampleDropdown from "./components/SampleDropdown";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
 import FloatingFAB from "./components/FabButton";
+import ExportDropdown from "./components/ExportDropdown";
 
 const { Content } = Layout;
-
 
 const App = () => {
   const init = useAppStore((state) => state.init);
@@ -34,7 +34,6 @@ const App = () => {
       exploreContent.scrollIntoView({ behavior: "smooth" });
     }
   };
-
 
   const onChange = (key: string | string[]) => {
     setActivePanel(key);
@@ -80,8 +79,6 @@ const App = () => {
     }
   }, [searchParams]);
 
-  
-
   const panels = [
     {
       key: "templateMark",
@@ -117,22 +114,20 @@ const App = () => {
                     background: backgroundColor,
                   }}
                 >
-                  <Row>
-                    <Col xs={24} sm={8}>
-                      <Row
-                        style={{
-                          marginLeft: "25px",
-                          display: "flex",
-                          flexDirection: "row",
-                          gap: "10px",
-                        }}
-                      >
+                  <Row
+                    gutter={[16, 16]}
+                    justify="space-between"
+                    align="middle"
+                    style={{ padding: "0 25px" }}
+                  >
+                    <Col>
+                      <Space size="middle">
                         <SampleDropdown setLoading={setLoading} />
                         <UseShare />
-                      </Row>
+                      </Space>
                     </Col>
-                    <Col span={18}>
-                      <Errors />
+                    <Col>
+                      <ExportDropdown />
                     </Col>
                   </Row>
                   <div
@@ -151,12 +146,6 @@ const App = () => {
                         />
                       </Col>
                       <Col xs={24} sm={8}>
-                        <div
-                          style={{
-                            marginBottom: "10px",
-                          }}
-                        >
-                        </div>
                         <AgreementHtml loading={loading} isModal={false} />
                       </Col>
                     </Row>
@@ -186,7 +175,6 @@ const App = () => {
           </Routes>
         </Content>
         <Footer />
-        
       </Layout>
     </AntdApp>
   );
