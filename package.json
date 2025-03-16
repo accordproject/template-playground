@@ -27,8 +27,11 @@
     "antd": "^5.7.2",
     "core-js": "^3.37.1",
     "highlight.js": "^11.10.0",
+    "html-to-docx": "^1.8.0",
+    "html2pdf.js": "^0.10.3",
     "immer": "^10.1.1",
     "jest-canvas-mock": "^2.5.2",
+    "lucide-react": "^0.482.0",
     "lz-string": "^1.5.0",
     "monaco-editor": "^0.50.0",
     "node-stdlib-browser": "^1.2.0",
@@ -50,6 +53,7 @@
     "shepherd.js": "^13.0.3",
     "styled-components": "^6.1.12",
     "ts-debounce": "^4.0.0",
+    "turndown": "^7.2.0",
     "zustand": "^4.3.9"
   },
   "devDependencies": {
