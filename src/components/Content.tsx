@@ -44,7 +44,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
       }
     };
 
-    loadContent();
+    void loadContent();
   }, [file]);
 
   const currentIndex = steps.findIndex((step) =>
