@@ -134,6 +134,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
               ...menuItemStyle("explore", false),
               cursor: "pointer",
             }}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             onClick={scrollToFooter}
             onMouseEnter={() => setHovered("explore")}
             onMouseLeave={() => setHovered(null)}
