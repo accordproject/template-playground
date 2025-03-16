@@ -76,7 +76,7 @@ const CustomFooter: React.FC = () => {
             </Button>
           )}
 
-          {(screens.md || expanded) && (
+          {(screens.md || expanded) && FOOTER_SECTION?.sections?.length > 0 ? (
             <Row justify="end" gutter={[16, 16]}>
               {FOOTER_SECTION.sections.map((section) => (
                 <Col xs={24} sm={12} md={6} key={section.title}>
@@ -104,6 +104,8 @@ const CustomFooter: React.FC = () => {
                 </Col>
               ))}
             </Row>
+          ) : (
+            <Text style={{ color: "white" }}>No links available.</Text>
           )}
         </Col>
       </Row>
