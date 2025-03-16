@@ -17,6 +17,7 @@ import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 
+
 // markdown syntax highlighting theme
 import "highlight.js/styles/github.css";
 
@@ -44,7 +45,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
       }
     };
 
-    loadContent();
+    void loadContent();
   }, [file]);
 
   const currentIndex = steps.findIndex((step) =>
