@@ -19,6 +19,7 @@ export default function ExportDropdown({
   const [pageSize, setPageSize] = useState<string>("a4");
   const [orientation, setOrientation] = useState<string>("portrait");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [exportError, setExportError] = useState<string | null>(null)
 
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -57,6 +58,18 @@ export default function ExportDropdown({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    if (exportError) {
+      timeoutId = setTimeout(() => {
+        setExportError(null)
+      }, 5000)
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [exportError]);
 
   const convertToFormat = async (
     format: string,
@@ -97,6 +110,7 @@ export default function ExportDropdown({
               .outputPdf("blob");
 
         } catch (error) {
+          setExportError("PDF export failed. Please try again.");
           return null;
         }
       }
@@ -109,18 +123,25 @@ export default function ExportDropdown({
 
           return docxBlob;
         } catch (error) {
+          setExportError("DOCX export failed. Please try again.");
           return null;
         }
       }
 
       case "md": {
-        var turndownService = new TurndownService();
-        var markdown = turndownService.turndown(content);
-        const blob = new Blob([markdown], { type: getMimeType(format) });
-        return blob;
+        try {
+          const turndownService = new TurndownService();
+          const markdown = turndownService.turndown(content);
+          const blob = new Blob([markdown], { type: getMimeType(format) });
+          return blob;
+        } catch (error) {
+          setExportError("Markdown export failed. Please try again.");
+          return null;
+        }
       }
 
       default:
+        setExportError("Unknown format. Export failed.");
         return null;
     }
   };
@@ -318,6 +339,25 @@ export default function ExportDropdown({
                 </select>
               </div>
             </>
+          )}
+
+          {exportError && (
+            <div
+              style={{
+                padding: "10px",
+                marginBottom: "12px",
+                backgroundColor: "#FEE2E2",
+                color: "#B91C1C",
+                borderRadius: "6px",
+                fontSize: "14px",
+                fontWeight: 500,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              {exportError}
+            </div>
           )}
 
           <button
