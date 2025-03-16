@@ -27,7 +27,7 @@ const App = () => {
   const [activePanel, setActivePanel] = useState<string | string[]>();
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-  const [isTourRunning, setIsTourRunning] = useState(false);
+  const [, setIsTourRunning] = useState(false);
 
   const scrollToFooter = () => {
     const exploreContent = document.getElementById("footer");

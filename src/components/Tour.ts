@@ -1,4 +1,4 @@
-import Shepherd from "shepherd.js";
+import Shepherd, { Tour } from "shepherd.js"; 
 import "shepherd.js/dist/css/shepherd.css";
 
 const style = document.createElement("style");
@@ -7,13 +7,13 @@ style.textContent = `
     background-color: #050c40 !important; 
     color: white !important;
   }
-  .shepherd-button.skip-tour{
-    background-color: #ff4d4f !important
+  .shepherd-button.skip-tour {
+    background-color: #ff4d4f !important; /* Red color for Skip button */
   }
 `;
 document.head.appendChild(style);
 
-const tour = new Shepherd.Tour({
+const tour: Tour = new Shepherd.Tour({ 
   defaultStepOptions: {
     classes: "shepherd-theme-arrows",
     scrollTo: true,
@@ -31,7 +31,6 @@ const tour = new Shepherd.Tour({
 tour.addStep({
   id: "intro",
   text: "Welcome to the Template Playground! This brief tour will help you get acquainted with the key features of the platform.",
-  
   buttons: [
     {
       text: "Skip Tour",
@@ -40,7 +39,7 @@ tour.addStep({
     },
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -60,7 +59,7 @@ tour.addStep({
     },
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -80,7 +79,7 @@ tour.addStep({
     },
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -100,7 +99,7 @@ tour.addStep({
     },
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -120,7 +119,7 @@ tour.addStep({
     },
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -134,8 +133,13 @@ tour.addStep({
   },
   buttons: [
     {
+      text: "Skip Tour",
+      classes: "skip-tour",
+      action: () => tour.cancel(),
+    },
+    {
       text: "Finish Tour",
-      action: tour.cancel,
+      action: () => tour.cancel(),
     },
   ],
 });
