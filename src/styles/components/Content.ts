@@ -5,7 +5,7 @@ export const ContentContainer = styled.div`
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  background: #ffffff;
+  background-color: var(--bg-color) !important;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
@@ -18,12 +18,13 @@ export const ContentContainer = styled.div`
   h6 {
     margin-top: 1em;
     margin-bottom: 0.5em;
-    color: #333;
+    color: var(--text-color) !important;
   }
 
   p {
     line-height: 1.6;
     margin-bottom: 1em;
+    color: var(--text-color) !important;
   }
 
   a {
@@ -41,6 +42,7 @@ export const ContentContainer = styled.div`
 
     li {
       margin-bottom: 0.5em;
+      color: var(--text-color) !important;
     }
   }
 
