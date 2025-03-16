@@ -27,6 +27,7 @@ const App = () => {
   const [activePanel, setActivePanel] = useState<string | string[]>();
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
+  const [isTourRunning, setIsTourRunning] = useState(false);
 
   const scrollToFooter = () => {
     const exploreContent = document.getElementById("footer");
@@ -71,12 +72,24 @@ const App = () => {
     };
   }, [init, loadFromLink, searchParams, textColor, backgroundColor]);
 
+  const handleTourComplete = () => setIsTourRunning(false);
+  const handleTourCancel = () => setIsTourRunning(false);
+
   useEffect(() => {
     const showTour = searchParams.get("showTour") === "true";
 
     if (showTour || !localStorage.getItem("hasVisited")) {
+      setIsTourRunning(true);
       tour.start();
       localStorage.setItem("hasVisited", "true");
+
+      tour.on("complete", () => setIsTourRunning(false));
+      tour.on("cancel", ()=> setIsTourRunning(false));
+    }
+
+    return() => {
+      tour.off("complete", handleTourComplete);
+      tour.off("cancel", handleTourCancel);
     }
   }, [searchParams]);
 
