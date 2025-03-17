@@ -1,3 +1,4 @@
+import { FaMagic } from "react-icons/fa";
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
 import { useCallback } from "react";
@@ -20,20 +21,33 @@ function AgreementData() {
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
-      setEditorAgreementData(value); // Immediate state update
-      debouncedSetData(value); // Debounced state update
+      setEditorAgreementData(value);
+      debouncedSetData(value);
+    }
+  };
+
+  const handleFormat = () => {
+    try {
+      const formatted = JSON.stringify(JSON.parse(editorAgreementData), null, 2);
+      setEditorAgreementData(formatted);
+    } catch (error) {
+      alert("Invalid JSON format!");
     }
   };
 
   return (
     <div className="column">
-      <div className="tooltip">
+      <div className="tooltip" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h3 style={{ color: textColor }}>Data</h3>
-        <span style={{ color: textColor }} className="tooltiptext">
-          JSON data (an instance of the Concerto model) used to preview output
-          from the template.
-        </span>
+        <FaMagic
+          style={{ cursor: "pointer", color: textColor }}
+          onClick={handleFormat}
+          title="Format JSON"
+        />
       </div>
+      <span style={{ color: textColor }} className="tooltiptext">
+        JSON data (an instance of the Concerto model) used to preview output from the template.
+      </span>
       <JSONEditor value={editorAgreementData} onChange={handleChange} />
     </div>
   );
