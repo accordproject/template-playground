@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowDownOutlined, LineHeightOutlined } from "@ant-design/icons";
+import { ArrowDownOutlined } from "@ant-design/icons";
 
 const FloatingFAB = () => {
   const [isVisible, setIsVisible] = useState(false);

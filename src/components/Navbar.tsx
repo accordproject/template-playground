@@ -16,7 +16,7 @@ import tour from "../components/Tour";
 
 const { useBreakpoint } = Grid;
 
-function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
+function Navbar({  }: { scrollToFooter: any }) {
   const [hovered, setHovered] = useState<
     null | "home" | "help" | "github" | "join"
   >(null);
