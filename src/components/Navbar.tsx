@@ -109,8 +109,8 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
-        <a
-          href="/"
+        <Link
+          to="/"
           rel="noopener noreferrer"
           style={{ display: "flex", alignItems: "center" }}
         >
@@ -124,8 +124,8 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
               maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
-          <span style={{ color: "white" }}>Template Playground</span>
-        </a>
+            <span style={{ color: "white", whiteSpace: "nowrap" }}>Template Playground</span>
+        </Link>
       </div>
       {screens.md && (
         <>
