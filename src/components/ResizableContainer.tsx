@@ -55,6 +55,17 @@ const ResizableContainer: React.FC<ResizableContainerProps> = ({
     };
   }, [minLeftWidth, minRightWidth]);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 320);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 320);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -63,27 +74,43 @@ const ResizableContainer: React.FC<ResizableContainerProps> = ({
         width: '100%',
         position: 'relative',
         backgroundColor,
+        flexDirection: isMobile ? 'column' : 'row',
+        height: '100%',
+        overflow: isMobile ? 'auto' : 'hidden'
       }}
     >
-      <div style={{ width: `${leftWidth}%`, overflow: 'hidden' }}>{leftPane}</div>
-      <div
-        style={{
-          width: '8px',
-          cursor: 'col-resize',
-          background: isHovered || isDragging.current ? '#999' : '#ccc',
-          position: 'relative',
-          zIndex: 10,
-          userSelect: 'none',
-          transition: 'background-color 0.2s'
-        }}
-        onMouseDown={() => {
-          isDragging.current = true;
-          document.body.style.cursor = 'col-resize';
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      />
-      <div style={{ width: `${100 - leftWidth}%`, overflow: 'hidden' }}>
+      <div style={{ 
+        width: isMobile ? '100%' : `${leftWidth}%`,
+        height: isMobile ? 'auto' : '100%',
+        overflow: 'hidden' 
+      }}>
+        {leftPane}
+      </div>
+      {!isMobile && (
+        <div
+          style={{
+            width: '8px',
+            cursor: 'col-resize',
+            background: isHovered || isDragging.current ? '#999' : '#ccc',
+            position: 'relative',
+            zIndex: 10,
+            userSelect: 'none',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseDown={() => {
+            isDragging.current = true;
+            document.body.style.cursor = 'col-resize';
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        />
+      )}
+      <div style={{ 
+        width: isMobile ? '100%' : `${100 - leftWidth}%`,
+        height: isMobile ? 'auto' : '100%',
+        overflow: 'hidden',
+        marginTop: isMobile ? '4px' : '0'
+      }}>
         {rightPane}
       </div>
     </div>
