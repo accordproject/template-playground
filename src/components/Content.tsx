@@ -7,11 +7,15 @@ import {
   ContentContainer,
   NavigationButtons,
   NavigationButton,
+  CodeBlockContainer,
+  CopyButton,
 } from "../styles/components/Content";
 import {
   LoadingOutlined,
   LeftOutlined,
   RightOutlined,
+  CopyOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
@@ -28,14 +32,15 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const loadContent = async () => {
       try {
         setLoading(true);
-        const content = await fetchContent(file);
-        setContent(content);
+        const fetchedContent = await fetchContent(file);
+        setContent(fetchedContent);
         setError(null);
       } catch (err: any) {
         setError("Failed to load content");
@@ -61,6 +66,12 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     if (currentIndex < steps.length - 1) {
       navigate(steps[currentIndex + 1].link);
     }
+  };
+
+  const copyToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(code);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   if (loading) {
@@ -92,11 +103,20 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
         <ReactMarkdown
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
           components={{
-            img: ({ node, ...props }) => (
-              <div className="image-container">
-                <img {...props} alt={props.alt || ""} />
-              </div>
-            ),
+            pre: ({ children }) => {
+              const codeElement = React.Children.toArray(children)[0] as React.ReactElement;
+              if (!codeElement || typeof codeElement !== "object") return <pre>{children}</pre>;
+
+              const codeText = codeElement.props.children || "";
+              return (
+                <CodeBlockContainer>
+                  <pre>{children}</pre>
+                  <CopyButton onClick={() => copyToClipboard(codeText)}>
+                    {copied === codeText ? <CheckOutlined /> : <CopyOutlined />}
+                  </CopyButton>
+                </CodeBlockContainer>
+              );
+            },
           }}
         >
           {content}
