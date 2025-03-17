@@ -115,6 +115,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
       >
         <Link
           to="/"
+          rel="noopener noreferrer"
           style={{ display: "flex", alignItems: "center" }}
         >
           <Image
