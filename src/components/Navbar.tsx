@@ -1,16 +1,16 @@
+import { useState } from "react";
+import { Dropdown, Button, Image, Grid, MenuProps } from "antd";
+import { useSpring, animated } from "react-spring";
+import { useLocation, Link } from "react-router-dom";
 import {
-  BookOutlined,
-  CaretDownFilled,
   GithubOutlined,
-  InfoOutlined,
   QuestionOutlined,
   UserOutlined,
+  InfoOutlined,
+  BookOutlined,
+  CaretDownFilled,
 } from "@ant-design/icons";
-import type { MenuProps } from "antd";
-import { Button, Dropdown, Grid, Image } from "antd";
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { animated, useSpring } from "react-spring";
+
 import ToggleDarkMode from "./ToggleDarkMode";
 
 const { useBreakpoint } = Grid;
@@ -100,7 +100,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
       ],
     },
   ];
-  
+
   const menuItemStyle = (key: string, isLast: boolean) => ({
     display: "flex",
     alignItems: "center",
@@ -134,10 +134,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
-        <Link
-          to="/"
-          style={{ display: "flex", alignItems: "center" }}
-        >
+        <Link to="/" style={{ display: "flex", alignItems: "center" }}>
           <Image
             src={screens.lg ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
