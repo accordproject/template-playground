@@ -15,7 +15,11 @@ import ToggleDarkMode from "./ToggleDarkMode";
 
 const { useBreakpoint } = Grid;
 
-function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
+interface NavbarProps {
+  scrollToFooter: () => void;
+}
+
+function Navbar({ scrollToFooter }: NavbarProps) {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
@@ -96,7 +100,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
       ],
     },
   ];
-
+  
   const menuItemStyle = (key: string, isLast: boolean) => ({
     display: "flex",
     alignItems: "center",
