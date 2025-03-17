@@ -51,8 +51,6 @@ export default function MarkdownEditor({
     scrollBeyondLastLine: false,
   };
 
-  const options = useMemo(() => editorOptions, []);
-
   const handleChange = useCallback(
     (val: string | undefined) => {
       if (onChange) onChange(val);
@@ -64,7 +62,7 @@ export default function MarkdownEditor({
     <div className="editorwrapper">
       <Suspense fallback={<div>Loading Editor...</div>}>
         <MonacoEditor
-          options={options}
+          options={editorOptions}
           language="markdown"
           height="60vh"
           value={value}
