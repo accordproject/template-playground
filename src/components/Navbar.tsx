@@ -10,7 +10,6 @@ import {
   BookOutlined,
   CaretDownFilled,
 } from "@ant-design/icons";
-
 import ToggleDarkMode from "./ToggleDarkMode";
 
 const { useBreakpoint } = Grid;
@@ -134,7 +133,10 @@ function Navbar({ scrollToFooter }: NavbarProps) {
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
-        <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+        <Link
+          to="/"
+          style={{ display: "flex", alignItems: "center" }}
+        >
           <Image
             src={screens.lg ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
