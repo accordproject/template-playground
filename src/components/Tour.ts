@@ -24,7 +24,7 @@ tour.addStep({
   buttons: [
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -39,7 +39,7 @@ tour.addStep({
   buttons: [
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -54,7 +54,7 @@ tour.addStep({
   buttons: [
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -69,7 +69,7 @@ tour.addStep({
   buttons: [
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -84,7 +84,7 @@ tour.addStep({
   buttons: [
     {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -99,7 +99,7 @@ tour.addStep({
   buttons: [
     {
       text: "Finish Tour",
-      action: tour.cancel,
+      action: () => void tour.cancel(),
     },
   ],
 });
