@@ -13,9 +13,10 @@ import {
 } from "../styles/components/Sidebar";
 import { BulbOutlined } from "@ant-design/icons";
 
-const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
-  steps,
-}) => {
+interface SidebarProps {
+  steps: { title: string; link: string }[];
+}
+const Sidebar: React.FC<SidebarProps> = ({ steps }) => {
   return (
     <SidebarContainer>
       <SidebarTitle>Learning Pathway</SidebarTitle>
@@ -24,7 +25,7 @@ const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
           <SidebarListItem key={index}>
             <SidebarLink
               to={step.link}
-              className={({ isActive }) => (isActive ? "active" : undefined)}
+              className={({ isActive }) => (isActive ? "active" : "")}
             >
               {step.title}
             </SidebarLink>
@@ -38,7 +39,7 @@ const Sidebar: React.FC<{ steps: { title: string; link: string }[] }> = ({
         </HelperIcon>
         <HelperText>
           Welcome to the Learning Pathway! Use the sidebar to follow the guide.
-          Open the{" "}
+          Open the {" "}
           <Link to="/" target="_blank" rel="noopener noreferrer">
             Template Playground
           </Link>{" "}
