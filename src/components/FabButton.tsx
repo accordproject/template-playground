@@ -1,65 +1,54 @@
-import { Fab, Action } from "react-tiny-fab";
-import { MdExplore } from "react-icons/md";
-import { FaCircleQuestion } from "react-icons/fa6";
-import tour from "../components/Tour";
+import { useEffect, useState } from "react";
+import { ArrowDownOutlined, LineHeightOutlined } from "@ant-design/icons";
 
 const FloatingFAB = () => {
-  const startTourEvent = () => {
-    void tour.start();
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Function to scroll smoothly to the footer
+  const scrollToFooter = () => {
+    const footer = document.getElementById("footer"); // Ensure footer has this ID in your HTML
+    if (footer) {
+      footer.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
+  // Show the button only when the user scrolls up
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsVisible(window.scrollY < window.innerHeight * 0.2);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <Fab
-      icon={<FaCircleQuestion />}
-      alwaysShowTitle
-      mainButtonStyles={{
-        backgroundColor: "#1B2540",
-        color: "white",
-        width: "50px",
-        height: "50px",
-        boxShadow: "0px 6px 10px rgba(0, 0, 0, 0.25)",
-        borderRadius: "50%",
-        transition: "all 0.3s ease-in-out",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontSize: "24px",
-      }}
-      style={{
-        position: "fixed",
-        bottom: "20px",
-        right: "20px",
-        zIndex: 1000,
-        marginBottom: "2.813rem",
-        marginRight: "0.625rem"
-      }}
-    >
-      <Action
-        text="Start Tour"
-        onClick={startTourEvent}
+    isVisible && (
+      <button
+        onClick={scrollToFooter}
         style={{
-          backgroundColor: "#444444",
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          width: "40px",
+          height: "40px",
+          backgroundColor: "#1B2540",
           color: "white",
-          width: "45px",
-          height: "45px",
+          border: "none",
+          borderRadius: "50%",
+          boxShadow: "0px 6px 10px rgba(0, 0, 0, 0.25)",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          borderRadius: "50%",
-          fontSize: "22px",
-          transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+          fontSize: "16px",
+          cursor: "pointer",
+          transition: "all 0.3s ease-in-out",
         }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.transform = "scale(1.1)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.transform = "scale(1)")
-        }
+        aria-label="Scroll to footer"
       >
-        <MdExplore />
-      </Action>
-    </Fab>
+        <ArrowDownOutlined  />
+      </button>
+    )
   );
 };
 

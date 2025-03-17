@@ -9,14 +9,16 @@ import {
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
+  PlayCircleOutlined,
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
+import tour from "../components/Tour";
 
 const { useBreakpoint } = Grid;
 
 function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
   const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github" | "join"
+    null | "home" | "help" | "github" | "join"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
@@ -30,6 +32,10 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
     ],
     config: { duration: 1000 },
   });
+
+  const startTour = () => {
+    void tour.start();
+  };
 
   const helpMenu = (
     <Menu>
@@ -72,6 +78,10 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             <BookOutlined /> Documentation
           </a>
         </Menu.Item>
+      
+      <Menu.Item key="startTour" onClick={startTour}>
+        <PlayCircleOutlined /> Start Tour
+      </Menu.Item>
       </Menu.ItemGroup>
     </Menu>
   );
@@ -129,17 +139,6 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
       </div>
       {screens.md && (
         <>
-          <div
-            style={{
-              ...menuItemStyle("explore", false),
-              cursor: "pointer",
-            }}
-            onClick={scrollToFooter}
-            onMouseEnter={() => setHovered("explore")}
-            onMouseLeave={() => setHovered(null)}
-          >
-            <span style={{ color: "white" }}>Explore</span>
-          </div>
           <div
             style={{
               ...menuItemStyle("help", false),
