@@ -7,15 +7,13 @@ import { FaUndo, FaRedo } from "react-icons/fa";
 
 function AgreementData() {
   const textColor = useAppStore((state) => state.textColor);
+  const data = useAppStore((state) => state.data);
   const setData = useAppStore((state) => state.setData);
-  const { value, setValue, undo, redo } = useUndoRedo(
-    useAppStore((state) => state.editorAgreementData),
-    setData // Pass setData to update the preview when undo/redo happens
-  );
+  const { value, setValue, undo, redo } = useUndoRedo(data, setData);
 
   const debouncedSetData = useCallback(
     debounce((value: string) => {
-      void setData(value);
+      setData(value);
     }, 500),
     [setData]
   );
@@ -28,7 +26,7 @@ function AgreementData() {
   };
 
   return (
-    <div className="column" >
+    <div className="column">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ color: textColor }}>Data</h3>
         <div>
@@ -37,11 +35,11 @@ function AgreementData() {
         </div>
       </div>
       <p style={{ color: textColor }}>
-      JSON data (an instance of the Concerto model) used to preview output from the template.
+        JSON data (an instance of the Concerto model) used to preview output from the template.
       </p>
       <JSONEditor value={value} onChange={handleChange} />
     </div>
   );
 }
 
-export default AgreementData;
+export default AgreementData;
