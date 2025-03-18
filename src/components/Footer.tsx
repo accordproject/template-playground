@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Layout, Row, Col, Typography, Space, Button, Image, Grid } from "antd";
 import {
   GithubOutlined,
@@ -9,16 +9,44 @@ import {
   UpOutlined,
 } from "@ant-design/icons";
 import FOOTER_SECTION from "../constants/content/footer.json";
-import { FooterSection, FooterLink } from "../types/components/Footer.types";
 
 const { Footer } = Layout;
 const { Text, Link } = Typography;
 const { useBreakpoint } = Grid;
 
+// Add TypeScript interfaces
+interface FooterLink {
+  title: string;
+  href: string;
+}
+
+interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+// Extract common styles
+const styles = {
+  whiteText: { color: "rgba(255, 255, 255, 0.85)" },
+  fadedWhiteText: { color: "rgba(255, 255, 255, 0.65)" },
+  socialIcon: { fontSize: "17px" },
+  joinButton: {
+    padding: "5px 30px",
+    backgroundColor: "#19c6c7",
+    borderRadius: "5px",
+    color: "#050c40",
+    textAlign: "center" as const,
+    border: "none",
+  },
+};
+
 const CustomFooter: React.FC = () => {
   const year = new Date().getFullYear();
   const screens = useBreakpoint();
   const [expanded, setExpanded] = useState(false);
+
+  // Memoize the sections data
+  const footerSections = useMemo(() => FOOTER_SECTION.sections as FooterSection[], []);
 
   return (
     <Footer
@@ -79,7 +107,7 @@ const CustomFooter: React.FC = () => {
 
           {(screens.md || expanded) && (
             <Row justify="end" gutter={[16, 16]}>
-              {FOOTER_SECTION.sections.map((section: FooterSection) => (
+              {footerSections.map((section) => (
                 <Col xs={24} sm={12} md={6} key={section.title}>
                   <Space direction="vertical" size="middle">
                     <Text
@@ -92,7 +120,7 @@ const CustomFooter: React.FC = () => {
                     >
                       {section.title}
                     </Text>
-                    {section.links.map((link: FooterLink) => (
+                    {section.links.map((link) => (
                       <Link
                         href={link.href}
                         key={link.title}
@@ -112,7 +140,7 @@ const CustomFooter: React.FC = () => {
       <Row justify="space-between" align="middle" style={{ marginTop: "40px" }}>
         <Col>
           <Text style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-            copyright © {year} accord project &bull;{" "}
+            Copyright © {year} accord project &bull;{" "}
             <Link
               strong
               href="https://accordproject.org/privacy"
@@ -135,17 +163,37 @@ const CustomFooter: React.FC = () => {
 
         <Col>
           <Space>
-            <Link href="https://github.com/accordproject" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-              <GithubOutlined style={{ fontSize: "17px" }} />
+            <Link 
+              href="https://github.com/accordproject" 
+              target="_blank" 
+              style={styles.whiteText}
+              aria-label="Visit Accord Project on GitHub"
+            >
+              <GithubOutlined style={styles.socialIcon} />
             </Link>
-            <Link href="https://twitter.com/AccordHQ" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-              <XOutlined style={{ fontSize: "17px" }} />
+            <Link 
+              href="https://twitter.com/AccordHQ" 
+              target="_blank" 
+              style={styles.whiteText}
+              aria-label="Visit Accord Project on X (formerly Twitter)"
+            >
+              <XOutlined style={styles.socialIcon} />
             </Link>
-            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-              <DiscordFilled style={{ fontSize: "17px" }} />
+            <Link 
+              href="https://discord.com/invite/Zm99SKhhtA" 
+              target="_blank" 
+              style={styles.whiteText}
+              aria-label="Join Accord Project on Discord"
+            >
+              <DiscordFilled style={styles.socialIcon} />
             </Link>
-            <Link href="https://www.linkedin.com/company/accordproject/" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-              <LinkedinFilled style={{ fontSize: "17px" }} />
+            <Link 
+              href="https://www.linkedin.com/company/accordproject/" 
+              target="_blank" 
+              style={styles.whiteText}
+              aria-label="Visit Accord Project on LinkedIn"
+            >
+              <LinkedinFilled style={styles.socialIcon} />
             </Link>
           </Space>
         </Col>
