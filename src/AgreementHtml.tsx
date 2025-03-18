@@ -9,7 +9,6 @@ function AgreementHtml({ loading, isModal }: { loading: any; isModal?: boolean }
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
 
-   
   return (
     <div
       className="column preview-component"
