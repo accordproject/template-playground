@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 
 import { useState,useEffect } from 'react';
+=======
+import { useState } from 'react';
+>>>>>>> 268c5e1 (fix(button): share functionality fixing for collaborative editing - I297)
 
 function useUndoRedo<T>(initialValue: T, onChange?: (value: T) => void) {
   const [past, setPast] = useState<T[]>([]);

@@ -22,6 +22,7 @@ const { Content } = Layout;
 const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
+  const loadFromLink = useAppStore((state) => state.loadFromLink);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [activePanel, setActivePanel] = useState<string | string[]>();
@@ -43,10 +44,14 @@ const App = () => {
     const initializeApp = async () => {
       try {
         setLoading(true);
-        await init();
         const compressedData = searchParams.get("data");
-        if (compressedData && window.location.pathname !== "/") {
-          navigate("/", { replace: true });
+        if (compressedData) {
+          await loadFromLink(compressedData);
+          if (window.location.pathname !== "/") {
+            navigate("/", { replace: true });
+          }
+        } else {
+          await init();
         }
       } catch (error) {
         console.error("Initialization error:", error);
@@ -55,7 +60,7 @@ const App = () => {
       }
     };
     initializeApp();
-  }, [init, searchParams, navigate]);
+  }, [init, loadFromLink, searchParams, navigate]);
 
   useEffect(() => {
     const style = document.createElement("style");
