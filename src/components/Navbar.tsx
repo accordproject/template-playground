@@ -152,21 +152,16 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             onMouseLeave={() => setHovered(null)}
           >
             <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button
+            <span
                 style={{
-                  background: "transparent",
-                  border: "none",
                   color: "white",
-                  height: "65px",
-                  display: "flex",
-                  alignItems: "center",
                 }}
               >
                 Help
                 <CaretDownFilled
                   style={{ fontSize: "10px", marginLeft: "5px" }}
                 />
-              </Button>
+              </span>
             </Dropdown>
           </div>
         </>
