@@ -124,10 +124,10 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             style={{
               paddingRight: screens.md ? "24px" : "10px",
               height: "26px",
-              maxWidth: screens.md ? "184.17px" : "36.67px",
+              maxWidth: screens.lg ? "184.17px" : screens.md ? "50px" : "36.67px",
             }}
           />
-          <span style={{ color: "white" }}>Template Playground</span>
+          <span style={{ color: "white", whiteSpace:"nowrap" }}>Template Playground</span>
         </Link>
       </div>
       {screens.md && (
