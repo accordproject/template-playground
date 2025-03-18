@@ -61,6 +61,16 @@ export default function MarkdownEditor({
   );
 
   return (
+    <>
+    <style>
+    {
+    `.editorwrapper .wordHighlightText {
+        border-radius: 3px;
+        scale: 1.05;
+    }`
+    }
+    </style>
+
     <div className="editorwrapper">
       <Suspense fallback={<div>Loading Editor...</div>}>
         <MonacoEditor
@@ -73,5 +83,6 @@ export default function MarkdownEditor({
         />
       </Suspense>
     </div>
+    </>
   );
 }
