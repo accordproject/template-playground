@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
+import { lazy, Suspense, useCallback, useEffect } from "react";
 import useAppStore from "../store/store";
 import { useMonaco } from "@monaco-editor/react";
 
@@ -13,36 +13,43 @@ export default function MarkdownEditor({
   value: string;
   onChange?: (value: string | undefined) => void;
 }) {
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const textColor = useAppStore((state) => state.textColor);
+  const storeBackgroundColor = useAppStore((state) => state.backgroundColor);
+  // Removed unused textColor
   const monaco = useMonaco();
 
-  const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
-  );
+  // Determine colors dynamically
+  const isLightMode = storeBackgroundColor === "#e6f0fa";
+  // Removed unused backgroundColor
+  const themeName = isLightMode ? "lightTheme" : "darkTheme";
 
   useEffect(() => {
     if (monaco) {
-      const defineTheme = (name: string, base: "vs" | "vs-dark") => {
-        monaco.editor.defineTheme(name, {
-          base,
-          inherit: true,
-          rules: [],
-          colors: {
-            "editor.background": backgroundColor,
-            "editor.foreground": textColor,
-            "editor.lineHighlightBorder": "#EDE8DC",
-          },
-        });
-      };
+      monaco.editor.defineTheme("lightTheme", {
+        base: "vs",
+        inherit: true,
+        rules: [],
+        colors: {
+          "editor.background": "#f0f7ff",
+          "editor.foreground": "#000000",
+          "editor.lineHighlightBorder": "#b3c7e6",
+        },
+      });
 
-      defineTheme("lightTheme", "vs");
-      defineTheme("darkTheme", "vs-dark");
+      monaco.editor.defineTheme("darkTheme", {
+        base: "vs-dark",
+        inherit: true,
+        rules: [],
+        colors: {
+          "editor.background": "#1e1e1e",
+          "editor.foreground": "#ffffff",
+          "editor.lineHighlightBorder": "#2a3a5f",
+        },
+      });
 
+      // Apply the selected theme dynamically
       monaco.editor.setTheme(themeName);
     }
-  }, [monaco, backgroundColor, textColor, themeName]);
+  }, [monaco, themeName]); // 🔥 Ensure `themeName` triggers updates
 
   const editorOptions = {
     minimap: { enabled: false },

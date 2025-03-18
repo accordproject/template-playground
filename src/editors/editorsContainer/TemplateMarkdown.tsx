@@ -1,48 +1,72 @@
-import MarkdownEditor from "../MarkdownEditor";
 import useAppStore from "../../store/store";
-import useUndoRedo from "../../components/useUndoRedo";
-import { useCallback } from "react";
-import { debounce } from "ts-debounce";
-import { FaUndo, FaRedo } from "react-icons/fa";
+import MarkdownEditor from "../MarkdownEditor";
 
-function TemplateMarkdown() {
+const TemplateMarkdown: React.FC = () => {
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-  const { value, setValue, undo, redo } = useUndoRedo(
-    useAppStore((state) => state.editorValue),
-    setTemplateMarkdown // Ensures preview updates when undo/redo happens
-  );
-  
-  const debouncedSetTemplateMarkdown = useCallback(
-    debounce((value: string) => {
-      void setTemplateMarkdown(value);
-    }, 500),
-    [setTemplateMarkdown]
-  );
+  const value = useAppStore((state) => state.editorValue);
 
-  const handleChange = (value: string | undefined) => {
+  const handleChange = (value: string | undefined): void => {
     if (value !== undefined) {
-      setValue(value);
-      debouncedSetTemplateMarkdown(value);
+      setTemplateMarkdown(value);
     }
   };
 
   return (
-    <div className="column" style={{ backgroundColor }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h3 style={{ color: textColor }}>TemplateMark</h3>
-        <div>
-          <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
-          <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
-        </div>
+    <div
+      className="column"
+      style={{
+        backgroundColor,
+        padding: "16px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "12px",
+        }}
+      >
+        <h3
+          style={{
+            color: textColor,
+            fontSize: "16px",
+            margin: 0,
+            fontWeight: 500,
+          }}
+        >
+          TemplateMark
+        </h3>
       </div>
-      <p style={{ color: textColor }}>
-        A natural language template with embedded variables, conditional sections, and TypeScript code.
+      <p
+        style={{
+          color: textColor,
+          fontSize: "12px",
+          marginBottom: "16px",
+          opacity: 0.7,
+          lineHeight: "1.4",
+        }}
+      >
+        A natural language template with embedded variables, conditional
+        sections, and TypeScript code.
       </p>
-      <MarkdownEditor value={value} onChange={handleChange} />
+      <div
+        style={{
+          color: "#f8f8f2",
+          borderRadius: "4px",
+          minHeight: "500px",
+          fontFamily: "'Consolas', 'Monaco', monospace",
+          fontSize: "14px",
+        }}
+      >
+        <MarkdownEditor value={value} onChange={handleChange} />
+      </div>
     </div>
   );
-}
+};
 
 export default TemplateMarkdown;
