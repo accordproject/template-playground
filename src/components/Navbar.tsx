@@ -14,7 +14,11 @@ import ToggleDarkMode from "./ToggleDarkMode";
 
 const { useBreakpoint } = Grid;
 
-function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
+interface NavbarProps {
+  scrollToFooter: () => void;
+}
+
+function Navbar({ scrollToFooter }: NavbarProps) {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
@@ -33,7 +37,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
 
   const helpMenu = (
     <Menu>
-      <Menu.ItemGroup title="Info">
+      <Menu.ItemGroup key="info" title="Info">
         <Menu.Item key="about">
           <a
             href="https://github.com/accordproject/template-playground/blob/main/README.md"
@@ -109,9 +113,8 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
-        <a
-          href="/"
-          rel="noopener noreferrer"
+        <Link
+          to="/"
           style={{ display: "flex", alignItems: "center" }}
         >
           <Image
@@ -125,7 +128,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: any }) {
             }}
           />
           <span style={{ color: "white" }}>Template Playground</span>
-        </a>
+        </Link>
       </div>
       {screens.md && (
         <>
