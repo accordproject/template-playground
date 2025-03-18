@@ -15,15 +15,11 @@ import ToggleDarkMode from "./ToggleDarkMode";
 
 const { useBreakpoint } = Grid;
 
-<<<<<<< HEAD
 interface NavbarProps {
   scrollToFooter: () => void;
 }
 
 function Navbar({ scrollToFooter }: NavbarProps) {
-=======
-function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
->>>>>>> navre
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
@@ -182,7 +178,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
         alignItems: "center",
         paddingLeft: screens.md ? 40 : 10,
         paddingRight: screens.md ? 40 : 10,
-        overflow: "hidden", // Prevent content from overflowing
+        overflow: "hidden",
       }}
     >
       {/* Logo Section */}
@@ -191,14 +187,7 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
-<<<<<<< HEAD
-        <Link
-          to="/"
-          style={{ display: "flex", alignItems: "center" }}
-        >
-=======
-        <a href="/" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center" }}>
->>>>>>> navre
+        <Link to="/" style={{ display: "flex", alignItems: "center" }}>
           <Image
             src={screens.md ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
@@ -209,13 +198,8 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
               paddingRight: screens.md ? "24px" : "10px",
             }}
           />
-<<<<<<< HEAD
-          <span style={{ color: "white" }}>Template Playground</span>
-        </Link>
-=======
           {screens.md && <span style={{ color: "white" }}>Template Playground</span>}
-        </a>
->>>>>>> navre
+        </Link>
       </div>
 
       {/* Menu Items for Medium and Larger Screens */}
@@ -263,7 +247,6 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
       >
         <ToggleDarkMode />
 
-        {/* Medium and Larger Screens */}
         {screens.md ? (
           <>
             {!isLearnPage && (
@@ -330,7 +313,6 @@ function Navbar({ scrollToFooter }: { scrollToFooter: () => void }) {
             </div>
           </>
         ) : (
-          /* Hamburger Menu for Small Screens */
           <Dropdown overlay={hamburgerMenu} trigger={["click"]} placement="bottomRight">
             <MenuOutlined
               style={{ fontSize: "24px", color: "white", marginLeft: "20px", cursor: "pointer" }}
