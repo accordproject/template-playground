@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, Dropdown, Button, Image, Grid } from "antd";
+import { Dropdown, Button, Image, Grid, MenuProps } from "antd";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -35,50 +35,70 @@ function Navbar({ scrollToFooter }: NavbarProps) {
     config: { duration: 1000 },
   });
 
-  const helpMenu = (
-    <Menu>
-      <Menu.ItemGroup key="info" title="Info">
-        <Menu.Item key="about">
-          <a
-            href="https://github.com/accordproject/template-playground/blob/main/README.md"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <QuestionOutlined /> About
-          </a>
-        </Menu.Item>
-        <Menu.Item key="community">
-          <a
-            href="https://discord.com/invite/Zm99SKhhtA"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <UserOutlined /> Community
-          </a>
-        </Menu.Item>
-        <Menu.Item key="issues">
-          <a
-            href="https://github.com/accordproject/template-playground/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <InfoOutlined /> Issues
-          </a>
-        </Menu.Item>
-      </Menu.ItemGroup>
-      <Menu.ItemGroup title="Documentation">
-        <Menu.Item key="documentation">
-          <a
-            href="https://github.com/accordproject/template-engine/blob/main/README.md"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <BookOutlined /> Documentation
-          </a>
-        </Menu.Item>
-      </Menu.ItemGroup>
-    </Menu>
-  );
+  const helpMenu: MenuProps["items"] = [
+    {
+      key: "info",
+      type: "group",
+      label: "Info",
+      children: [
+        {
+          key: "about",
+          label: (
+            <a
+              href="https://github.com/accordproject/template-playground/blob/main/README.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <QuestionOutlined /> About
+            </a>
+          ),
+        },
+        {
+          key: "community",
+          label: (
+            <a
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <UserOutlined /> Community
+            </a>
+          ),
+        },
+        {
+          key: "issues",
+          label: (
+            <a
+              href="https://github.com/accordproject/template-playground/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <InfoOutlined /> Issues
+            </a>
+          ),
+        },
+      ],
+    },
+    {
+      key: "documentation",
+      type: "group",
+      label: "Documentation",
+      children: [
+        {
+          key: "documentation",
+          label: (
+            <a
+              href="https://github.com/accordproject/template-engine/blob/main/README.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <BookOutlined /> Documentation
+            </a>
+          ),
+        },
+      ],
+    },
+  ];
 
   const menuItemStyle = (key: string, isLast: boolean) => ({
     display: "flex",
@@ -151,7 +171,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={helpMenu} trigger={["click"]}>
+            <Dropdown menu={{ items: helpMenu }} trigger={["click"]}>
               <Button
                 style={{
                   background: "transparent",
