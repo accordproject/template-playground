@@ -145,6 +145,9 @@ const useAppStore = create<AppState>()(
           set(() => ({ error: formatError(error) }));
         }
       },
+      setEditorAgreementData: (value: string) => {
+        set(() => ({ editorAgreementData: value }));
+      },
       generateShareableLink: () => {
         const state = get();
         const dataToShare = {
