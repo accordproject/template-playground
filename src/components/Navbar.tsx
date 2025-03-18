@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, FC } from "react";
 import { Menu, Dropdown, Button, Image, Grid } from "antd";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
@@ -19,7 +19,27 @@ interface NavbarProps {
   scrollToFooter: () => void;
 }
 
-function Navbar({ scrollToFooter }: NavbarProps) {
+// Move styles outside component
+const styles = {
+  navbar: {
+    background: "#1b2540",
+    height: "65px",
+    lineHeight: "65px",
+    display: "flex",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  button: {
+    background: "transparent",
+    border: "none",
+    color: "white",
+    height: "65px",
+    display: "flex",
+    alignItems: "center",
+  }
+} as const;
+
+const Navbar: FC<NavbarProps> = ({ scrollToFooter }) => {
   const [hovered, setHovered] = useState<
     null | "home" | "explore" | "help" | "github" | "join"
   >(null);
@@ -46,51 +66,73 @@ function Navbar({ scrollToFooter }: NavbarProps) {
     config: { duration: 500 }, // Adjust duration as needed
   });
 
-  // "Help" dropdown menu
-  const helpMenu = (
-    <Menu>
-      <Menu.ItemGroup key="info" title="Info">
-        <Menu.Item key="about">
-          <a
-            href="https://github.com/accordproject/template-playground/blob/main/README.md"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <QuestionOutlined /> About
-          </a>
-        </Menu.Item>
-        <Menu.Item key="community">
-          <a
-            href="https://discord.com/invite/Zm99SKhhtA"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <UserOutlined /> Community
-          </a>
-        </Menu.Item>
-        <Menu.Item key="issues">
-          <a
-            href="https://github.com/accordproject/template-playground/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <InfoOutlined /> Issues
-          </a>
-        </Menu.Item>
-      </Menu.ItemGroup>
-      <Menu.ItemGroup title="Documentation">
-        <Menu.Item key="documentation">
+  // Memoize menu items
+  const helpMenuItems = useMemo(() => ({
+    items: [
+      {
+        key: 'info',
+        type: 'group',
+        title: 'Info',
+        children: [
+          {
+            key: 'about',
+            icon: <QuestionOutlined />,
+            label: (
+              <a
+                href="https://github.com/accordproject/template-playground/blob/main/README.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="About Template Playground"
+              >
+                About
+              </a>
+            ),
+          },
+          {
+            key: 'community',
+            icon: <UserOutlined />,
+            label: (
+              <a
+                href="https://discord.com/invite/Zm99SKhhtA"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Community"
+              >
+                Community
+              </a>
+            ),
+          },
+          {
+            key: 'issues',
+            icon: <InfoOutlined />,
+            label: (
+              <a
+                href="https://github.com/accordproject/template-playground/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Issues"
+              >
+                Issues
+              </a>
+            ),
+          },
+        ],
+      },
+      {
+        key: 'documentation',
+        label: (
           <a
             href="https://github.com/accordproject/template-engine/blob/main/README.md"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Documentation"
           >
-            <BookOutlined /> Documentation
+            Documentation
           </a>
-        </Menu.Item>
-      </Menu.ItemGroup>
-    </Menu>
-  );
+        ),
+      },
+    ],
+  }), []);
 
   // Hamburger menu for small screens
   const hamburgerMenu = (
@@ -171,15 +213,12 @@ function Navbar({ scrollToFooter }: NavbarProps) {
     <animated.div
       style={{
         ...navbarProps,
-        background: "#1b2540",
-        height: "65px",
-        lineHeight: "65px",
-        display: "flex",
-        alignItems: "center",
+        ...styles.navbar,
         paddingLeft: screens.md ? 40 : 10,
         paddingRight: screens.md ? 40 : 10,
-        overflow: "hidden",
       }}
+      role="navigation"
+      aria-label="Main navigation"
     >
       {/* Logo Section */}
       <div
@@ -196,6 +235,10 @@ function Navbar({ scrollToFooter }: NavbarProps) {
               height: "26px",
               width: screens.md ? "auto" : "36.67px",
               paddingRight: screens.md ? "24px" : "10px",
+            }}
+            onError={(e) => {
+              console.error('Failed to load image:', e);
+              // Fallback to text or another image
             }}
           />
           {screens.md && <span style={{ color: "white" }}>Template Playground</span>}
@@ -218,16 +261,14 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={helpMenu} trigger={["hover"]} placement="bottomLeft">
+            <Dropdown 
+              menu={helpMenuItems} 
+              trigger={["hover"]} 
+              placement="bottomLeft"
+            >
               <Button
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "white",
-                  height: "65px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
+                style={styles.button}
+                aria-label="Help menu"
               >
                 Help <CaretDownFilled style={{ fontSize: "10px", marginLeft: "5px" }} />
               </Button>
@@ -319,6 +360,16 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             />
           </Dropdown>
         )}
+
+        {/* Add keyboard navigation */}
+        <div 
+          role="button"
+          tabIndex={0}
+          onKeyPress={(e) => e.key === 'Enter' && scrollToFooter()}
+          onClick={scrollToFooter}
+        >
+          {/* ... */}
+        </div>
       </div>
     </animated.div>
   );
