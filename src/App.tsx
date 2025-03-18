@@ -156,7 +156,7 @@ const App = () => {
                     }}
                   >
                     <Row gutter={24}>
-                      <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
+                      <Col xs={24} sm={16} style={{ paddingBottom: "24px" }}>
                         <Collapse
                           defaultActiveKey={activePanel}
                           onChange={onChange}
@@ -164,12 +164,6 @@ const App = () => {
                         />
                       </Col>
                       <Col xs={24} sm={8}>
-                        <div
-                          style={{
-                            marginBottom: "10px",
-                          }}
-                        >
-                        </div>
                         <AgreementHtml loading={loading} isModal={false} />
                       </Col>
                     </Row>
