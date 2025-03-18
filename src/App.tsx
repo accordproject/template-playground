@@ -126,7 +126,7 @@ const App = () => {
                 minHeight: "calc(100vh - 64px - 70px)", // Adjust for Navbar and Footer height
               }}
             >
-              <Spinner /> {/* Assuming you have a Spinner component */}
+              <Spinner /> 
             </div>
           ) : (
             <Routes>
@@ -198,7 +198,7 @@ const App = () => {
   );
 };
 
-// Placeholder Spinner component (replace with your actual implementation if different)
+
 const Spinner = () => (
   <div
     style={{
