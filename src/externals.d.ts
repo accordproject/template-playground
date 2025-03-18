@@ -14,3 +14,7 @@
 declare module '@accordproject/markdown-common'
 declare module '@accordproject/markdown-template'
 declare module '@accordproject/markdown-transform'
+
+declare module 'html2pdf.js';
+declare module 'html-to-docx';
+declare module 'turndown';
