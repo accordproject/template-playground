@@ -177,7 +177,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
               maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
-          {screens.lg && <span style={{ color: "white" }}>Template Playground</span>}
+          <span style={{ color: "white", display: screens.lg ? "block" : "none" }}>Template Playground</span>
         </Link>
       </div>
       {screens.md ? (
@@ -315,7 +315,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
                 marginRight: screens.md ? "5px" : "0",
               }}
             />
-            {screens.md && <span>Github</span>}
+            <span style={{ display: screens.md ? "inline" : "none" }}>Github</span>
           </a>
         </div>
       </div>
