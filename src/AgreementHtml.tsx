@@ -4,7 +4,13 @@ import { Spin } from "antd";
 import useAppStore from "./store/store";
 import FullScreenModal from "./components/FullScreenModal";
 
-function AgreementHtml({ loading, isModal }: { loading: any; isModal?: boolean }) {
+function AgreementHtml({
+  loading,
+  isModal,
+}: {
+  loading: boolean;
+  isModal?: boolean;
+}) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
