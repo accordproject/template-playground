@@ -15,6 +15,7 @@ import SampleDropdown from "./components/SampleDropdown";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
 import FloatingFAB from "./components/FabButton";
+import ResizableContainer from "./components/ResizableContainer";
 
 const { Content } = Layout;
 
@@ -156,22 +157,28 @@ const App = () => {
                     }}
                   >
                     <Row gutter={24}>
-                      <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
-                        <Collapse
-                          defaultActiveKey={activePanel}
-                          onChange={onChange}
-                          items={panels}
-                        />
-                      </Col>
-                      <Col xs={24} sm={8}>
-                        <div
-                          style={{
-                            marginBottom: "10px",
-                          }}
-                        >
-                        </div>
-                        <AgreementHtml loading={loading} isModal={false} />
-                      </Col>
+                      <ResizableContainer
+                        leftPane={
+                          <Col xs={24} style={{ paddingBottom: "20px" }}>
+                            <Collapse
+                              defaultActiveKey={activePanel}
+                              onChange={onChange}
+                              items={panels}
+                            />
+                          </Col>
+                        }
+                        rightPane={
+                          <Col xs={24}>
+                            <div
+                              style={{
+                                marginBottom: "10px",
+                              }}
+                            >
+                            </div>
+                            <AgreementHtml loading={loading} isModal={false} />
+                          </Col>
+                        }
+                      />
                     </Row>
                   </div>
                   <FloatingFAB />
