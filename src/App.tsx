@@ -93,8 +93,16 @@ const App = () => {
     }
   }, [searchParams]);
 
+useEffect(() => {
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
   
+  useAppStore.setState({
+    backgroundColor: savedTheme === "dark" ? "#121212" : "#ffffff",
+  });
+}, []);
 
+  
   const panels = [
     {
       key: "templateMark",
