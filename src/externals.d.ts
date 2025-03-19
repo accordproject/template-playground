@@ -11,6 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare module '@accordproject/markdown-common'
-declare module '@accordproject/markdown-template'
-declare module '@accordproject/markdown-transform'
+declare module "@accordproject/markdown-common";
+declare module "@accordproject/markdown-template";
+declare module "@accordproject/markdown-transform";
+// declare module "html2pdf.js" {
+//   const html2pdf: any; // Or define more specific types if you know them
+//   export default html2pdf;
+// }
+
+declare module "html2pdf.js" {
+  interface Html2PdfInterface {
+    set: (options: any) => Html2PdfInterface;
+    from: (element: HTMLElement) => Html2PdfInterface;
+    save: () => Promise<void>;
+  }
+  export default function (): Html2PdfInterface;
+}
