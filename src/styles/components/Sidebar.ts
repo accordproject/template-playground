@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 
 export const SidebarContainer = styled.div`
   width: 260px;
-  background-color: var(--bg-color) !important;
+  background-color: var(--bg-color);
   padding: 1rem;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
@@ -16,7 +16,7 @@ export const SidebarContainer = styled.div`
     width: 100%;
     height: auto;
     position: fixed !important;
-    top: 0;
+    top: 20;
     right: 0;
     transform: translateX(100%);
     z-index: 999;
