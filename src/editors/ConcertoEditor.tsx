@@ -125,6 +125,9 @@ export default function ConcertoEditor({
     wordWrap: "on",
     automaticLayout: true,
     scrollBeyondLastLine: false,
+    autoClosingBrackets: "languageDefined",
+    autoSurround: "languageDefined",
+    bracketPairColorization: { enabled: true },
   };
 
   const handleChange = useCallback(
