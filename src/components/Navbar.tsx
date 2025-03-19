@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, Dropdown, Button, Image, Grid } from "antd";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
@@ -24,6 +24,15 @@ function Navbar({ scrollToFooter }: NavbarProps) {
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
+  const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 835);
+
+  useEffect(() => {
+    const handleResize = () => setIsLargeScreen(window.innerWidth >= 835);
+    
+    window.addEventListener("resize", handleResize);
+    
+    return () => window.removeEventListener("resize", handleResize); // Cleanup on unmount
+  }, []);
 
   const props = useSpring({
     loop: true,
@@ -130,7 +139,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           <span style={{ color: "white" }}>Template Playground</span>
         </Link>
       </div>
-      {screens.md && (
+      {isLargeScreen && (
         <>
           <div
             style={{
