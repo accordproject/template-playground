@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Layout, Row, Col, Typography, Space, Button, Image, Grid } from "antd";
 import {
   GithubOutlined,
@@ -7,43 +7,47 @@ import {
   LinkedinFilled,
 } from "@ant-design/icons";
 import FOOTER_SECTION from "../constants/content/footer.json";
-
 const { Footer } = Layout;
 const { Text, Link } = Typography;
 const { useBreakpoint } = Grid;
-
 const CustomFooter: React.FC = () => {
   const year = new Date().getFullYear();
   const screens = useBreakpoint();
-
+  const [hover, setHover] = useState(false);
+  const[hovericon,sethoverIcon]=useState(0)
+  const[hoverfooter,sethoverfooter]=useState(false)
   if (!screens.md) {
     return null;
   }
-
   return (
     <Footer
       style={{
-        background: "#1b2540",
-        color: "white",
+        background: hoverfooter ? "#0F172E":"#1b2540",
+        color: "white", 
         padding: "80px 50px 20px 50px",
       }}
+      onMouseEnter={()=>sethoverfooter(true)}
+      onMouseLeave={()=>sethoverfooter(false)}
     >
       <Row justify="space-between" align="top">
         <Col span={7}>
           <Space direction="vertical" size="middle">
-            <Link href="https://www.accordproject.org" target="_blank">
+            <Link href="https://www.accordproject.org" target="_blank" className="LogoLink" 
+             onMouseEnter={() => setHover(true)} // Detect hover
+             onMouseLeave={() => setHover(false)} // Detect when hover ends
+            >
               <Image
                 src="/logo.png"
                 alt="Template Playground"
                 preview={false}
-                style={{ paddingRight: "1.5em", height: "36px" }}
+                style={{ paddingRight: "1.5em", height: hover ? "38px":"36px"  }}
               />
             </Link>
             <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
               The open source smart legal contract stack
             </Text>
-            <Link href="mailto:admin@accordproject.org">
-              <Text strong style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+            <Link href="mailto:admin@accordproject.org" >
+              <Text strong style={{ color:hovericon==1 ? " rgba(200,222,255,0.65) ": "rgba(255, 255, 255, 0.65)" }} onMouseEnter={()=>sethoverIcon(1)} onMouseLeave={()=>sethoverIcon(0)}>
                 admin@accordproject.org
               </Text>
             </Link>
@@ -52,20 +56,23 @@ const CustomFooter: React.FC = () => {
                 size="large"
                 style={{
                   padding: "5px 30px",
-                  backgroundColor: "#19c6c7",
+                  backgroundColor:hovericon==2 ?'#D3D3D3': "#19c6c7",
                   borderRadius: "5px",
-                  color: "#050c40",
+                  color:"#050c40",
                   textAlign: "center",
-                  border: "none",
+                  border:'none',
+                  fontSize:hovericon==2 ?'17px':'16px'
                 }}
+                onMouseEnter={()=>sethoverIcon(2)}
+                onMouseLeave={()=>sethoverIcon(0)}
               >
                 Join
               </Button>
             </Link>
           </Space>
         </Col>
-        {FOOTER_SECTION.sections.map((section: any) => (
-          <Col span={3} key={section.title}>
+        {FOOTER_SECTION.sections.map((section: any,j:number) => (
+          <Col span={3} key={j}>
             <Space direction="vertical" size="middle">
               <Text
                 strong
@@ -77,14 +84,16 @@ const CustomFooter: React.FC = () => {
               >
                 {section.title}
               </Text>
-              {section.links.map((link: any) => (
+              {section.links.map((link: any,i:number) => (
                 <Link
                   href={link.href}
-                  key={link.title}
-                  style={{ color: "white", fontSize: "15px" }}
+                  key={i}
+                  style={{ color: hovericon==(2*i+1)*(3*j+1)+10? "#A9A9A9":"white", fontSize: "15px" }}
+                  onMouseEnter={()=>sethoverIcon((2*i+1)*(3*j+1)+10)}
+                  onMouseLeave={()=>sethoverIcon(0)}
                 >
                   {link.title}
-                </Link>
+                </Link >
               ))}
             </Space>
           </Col>
@@ -98,7 +107,7 @@ const CustomFooter: React.FC = () => {
               strong
               href="https://accordproject.org/privacy"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color:hovericon==3 ? " rgba(200,222,255,0.75) ": "rgba(255, 255, 255, 0.65)" }} onMouseEnter={()=>sethoverIcon(3)} onMouseLeave={()=>sethoverIcon(0)}
             >
               trademark policy
             </Link>{" "}
@@ -107,7 +116,7 @@ const CustomFooter: React.FC = () => {
               strong
               href="https://accordproject.org/brand-assets"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color:hovericon==4 ? " rgba(200,222,255,0.75) ": "rgba(255, 255, 255, 0.65)" }} onMouseEnter={()=>sethoverIcon(4)} onMouseLeave={()=>sethoverIcon(0)}
             >
               brand assets
             </Link>
@@ -119,30 +128,30 @@ const CustomFooter: React.FC = () => {
             <Link
               href="https://github.com/accordproject"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color:hovericon==5 ? " rgba(200,222,255,0.75) ": "rgba(255, 255, 255, 0.65)" }} onMouseEnter={()=>sethoverIcon(5)} onMouseLeave={()=>sethoverIcon(0)}
             >
-              <GithubOutlined style={{ fontSize: "17px" }} />
+              <GithubOutlined style={{ fontSize:hovericon==5 ?"19px": "17px" }} />
             </Link>
             <Link
               href="https://twitter.com/AccordHQ"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color:hovericon==6 ? " rgba(200,222,255,0.75) ": "rgba(255, 255, 255, 0.65)" }} onMouseEnter={()=>sethoverIcon(6)} onMouseLeave={()=>sethoverIcon(0)}
             >
-              <XOutlined style={{ fontSize: "17px" }} />
+              <XOutlined style={{ fontSize:hovericon==6 ?"19px": "17px" }} />
             </Link>
             <Link
               href="https://discord.com/invite/Zm99SKhhtA"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color:hovericon==7 ? " rgba(200,222,255,0.75) ": "rgba(255, 255, 255, 0.65)" }} onMouseEnter={()=>sethoverIcon(7)} onMouseLeave={()=>sethoverIcon(0)}
             >
-              <DiscordFilled style={{ fontSize: "17px" }} />
+              <DiscordFilled style={{ fontSize:hovericon==7 ?"19px": "17px" }} />
             </Link>
             <Link
               href="https://www.linkedin.com/company/accordproject/"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.65)" }}
+              style={{ color:hovericon==8 ? " rgba(200,222,255,0.75) ": "rgba(255, 255, 255, 0.65)" }} onMouseEnter={()=>sethoverIcon(8)} onMouseLeave={()=>sethoverIcon(0)}
             >
-              <LinkedinFilled style={{ fontSize: "17px" }} />
+              <LinkedinFilled style={{ fontSize:hovericon==8 ? "19px": "17px" }} />
             </Link>
           </Space>
         </Col>

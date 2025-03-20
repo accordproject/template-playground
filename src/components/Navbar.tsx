@@ -191,6 +191,7 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
               height: "65px",
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
               backgroundColor:
                 hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
               cursor: "pointer",
@@ -198,22 +199,26 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Link to="/learn/intro" className="learnNow-button">
-              <animated.button
-                style={{
-                  ...props,
-                  padding: "10px 22px",
-                  backgroundColor: "#19c6c7",
-                  color: "#050c40",
-                  border: "none",
-                  borderRadius: "5px",
-                  marginRight: "15px",
-                  cursor: "pointer",
-                }}
-              >
-                Learn
-              </animated.button>
-            </Link>
+            <div>
+              <Link to="/learn/intro">
+                <animated.button
+                  style={{
+                    ...props,
+                    padding: "10px 15px",
+                    backgroundColor: "#19c6c7",
+                    color: "#050c40",
+                    border: "none",
+                    borderRadius: "5px",
+                    marginRight: "15px",
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div>Learn</div>
+                </animated.button>
+              </Link>
+            </div>
           </div>
         )}
         <div
@@ -221,12 +226,16 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             height: "65px",
             display: "flex",
             alignItems: "center",
+            justifyItems: "center",
+            justifyContent: "center",
             borderLeft: screens.md
               ? "1.5px solid rgba(255, 255, 255, 0.1)"
               : "none",
             paddingLeft: screens.md ? "20px" : "0",
             backgroundColor:
-              hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+              hovered === "github"
+                ? "rgba(255, 255, 255, 0.1)"
+                : "transparent",
             cursor: "pointer",
           }}
           onMouseEnter={() => setHovered("github")}
@@ -236,7 +245,13 @@ function Navbar({ scrollToExplore }: { scrollToExplore: any }) {
             href="https://github.com/accordproject/template-playground"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", color: "white" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyItems: "center",
+              justifyContent: "center",
+              color: "white",
+            }}
           >
             <GithubOutlined
               style={{
