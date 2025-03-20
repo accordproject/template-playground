@@ -79,31 +79,35 @@ const CustomFooter: React.FC = () => {
 
           {(screens.md || expanded) && (
             <Row justify="end" gutter={[16, 16]}>
-              {FOOTER_SECTION.sections.map((section: FooterSection) => (
-                <Col xs={24} sm={12} md={6} key={section.title}>
-                  <Space direction="vertical" size="middle">
-                    <Text
-                      strong
-                      style={{
-                        color: "rgba(255, 255, 255, 0.65)",
-                        fontSize: "11px",
-                        letterSpacing: "0.1em",
-                      }}
-                    >
-                      {section.title}
-                    </Text>
-                    {section.links.map((link: FooterLink) => (
-                      <Link
-                        href={link.href}
-                        key={link.title}
-                        style={{ color: "white", fontSize: "15px" }}
+              {FOOTER_SECTION.sections?.length ? (
+                FOOTER_SECTION.sections.map((section: FooterSection) => (
+                  <Col xs={24} sm={12} md={6} key={section.title}>
+                    <Space direction="vertical" size="middle">
+                      <Text
+                        strong
+                        style={{
+                          color: "rgba(255, 255, 255, 0.65)",
+                          fontSize: "11px",
+                          letterSpacing: "0.1em",
+                        }}
                       >
-                        {link.title}
-                      </Link>
-                    ))}
-                  </Space>
-                </Col>
-              ))}
+                        {section.title}
+                      </Text>
+                      {section.links.map((link: FooterLink) => (
+                        <Link
+                          href={link.href}
+                          key={link.title}
+                          style={{ color: "white", fontSize: "15px" }}
+                        >
+                          {link.title}
+                        </Link>
+                      ))}
+                    </Space>
+                  </Col>
+                ))
+              ) : (
+                <Text style={{ color: "white" }}>No links available.</Text>
+              )}
             </Row>
           )}
         </Col>
