@@ -137,7 +137,6 @@ function Navbar({ scrollToFooter }: NavbarProps) {
               ...menuItemStyle("explore", false),
               cursor: "pointer",
             }}
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             onClick={scrollToFooter}
             onMouseEnter={() => setHovered("explore")}
             onMouseLeave={() => setHovered(null)}
@@ -152,7 +151,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={helpMenu} trigger={["hover"]}>
+            <Dropdown overlay={helpMenu} trigger={["click"]}>
               <Button
                 style={{
                   background: "transparent",
