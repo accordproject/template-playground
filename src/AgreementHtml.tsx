@@ -2,6 +2,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
 import FullScreenModal from "./components/FullScreenModal";
+import PDFPreview from "./components/PDFPreview";
 
 function AgreementHtml({
   loading,
@@ -45,7 +46,10 @@ function AgreementHtml({
         >
           Preview Output
         </h2>
-        {!isModal && <FullScreenModal />}
+        <div style={{ display: "flex", alignItems: "center" }}>
+          {!isModal && <PDFPreview />}
+          {!isModal && <FullScreenModal />}
+        </div>
       </div>
       <p style={{ textAlign: "center", color: textColor }}>
         The result of merging the JSON data with the template. This is
