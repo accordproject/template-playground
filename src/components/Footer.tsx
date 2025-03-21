@@ -58,7 +58,14 @@ const CustomFooter: React.FC = () => {
                   color: "#050c40",
                   textAlign: "center",
                   border: "none",
+                  transition: "transform 0.2s ease-in-out",
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.05)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
               >
                 Join
               </Button>
@@ -96,7 +103,19 @@ const CustomFooter: React.FC = () => {
                       <Link
                         href={link.href}
                         key={link.title}
-                        style={{ color: "white", fontSize: "15px" }}
+                        style={{
+                          color: "white",
+                          fontSize: "15px",
+                          transition: "all 0.3s ease-in-out",
+                        }}
+                        onMouseEnter={(e) => (
+                          (e.currentTarget.style.color = "#19c6c7"),
+                          (e.currentTarget.style.textDecoration = "underline")
+                        )}
+                        onMouseLeave={(e) => (
+                          (e.currentTarget.style.color = "white"),
+                          (e.currentTarget.style.textDecoration = "none")
+                        )}
                       >
                         {link.title}
                       </Link>
@@ -109,42 +128,91 @@ const CustomFooter: React.FC = () => {
         </Col>
       </Row>
 
-      <Row justify="space-between" align="middle" style={{ marginTop: "40px" }}>
-        <Col>
-          <Text style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-            copyright © {year} accord project &bull;{" "}
+      <Row
+        justify="space-between"
+        align="middle"
+        style={{ marginTop: "40px"}}
+      >
+        <Col style={{ width: "90%" }}>
+          <Text
+            style={{
+              color: "rgba(255, 255, 255, 0.85)",
+              width: "100%",
+              display: "flex",
+              gap: "20px",
+            }}
+          >
+            copyright © {year} accord project
             <Link
               strong
               href="https://accordproject.org/privacy"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+              style={{
+                color: "rgba(255, 255, 255, 0.85)",
+                transition: "all 0.3s ease-in-out",
+              }}
+              onMouseEnter={(e) => (
+                (e.currentTarget.style.color = "#19c6c7"),
+                (e.currentTarget.style.textDecoration = "underline")
+              )}
+              onMouseLeave={(e) => (
+                (e.currentTarget.style.color = "white"),
+                (e.currentTarget.style.textDecoration = "none")
+              )}
             >
-              trademark policy
+              {" "}
+              &bull; trademark policy
             </Link>{" "}
-            &bull;{" "}
             <Link
               strong
               href="https://accordproject.org/brand-assets"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+              style={{
+                color: "rgba(255, 255, 255, 0.85)",
+                transition: "all 0.3s ease-in-out",
+              }}
+              onMouseEnter={(e) => (
+                (e.currentTarget.style.color = "#19c6c7"),
+                (e.currentTarget.style.textDecoration = "underline")
+              )}
+              onMouseLeave={(e) => (
+                (e.currentTarget.style.color = "white"),
+                (e.currentTarget.style.textDecoration = "none")
+              )}
             >
-              brand assets
+              &bull; brand assets
             </Link>
           </Text>
         </Col>
 
         <Col>
-          <Space>
-            <Link href="https://github.com/accordproject" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+          <Space style={{display: "flex", gap: "20px"}}>
+            <Link
+              href="https://github.com/accordproject"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               <GithubOutlined style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://twitter.com/AccordHQ" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://twitter.com/AccordHQ"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               <XOutlined style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               <DiscordFilled style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://www.linkedin.com/company/accordproject/" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://www.linkedin.com/company/accordproject/"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               <LinkedinFilled style={{ fontSize: "17px" }} />
             </Link>
           </Space>
