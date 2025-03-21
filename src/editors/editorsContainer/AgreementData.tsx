@@ -1,8 +1,6 @@
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
-import { useCallback } from "react";
-import { debounce } from "ts-debounce";
 import { FaUndo, FaRedo } from "react-icons/fa";
 
 function AgreementData() {
@@ -13,17 +11,10 @@ function AgreementData() {
     setData // Pass setData to update the preview when undo/redo happens
   );
 
-  const debouncedSetData = useCallback(
-    debounce((value: string) => {
-      void setData(value);
-    }, 500),
-    [setData]
-  );
-
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value);
-      debouncedSetData(value);
+      setData(value); // Call setData directly
     }
   };
 
