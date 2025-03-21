@@ -1,8 +1,6 @@
 import MarkdownEditor from "../MarkdownEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
-import { useCallback } from "react";
-import { debounce } from "ts-debounce";
 import { FaUndo, FaRedo } from "react-icons/fa";
 
 function TemplateMarkdown() {
@@ -13,18 +11,11 @@ function TemplateMarkdown() {
     useAppStore((state) => state.editorValue),
     setTemplateMarkdown // Ensures preview updates when undo/redo happens
   );
-  
-  const debouncedSetTemplateMarkdown = useCallback(
-    debounce((value: string) => {
-      void setTemplateMarkdown(value);
-    }, 500),
-    [setTemplateMarkdown]
-  );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value);
-      debouncedSetTemplateMarkdown(value);
+      setTemplateMarkdown(value); // Call setTemplateMarkdown directly
     }
   };
 
