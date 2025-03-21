@@ -19,6 +19,7 @@ const CustomFooter: React.FC = () => {
   const year = new Date().getFullYear();
   const screens = useBreakpoint();
   const [expanded, setExpanded] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState<string | null>(null);
 
   return (
     <Footer
@@ -44,7 +45,15 @@ const CustomFooter: React.FC = () => {
               The open-source smart legal contract stack
             </Text>
             <Link href="mailto:admin@accordproject.org">
-              <Text strong style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+              <Text
+                strong
+                style={{
+                  color: hoveredLink === "email" ? "#19c6c7" : "rgba(255, 255, 255, 0.65)",
+                  ...(hoveredLink === "email" ? { transition: "color 0.3s ease" } : {}),
+                }}
+                onMouseEnter={() => setHoveredLink("email")}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
                 admin@accordproject.org
               </Text>
             </Link>
@@ -53,12 +62,15 @@ const CustomFooter: React.FC = () => {
                 size="large"
                 style={{
                   padding: "5px 30px",
-                  backgroundColor: "#19c6c7",
+                  backgroundColor: hoveredLink === "join" ? "#17b0b1" : "#19c6c7",
                   borderRadius: "5px",
-                  color: "#050c40",
+                  color: hoveredLink === "join" ? "#ffffff" : "#050c40",
                   textAlign: "center",
                   border: "none",
+                  ...(hoveredLink === "join" ? { transition: "background-color 0.3s ease, color 0.3s ease" } : {}),
                 }}
+                onMouseEnter={() => setHoveredLink("join")}
+                onMouseLeave={() => setHoveredLink(null)}
               >
                 Join
               </Button>
@@ -71,7 +83,14 @@ const CustomFooter: React.FC = () => {
             <Button
               type="text"
               onClick={() => setExpanded(!expanded)}
-              style={{ color: "white", fontSize: "16px", marginBottom: "10px" }}
+              style={{
+                color: hoveredLink === "expand" ? "#19c6c7" : "white",
+                fontSize: "16px",
+                marginBottom: "10px",
+                ...(hoveredLink === "expand" ? { transition: "color 0.3s ease" } : {}),
+              }}
+              onMouseEnter={() => setHoveredLink("expand")}
+              onMouseLeave={() => setHoveredLink(null)}
             >
               {expanded ? <UpOutlined /> : <DownOutlined />} Other Links
             </Button>
@@ -96,7 +115,13 @@ const CustomFooter: React.FC = () => {
                       <Link
                         href={link.href}
                         key={link.title}
-                        style={{ color: "white", fontSize: "15px" }}
+                        style={{
+                          color: hoveredLink === link.title ? "#19c6c7" : "white",
+                          fontSize: "15px",
+                          ...(hoveredLink === link.title ? { transition: "color 0.3s ease" } : {}),
+                        }}
+                        onMouseEnter={() => setHoveredLink(link.title)}
+                        onMouseLeave={() => setHoveredLink(null)}
                       >
                         {link.title}
                       </Link>
@@ -112,21 +137,31 @@ const CustomFooter: React.FC = () => {
       <Row justify="space-between" align="middle" style={{ marginTop: "40px" }}>
         <Col>
           <Text style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-            copyright © {year} accord project &bull;{" "}
+            copyright © {year} accord project •{" "}
             <Link
               strong
               href="https://accordproject.org/privacy"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+              style={{
+                color: hoveredLink === "trademark" ? "#19c6c7" : "rgba(255, 255, 255, 0.85)",
+                ...(hoveredLink === "trademark" ? { transition: "color 0.3s ease" } : {}),
+              }}
+              onMouseEnter={() => setHoveredLink("trademark")}
+              onMouseLeave={() => setHoveredLink(null)}
             >
               trademark policy
             </Link>{" "}
-            &bull;{" "}
+            •{" "}
             <Link
               strong
               href="https://accordproject.org/brand-assets"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+              style={{
+                color: hoveredLink === "brand-assets" ? "#19c6c7" : "rgba(255, 255, 255, 0.85)",
+                ...(hoveredLink === "brand-assets" ? { transition: "color 0.3s ease" } : {}),
+              }}
+              onMouseEnter={() => setHoveredLink("brand-assets")}
+              onMouseLeave={() => setHoveredLink(null)}
             >
               brand assets
             </Link>
@@ -135,16 +170,52 @@ const CustomFooter: React.FC = () => {
 
         <Col>
           <Space>
-            <Link href="https://github.com/accordproject" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://github.com/accordproject"
+              target="_blank"
+              style={{
+                color: hoveredLink === "github" ? "#19c6c7" : "rgba(255, 255, 255, 0.85)",
+                ...(hoveredLink === "github" ? { transition: "color 0.3s ease" } : {}),
+              }}
+              onMouseEnter={() => setHoveredLink("github")}
+              onMouseLeave={() => setHoveredLink(null)}
+            >
               <GithubOutlined style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://twitter.com/AccordHQ" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://twitter.com/AccordHQ"
+              target="_blank"
+              style={{
+                color: hoveredLink === "twitter" ? "#19c6c7" : "rgba(255, 255, 255, 0.85)",
+                ...(hoveredLink === "twitter" ? { transition: "color 0.3s ease" } : {}),
+              }}
+              onMouseEnter={() => setHoveredLink("twitter")}
+              onMouseLeave={() => setHoveredLink(null)}
+            >
               <XOutlined style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+              style={{
+                color: hoveredLink === "discord" ? "#19c6c7" : "rgba(255, 255, 255, 0.85)",
+                ...(hoveredLink === "discord" ? { transition: "color 0.3s ease" } : {}),
+              }}
+              onMouseEnter={() => setHoveredLink("discord")}
+              onMouseLeave={() => setHoveredLink(null)}
+            >
               <DiscordFilled style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://www.linkedin.com/company/accordproject/" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://www.linkedin.com/company/accordproject/"
+              target="_blank"
+              style={{
+                color: hoveredLink === "linkedin" ? "#19c6c7" : "rgba(255, 255, 255, 0.85)",
+                ...(hoveredLink === "linkedin" ? { transition: "color 0.3s ease" } : {}),
+              }}
+              onMouseEnter={() => setHoveredLink("linkedin")}
+              onMouseLeave={() => setHoveredLink(null)}
+            >
               <LinkedinFilled style={{ fontSize: "17px" }} />
             </Link>
           </Space>
