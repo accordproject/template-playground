@@ -1,4 +1,4 @@
-import { useMonaco } from "@monaco-editor/react";
+import { BeforeMount, useMonaco } from "@monaco-editor/react"; // Import BeforeMount
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
@@ -40,7 +40,8 @@ const concertoTypes = [
   "Boolean",
 ];
 
-const handleEditorWillMount = (monacoInstance: typeof monaco) => {
+// Use BeforeMount type instead of typeof monaco
+const handleEditorWillMount: BeforeMount = (monacoInstance) => {
   monacoInstance.languages.register({
     id: "concerto",
     extensions: [".cto"],
