@@ -225,4 +225,5 @@ const CustomFooter: React.FC = () => {
   );
 };
 
+
 export default CustomFooter;
