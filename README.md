@@ -29,7 +29,7 @@ The Accord Project Template-Playground is a web-based platform designed to empow
 - Real-time preview of code execution results.
 - Share your edited templates with other users through generated shareable links.
 - A newly introduced learning pathway allows users to engage in guided learning experiences. Users can explore creating, navigating, and using templates through structured modules.
-**Getting Involved**
+  **Getting Involved**
 
 The Accord Project Playground is an open-source project, welcoming contributions from the developer community. Here are some ways to participate:
 
@@ -37,6 +37,23 @@ The Accord Project Playground is an open-source project, welcoming contributions
 - **Learning Module Development:** Create interactive modules to showcase specific Accord Project functionalities.
 - **Functionality Enhancements:** Improve existing features based on user feedback and project needs.
 - **Documentation and Tutorials:** Contribute to comprehensive documentation and tutorials that guide users through the platform effectively.
+
+## Running the Application with Docker
+
+This project provides a multi-stage [Docker](https://www.docker.com/) setup to simplify building and running the application in a containerized environment. The Dockerfile builds a production-ready static version of the app using Node.js and serves it with Nginx.
+
+### Prerequisites
+
+- **Docker:** Ensure that Docker is installed on your machine. You can download it from [Docker's official website](https://www.docker.com/).
+
+### Build the Docker Image
+
+1. Open a terminal and navigate to the root directory of the project.
+2. Build the Docker image by running:
+
+   ```bash
+   docker build -t my-app .
+   ```
 
 ## Demo
 
