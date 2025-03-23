@@ -11,7 +11,7 @@ function TemplateModel() {
   const setModelCto = useAppStore((state) => state.setModelCto);
   const { value, setValue, undo, redo } = useUndoRedo(
     useAppStore((state) => state.editorModelCto),
-    setModelCto // vinyl:s errors and preview update when undo/redo happens
+    setModelCto // Ensures errors and preview update when undo/redo happens
   );
 
   const debouncedSetModelCto = useCallback(

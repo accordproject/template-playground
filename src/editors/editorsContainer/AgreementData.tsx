@@ -11,7 +11,7 @@ function AgreementData() {
   const setData = useAppStore((state) => state.setData);
   const { value, setValue, undo, redo } = useUndoRedo(
     useAppStore((state) => state.editorAgreementData),
-    setData // vinyl: setData to update the preview when undo/redo happens
+    setData // Pass setData to update the preview when undo/redo happens
   );
 
   const debouncedSetData = useCallback(
