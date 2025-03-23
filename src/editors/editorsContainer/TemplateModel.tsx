@@ -4,15 +4,16 @@ import useUndoRedo from "../../components/useUndoRedo";
 import { useCallback } from "react";
 import { debounce } from "ts-debounce";
 import { FaUndo, FaRedo } from "react-icons/fa";
+import { AIButton } from "../../components/AIAssistant/AIButton";
 
 function TemplateModel() {
   const textColor = useAppStore((state) => state.textColor);
   const setModelCto = useAppStore((state) => state.setModelCto);
   const { value, setValue, undo, redo } = useUndoRedo(
     useAppStore((state) => state.editorModelCto),
-    setModelCto // Ensures errors and preview update when undo/redo happens
+    setModelCto // vinyl:s errors and preview update when undo/redo happens
   );
-  
+
   const debouncedSetModelCto = useCallback(
     debounce((value: string) => {
       void setModelCto(value);
@@ -32,6 +33,7 @@ function TemplateModel() {
       <div className="tooltip" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ color: textColor }}>Concerto Model</h3>
         <div>
+          <AIButton editorType="concerto" currentContent={value} onComplete={handleChange} />
           <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
           <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
         </div>
@@ -44,4 +46,4 @@ function TemplateModel() {
   );
 }
 
-export default TemplateModel;
+export default TemplateModel;
