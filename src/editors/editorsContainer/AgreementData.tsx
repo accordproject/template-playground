@@ -1,47 +1,64 @@
-import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
-import useUndoRedo from "../../components/useUndoRedo";
-import { useCallback } from "react";
-import { debounce } from "ts-debounce";
-import { FaUndo, FaRedo } from "react-icons/fa";
+import JSONEditor from "../JSONEditor";
 
-function AgreementData() {
+// Define the component as a functional component with React.FC
+const AgreementData: React.FC = () => {
+  // Access state and actions from the store
   const textColor = useAppStore((state) => state.textColor);
-  const setData = useAppStore((state) => state.setData);
-  const { value, setValue, undo, redo } = useUndoRedo(
-    useAppStore((state) => state.editorAgreementData),
-    setData // Pass setData to update the preview when undo/redo happens
-  );
+  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const setAgreementData = useAppStore((state) => state.setEditorAgreementData);
+  const value = useAppStore((state) => state.editorAgreementData);
 
-  const debouncedSetData = useCallback(
-    debounce((value: string) => {
-      void setData(value);
-    }, 500),
-    [setData]
-  );
-
-  const handleChange = (value: string | undefined) => {
+  // Handle changes to the editor value
+  const handleChange = (value: string | undefined): void => {
     if (value !== undefined) {
-      setValue(value);
-      debouncedSetData(value);
+      setAgreementData(value);
     }
   };
 
   return (
-    <div className="column" >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h3 style={{ color: textColor }}>Data</h3>
-        <div>
-          <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
-          <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
-        </div>
+    <div
+      className="column"
+      style={{
+        backgroundColor,
+        padding: "16px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "12px",
+        }}
+      >
+        <h3
+          style={{
+            color: textColor,
+            fontSize: "16px",
+            margin: 0,
+            fontWeight: 500,
+          }}
+        >
+          Preview Data
+        </h3>
       </div>
-      <p style={{ color: textColor }}>
-      JSON data (an instance of the Concerto model) used to preview output from the template.
+      <p
+        style={{
+          color: textColor,
+          fontSize: "12px",
+          marginBottom: "16px",
+          opacity: 0.7,
+          lineHeight: "1.4",
+        }}
+      >
+        Preview the data that will be used to render your template.
       </p>
       <JSONEditor value={value} onChange={handleChange} />
     </div>
   );
-}
+};
 
-export default AgreementData;
+export default AgreementData;

@@ -7,18 +7,18 @@ import {
   ContentContainer,
   NavigationButtons,
   NavigationButton,
+  ModuleSection,
+  LoadingContainer,
+  ErrorContainer,
+  RetryButton,
 } from "../styles/components/Content";
-import {
-  LoadingOutlined,
-  LeftOutlined,
-  RightOutlined,
-} from "@ant-design/icons";
+import { LoadingOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
 
-// markdown syntax highlighting theme
+// Markdown syntax highlighting theme
 import "highlight.js/styles/github.css";
 
 const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
@@ -60,55 +60,75 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     }
   };
 
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    const loadContent = async (): Promise<void> => {
+      try {
+        const content = await fetchContent(file);
+        setContent(content);
+        setError(null);
+      } catch (err: unknown) {
+        setError("Failed to load content");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadContent();
+  };
+
   if (loading) {
     return (
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <LoadingContainer>
         <Spin
           indicator={
             <LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />
           }
         />
-      </div>
+      </LoadingContainer>
     );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <ErrorContainer>
+        <div>Error: {error}</div>
+        <RetryButton onClick={handleRetry}>Retry</RetryButton>
+      </ErrorContainer>
+    );
   }
 
   return (
     <ContentContainer>
       {content && (
-        <ReactMarkdown
-          rehypePlugins={[rehypeRaw, rehypeHighlight]}
-          components={{
-            img: ({ ...props }) => (
-              <div className="image-container">
-                <img {...props} alt={props.alt || ""} />
-              </div>
-            ),
-          }}
-        >
-          {content}
-        </ReactMarkdown>
+        <ModuleSection>
+          <ReactMarkdown
+            rehypePlugins={[rehypeRaw, rehypeHighlight]}
+            components={{
+              img: ({ ...props }) => (
+                <div className="image-container">
+                  <img {...props} alt={props.alt || "Learn content image"} />
+                </div>
+              ),
+            }}
+          >
+            {content}
+          </ReactMarkdown>
+        </ModuleSection>
       )}
       <NavigationButtons>
         <NavigationButton
           onClick={handlePrevious}
           disabled={currentIndex === 0}
+          aria-label="Previous module"
         >
           <LeftOutlined /> Previous
         </NavigationButton>
         <NavigationButton
           onClick={handleNext}
           disabled={currentIndex === steps.length - 1}
+          aria-label="Next module"
         >
           Next <RightOutlined />
         </NavigationButton>

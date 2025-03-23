@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { Menu, Dropdown, Button, Image, Grid } from "antd";
-import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
@@ -9,6 +7,7 @@ import {
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
+  DownOutlined,
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
@@ -19,32 +18,30 @@ interface NavbarProps {
 }
 
 function Navbar({ scrollToFooter }: NavbarProps) {
-  const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github" | "join"
-  >(null);
   const screens = useBreakpoint();
   const location = useLocation();
 
-  const props = useSpring({
-    loop: true,
-    from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
-    to: [
-      { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
-      { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
-    ],
-    config: { duration: 1000 },
-  });
-
+  // Dropdown menu for "Help"
   const helpMenu = (
-    <Menu>
-      <Menu.ItemGroup key="info" title="Info">
+    <Menu className="custom-dropdown">
+      <Menu.ItemGroup
+        key="info"
+        title={
+          <span>
+            Info{" "}
+            <DownOutlined
+              style={{ fontSize: "10px", marginLeft: "5px", color: "#19c6c7" }}
+            />
+          </span>
+        }
+      >
         <Menu.Item key="about">
           <a
             href="https://github.com/accordproject/template-playground/blob/main/README.md"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <QuestionOutlined /> About
+            <QuestionOutlined style={{ marginRight: "8px" }} /> About
           </a>
         </Menu.Item>
         <Menu.Item key="community">
@@ -53,7 +50,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <UserOutlined /> Community
+            <UserOutlined style={{ marginRight: "8px" }} /> Community
           </a>
         </Menu.Item>
         <Menu.Item key="issues">
@@ -62,198 +59,301 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <InfoOutlined /> Issues
+            <InfoOutlined style={{ marginRight: "8px" }} /> Issues
           </a>
         </Menu.Item>
       </Menu.ItemGroup>
-      <Menu.ItemGroup title="Documentation">
+      <Menu.ItemGroup
+        key="documentation"
+        title={
+          <span>
+            Documentation{" "}
+            <DownOutlined
+              style={{ fontSize: "10px", marginLeft: "5px", color: "#19c6c7" }}
+            />
+          </span>
+        }
+      >
         <Menu.Item key="documentation">
           <a
             href="https://github.com/accordproject/template-engine/blob/main/README.md"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <BookOutlined /> Documentation
+            <BookOutlined style={{ marginRight: "8px" }} /> Documentation
           </a>
         </Menu.Item>
       </Menu.ItemGroup>
     </Menu>
   );
 
-  const menuItemStyle = (key: string, isLast: boolean) => ({
+  const menuItemStyle = {
     display: "flex",
     alignItems: "center",
-    padding: screens.md ? "0 20px" : "0",
-    backgroundColor:
-      hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
-    height: "65px",
-    borderRight:
-      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
-  });
+    padding: screens.md ? "0 24px" : "0 12px",
+    height: "80px",
+    transition: "background-color 0.3s ease",
+  };
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div
-      style={{
-        background: "#1b2540",
-        height: "65px",
-        lineHeight: "65px",
-        display: "flex",
-        alignItems: "center",
-        paddingLeft: screens.md ? 40 : 10,
-        paddingRight: screens.md ? 40 : 10,
-      }}
-    >
-      <div
-        style={{
-          cursor: "pointer",
-          ...menuItemStyle("home", false),
-        }}
-        onMouseEnter={() => setHovered("home")}
-        onMouseLeave={() => setHovered(null)}
-      >
-        <Link
-          to="/"
-          style={{ display: "flex", alignItems: "center" }}
-        >
-          <Image
-            src={screens.lg ? "/logo.png" : "/accord_logo.png"}
-            alt="Template Playground"
-            preview={false}
-            style={{
-              paddingRight: screens.md ? "24px" : "10px",
-              height: "26px",
-              maxWidth: screens.md ? "184.17px" : "36.67px",
-            }}
-          />
-          <span style={{ color: "white" }}>Template Playground</span>
-        </Link>
-      </div>
-      {screens.md && (
-        <>
-          <div
-            style={{
-              ...menuItemStyle("explore", false),
-              cursor: "pointer",
-            }}
-            onClick={scrollToFooter}
-            onMouseEnter={() => setHovered("explore")}
-            onMouseLeave={() => setHovered(null)}
-          >
-            <span style={{ color: "white" }}>Explore</span>
-          </div>
-          <div
-            style={{
-              ...menuItemStyle("help", false),
-              cursor: "pointer",
-            }}
-            onMouseEnter={() => setHovered("help")}
-            onMouseLeave={() => setHovered(null)}
-          >
-            <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "white",
-                  height: "65px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                Help
-                <CaretDownFilled
-                  style={{ fontSize: "10px", marginLeft: "5px" }}
-                />
-              </Button>
-            </Dropdown>
-          </div>
-        </>
-      )}
+    <>
+      <style>
+        {`
+          .custom-dropdown {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 8px 0;
+            min-width: 200px;
+          }
+
+          .custom-dropdown .ant-dropdown-menu-item-group-title {
+            color: #1a2a44;
+            font-weight: 500;
+            padding: 8px 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+          }
+
+          .custom-dropdown .ant-dropdown-menu-item {
+            padding: 8px 16px;
+            color: #1a2a44;
+            font-size: 14px;
+            font-weight: 400;
+            transition: background-color 0.3s ease;
+          }
+
+          .custom-dropdown .ant-dropdown-menu-item:hover {
+            background-color: #f0f2f5;
+          }
+
+          .custom-dropdown .ant-dropdown-menu-item a {
+            color: #1a2a44;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+          }
+
+          .custom-dropdown .ant-dropdown-menu-item a:hover {
+            color: #1a2a44;
+          }
+
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            .navbar {
+              padding: 0 10px !important;
+            }
+
+            .navbar-title {
+              font-size: 16px !important;
+            }
+
+            .learn-button {
+              padding: 8px 16px !important;
+              font-size: 14px !important;
+            }
+          }
+        `}
+      </style>
+
+      {/* Navbar component */}
       <div
         style={{
           display: "flex",
-          marginLeft: "auto",
+          justifyContent: "space-between",
           alignItems: "center",
-          height: "65px",
+          background: "#1b2540",
+          height: "100px", // Increased height for a formal look
+          padding: "0 40px",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+          position: "sticky",
+          top: 0,
+          zIndex: 1000,
         }}
+        className="navbar"
       >
-        <div>
-          <ToggleDarkMode />
-        </div>
-        {!isLearnPage && (
-          <div
-            style={{
-              marginLeft: screens.md ? "20px" : "0",
-              height: "65px",
-              display: "flex",
-              justifyContent: "center",
-              paddingLeft: "15px",
-              borderRadius: "5px",
-              alignItems: "center",
-              backgroundColor:
-                hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
-              cursor: "pointer",
-            }}
-            onMouseEnter={() => setHovered("join")}
-            onMouseLeave={() => setHovered(null)}
-          >
-            <Link to="/learn/intro" className="learnNow-button">
-              <animated.button
-                style={{
-                  ...props,
-                  padding: "10px 22px",
-                  backgroundColor: "#19c6c7",
-                  color: "#050c40",
-                  border: "none",
-                  borderRadius: "5px",
-                  marginRight: "15px",
-                  cursor: "pointer",
-                }}
-              >
-                Learn
-              </animated.button>
-            </Link>
-          </div>
-        )}
+        {/* Left side: Logo and Menu Items */}
         <div
           style={{
-            height: "65px",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            padding: screens.md ? "0 20px" : "0 10px",
-            borderRadius: "5px",
-            borderLeft: screens.md
-              ? "1.5px solid rgba(255, 255, 255, 0.1)"
-              : "none",
-            paddingLeft: screens.md ? "20px" : "0",
-            backgroundColor:
-              hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
-            cursor: "pointer",
+            gap: screens.md ? "20px" : "15px", // Increased gap for a more spacious look
           }}
-          onMouseEnter={() => setHovered("github")}
-          onMouseLeave={() => setHovered(null)}
         >
-          <a
-            href="https://github.com/accordproject/template-playground"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", color: "white" }}
-          >
-            <GithubOutlined
+          <div style={menuItemStyle}>
+            <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+              <Image
+                src={screens.lg ? "/logo.png" : "/accord_logo.png"}
+                alt="Template Playground"
+                preview={false}
+                style={{
+                  paddingRight: screens.md ? "20px" : "10px",
+                  height: "30px", // Slightly increased logo height to match the taller navbar
+                  maxWidth: screens.md ? "200px" : "40px", // Adjusted maxWidth for better scaling
+                }}
+              />
+              <span
+                style={{
+                  color: "#FAF9F6",
+                  fontSize: "16px", // Increased font size for a formal look
+                  fontWeight: 300, // Slightly bolder for formality
+                  letterSpacing: "0.5px",
+                  transition: "color 0.3s ease",
+                  paddingLeft: screens.md ? "27px" : "10px", // Increased padding for better spacing
+                }}
+                className="navbar-title"
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#19c6c7")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#FAF9F6")}
+              >
+                Template Playground
+              </span>
+            </Link>
+          </div>
+
+          {screens.md && (
+            <>
+              <div style={menuItemStyle} onClick={scrollToFooter}>
+                <span
+                  style={{
+                    color: "#FAF9F6",
+                    fontSize: "16px",
+                    fontWeight: 300,
+                    transition: "color 0.3s ease",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "#19c6c7")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "#FAF9F6")
+                  }
+                >
+                  Explore
+                </span>
+              </div>
+              <div>
+                <Link to="/learn/intro">
+                  <button
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "white",
+                      height: "80px",
+                      display: "flex",
+                      alignItems: "center",
+                      fontSize: "16px",
+                      fontWeight: 300,
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = "#19c6c7")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = "white")
+                    }
+                  >
+                    Learn
+                  </button>
+                </Link>
+              </div>
+              <div style={menuItemStyle}>
+                <Dropdown overlay={helpMenu} trigger={["hover"]}>
+                  <Button
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "white",
+                      height: "80px",
+                      display: "flex",
+                      alignItems: "center",
+                      fontSize: "16px",
+                      fontWeight: 300,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = "#19c6c7")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = "white")
+                    }
+                  >
+                    Help
+                    <CaretDownFilled
+                      style={{ fontSize: "12px", marginLeft: "5px" }}
+                    />
+                  </Button>
+                </Dropdown>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: screens.md ? "30px" : "15px",
+          }}
+        >
+          <div>
+            <ToggleDarkMode />
+          </div>
+          {!isLearnPage && (
+            <div
               style={{
-                fontSize: "20px",
-                color: "white",
-                marginRight: screens.md ? "5px" : "0",
+                height: "80px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
-            />
-            {screens.md && <span>Github</span>}
-          </a>
+            ></div>
+          )}
+          <div
+            style={{
+              height: "80px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: screens.md ? "0 24px" : "0 12px",
+            }}
+          >
+            <a
+              href="https://github.com/accordproject/template-playground"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: "flex", alignItems: "center", color: "white" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "#19c6c7";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "#FAF9F6";
+              }}
+            >
+              <GithubOutlined
+                style={{
+                  fontSize: "24px",
+                  marginRight: screens.md ? "8px" : "0",
+                  transition: "color 0.3s ease",
+                }}
+              />
+              {screens.md && (
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 300,
+                    transition: "color 0.3s ease",
+                  }}
+                >
+                  GitHub
+                </span>
+              )}
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
