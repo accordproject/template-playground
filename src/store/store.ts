@@ -72,14 +72,14 @@ async function rebuild(template: string, model: string, dataString: string) {
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => ({
-      backgroundColor: '#ffffff',
-      textColor: '#121212',
+      backgroundColor: "#ffffff",
+      textColor: "#121212",
       toggleDarkMode: () => {
         set((state) => {
-          const isDark = state.backgroundColor === '#121212';
+          const isDark = state.backgroundColor === "#121212";
           return {
-            backgroundColor: isDark ? '#ffffff' : '#121212',
-            textColor: isDark ? '#121212' : '#ffffff',
+            backgroundColor: isDark ? "#ffffff" : "#121212",
+            textColor: isDark ? "#121212" : "#ffffff",
           };
         });
       },
@@ -122,7 +122,11 @@ const useAppStore = create<AppState>()(
       rebuild: async () => {
         const { templateMarkdown, modelCto, data } = get();
         try {
-          const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
+          const result = await rebuildDeBounce(
+            templateMarkdown,
+            modelCto,
+            data
+          );
           set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
