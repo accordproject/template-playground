@@ -1,12 +1,16 @@
 import { create } from "zustand";
-import { AIService, type EditorType } from "../services/ai/AIService";
+import { AIService, type EditorType, type AICompletion } from "../services/ai/AIService";
 
 interface AIState {
   isProcessing: boolean;
   error: string | null;
   setProcessing: (isProcessing: boolean) => void;
   setError: (error: string | null) => void;
-  generateContent: (params: { prompt: string; editorType: EditorType; currentContent?: string }) => Promise<string>;
+  generateContent: (params: {
+    prompt: string;
+    editorType: EditorType;
+    currentContent?: string;
+  }) => Promise<AICompletion>;
 }
 
 const aiService = new AIService();

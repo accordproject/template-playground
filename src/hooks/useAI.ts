@@ -1,10 +1,9 @@
-import { useState, useCallback } from "react";
-import { AIService, type EditorType } from "../services/ai/AIService";
-
-const aiService = new AIService();
+import { useCallback } from "react";
+import { type EditorType, type AICompletion } from "../services/ai/AIService";
+import { useAIStore } from "../store/aistore";
 
 export function useAI() {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { isProcessing, generateContent } = useAIStore();
 
   const getCompletion = useCallback(
     async ({
@@ -15,20 +14,14 @@ export function useAI() {
       prompt: string;
       editorType: EditorType;
       currentContent?: string;
-    }) => {
-      setIsProcessing(true);
-      try {
-        const result = await aiService.getCompletion({
-          prompt,
-          editorType,
-          currentContent,
-        });
-        return result;
-      } finally {
-        setIsProcessing(false);
-      }
+    }): Promise<AICompletion> => {
+      return await generateContent({
+        prompt,
+        editorType,
+        currentContent,
+      });
     },
-    []
+    [generateContent]
   );
 
   return {

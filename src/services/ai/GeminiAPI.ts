@@ -6,13 +6,11 @@ export class GeminiAPI {
     currentContent,
     editorType,
     systemPrompt,
-    examples,
   }: {
     prompt: string;
     currentContent?: string;
     editorType?: string;
     systemPrompt?: string;
-    examples?: Array<{ role: string; content: string }>;
   }): Promise<string> {
     if (!this.apiKey) {
       throw new Error("Gemini API key is not configured");

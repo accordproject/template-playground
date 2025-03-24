@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Input, Select, message } from "antd";
+import { Modal, Input, message } from "antd";
 import { useAI } from "../../hooks/useAI";
 import type { EditorType } from "../../services/ai/AIService";
 
@@ -12,7 +12,6 @@ interface AICommandPaletteProps {
 }
 
 const { TextArea } = Input;
-const { Option } = Select;
 
 export function AICommandPalette({ isOpen, onClose, editorType, currentContent, onComplete }: AICommandPaletteProps) {
   const [prompt, setPrompt] = useState("");
