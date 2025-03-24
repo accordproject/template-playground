@@ -113,72 +113,86 @@ const App = () => {
     },
   ];
 
+  const HomePageContent = (
+    <div
+      style={{
+        padding: 24,
+        paddingBottom: 150,
+        minHeight: 360,
+        background: backgroundColor,
+      }}
+    >
+      <Row>
+        <Col xs={24} sm={8}>
+          <Row
+            style={{
+              marginLeft: "25px",
+              display: "flex",
+              flexDirection: "row",
+              gap: "10px",
+            }}
+          >
+            <SampleDropdown setLoading={setLoading} />
+            <UseShare />
+          </Row>
+        </Col>
+        <Col span={18}>
+          <Errors />
+        </Col>
+      </Row>
+      <div
+        style={{
+          padding: 24,
+          minHeight: 360,
+          background: backgroundColor,
+        }}
+      >
+        <Row gutter={24}>
+          <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
+            <Collapse
+              defaultActiveKey={activePanel}
+              onChange={onChange}
+              items={panels}
+            />
+          </Col>
+          <Col xs={24} sm={8}>
+            <div
+              style={{
+                marginBottom: "10px",
+              }}
+            ></div>
+            <AgreementHtml loading={loading} isModal={false} />
+          </Col>
+        </Row>
+      </div>
+      <FloatingFAB />
+    </div>
+  );
+
+  const NoPageAvailable = (
+    <div
+      style={{
+        padding: 24,
+        paddingBottom: 150,
+        minHeight: `calc(100vh - 130px)`,
+        background: backgroundColor,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <h1>No page available</h1>
+    </div>
+  );
+
   return (
     <AntdApp>
       <Layout style={{ minHeight: "100vh" }}>
         <Navbar scrollToFooter={scrollToFooter} />
         <Content>
           <Routes>
-            <Route
-              path="/"
-              element={
-                <div
-                  style={{
-                    padding: 24,
-                    paddingBottom: 150,
-                    minHeight: 360,
-                    background: backgroundColor,
-                  }}
-                >
-                  <Row>
-                    <Col xs={24} sm={8}>
-                      <Row
-                        style={{
-                          marginLeft: "25px",
-                          display: "flex",
-                          flexDirection: "row",
-                          gap: "10px",
-                        }}
-                      >
-                        <SampleDropdown setLoading={setLoading} />
-                        <UseShare />
-                      </Row>
-                    </Col>
-                    <Col span={18}>
-                      <Errors />
-                    </Col>
-                  </Row>
-                  <div
-                    style={{
-                      padding: 24,
-                      minHeight: 360,
-                      background: backgroundColor,
-                    }}
-                  >
-                    <Row gutter={24}>
-                      <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
-                        <Collapse
-                          defaultActiveKey={activePanel}
-                          onChange={onChange}
-                          items={panels}
-                        />
-                      </Col>
-                      <Col xs={24} sm={8}>
-                        <div
-                          style={{
-                            marginBottom: "10px",
-                          }}
-                        >
-                        </div>
-                        <AgreementHtml loading={loading} isModal={false} />
-                      </Col>
-                    </Row>
-                  </div>
-                  <FloatingFAB />
-                </div>
-              }
-            />
-
+            <Route path="/" element={HomePageContent} />
+            <Route path="/v1" element={HomePageContent} />
             <Route path="/learn" element={<LearnNow />}>
               {/* ❕ learning-module routes */}
               <Route path="intro" element={<LearnContent file="intro.md" />} />
@@ -195,7 +209,13 @@ const App = () => {
                 path="module3"
                 element={<LearnContent file="module3.md" />}
               />
+              <Route
+                path="module4"
+                element={<LearnContent file="module4.md" />}
+              />
             </Route>
+            {/* Catch-all route */}
+            <Route path="*" element={NoPageAvailable} />
           </Routes>
         </Content>
         <Footer />
