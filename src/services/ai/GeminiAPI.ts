@@ -21,20 +21,20 @@ export class GeminiAPI {
     try {
       const formattedPrompt = this.formatPrompt(prompt, currentContent, editorType, systemPrompt);
 
+      const contents = examples
+        ? [
+            ...examples.map((ex) => ({ role: ex.role, parts: [{ text: ex.content }] })),
+            { role: "user", parts: [{ text: formattedPrompt }] },
+          ]
+        : [{ role: "user", parts: [{ text: formattedPrompt }] }];
+
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.apiKey}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [{ text: formattedPrompt }],
-              },
-            ],
+            contents,
             generationConfig: {
               temperature: 0.7,
               maxOutputTokens: 2000,
