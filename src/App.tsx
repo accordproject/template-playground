@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import type React from "react";
+
+import { useEffect, useState, useRef } from "react";
 import { App as AntdApp, Layout, Row, Col, Collapse } from "antd";
 import { Routes, Route, useSearchParams } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -18,6 +22,24 @@ import FloatingFAB from "./components/FabButton";
 
 const { Content } = Layout;
 
+// Custom hook for media queries
+const useMediaQuery = (query: string): boolean => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+
+    const listener = () => setMatches(media.matches);
+    media.addEventListener("change", listener);
+
+    return () => media.removeEventListener("change", listener);
+  }, [matches, query]);
+
+  return matches;
+};
 
 const App = () => {
   const init = useAppStore((state) => state.init);
@@ -28,6 +50,12 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
+  // Split pane state
+  const [leftPanelWidth, setLeftPanelWidth] = useState(66); // 66% matches 16/24 col ratio
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery("(max-width: 576px)"); // sm breakpoint in Ant Design
+
   const scrollToFooter = () => {
     const exploreContent = document.getElementById("footer");
     if (exploreContent) {
@@ -35,25 +63,82 @@ const App = () => {
     }
   };
 
-
   const onChange = (key: string | string[]) => {
     setActivePanel(key);
   };
 
+  // Split pane event handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newLeftWidth =
+      ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+    // Limit the resize between 30% and 80%
+    if (newLeftWidth >= 30 && newLeftWidth <= 80) {
+      setLeftPanelWidth(newLeftWidth);
+    }
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isDragging || !containerRef.current || !e.touches[0]) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newLeftWidth =
+      ((e.touches[0].clientX - containerRect.left) / containerRect.width) * 100;
+
+    // Limit the resize between 30% and 80%
+    if (newLeftWidth >= 30 && newLeftWidth <= 80) {
+      setLeftPanelWidth(newLeftWidth);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Add event listeners for resize
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("touchmove", handleTouchMove);
+      window.addEventListener("touchend", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleMouseUp);
+    };
+  }, [isDragging]);
+
   useEffect(() => {
     const initializeApp = async () => {
-      try{
-      await init();
-      const compressedData = searchParams.get("data");
-      if (compressedData) {
-        await loadFromLink(compressedData);
+      try {
+        await init();
+        const compressedData = searchParams.get("data");
+        if (compressedData) {
+          await loadFromLink(compressedData);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
-    } catch(error){
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-      };
+    };
     void initializeApp();
 
     // DarkMode Styles
@@ -67,6 +152,35 @@ const App = () => {
   }
   .ant-collapse-content-active {
     background-color: ${backgroundColor} !important;
+  }
+  
+  /* Split pane styles */
+  .split-pane-resizer {
+    cursor: col-resize;
+    background-color: #f0f0f0;
+    position: relative;
+    z-index: 10;
+    transition: background-color 0.2s;
+    height: 100%;
+  }
+  
+  .split-pane-resizer:hover, .split-pane-resizer.dragging {
+    background-color: #d9d9d9;
+  }
+  
+  .split-pane-resizer-line {
+    background-color: #d9d9d9;
+    height: 100% !important;
+    width: 2px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .split-pane-resizer:hover .split-pane-resizer-line,
+  .split-pane-resizer.dragging .split-pane-resizer-line {
+    background-color: #1890ff;
   }
 `;
     document.head.appendChild(style);
@@ -92,8 +206,6 @@ const App = () => {
       localStorage.setItem("hasVisited", "true");
     }
   }, [searchParams]);
-
-  
 
   const panels = [
     {
@@ -155,24 +267,110 @@ const App = () => {
                       background: backgroundColor,
                     }}
                   >
-                    <Row gutter={24}>
-                      <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
-                        <Collapse
-                          defaultActiveKey={activePanel}
-                          onChange={onChange}
-                          items={panels}
-                        />
-                      </Col>
-                      <Col xs={24} sm={8}>
-                        <div
-                          style={{
-                            marginBottom: "10px",
-                          }}
-                        >
+                    {/* On mobile, use the original layout */}
+                    {isMobile ? (
+                      <Row gutter={24}>
+                        <Col xs={24} style={{ paddingBottom: "20px" }}>
+                          <Collapse
+                            defaultActiveKey={activePanel}
+                            onChange={onChange}
+                            items={panels}
+                          />
+                        </Col>
+                        <Col xs={24}>
+                          <div style={{ marginBottom: "10px" }}></div>
+                          <AgreementHtml loading={loading} isModal={false} />
+                        </Col>
+                      </Row>
+                    ) : (
+                      // On desktop, use the resizable split pane
+                      <div
+                        ref={containerRef}
+                        style={{
+                          display: "flex",
+                          position: "relative",
+                          width: "100%",
+                          gap: "0px",
+                          minHeight: "300px", // Ensure minimum height
+                          height: "auto",
+                        }}
+                      >
+                        {/* Left panel */}
+                        <div style={{ width: `${leftPanelWidth}%` }}>
+                          <Collapse
+                            defaultActiveKey={activePanel}
+                            onChange={onChange}
+                            items={panels}
+                          />
                         </div>
-                        <AgreementHtml loading={loading} isModal={false} />
-                      </Col>
-                    </Row>
+
+                        {/* Resizer */}
+                        <div
+                          className={`split-pane-resizer ${
+                            isDragging ? "dragging" : ""
+                          }`}
+                          style={{
+                            width: "12px",
+                            margin: "0 6px",
+                            height: "100%",
+                            minHeight: "100vh", // Ensure minimum height
+                          }}
+                          onMouseDown={handleMouseDown}
+                          onTouchStart={handleTouchStart}
+                        >
+                          {/* <div
+                            className="split-pane-resizer-line"
+                            style={{
+                              width: "2px",
+                              height: "100%", // Full height
+                            }}
+                          ></div> */}
+                          {/* Add drag indicator dots */}
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "3px",
+                              zIndex: 2,
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "4px",
+                                height: "4px",
+                                borderRadius: "50%",
+                                backgroundColor: "#888",
+                              }}
+                            ></div>
+                            <div
+                              style={{
+                                width: "4px",
+                                height: "4px",
+                                borderRadius: "50%",
+                                backgroundColor: "#888",
+                              }}
+                            ></div>
+                            <div
+                              style={{
+                                width: "4px",
+                                height: "4px",
+                                borderRadius: "50%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* Right panel */}
+                        <div style={{ width: `${100 - leftPanelWidth - 2}%` }}>
+                          <div style={{ marginBottom: "10px" }}></div>
+                          <AgreementHtml loading={loading} isModal={false} />
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <FloatingFAB />
                 </div>
@@ -199,7 +397,6 @@ const App = () => {
           </Routes>
         </Content>
         <Footer />
-        
       </Layout>
     </AntdApp>
   );
