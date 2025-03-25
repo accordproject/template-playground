@@ -3,17 +3,27 @@ import { NavLink } from "react-router-dom";
 
 export const SidebarContainer = styled.div`
   width: 260px;
-  background-color: var(--bg-color) !important;
+  background-color: var(--bg-color);
   padding: 1rem;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   position: relative;
   overflow-y: auto;
   border-right: 1px solid #ddd;
+  transition: transform 0.3s ease;
+
   @media (max-width: 768px) {
     width: 100%;
     height: auto;
-    position: static;
+    position: fixed !important;
+    top: 20;
+    right: 0;
+    transform: translateX(100%);
+    z-index: 999;
+  }
+
+  &.active {
+    transform: translateX(0);
   }
 `;
 
@@ -22,6 +32,22 @@ export const SidebarTitle = styled.h2`
   font-weight: 500;
   margin-bottom: 1rem;
   color: var(--text-color) !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: none;
+  color: var(--icon-color);
+
+  @media (max-width: 768px) {
+    display: block;
+  }
 `;
 
 export const SidebarList = styled.ul`
