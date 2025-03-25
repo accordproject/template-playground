@@ -18,7 +18,6 @@ import FloatingFAB from "./components/FabButton";
 
 const { Content } = Layout;
 
-
 const App = () => {
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
@@ -34,7 +33,6 @@ const App = () => {
       exploreContent.scrollIntoView({ behavior: "smooth" });
     }
   };
-
 
   const onChange = (key: string | string[]) => {
     setActivePanel(key);
@@ -92,8 +90,6 @@ const App = () => {
       localStorage.setItem("hasVisited", "true");
     }
   }, [searchParams]);
-
-  
 
   const panels = [
     {
@@ -164,12 +160,6 @@ const App = () => {
                         />
                       </Col>
                       <Col xs={24} sm={8}>
-                        <div
-                          style={{
-                            marginBottom: "10px",
-                          }}
-                        >
-                        </div>
                         <AgreementHtml loading={loading} isModal={false} />
                       </Col>
                     </Row>
@@ -199,7 +189,6 @@ const App = () => {
           </Routes>
         </Content>
         <Footer />
-        
       </Layout>
     </AntdApp>
   );
