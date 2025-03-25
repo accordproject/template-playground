@@ -115,7 +115,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
       >
         <Link
           to="/"
-          style={{ display: "flex", alignItems: "center" }}
+          style={{ display: "flex", alignItems: "center", paddingLeft: screens.md ? "": "10px" }}
         >
           <Image
             src={screens.lg ? "/logo.png" : "/accord_logo.png"}
@@ -127,7 +127,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
               maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
-          <span style={{ color: "white" }}>Template Playground</span>
+          <span style={{ color: "white", display: screens.sm ? "block" : "none"}}>Template Playground</span>
         </Link>
       </div>
       {screens.md && (
