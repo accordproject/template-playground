@@ -18,6 +18,7 @@ import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
 
+
 // markdown syntax highlighting theme
 import "highlight.js/styles/github.css";
 
