@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { debounce } from "ts-debounce";
 
 function useUndoRedo<T>(
@@ -10,6 +10,12 @@ function useUndoRedo<T>(
   const pastRef = useRef<T[]>([]);
   const futureRef = useRef<T[]>([]);
   const [present, setPresent] = useState<T>(initialValue);
+
+  useEffect(() => {
+    setPresent(initialValue);
+    pastRef.current = [];
+    futureRef.current = [];
+  }, [initialValue]);
 
   const debouncedSetValue = useCallback(
     debounce((newValue: T) => {
