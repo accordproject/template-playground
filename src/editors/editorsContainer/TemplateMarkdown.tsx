@@ -18,7 +18,7 @@ function TemplateMarkdown() {
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value); // Update editor state and sync
-      setTemplateMarkdown(value); // Additional debounce for manual edits
+      setTemplateMarkdown(value); 
     }
   };
 
