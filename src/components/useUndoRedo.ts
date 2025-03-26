@@ -1,3 +1,4 @@
+
 import { useState, useRef, useCallback, useEffect } from "react";
 import { debounce } from "ts-debounce";
 
@@ -41,6 +42,7 @@ function useUndoRedo<T>(
     if (pastRef.current.length === 0) return;
     const previous = pastRef.current.pop()!;
     futureRef.current.unshift(present);
+
     setPresent(previous);
     if (onChange) onChange(previous);
   }, [present, onChange]);

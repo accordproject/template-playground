@@ -17,8 +17,6 @@ import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
-
-// markdown syntax highlighting theme
 import "highlight.js/styles/github.css";
 
 const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
@@ -28,20 +26,21 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadContent = async (): Promise<void> => {
+    const loadContent = async () => {
       try {
         setLoading(true);
-        const content = await fetchContent(file);
-        setContent(content);
+        const contentData = await fetchContent(file);
+        setContent(contentData);
         setError(null);
-      } catch (err: unknown) {
+      } catch (err) {
         setError("Failed to load content");
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    void loadContent();
+    loadContent();
   }, [file]);
 
   const currentIndex = steps.findIndex((step) =>
