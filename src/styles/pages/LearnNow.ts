@@ -31,6 +31,10 @@ export const SidebarContainer = styled.div`
     text-decoration: none;
     color: var(--text-color) !important; 
   }
+
+  @media (max-width: 767px) {
+    display: none;
+  }
 `;
 
 export const ContentContainer = styled.div`
