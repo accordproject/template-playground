@@ -4,6 +4,7 @@ import useUndoRedo from "../../components/useUndoRedo";
 import { useCallback } from "react";
 import { debounce } from "ts-debounce";
 import { FaUndo, FaRedo } from "react-icons/fa";
+import { AIButton } from "../../components/AIAssistant/AIButton";
 
 function TemplateMarkdown() {
   const textColor = useAppStore((state) => state.textColor);
@@ -11,7 +12,7 @@ function TemplateMarkdown() {
   const templateMarkdown = useAppStore((state) => state.templateMarkdown);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
   const { value, setValue, undo, redo } = useUndoRedo(templateMarkdown, setTemplateMarkdown);
-  
+
   const debouncedSetTemplateMarkdown = useCallback(
     debounce((value: string) => {
       setTemplateMarkdown(value);
@@ -19,18 +20,22 @@ function TemplateMarkdown() {
     [setTemplateMarkdown]
   );
 
-  const handleChange = useCallback((value: string | undefined) => {
-    if (value !== undefined) {
-      setValue(value);
-      debouncedSetTemplateMarkdown(value);
-    }
-  }, [setValue, debouncedSetTemplateMarkdown]);
+  const handleChange = useCallback(
+    (value: string | undefined) => {
+      if (value !== undefined) {
+        setValue(value);
+        debouncedSetTemplateMarkdown(value);
+      }
+    },
+    [setValue, debouncedSetTemplateMarkdown]
+  );
 
   return (
     <div className="column" style={{ backgroundColor }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ color: textColor }}>TemplateMark</h3>
         <div>
+          <AIButton editorType="templatemark" currentContent={value} onComplete={handleChange} />
           <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
           <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
         </div>

@@ -2,9 +2,7 @@ import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
 import useAppStore from "../store/store";
 import { useMonaco } from "@monaco-editor/react";
 
-const MonacoEditor = lazy(() =>
-  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
-);
+const MonacoEditor = lazy(() => import("@monaco-editor/react").then((mod) => ({ default: mod.Editor })));
 
 export default function MarkdownEditor({
   value,
@@ -17,10 +15,7 @@ export default function MarkdownEditor({
   const textColor = useAppStore((state) => state.textColor);
   const monaco = useMonaco();
 
-  const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
-  );
+  const themeName = useMemo(() => (backgroundColor ? "darkTheme" : "lightTheme"), [backgroundColor]);
 
   useEffect(() => {
     if (monaco) {
