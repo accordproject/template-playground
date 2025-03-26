@@ -8,15 +8,13 @@ import { AIButton } from "../../components/AIAssistant/AIButton";
 
 function AgreementData() {
   const textColor = useAppStore((state) => state.textColor);
+  const data = useAppStore((state) => state.data);
   const setData = useAppStore((state) => state.setData);
-  const { value, setValue, undo, redo } = useUndoRedo(
-    useAppStore((state) => state.editorAgreementData),
-    setData // Pass setData to update the preview when undo/redo happens
-  );
+  const { value, setValue, undo, redo } = useUndoRedo(data, setData);
 
   const debouncedSetData = useCallback(
     debounce((value: string) => {
-      void setData(value);
+      setData(value);
     }, 500),
     [setData]
   );

@@ -8,15 +8,13 @@ import { AIButton } from "../../components/AIAssistant/AIButton";
 
 function TemplateModel() {
   const textColor = useAppStore((state) => state.textColor);
+  const modelCto = useAppStore((state) => state.modelCto);
   const setModelCto = useAppStore((state) => state.setModelCto);
-  const { value, setValue, undo, redo } = useUndoRedo(
-    useAppStore((state) => state.editorModelCto),
-    setModelCto // Ensures errors and preview update when undo/redo happens
-  );
+  const { value, setValue, undo, redo } = useUndoRedo(modelCto, setModelCto);
 
   const debouncedSetModelCto = useCallback(
     debounce((value: string) => {
-      void setModelCto(value);
+      setModelCto(value);
     }, 500),
     [setModelCto]
   );
