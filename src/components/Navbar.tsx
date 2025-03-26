@@ -165,6 +165,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
       >
         <Link
           to="/"
+          rel="noopener noreferrer"
           style={{ display: "flex", alignItems: "center" }}
         >
           <Image
@@ -178,6 +179,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             }}
           />
           <span style={{ color: "white", display: screens.lg ? "block" : "none" }}>Template Playground</span>
+
         </Link>
       </div>
       {screens.md ? (

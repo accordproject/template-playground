@@ -12,11 +12,8 @@ import { compress, decompress } from "../utils/compression/compression";
 
 interface AppState {
   templateMarkdown: string;
-  editorValue: string;
   modelCto: string;
-  editorModelCto: string;
   data: string;
-  editorAgreementData: string;
   agreementHtml: string;
   error: string | undefined;
   samples: Array<Sample>;
@@ -24,11 +21,8 @@ interface AppState {
   backgroundColor: string;
   textColor: string;
   setTemplateMarkdown: (template: string) => Promise<void>;
-  setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
-  setEditorModelCto: (value: string) => void;
   setData: (data: string) => Promise<void>;
-  setEditorAgreementData: (value: string) => void;
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
@@ -74,22 +68,10 @@ const useAppStore = create<AppState>()(
     devtools((set, get) => ({
       backgroundColor: '#ffffff',
       textColor: '#121212',
-      toggleDarkMode: () => {
-        set((state) => {
-          const isDark = state.backgroundColor === '#121212';
-          return {
-            backgroundColor: isDark ? '#ffffff' : '#121212',
-            textColor: isDark ? '#121212' : '#ffffff',
-          };
-        });
-      },
       sampleName: playground.NAME,
       templateMarkdown: playground.TEMPLATE,
-      editorValue: playground.TEMPLATE,
       modelCto: playground.MODEL,
-      editorModelCto: playground.MODEL,
       data: JSON.stringify(playground.DATA, null, 2),
-      editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       agreementHtml: "",
       error: undefined,
       samples: SAMPLES,
@@ -110,11 +92,8 @@ const useAppStore = create<AppState>()(
             agreementHtml: undefined,
             error: undefined,
             templateMarkdown: sample.TEMPLATE,
-            editorValue: sample.TEMPLATE,
             modelCto: sample.MODEL,
-            editorModelCto: sample.MODEL,
             data: JSON.stringify(sample.DATA, null, 2),
-            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
           }));
           await get().rebuild();
         }
@@ -141,9 +120,6 @@ const useAppStore = create<AppState>()(
           set(() => ({ error: formatError(error) }));
         }
       },
-      setEditorValue: (value: string) => {
-        set(() => ({ editorValue: value }));
-      },
       setModelCto: async (model: string) => {
         const { templateMarkdown, data } = get();
         try {
@@ -157,9 +133,6 @@ const useAppStore = create<AppState>()(
           set(() => ({ error: formatError(error) }));
         }
       },
-      setEditorModelCto: (value: string) => {
-        set(() => ({ editorModelCto: value }));
-      },
       setData: async (data: string) => {
         try {
           const result = await rebuildDeBounce(
@@ -167,44 +140,50 @@ const useAppStore = create<AppState>()(
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined }));
+          set(() => ({ agreementHtml: result, error: undefined, data }));
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
-        set(() => ({ data }));
-      },
-      setEditorAgreementData: (value: string) => {
-        set(() => ({ editorAgreementData: value }));
       },
       generateShareableLink: () => {
         const state = get();
-        const compressedData = compress({
+        const dataToShare = {
           templateMarkdown: state.templateMarkdown,
           modelCto: state.modelCto,
           data: state.data,
           agreementHtml: state.agreementHtml,
-        });
-        return `${window.location.origin}/v1?data=${compressedData}`;
+        };
+        const compressedData = compress(dataToShare);
+        return `${window.location.origin}?data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
         try {
-          const { templateMarkdown, modelCto, data, agreementHtml } =
-            decompress(compressedData);
+          const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
+          if (!templateMarkdown || !modelCto || !data) {
+            throw new Error("Invalid share link data");
+          }
           set(() => ({
             templateMarkdown,
-            editorValue: templateMarkdown,
             modelCto,
-            editorModelCto: modelCto,
             data,
-            editorAgreementData: data,
             agreementHtml,
             error: undefined,
           }));
+          await get().rebuild();
         } catch (error) {
           set(() => ({
-            error: "Failed to load data from the link",
+            error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),
           }));
         }
+      },
+      toggleDarkMode: () => {
+        set((state) => {
+          const isDark = state.backgroundColor === '#121212';
+          return {
+            backgroundColor: isDark ? '#ffffff' : '#121212',
+            textColor: isDark ? '#121212' : '#ffffff',
+          };
+        });
       },
     }))
   )
@@ -214,13 +193,11 @@ export default useAppStore;
 
 function formatError(error: any): string {
   console.error(error);
-  if (typeof error === "string") {
-    return error;
-  } else if (Array.isArray(error)) {
-    return error.map((e) => formatError(e)).join("\n");
-  } else if (error.code) {
+  if (typeof error === "string") return error;
+  if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
+  if (error.code) {
     const sub = error.errors ? formatError(error.errors) : "";
-    const msg = error.renderedMessage ? error.renderedMessage : "";
+    const msg = error.renderedMessage || "";
     return `Error: ${error.code} ${sub} ${msg}`;
   }
   return error.toString();
