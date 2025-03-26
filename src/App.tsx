@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Row, Col, Collapse, Spin } from "antd";
+import { App as AntdApp, Layout, Row, Col, Collapse, Spin, Grid } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -98,6 +98,9 @@ const App = () => {
     }
   }, [searchParams]);
 
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
+
   const panels = [
     {
       key: "templateMark",
@@ -140,8 +143,9 @@ const App = () => {
                 element={
                   <div
                     style={{
-                      padding: 24,
-                      paddingBottom: 150,
+                      padding: screens.md ? 24 : 0,
+                      paddingTop: screens.md ? 24 : 20,
+                      paddingBottom: screens.md ? 150 : 8,
                       minHeight: 360,
                       background: backgroundColor,
                     }}
