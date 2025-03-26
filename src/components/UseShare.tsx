@@ -9,15 +9,17 @@ const UseShare = () => {
   );
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    const link = generateShareableLink();
-    void navigator.clipboard.writeText(link).then(() => {
+  const handleCopy = async () => {
+    try {
+      const link = generateShareableLink();
+      await navigator.clipboard.writeText(link);
       setCopied(true);
-      void message.success("Link copied to clipboard!");
-      setTimeout(() => {
-        setCopied(false);
-      }, 3000);
-    });
+      message.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 3000);
+    } catch (error) {
+      message.error("Failed to copy link");
+      console.error("Clipboard error:", error);
+    }
   };
 
   return (

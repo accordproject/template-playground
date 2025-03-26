@@ -1,14 +1,22 @@
-import { useState } from 'react';
+
+import { useState,useEffect } from 'react';
+
 function useUndoRedo<T>(initialValue: T, onChange?: (value: T) => void) {
   const [past, setPast] = useState<T[]>([]);
   const [present, setPresent] = useState<T>(initialValue);
   const [future, setFuture] = useState<T[]>([]);
 
+  useEffect(() => {
+    setPresent(initialValue);
+    setPast([]);
+    setFuture([]);
+  }, [initialValue]);
+
   const setValue = (newValue: T) => {
     setPast((prevPast) => [...prevPast, present]);
     setPresent(newValue);
     setFuture([]);
-    if (onChange) onChange(newValue); // Ensure preview updates
+    if (onChange) onChange(newValue); // Sync with store
   };
 
   const undo = () => {
