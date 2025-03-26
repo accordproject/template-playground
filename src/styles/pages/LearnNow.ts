@@ -46,5 +46,8 @@ export const ContentContainer = styled.div`
   @media (max-width: 767px) {
     margin-top: 25px;
     margin-bottom: 30px;
+
+    h1 {
+      margin-top: 0;
   }
 `;
