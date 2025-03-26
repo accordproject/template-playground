@@ -26,7 +26,7 @@ const CustomFooter: React.FC = () => {
       style={{
         background: "#1b2540",
         color: "white",
-        padding: "50px 50px 20px 50px",
+        padding: screens.md ? "50px 50px 20px 50px" : "30px 20px 20px 20px",
       }}
     >
       <Row justify="space-between" align="middle" gutter={[16, 16]}>
