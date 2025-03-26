@@ -2,6 +2,10 @@ import styled from "styled-components";
 
 export const LearnNowContainer = styled.div`
   display: flex;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+  }
 `;
 
 export const SidebarContainer = styled.div`
