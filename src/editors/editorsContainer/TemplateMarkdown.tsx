@@ -6,20 +6,18 @@ import { FaUndo, FaRedo } from "react-icons/fa";
 function TemplateMarkdown() {
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const templateMarkdown = useAppStore((state) => state.templateMarkdown);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-
   const { value, setValue, undo, redo } = useUndoRedo(
-    useAppStore((state) => state.editorValue),
+    useAppStore((state) => state.templateMarkdown), 
     setTemplateMarkdown 
   );
 
-  const handleChange = useCallback((value: string | undefined) => {
+  const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value);
       setTemplateMarkdown(value);
     }
-  }, [setValue, debouncedSetTemplateMarkdown]);
+  };
 
   return (
     <div className="column" style={{ backgroundColor }}>
