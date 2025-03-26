@@ -143,8 +143,9 @@ const App = () => {
                 element={
                   <div
                     style={{
-                      padding: 24,
-                      paddingBottom: 150,
+                      padding: screens.md ? 24 : 0,
+                      paddingTop: screens.md ? 24 : 20,
+                      paddingBottom: screens.md ? 150 : 8,
                       minHeight: 360,
                       background: backgroundColor,
                     }}
