@@ -12,8 +12,11 @@ import { compress, decompress } from "../utils/compression/compression";
 
 interface AppState {
   templateMarkdown: string;
+  editorValue: string;
   modelCto: string;
+  editorModelCto: string;
   data: string;
+  editorAgreementData: string;
   agreementHtml: string;
   error: string | undefined;
   samples: Array<Sample>;
@@ -21,8 +24,11 @@ interface AppState {
   backgroundColor: string;
   textColor: string;
   setTemplateMarkdown: (template: string) => Promise<void>;
+  setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
+  setEditorModelCto: (value: string) => void;
   setData: (data: string) => Promise<void>;
+  setEditorAgreementData: (value: string) => void;
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
@@ -70,8 +76,11 @@ const useAppStore = create<AppState>()(
       textColor: '#121212',
       sampleName: playground.NAME,
       templateMarkdown: playground.TEMPLATE,
+      editorValue: playground.TEMPLATE,
       modelCto: playground.MODEL,
+      editorModelCto: playground.MODEL,
       data: JSON.stringify(playground.DATA, null, 2),
+      editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       agreementHtml: "",
       error: undefined,
       samples: SAMPLES,
@@ -92,8 +101,11 @@ const useAppStore = create<AppState>()(
             agreementHtml: undefined,
             error: undefined,
             templateMarkdown: sample.TEMPLATE,
+            editorValue: sample.TEMPLATE,
             modelCto: sample.MODEL,
+            editorModelCto: sample.MODEL,
             data: JSON.stringify(sample.DATA, null, 2),
+            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
           }));
           await get().rebuild();
         }
@@ -102,58 +114,61 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined }));
+          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
       },
       setTemplateMarkdown: async (template: string) => {
+        set(() => ({ templateMarkdown: template }));
         const { modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({
-            templateMarkdown: template,
-            agreementHtml: result,
-            error: undefined,
-          }));
+          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
       },
+      setEditorValue: (value: string) => {
+        set(() => ({ editorValue: value }));
+      },
       setModelCto: async (model: string) => {
+        set(() => ({ modelCto: model }));
         const { templateMarkdown, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({
-            modelCto: model,
-            agreementHtml: result,
-            error: undefined,
-          }));
+          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
       },
+      setEditorModelCto: (value: string) => {
+        set(() => ({ editorModelCto: value }));
+      },
       setData: async (data: string) => {
+        set(() => ({ data }));
         try {
           const result = await rebuildDeBounce(
             get().templateMarkdown,
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined, data }));
+          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
       },
+      setEditorAgreementData: (value: string) => {
+        set(() => ({ editorAgreementData: value }));
+      },
       generateShareableLink: () => {
         const state = get();
-        const dataToShare = {
+        const compressedData = compress({
           templateMarkdown: state.templateMarkdown,
           modelCto: state.modelCto,
           data: state.data,
           agreementHtml: state.agreementHtml,
-        };
-        const compressedData = compress(dataToShare);
+        });
         return `${window.location.origin}?data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
@@ -164,8 +179,11 @@ const useAppStore = create<AppState>()(
           }
           set(() => ({
             templateMarkdown,
+            editorValue: templateMarkdown,
             modelCto,
+            editorModelCto: modelCto,
             data,
+            editorAgreementData: data,
             agreementHtml,
             error: undefined,
           }));
