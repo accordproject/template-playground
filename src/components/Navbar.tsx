@@ -9,6 +9,7 @@ import {
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
+  MenuOutlined
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
@@ -34,6 +35,55 @@ function Navbar({ scrollToFooter }: NavbarProps) {
     ],
     config: { duration: 1000 },
   });
+
+  const mobileMenu = (
+    <Menu>
+      <Menu.Item key="home">
+        <Link to="/">
+          Template Playground
+        </Link>
+      </Menu.Item>
+      <Menu.Item key="explore" onClick={scrollToFooter}>
+        Explore
+      </Menu.Item>
+      <Menu.Item key="about">
+        <a
+          href="https://github.com/accordproject/template-playground/blob/main/README.md"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <QuestionOutlined /> About
+        </a>
+      </Menu.Item>
+      <Menu.Item key="community">
+        <a
+          href="https://discord.com/invite/Zm99SKhhtA"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <UserOutlined /> Community
+        </a>
+      </Menu.Item>
+      <Menu.Item key="issues">
+        <a
+          href="https://github.com/accordproject/template-playground/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <InfoOutlined /> Issues
+        </a>
+      </Menu.Item>
+      <Menu.Item key="documentation">
+        <a
+          href="https://github.com/accordproject/template-engine/blob/main/README.md"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <BookOutlined /> Documentation
+        </a>
+      </Menu.Item>
+    </Menu>
+  );
 
   const helpMenu = (
     <Menu>
@@ -101,8 +151,8 @@ function Navbar({ scrollToFooter }: NavbarProps) {
         lineHeight: "65px",
         display: "flex",
         alignItems: "center",
-        paddingLeft: screens.md ? 40 : 10,
-        paddingRight: screens.md ? 40 : 10,
+        paddingLeft: screens.lg ? 40 : screens.md ? 10 : 10,
+        paddingRight: screens.lg ? 40 : screens.md ? 10 : 10,
       }}
     >
       <div
@@ -123,16 +173,16 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             alt="Template Playground"
             preview={false}
             style={{
-              paddingRight: screens.md ? "24px" : "10px",
+              paddingRight: screens.md ? "8px" : "2px",
               height: "26px",
               maxWidth: screens.md ? "184.17px" : "36.67px",
             }}
           />
-           <span style={{ color: "white", whiteSpace: "nowrap" }}>Template Playground</span>
+          <span style={{ color: "white", display: screens.lg ? "block" : "none" }}>Template Playground</span>
 
         </Link>
       </div>
-      {screens.md && (
+      {screens.md ? (
         <>
           <div
             style={{
@@ -172,6 +222,23 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             </Dropdown>
           </div>
         </>
+      ) : (
+        <div style={{ marginLeft: "5px" }}>
+          <Dropdown overlay={mobileMenu} trigger={["click"]}>
+            <Button
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "white",
+                height: "65px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <MenuOutlined style={{ fontSize: "20px" }} />
+            </Button>
+          </Dropdown>
+        </div>
       )}
       <div
         style={{
@@ -179,20 +246,19 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           marginLeft: "auto",
           alignItems: "center",
           height: "65px",
+          gap: screens.md ? "20px" : "10px",
+          marginRight: screens.md ? 0 : "5px"
         }}
       >
-        <div>
+        <div style={{ marginLeft: screens.md ? 0 : "auto" }}>
           <ToggleDarkMode />
         </div>
         {!isLearnPage && (
           <div
             style={{
-              marginLeft: screens.md ? "20px" : "0",
               height: "65px",
               display: "flex",
               justifyContent: "center",
-              paddingLeft: "15px",
-              borderRadius: "5px",
               alignItems: "center",
               backgroundColor:
                 hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
@@ -210,7 +276,6 @@ function Navbar({ scrollToFooter }: NavbarProps) {
                   color: "#050c40",
                   border: "none",
                   borderRadius: "5px",
-                  marginRight: "15px",
                   cursor: "pointer",
                 }}
               >
@@ -230,7 +295,8 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             borderLeft: screens.md
               ? "1.5px solid rgba(255, 255, 255, 0.1)"
               : "none",
-            paddingLeft: screens.md ? "20px" : "0",
+            paddingLeft: screens.md ? 16 : 5,
+            paddingRight: screens.md ? 16 : 5,
             backgroundColor:
               hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
             cursor: "pointer",
@@ -251,7 +317,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
                 marginRight: screens.md ? "5px" : "0",
               }}
             />
-            {screens.md && <span>Github</span>}
+            <span style={{ display: screens.md ? "inline" : "none" }}>Github</span>
           </a>
         </div>
       </div>
