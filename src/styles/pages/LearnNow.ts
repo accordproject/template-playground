@@ -42,4 +42,9 @@ export const ContentContainer = styled.div`
   padding: 20px;
   background-color: var(--bg-color) !important; 
   color: var(--text-color) !important;
+
+  @media (max-width: 767px) {
+    margin-top: 25px;
+    margin-bottom: 30px;
+  }
 `;
