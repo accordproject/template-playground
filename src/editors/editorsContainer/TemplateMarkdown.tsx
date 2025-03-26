@@ -9,13 +9,13 @@ function TemplateMarkdown() {
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
   const { value, setValue, undo, redo } = useUndoRedo(
     useAppStore((state) => state.editorValue),
-    setTemplateMarkdown // Ensures preview updates when undo/redo happens
+    setTemplateMarkdown 
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value);
-      setTemplateMarkdown(value); // Call setTemplateMarkdown directly
+      setTemplateMarkdown(value);
     }
   };
 

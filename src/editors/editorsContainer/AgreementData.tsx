@@ -8,13 +8,13 @@ function AgreementData() {
   const setData = useAppStore((state) => state.setData);
   const { value, setValue, undo, redo } = useUndoRedo(
     useAppStore((state) => state.editorAgreementData),
-    setData // Pass setData to update the preview when undo/redo happens
+    setData 
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value);
-      setData(value); // Call setData directly
+      setData(value); 
     }
   };
 

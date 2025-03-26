@@ -8,13 +8,13 @@ function TemplateModel() {
   const setModelCto = useAppStore((state) => state.setModelCto);
   const { value, setValue, undo, redo } = useUndoRedo(
     useAppStore((state) => state.editorModelCto),
-    setModelCto // Ensures errors and preview update when undo/redo happens
+    setModelCto 
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value);
-      setModelCto(value); // Call setModelCto directly
+      setModelCto(value); 
     }
   };
 
