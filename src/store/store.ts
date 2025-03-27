@@ -292,7 +292,15 @@ set(() => ({
         }
       },
       resetEditor: async () => {
+        const sample = SAMPLES.find((s) => s.NAME === get().sampleName);
         localStorage.removeItem(STORAGE_KEY);
+        set(() => ({
+          templateMarkdown: sample?.TEMPLATE || '',
+          editorValue: sample?.TEMPLATE || ''
+        }));
+  const url = new URL(window.location.href);
+  url.searchParams.delete('data');
+  window.history.replaceState({}, '', url);
         const currentState = get();
         const currentSample = SAMPLES.find((s) => s.NAME === currentState.sampleName);
         if (currentSample) {
@@ -306,8 +314,7 @@ set(() => ({
             editorAgreementData: JSON.stringify(currentSample.DATA, null, 2),
             lastSavedAt: new Date().toISOString(),
             error: undefined,
-            agreementHtml: "",
-            forceRefresh: Date.now()
+            agreementHtml: ""
           }));
           await get().rebuild();
         }
