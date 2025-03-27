@@ -8,15 +8,32 @@ import {
   SidebarLink,
   HelperBox,
   HelperIcon,
-  HelperText,
   DividerLine,
 } from "../styles/components/Sidebar";
 import { BulbOutlined } from "@ant-design/icons";
+import styled from "styled-components";
 
 interface SidebarProps {
   steps: { title: string; link: string }[];
 }
 const Sidebar: React.FC<SidebarProps> = ({ steps }) => {
+  const HelperText = styled.div`
+  flex: 1;
+  color: #333;
+
+  a {
+    color: #19c6c7 !important;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  & > a {
+    margin-left: 0.25rem;
+  }
+`;
   return (
     <SidebarContainer>
       <SidebarTitle>Learning Pathway</SidebarTitle>

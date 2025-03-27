@@ -76,23 +76,6 @@ export const HelperIcon = styled.div`
   color: #19c6c7;
 `;
 
-export const HelperText = styled.div`
-  flex: 1;
-  color: #333;
-
-  a {
-    color: #19c6c7 !important;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  & > a {
-    margin-left: 0.25rem;
-  }
-`;
 
 export const DividerLine = styled.div`
   height: 1px;
