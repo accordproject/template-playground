@@ -178,7 +178,7 @@ const App = () => {
       defaultActiveKey={activePanel}
       onChange={onChange}
       items={panels}
-      style={{ paddingBottom: "20px" }}
+     style={{ marginBottom: "24px" }}
     />
   }
   rightPane={<AgreementHtml loading={loading} isModal={false} />}

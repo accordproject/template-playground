@@ -54,11 +54,11 @@ const ResizableContainer: React.FC<ResizableContainerProps> = ({
     };
   }, [minLeftWidth, minRightWidth]);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 320);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 575);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 320);
+      setIsMobile(window.innerWidth <= 575);
     };
 
     window.addEventListener('resize', handleResize);
