@@ -8,8 +8,9 @@ const ToggleDarkMode: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(backgroundColor === "#121212");
 
   useEffect(() => {
-    setIsDarkMode(backgroundColor === "#121212");
-  }, [backgroundColor]);
+    const savedTheme = localStorage.getItem('theme');
+    setIsDarkMode(savedTheme === 'dark');
+  }, []);
 
   const handleChange = () => {
     toggleDarkMode();
