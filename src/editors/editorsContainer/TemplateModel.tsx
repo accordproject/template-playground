@@ -1,19 +1,23 @@
 import ConcertoEditor from "../ConcertoEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
+
 import { FaUndo, FaRedo } from "react-icons/fa";
 
 function TemplateModel() {
   const textColor = useAppStore((state) => state.textColor);
+  const editorModelCto = useAppStore((state) => state.editorModelCto);
+  const setEditorModelCto = useAppStore((state) => state.setEditorModelCto);
   const setModelCto = useAppStore((state) => state.setModelCto);
   const { value, setValue, undo, redo } = useUndoRedo(
-    useAppStore((state) => state.modelCto),
-    setModelCto 
+    editorModelCto,
+    setEditorModelCto,
+    setModelCto // Sync to main state and rebuild
   );
-
+ 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
-      setValue(value);
+      setValue(value); // Update editor state and sync
       setModelCto(value); 
     }
   };
