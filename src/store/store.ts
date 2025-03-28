@@ -89,7 +89,9 @@ const useAppStore = create<AppState>()(
         const compressedData = params.get("data");
         if (compressedData) {
           await get().loadFromLink(compressedData);
-        } 
+        } else {
+          await get().loadSample(playground.NAME);
+        }
       },
       loadSample: async (name: string) => {
         const sample = SAMPLES.find((s) => s.NAME === name);
