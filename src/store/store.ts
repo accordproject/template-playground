@@ -292,31 +292,41 @@ set(() => ({
         }
       },
       resetEditor: async () => {
-        const sample = SAMPLES.find((s) => s.NAME === get().sampleName);
-        localStorage.removeItem(STORAGE_KEY);
-        set(() => ({
-          templateMarkdown: sample?.TEMPLATE || '',
-          editorValue: sample?.TEMPLATE || ''
-        }));
-  const url = new URL(window.location.href);
-  url.searchParams.delete('data');
-  window.history.replaceState({}, '', url);
-        const currentState = get();
-        const currentSample = SAMPLES.find((s) => s.NAME === currentState.sampleName);
-        if (currentSample) {
-          get().pushState(get());
-set(() => ({
+        try {
+          const currentState = get();
+          const currentSample = SAMPLES.find((s) => s.NAME === currentState.sampleName) || SAMPLES[0];
+          
+          // Reset template-related states
+          const lastSavedAt = new Date().toISOString();
+          
+          // Clear history first
+          set(() => ({
+            history: { states: [], currentIndex: -1 }
+          }));
+
+          // Reset to initial state
+          set(() => ({
             templateMarkdown: currentSample.TEMPLATE,
             editorValue: currentSample.TEMPLATE,
-            modelCto: currentSample.MODEL,
-            editorModelCto: currentSample.MODEL,
-            data: JSON.stringify(currentSample.DATA, null, 2),
-            editorAgreementData: JSON.stringify(currentSample.DATA, null, 2),
-            lastSavedAt: new Date().toISOString(),
-            error: undefined,
-            agreementHtml: ""
+            modelCto: currentSample.MODEL,  // Reset to sample's model
+            editorModelCto: currentSample.MODEL,  // Reset to sample's model
+            data: JSON.stringify(currentSample.DATA, null, 2),  // Reset to sample's data
+            editorAgreementData: JSON.stringify(currentSample.DATA, null, 2),  // Reset to sample's data
+            sampleName: currentState.sampleName,
+            lastSavedAt,
+            agreementHtml: "",  // Clear the HTML output
+            error: undefined
           }));
+
+          // Persist the reset state
+          persistState(get());
+          
+          // Rebuild with the reset state
           await get().rebuild();
+        } catch (error) {
+          set(() => ({
+            error: formatError(error)
+          }));
         }
       },
       setModelCto: async (model: string) => {

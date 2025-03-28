@@ -4,6 +4,7 @@ import useUndoRedo from "../../components/useUndoRedo";
 import { FaUndo, FaRedo } from "react-icons/fa";
 import { Button, Tooltip } from "antd";
 import { RedoOutlined } from "@ant-design/icons";
+import { SAMPLES } from "../../samples";
 
 function TemplateMarkdown() {
   const textColor = useAppStore((state) => state.textColor);
@@ -11,7 +12,8 @@ function TemplateMarkdown() {
   const editorValue = useAppStore((state) => state.editorValue);
   const setEditorValue = useAppStore((state) => state.setEditorValue);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-  const { value, setValue, undo, redo } = useUndoRedo(
+  const sampleName = useAppStore((state) => state.sampleName);
+  const { value, setValue, undo, redo, reset } = useUndoRedo(
     editorValue,
     setEditorValue,
     setTemplateMarkdown // Sync to main state and rebuild
@@ -26,8 +28,15 @@ function TemplateMarkdown() {
 
   const resetEditor = useAppStore((state) => state.resetEditor);
 
-  const handleReset = () => {
-    resetEditor();
+  const handleReset = async () => {
+    try {
+      await resetEditor();
+      const currentSample = SAMPLES.find((s) => s.NAME === sampleName) || SAMPLES[0];
+      reset(currentSample.TEMPLATE);
+      setTemplateMarkdown(currentSample.TEMPLATE);
+    } catch (error) {
+      console.error('Error resetting editor:', error);
+    }
   };
 
   return (
