@@ -1,3 +1,4 @@
+import React from "react";
 import { Button, Dropdown, Space, message, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { useCallback, useMemo, useState } from "react";
@@ -5,7 +6,7 @@ import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
-function SampleDropdown({
+const SampleDropdown = React.memo(function SampleDropdown({
   setLoading,
 }: {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -60,6 +61,5 @@ function SampleDropdown({
       </Dropdown>
     </Space>
   );
-}
-
+})
 export default SampleDropdown;

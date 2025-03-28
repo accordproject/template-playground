@@ -89,9 +89,7 @@ const useAppStore = create<AppState>()(
         const compressedData = params.get("data");
         if (compressedData) {
           await get().loadFromLink(compressedData);
-        } else {
-          await get().rebuild();
-        }
+        } 
       },
       loadSample: async (name: string) => {
         const sample = SAMPLES.find((s) => s.NAME === name);
@@ -107,76 +105,92 @@ const useAppStore = create<AppState>()(
             data: JSON.stringify(sample.DATA, null, 2),
             editorAgreementData: JSON.stringify(sample.DATA, null, 2),
           }));
-          await get().rebuild();
+          get().rebuild();
+          
         }
       },
       rebuild: async () => {
         const { templateMarkdown, modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
         }
       },
       setTemplateMarkdown: async (template: string) => {
-        set(() => ({ templateMarkdown: template }));
+        set(() => ({
+  templateMarkdown: template,
+  editorValue: template 
+}));
         const { modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
         }
       },
       setEditorValue: (value: string) => {
         set(() => ({ editorValue: value }));
       },
       setModelCto: async (model: string) => {
-        set(() => ({ modelCto: model }));
+        set(() => ({
+  modelCto: model,
+  editorModelCto: model 
+}));
         const { templateMarkdown, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
         }
       },
       setEditorModelCto: (value: string) => {
         set(() => ({ editorModelCto: value }));
       },
       setData: async (data: string) => {
-        set(() => ({ data }));
+        set(() => ({
+  data,
+  editorAgreementData: data 
+}));
         try {
           const result = await rebuildDeBounce(
             get().templateMarkdown,
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
         }
       },
       setEditorAgreementData: (value: string) => {
         set(() => ({ editorAgreementData: value }));
       },
       generateShareableLink: () => {
-        const state = get();
-        const compressedData = compress({
-          templateMarkdown: state.templateMarkdown,
-          modelCto: state.modelCto,
-          data: state.data,
-          agreementHtml: state.agreementHtml,
-        });
-        return `${window.location.origin}?data=${compressedData}`;
+        try {
+          const state = get();
+          const compressedData = compress({
+            templateMarkdown: state.templateMarkdown,
+            modelCto: state.modelCto,
+            data: state.data,
+            agreementHtml: state.agreementHtml,
+          });
+          return `${window.location.origin}?data=${compressedData}`;
+        } catch (error) {
+          set(() => ({ error: 'Failed to generate share link: ' + (error instanceof Error ? error.message : 'Unknown error') }));
+          return window.location.href;
+        }
       },
       loadFromLink: async (compressedData: string) => {
         try {
-          const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
-          if (!templateMarkdown || !modelCto || !data) {
-            throw new Error("Invalid share link data");
+          const decompressed = decompress(compressedData);
+          if (!decompressed?.templateMarkdown || !decompressed?.modelCto || !decompressed?.data) {
+            throw new Error("Invalid share link - missing required fields");
           }
+          const { templateMarkdown, modelCto, data, agreementHtml } = decompressed;
           set(() => ({
             templateMarkdown,
             editorValue: templateMarkdown,
@@ -185,9 +199,9 @@ const useAppStore = create<AppState>()(
             data,
             editorAgreementData: data,
             agreementHtml,
-            error: undefined,
+            error: undefined
           }));
-          await get().rebuild();
+         
         } catch (error) {
           set(() => ({
             error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),
@@ -209,15 +223,3 @@ const useAppStore = create<AppState>()(
 
 
 export default useAppStore;
-
-function formatError(error: any): string {
-  console.error(error);
-  if (typeof error === "string") return error;
-  if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
-  if (error.code) {
-    const sub = error.errors ? formatError(error.errors) : "";
-    const msg = error.renderedMessage || "";
-    return `Error: ${error.code} ${sub} ${msg}`;
-  }
-  return error.toString();
-}
