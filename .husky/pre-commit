@@ -1,0 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running ESLint & Prettier..."
+
+npx lint-staged
+
+echo "🧪 Running Unit Tests..."
+npm run test
