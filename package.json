@@ -13,7 +13,17 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "npm run test:unit",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.{json,md,css,scss,html,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@accordproject/concerto-core": "^3.11.1",
@@ -72,7 +82,9 @@
     "eslint": "^8.44.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
+    "husky": "^9.1.7",
     "jsdom": "^24.1.0",
+    "lint-staged": "^15.5.0",
     "module": "^1.2.5",
     "rollup-plugin-ignore": "^1.0.10",
     "rollup-plugin-polyfill-node": "^0.12.0",
