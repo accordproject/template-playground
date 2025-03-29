@@ -16,6 +16,7 @@ import SampleDropdown from "./components/SampleDropdown";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
 import FloatingFAB from "./components/FabButton";
+import ResizableContainer from "./components/ResizableContainer";
 
 const { Content } = Layout;
 
@@ -171,18 +172,20 @@ const App = () => {
                         background: backgroundColor,
                       }}
                     >
-                      <Row gutter={24}>
-                        <Col xs={24} sm={16} style={{ paddingBottom: "20px" }}>
-                          <Collapse
-                            defaultActiveKey={activePanel}
-                            onChange={onChange}
-                            items={panels}
-                          />
-                        </Col>
-                        <Col xs={24} sm={8}>
-                          <AgreementHtml loading={loading} isModal={false} />
-                        </Col>
-                      </Row>
+                      <ResizableContainer
+  leftPane={
+    <Collapse
+      defaultActiveKey={activePanel}
+      onChange={onChange}
+      items={panels}
+     style={{ marginBottom: "24px" }}
+    />
+  }
+  rightPane={<AgreementHtml loading={loading} isModal={false} />}
+  initialLeftWidth={66}
+  minLeftWidth={30}
+  minRightWidth={30}
+/>
                     </div>
                     <FloatingFAB />
                   </div>
