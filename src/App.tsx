@@ -128,6 +128,7 @@ const App = () => {
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
+                background: backgroundColor,
                 minHeight: "calc(100vh - 64px - 70px)", // Adjust for Navbar and Footer height
               }}
             >
