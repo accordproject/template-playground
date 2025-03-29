@@ -87,6 +87,21 @@ const useAppStore = create<AppState>()(
       init: async () => {
         const params = new URLSearchParams(window.location.search);
         const compressedData = params.get("data");
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+          set(() => ({
+            backgroundColor: '#121212',
+            textColor: '#ffffff',
+          }));
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+        else {
+          set(() => ({
+            backgroundColor: '#ffffff',
+            textColor: '#121212',
+          }));
+          document.documentElement.setAttribute("data-theme", "light");
+        }
         if (compressedData) {
           await get().loadFromLink(compressedData);
         } else {
@@ -197,9 +212,14 @@ const useAppStore = create<AppState>()(
       toggleDarkMode: () => {
         set((state) => {
           const isDark = state.backgroundColor === '#121212';
+          const newBackgroundColor = isDark ? '#ffffff' : '#121212';
+          const newTextColor = isDark ? '#121212' : '#ffffff';
+
+          localStorage.setItem('theme', isDark ? 'light' : 'dark');
+      
           return {
-            backgroundColor: isDark ? '#ffffff' : '#121212',
-            textColor: isDark ? '#121212' : '#ffffff',
+            backgroundColor: newBackgroundColor,
+            textColor: newTextColor,
           };
         });
       },
