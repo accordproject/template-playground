@@ -23,6 +23,7 @@ interface AppState {
   sampleName: string;
   backgroundColor: string;
   textColor: string;
+  isLoading: boolean;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
@@ -43,8 +44,6 @@ export interface DecompressedData {
   data: string;
   agreementHtml: string;
 }
-
-const rebuildDeBounce = debounce(rebuild, 500);
 
 async function rebuild(template: string, model: string, dataString: string) {
   const modelManager = new ModelManager({ strict: true });
@@ -69,6 +68,11 @@ async function rebuild(template: string, model: string, dataString: string) {
   );
 }
 
+const rebuildDeBounce = debounce(async (template: string, model: string, data: string) => {
+  const result = await rebuild(template, model, data);
+  return result;
+}, 500);
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => ({
@@ -83,6 +87,7 @@ const useAppStore = create<AppState>()(
       editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       agreementHtml: "",
       error: undefined,
+      isLoading: false,
       samples: SAMPLES,
       init: async () => {
         const params = new URLSearchParams(window.location.search);
@@ -90,7 +95,7 @@ const useAppStore = create<AppState>()(
         if (compressedData) {
           await get().loadFromLink(compressedData);
         } else {
-          await get().rebuild();
+          await get().loadSample(playground.NAME);
         }
       },
       loadSample: async (name: string) => {
@@ -107,24 +112,33 @@ const useAppStore = create<AppState>()(
             data: JSON.stringify(sample.DATA, null, 2),
             editorAgreementData: JSON.stringify(sample.DATA, null, 2),
           }));
-          await get().rebuild();
+          get().rebuild();
         }
       },
       rebuild: async () => {
-        const { templateMarkdown, modelCto, data } = get();
+        set(() => ({ isLoading: true }));
         try {
-          const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          const result = await rebuildDeBounce(
+            get().templateMarkdown,
+            get().modelCto,
+            get().data
+          );
+          set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
+        } finally {
+          set(() => ({ isLoading: false }));
         }
       },
       setTemplateMarkdown: async (template: string) => {
-        set(() => ({ templateMarkdown: template }));
+        set(() => ({
+  templateMarkdown: template,
+  editorValue: template 
+}));
         const { modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
@@ -133,11 +147,14 @@ const useAppStore = create<AppState>()(
         set(() => ({ editorValue: value }));
       },
       setModelCto: async (model: string) => {
-        set(() => ({ modelCto: model }));
+        set(() => ({
+  modelCto: model,
+  editorModelCto: model 
+}));
         const { templateMarkdown, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
@@ -146,14 +163,17 @@ const useAppStore = create<AppState>()(
         set(() => ({ editorModelCto: value }));
       },
       setData: async (data: string) => {
-        set(() => ({ data }));
+        set(() => ({
+  data,
+  editorAgreementData: data 
+}));
         try {
           const result = await rebuildDeBounce(
             get().templateMarkdown,
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
@@ -162,21 +182,27 @@ const useAppStore = create<AppState>()(
         set(() => ({ editorAgreementData: value }));
       },
       generateShareableLink: () => {
-        const state = get();
-        const compressedData = compress({
-          templateMarkdown: state.templateMarkdown,
-          modelCto: state.modelCto,
-          data: state.data,
-          agreementHtml: state.agreementHtml,
-        });
-        return `${window.location.origin}?data=${compressedData}`;
+        try {
+          const state = get();
+          const compressedData = compress({
+            templateMarkdown: state.templateMarkdown,
+            modelCto: state.modelCto,
+            data: state.data,
+            agreementHtml: state.agreementHtml,
+          });
+          return `${window.location.origin}?data=${compressedData}`;
+        } catch (error) {
+          set(() => ({ error: 'Failed to generate share link: ' + (error instanceof Error ? error.message : 'Unknown error') }));
+          return window.location.href;
+        }
       },
       loadFromLink: async (compressedData: string) => {
         try {
-          const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
-          if (!templateMarkdown || !modelCto || !data) {
-            throw new Error("Invalid share link data");
+          const decompressed = decompress(compressedData);
+          if (!decompressed?.templateMarkdown || !decompressed?.modelCto || !decompressed?.data) {
+            throw new Error("Invalid share link - missing required fields");
           }
+          const { templateMarkdown, modelCto, data, agreementHtml } = decompressed;
           set(() => ({
             templateMarkdown,
             editorValue: templateMarkdown,
@@ -185,9 +211,9 @@ const useAppStore = create<AppState>()(
             data,
             editorAgreementData: data,
             agreementHtml,
-            error: undefined,
+            error: undefined
           }));
-          await get().rebuild();
+         
         } catch (error) {
           set(() => ({
             error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),

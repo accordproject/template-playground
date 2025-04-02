@@ -4,10 +4,11 @@ import { Spin } from "antd";
 import useAppStore from "./store/store";
 import FullScreenModal from "./components/FullScreenModal";
 
-function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boolean }) {
+function AgreementHtml({ isModal }: { isModal?: boolean; loading?: boolean }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
+  const isLoading = useAppStore((state) => state.isLoading);
 
   return (
     <div
@@ -38,9 +39,9 @@ function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boole
       <p style={{ textAlign: "center", color: textColor }}>
         The result of merging the JSON data with the template.
       </p>
-      {loading ? (
-        <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <Spin indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />} />
+      {isLoading ? (
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+          <Spin indicator={<LoadingOutlined style={{ fontSize: 42, color: '#19c6c7' }} spin />} />
         </div>
       ) : (
         <div
