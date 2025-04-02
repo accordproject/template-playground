@@ -2,6 +2,7 @@ import MarkdownEditor from "../MarkdownEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
 import { FaUndo, FaRedo } from "react-icons/fa";
+import { AIButton } from "../../components/AIAssistant/AIButton";
 
 function TemplateMarkdown() {
   const textColor = useAppStore((state) => state.textColor);
@@ -18,7 +19,7 @@ function TemplateMarkdown() {
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value); // Update editor state and sync
-      setTemplateMarkdown(value); 
+      setTemplateMarkdown(value);
     }
   };
 
@@ -27,6 +28,7 @@ function TemplateMarkdown() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ color: textColor }}>TemplateMark</h3>
         <div>
+          <AIButton editorType="templatemark" currentContent={value} onComplete={handleChange} />
           <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
           <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
         </div>
