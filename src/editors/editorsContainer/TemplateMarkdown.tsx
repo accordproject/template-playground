@@ -1,34 +1,27 @@
 import MarkdownEditor from "../MarkdownEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
-import { useCallback } from "react";
-import { debounce } from "ts-debounce";
 import { FaUndo, FaRedo } from "react-icons/fa";
 import { AIButton } from "../../components/AIAssistant/AIButton";
 
 function TemplateMarkdown() {
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const templateMarkdown = useAppStore((state) => state.templateMarkdown);
+  const editorValue = useAppStore((state) => state.editorValue);
+  const setEditorValue = useAppStore((state) => state.setEditorValue);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-  const { value, setValue, undo, redo } = useUndoRedo(templateMarkdown, setTemplateMarkdown);
+  const { value, setValue, undo, redo } = useUndoRedo(
+    editorValue,
+    setEditorValue,
+    setTemplateMarkdown // Sync to main state and rebuild
+  );
 
-  const debouncedSetTemplateMarkdown = useCallback(
-    debounce((value: string) => {
+  const handleChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      setValue(value); // Update editor state and sync
       setTemplateMarkdown(value);
-    }, 500),
-    [setTemplateMarkdown]
-  );
-
-  const handleChange = useCallback(
-    (value: string | undefined) => {
-      if (value !== undefined) {
-        setValue(value);
-        debouncedSetTemplateMarkdown(value);
-      }
-    },
-    [setValue, debouncedSetTemplateMarkdown]
-  );
+    }
+  };
 
   return (
     <div className="column" style={{ backgroundColor }}>

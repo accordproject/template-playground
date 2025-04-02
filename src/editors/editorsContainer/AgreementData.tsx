@@ -1,28 +1,25 @@
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
-import { useCallback } from "react";
-import { debounce } from "ts-debounce";
+
 import { FaUndo, FaRedo } from "react-icons/fa";
 import { AIButton } from "../../components/AIAssistant/AIButton";
 
 function AgreementData() {
   const textColor = useAppStore((state) => state.textColor);
-  const data = useAppStore((state) => state.data);
+  const editorAgreementData = useAppStore((state) => state.editorAgreementData);
+  const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
   const setData = useAppStore((state) => state.setData);
-  const { value, setValue, undo, redo } = useUndoRedo(data, setData);
-
-  const debouncedSetData = useCallback(
-    debounce((value: string) => {
-      setData(value);
-    }, 500),
-    [setData]
+  const { value, setValue, undo, redo } = useUndoRedo(
+    editorAgreementData,
+    setEditorAgreementData,
+    setData // Sync to main state and rebuild
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
-      setValue(value);
-      debouncedSetData(value);
+      setValue(value); // Update editor state and sync
+      setData(value); 
     }
   };
 

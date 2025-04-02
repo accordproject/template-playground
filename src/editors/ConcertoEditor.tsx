@@ -48,6 +48,26 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
     mimetypes: ["application/vnd.accordproject.concerto"],
   });
 
+  monacoInstance.languages.setLanguageConfiguration("concerto", {
+    brackets: [
+      ["{", "}"],
+      ["[", "]"],
+      ["(", ")"],
+    ],
+    autoClosingPairs: [
+      { open: "{", close: "}" },
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
+      { open: "\"", close: "\"" },
+    ],
+    surroundingPairs: [
+      { open: "{", close: "}" },
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
+      { open: "\"", close: "\"" },
+    ],
+  });
+
   monacoInstance.languages.setMonarchTokensProvider("concerto", {
     keywords: concertoKeywords,
     typeKeywords: concertoTypes,
@@ -125,6 +145,9 @@ export default function ConcertoEditor({
     wordWrap: "on",
     automaticLayout: true,
     scrollBeyondLastLine: false,
+    autoClosingBrackets: "languageDefined",
+    autoSurround: "languageDefined",
+    bracketPairColorization: { enabled: true },
   };
 
   const handleChange = useCallback(

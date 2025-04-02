@@ -7,11 +7,15 @@ import {
   ContentContainer,
   NavigationButtons,
   NavigationButton,
+  CodeBlockContainer,
+  CopyButton,
 } from "../styles/components/Content";
 import {
   LoadingOutlined,
   LeftOutlined,
   RightOutlined,
+  CopyOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import { Spin } from "antd";
 import fetchContent from "../utils/fetchContent";
@@ -23,6 +27,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,6 +64,12 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     }
   };
 
+  const copyToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(code);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
   if (loading) {
     return (
       <div
@@ -88,11 +99,20 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
         <ReactMarkdown
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
           components={{
-            img: ({ ...props }) => (
-              <div className="image-container">
-                <img {...props} alt={props.alt || ""} />
-              </div>
-            ),
+            pre: ({ children }) => {
+              const codeElement = React.Children.toArray(children)[0] as React.ReactElement;
+              if (!codeElement || typeof codeElement !== "object") return <pre>{children}</pre>;
+
+              const codeText = codeElement.props.children || "";
+              return (
+                <CodeBlockContainer>
+                  <pre>{children}</pre>
+                  <CopyButton onClick={() => copyToClipboard(codeText)}>
+                    {copied === codeText ? <CheckOutlined /> : <CopyOutlined />}
+                  </CopyButton>
+                </CodeBlockContainer>
+              );
+            },
           }}
         >
           {content}
