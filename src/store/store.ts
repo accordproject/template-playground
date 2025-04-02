@@ -23,6 +23,7 @@ interface AppState {
   sampleName: string;
   backgroundColor: string;
   textColor: string;
+  isLoading: boolean;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
@@ -43,8 +44,6 @@ export interface DecompressedData {
   data: string;
   agreementHtml: string;
 }
-
-const rebuildDeBounce = debounce(rebuild, 500);
 
 async function rebuild(template: string, model: string, dataString: string) {
   const modelManager = new ModelManager({ strict: true });
@@ -69,6 +68,11 @@ async function rebuild(template: string, model: string, dataString: string) {
   );
 }
 
+const rebuildDeBounce = debounce(async (template: string, model: string, data: string) => {
+  const result = await rebuild(template, model, data);
+  return result;
+}, 500);
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => ({
@@ -83,6 +87,7 @@ const useAppStore = create<AppState>()(
       editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       agreementHtml: "",
       error: undefined,
+      isLoading: false,
       samples: SAMPLES,
       init: async () => {
         const params = new URLSearchParams(window.location.search);
@@ -108,16 +113,21 @@ const useAppStore = create<AppState>()(
             editorAgreementData: JSON.stringify(sample.DATA, null, 2),
           }));
           get().rebuild();
-          
         }
       },
       rebuild: async () => {
-        const { templateMarkdown, modelCto, data } = get();
+        set(() => ({ isLoading: true }));
         try {
-          const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
+          const result = await rebuildDeBounce(
+            get().templateMarkdown,
+            get().modelCto,
+            get().data
+          );
           set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
           set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
+        } finally {
+          set(() => ({ isLoading: false }));
         }
       },
       setTemplateMarkdown: async (template: string) => {
