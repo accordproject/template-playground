@@ -1,0 +1,17 @@
+# build artifacts
+build
+dist
+coverage
+.next
+out
+
+# dependencies
+node_modules
+
+# config files
+vite.config.ts
+*.config.js
+
+# package files
+package-lock.json
+yarn.lock
