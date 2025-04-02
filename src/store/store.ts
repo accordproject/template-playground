@@ -125,7 +125,7 @@ const useAppStore = create<AppState>()(
           );
           set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
-          set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
+          set(() => ({ error: formatError(error) }));
         } finally {
           set(() => ({ isLoading: false }));
         }
@@ -140,7 +140,7 @@ const useAppStore = create<AppState>()(
           const result = await rebuildDeBounce(template, modelCto, data);
           set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
-          set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
+          set(() => ({ error: formatError(error) }));
         }
       },
       setEditorValue: (value: string) => {
@@ -156,7 +156,7 @@ const useAppStore = create<AppState>()(
           const result = await rebuildDeBounce(templateMarkdown, model, data);
           set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
-          set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
+          set(() => ({ error: formatError(error) }));
         }
       },
       setEditorModelCto: (value: string) => {
@@ -175,7 +175,7 @@ const useAppStore = create<AppState>()(
           );
           set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
-          set(() => ({ error: error instanceof Error ? error.message : 'Unknown error' }));
+          set(() => ({ error: formatError(error) }));
         }
       },
       setEditorAgreementData: (value: string) => {
@@ -235,3 +235,15 @@ const useAppStore = create<AppState>()(
 
 
 export default useAppStore;
+
+function formatError(error: any): string {
+  console.error(error);
+  if (typeof error === "string") return error;
+  if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
+  if (error.code) {
+    const sub = error.errors ? formatError(error.errors) : "";
+    const msg = error.renderedMessage || "";
+    return `Error: ${error.code} ${sub} ${msg}`;
+  }
+  return error.toString();
+}
