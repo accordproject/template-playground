@@ -21,7 +21,7 @@ interface NavbarProps {
 
 function Navbar({ scrollToFooter }: NavbarProps) {
   const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github" | "join"
+    null | "home" | "explore" | "help" | "github" | "join" | "Learn"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
@@ -270,6 +270,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             <Link to="/learn/intro" className="learnNow-button">
               <animated.button
                 style={{
+                  ...menuItemStyle("Learn",false),
                   ...props,
                   padding: "10px 22px",
                   backgroundColor: "#19c6c7",
@@ -278,6 +279,8 @@ function Navbar({ scrollToFooter }: NavbarProps) {
                   borderRadius: "5px",
                   cursor: "pointer",
                 }}
+                onMouseEnter={()=>setHovered("Learn")}
+                onMouseLeave={()=>setHovered(null)}
               >
                 Learn
               </animated.button>
