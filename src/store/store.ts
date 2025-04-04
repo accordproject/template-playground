@@ -74,15 +74,6 @@ const useAppStore = create<AppState>()(
     devtools((set, get) => ({
       backgroundColor: '#ffffff',
       textColor: '#121212',
-      toggleDarkMode: () => {
-        set((state) => {
-          const isDark = state.backgroundColor === '#121212';
-          return {
-            backgroundColor: isDark ? '#ffffff' : '#121212',
-            textColor: isDark ? '#121212' : '#ffffff',
-          };
-        });
-      },
       sampleName: playground.NAME,
       templateMarkdown: playground.TEMPLATE,
       editorValue: playground.TEMPLATE,
@@ -123,20 +114,17 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined }));
+          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
       },
       setTemplateMarkdown: async (template: string) => {
+        set(() => ({ templateMarkdown: template }));
         const { modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({
-            templateMarkdown: template,
-            agreementHtml: result,
-            error: undefined,
-          }));
+          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
@@ -145,14 +133,11 @@ const useAppStore = create<AppState>()(
         set(() => ({ editorValue: value }));
       },
       setModelCto: async (model: string) => {
+        set(() => ({ modelCto: model }));
         const { templateMarkdown, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({
-            modelCto: model,
-            agreementHtml: result,
-            error: undefined,
-          }));
+          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
@@ -161,17 +146,17 @@ const useAppStore = create<AppState>()(
         set(() => ({ editorModelCto: value }));
       },
       setData: async (data: string) => {
+        set(() => ({ data }));
         try {
           const result = await rebuildDeBounce(
             get().templateMarkdown,
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined }));
+          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error) }));
         }
-        set(() => ({ data }));
       },
       setEditorAgreementData: (value: string) => {
         set(() => ({ editorAgreementData: value }));
@@ -184,12 +169,14 @@ const useAppStore = create<AppState>()(
           data: state.data,
           agreementHtml: state.agreementHtml,
         });
-        return `${window.location.origin}/v1?data=${compressedData}`;
+        return `${window.location.origin}?data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
         try {
-          const { templateMarkdown, modelCto, data, agreementHtml } =
-            decompress(compressedData);
+          const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
+          if (!templateMarkdown || !modelCto || !data) {
+            throw new Error("Invalid share link data");
+          }
           set(() => ({
             templateMarkdown,
             editorValue: templateMarkdown,
@@ -200,27 +187,36 @@ const useAppStore = create<AppState>()(
             agreementHtml,
             error: undefined,
           }));
+          await get().rebuild();
         } catch (error) {
           set(() => ({
-            error: "Failed to load data from the link",
+            error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),
           }));
         }
+      },
+      toggleDarkMode: () => {
+        set((state) => {
+          const isDark = state.backgroundColor === '#121212';
+          return {
+            backgroundColor: isDark ? '#ffffff' : '#121212',
+            textColor: isDark ? '#121212' : '#ffffff',
+          };
+        });
       },
     }))
   )
 );
 
+
 export default useAppStore;
 
 function formatError(error: any): string {
   console.error(error);
-  if (typeof error === "string") {
-    return error;
-  } else if (Array.isArray(error)) {
-    return error.map((e) => formatError(e)).join("\n");
-  } else if (error.code) {
+  if (typeof error === "string") return error;
+  if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
+  if (error.code) {
     const sub = error.errors ? formatError(error.errors) : "";
-    const msg = error.renderedMessage ? error.renderedMessage : "";
+    const msg = error.renderedMessage || "";
     return `Error: ${error.code} ${sub} ${msg}`;
   }
   return error.toString();

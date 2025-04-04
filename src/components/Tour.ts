@@ -3,6 +3,9 @@ import "shepherd.js/dist/css/shepherd.css";
 
 const style = document.createElement("style");
 style.textContent = `
+  .shepherd-button-secondary {
+    background-color: #6c757d !important;
+  }
   .shepherd-button {
     background-color: #050c40 !important; 
     color: white !important;
@@ -23,8 +26,13 @@ tour.addStep({
   text: "Welcome to the Template Playground! This brief tour will help you get acquainted with the key features of the platform.",
   buttons: [
     {
+      text: "Skip",
+      action: tour.cancel,
+      classes: "shepherd-button-secondary",
+    },
+    {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -38,8 +46,13 @@ tour.addStep({
   },
   buttons: [
     {
+      text: "Skip",
+      action: tour.cancel,
+      classes: "shepherd-button-secondary",
+    },
+    {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -53,8 +66,13 @@ tour.addStep({
   },
   buttons: [
     {
+      text: "Skip",
+      action: tour.cancel,
+      classes: "shepherd-button-secondary",
+    },
+    {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -68,8 +86,13 @@ tour.addStep({
   },
   buttons: [
     {
+      text: "Skip",
+      action: tour.cancel,
+      classes: "shepherd-button-secondary",
+    },
+    {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -83,8 +106,13 @@ tour.addStep({
   },
   buttons: [
     {
+      text: "Skip",
+      action: tour.cancel,
+      classes: "shepherd-button-secondary",
+    },
+    {
       text: "Next",
-      action: tour.next,
+      action: () => tour.next(),
     },
   ],
 });
@@ -99,7 +127,7 @@ tour.addStep({
   buttons: [
     {
       text: "Finish Tour",
-      action: tour.cancel,
+      action: () => void tour.cancel(),
     },
   ],
 });
