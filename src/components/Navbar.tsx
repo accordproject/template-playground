@@ -260,8 +260,6 @@ function Navbar({ scrollToFooter }: NavbarProps) {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor:
-                hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
               cursor: "pointer",
             }}
             onMouseEnter={() => setHovered("join")}
