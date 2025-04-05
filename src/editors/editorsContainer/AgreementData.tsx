@@ -1,7 +1,7 @@
+import { FaMagic } from "react-icons/fa";
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
-
 import { FaUndo, FaRedo } from "react-icons/fa";
 
 function AgreementData() {
@@ -9,16 +9,27 @@ function AgreementData() {
   const editorAgreementData = useAppStore((state) => state.editorAgreementData);
   const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
   const setData = useAppStore((state) => state.setData);
+  
   const { value, setValue, undo, redo } = useUndoRedo(
     editorAgreementData,
     setEditorAgreementData,
-    setData // Sync to main state and rebuild
+    setData
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
-      setValue(value); // Update editor state and sync
-      setData(value); 
+      setValue(value);
+      setData(value);
+    }
+  };
+
+  const handleFormat = () => {
+    try {
+      const formatted = JSON.stringify(JSON.parse(value), null, 2);
+      setValue(formatted);
+      setEditorAgreementData(formatted);
+    } catch {
+      alert("Invalid JSON format!");
     }
   };
 
@@ -27,13 +38,16 @@ function AgreementData() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ color: textColor }}>Data</h3>
         <div>
+          <FaMagic
+            style={{ cursor: "pointer", color: textColor, marginRight: "8px" }}
+            onClick={handleFormat}
+            title="Format JSON"
+          />
           <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
           <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
         </div>
       </div>
-      <p style={{ color: textColor }}>
-        JSON data (an instance of the Concerto model) used to preview output from the template.
-      </p>
+      <p style={{ color: textColor }}>JSON data (instance of the Concerto model) for preview output.</p>
       <JSONEditor value={value} onChange={handleChange} />
     </div>
   );
