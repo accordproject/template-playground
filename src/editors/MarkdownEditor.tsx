@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import useAppStore from "../store/store";
-import { Monaco, useMonaco } from "@monaco-editor/react";
+import { useMonaco } from "@monaco-editor/react";
 import * as monacoEditor from "monaco-editor"; // Import Monaco types for the editor instance
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -62,15 +62,16 @@ export default function MarkdownEditor({
     }
   }, [monaco, backgroundColor, textColor, themeName]);
 
-  const editorOptions = {
-    minimap: { enabled: false },
-    wordWrap: "on" as const,
-    automaticLayout: true,
-    scrollBeyondLastLine: false,
-    fontSize,
-  };
-
-  const options = useMemo(() => editorOptions, []);
+  const options = useMemo(
+    () => ({
+      minimap: { enabled: false },
+      wordWrap: "on" as const,
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
+      fontSize,
+    }),
+    [fontSize]
+  );
 
   const handleChange = useCallback(
     (val: string | undefined) => {
@@ -81,8 +82,7 @@ export default function MarkdownEditor({
 
   // Handle editor mount to attach zoom functionality
   const handleEditorDidMount = (
-    editor: monacoEditor.editor.IStandaloneCodeEditor,
-    monaco: Monaco
+    editor: monacoEditor.editor.IStandaloneCodeEditor
   ) => {
     const handleWheel = (event: WheelEvent) => {
       if (event.ctrlKey) {
