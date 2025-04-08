@@ -11,6 +11,7 @@ import * as clausecondition from "./clausecondition";
 import * as invitation from "./invitation";
 import * as announcement from "./announcement";
 import * as blank from "./blank";
+import * as paymentReceipt from './paymentReceipt';
 
 export type Sample = {
   NAME: string;
@@ -33,4 +34,5 @@ export const SAMPLES: Array<Sample> = [
   list,
   optional,
   markdown,
+  paymentReceipt
 ];
