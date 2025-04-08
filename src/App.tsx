@@ -119,31 +119,40 @@ const App = () => {
 
   return (
     <AntdApp>
-      <Layout style={{ minHeight: "100vh" }}>
-        <Navbar scrollToFooter={scrollToFooter} />
-        <Content>
-          {loading ? (
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minHeight: "calc(100vh - 64px - 70px)", // Adjust for Navbar and Footer height
-              }}
-            >
-              <Spinner />
-            </div>
-          ) : (
-            <Routes>
-              <Route
-                path="/"
-                element={
+    <Layout style={{ minHeight: "100vh" }}>
+      <Navbar scrollToFooter={scrollToFooter} />
+      <Content>
+        {loading ? (
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "calc(120vh - 64px - 70px)", 
+            }}
+          >
+            <Spinner />
+          </div>
+        ) : (
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    height: "calc(120vh - 64px - 70px)",
+                    background: backgroundColor,
+                  }}
+                >
+                  {/* Left Pane */}
                   <div
                     style={{
+                      flex: 1,
+                      overflowY: "auto",
                       padding: 24,
-                      paddingBottom: 24,
-                      minHeight: 360,
                       background: backgroundColor,
                     }}
                   >
@@ -168,41 +177,47 @@ const App = () => {
                     <div
                       style={{
                         padding: 24,
-                        minHeight: 360,
                         background: backgroundColor,
                       }}
                     >
-                      <ResizableContainer
-  leftPane={
-    <Collapse
-      defaultActiveKey={activePanel}
-      onChange={onChange}
-      items={panels}
-     style={{ marginBottom: "24px" }}
-    />
-  }
-  rightPane={<AgreementHtml loading={loading} isModal={false} />}
-  initialLeftWidth={66}
-  minLeftWidth={30}
-  minRightWidth={30}
-/>
+                      <Collapse
+                        defaultActiveKey={activePanel}
+                        onChange={onChange}
+                        items={panels}
+                        style={{ marginBottom: "24px" }}
+                      />
                     </div>
-                    <FloatingFAB />
                   </div>
-                }
-              />
-              <Route path="/learn" element={<LearnNow />}>
-                <Route path="intro" element={<LearnContent file="intro.md" />} />
-                <Route path="module1" element={<LearnContent file="module1.md" />} />
-                <Route path="module2" element={<LearnContent file="module2.md" />} />
-                <Route path="module3" element={<LearnContent file="module3.md" />} />
-              </Route>
-            </Routes>
-          )}
-        </Content>
-        <Footer />
-      </Layout>
-    </AntdApp>
+  
+                
+                  <div
+                    style={{
+                      width: "33%",
+                      position: "sticky",
+                      top: 0,
+                      height: "calc(120vh - 64px - 70px)", 
+                      overflowY: "auto",
+                      borderLeft: "1px solid #d9d9d9",
+                      background: backgroundColor,
+                    }}
+                  >
+                    <AgreementHtml loading={loading} isModal={false} />
+                  </div>
+                </div>
+              }
+            />
+            <Route path="/learn" element={<LearnNow />}>
+              <Route path="intro" element={<LearnContent file="intro.md" />} />
+              <Route path="module1" element={<LearnContent file="module1.md" />} />
+              <Route path="module2" element={<LearnContent file="module2.md" />} />
+              <Route path="module3" element={<LearnContent file="module3.md" />} />
+            </Route>
+          </Routes>
+        )}
+      </Content>
+      <Footer />
+    </Layout>
+  </AntdApp>
   );
 };
 
