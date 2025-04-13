@@ -9,7 +9,8 @@ import {
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
-  MenuOutlined
+  MenuOutlined,
+  DiscordOutlined
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
@@ -21,7 +22,7 @@ interface NavbarProps {
 
 function Navbar({ scrollToFooter }: NavbarProps) {
   const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github" | "join"
+    null | "home" | "explore" | "help" | "github" | "join" | "discord"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
@@ -284,10 +285,14 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             </Link>
           </div>
         )}
+        <div style={{ display: screens.md ? "flex" : "none" }}>
         <div
           style={{
             height: "65px",
             display: "flex",
+            border: "1.5px solid rgba(255, 255, 255, 0.1)",
+            borderTop: "none",
+            borderBottom: "none",
             alignItems: "center",
             justifyContent: "center",
             padding: screens.md ? "0 20px" : "0 10px",
@@ -319,6 +324,46 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             />
             <span style={{ display: screens.md ? "inline" : "none" }}>Github</span>
           </a>
+        </div>
+        <div
+          style={{
+            height: "65px",
+            display: "flex",
+            borderRight: "1.5px solid rgba(255, 255, 255, 0.1)",
+            borderTop: "none",
+            borderBottom: "none",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: screens.md ? "0 20px" : "0 10px",
+            borderRadius: "5px",
+            borderLeft: screens.md
+              ? "1.5px solid rgba(255, 255, 255, 0.1)"
+              : "none",
+            paddingLeft: screens.md ? 16 : 5,
+            paddingRight: screens.md ? 16 : 5,
+            backgroundColor:
+              hovered === "discord" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+            cursor: "pointer",
+          }}
+          onMouseEnter={() => setHovered("discord")}
+          onMouseLeave={() => setHovered(null)}
+        >
+          <a
+            href="https://discord.com/invite/Zm99SKhhtA"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", color: "white" }}
+          >
+            <DiscordOutlined
+              style={{
+                fontSize: "20px",
+                color: "white",
+                marginRight: screens.md ? "5px" : "0",
+              }}
+            />
+            <span style={{ display: screens.md ? "inline" : "none" }}>Discord</span>
+          </a>
+        </div>
         </div>
       </div>
     </div>
