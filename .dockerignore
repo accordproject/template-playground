@@ -1,0 +1,15 @@
+# Ignore node_modules and build directories (they are created during build)
+node_modules
+build
+dist
+
+
+# Exclude Docker-related and git files
+Dockerfile*
+.dockerignore
+.git
+.gitignore
+
+# Exclude environment and documentation files
+.env*
+README.md
