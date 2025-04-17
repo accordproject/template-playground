@@ -96,6 +96,8 @@ const CustomFooter: React.FC = () => {
                       <Link
                         href={link.href}
                         key={link.title}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         style={{ color: "white", fontSize: "15px" }}
                       >
                         {link.title}
