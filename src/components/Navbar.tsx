@@ -1,6 +1,6 @@
+// import { useSpring, animated } from "react-spring";
 import { useState } from "react";
 import { Menu, Dropdown, Button, Image, Grid } from "antd";
-import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
@@ -8,8 +8,8 @@ import {
   UserOutlined,
   InfoOutlined,
   BookOutlined,
-  CaretDownFilled,
   MenuOutlined,
+  // CaretDownFilled,
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
@@ -24,15 +24,15 @@ function Navbar({ scrollToFooter }: NavbarProps) {
   const screens = useBreakpoint();
   const location = useLocation();
 
-  const props = useSpring({
-    loop: true,
-    from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
-    to: [
-      { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
-      { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
-    ],
-    config: { duration: 1000 },
-  });
+  // const props = useSpring({
+  //   loop: true,
+  //   from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+  //   to: [
+  //     { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
+  //     { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+  //   ],
+  //   config: { duration: 1000 },
+  // });
 
   const mobileMenu = (
     <Menu>
@@ -97,7 +97,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
     </Menu>
   );
 
-  const menuItemStyle = (key: string, isLast: boolean) => ({
+  const menuItemStyle = () => ({
     display: "flex",
     alignItems: "center",
     height: "65px",
@@ -145,7 +145,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
       <div
         style={{
           cursor: "pointer", 
-          ...menuItemStyle("home", false)
+          ...menuItemStyle()
         }}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
@@ -190,7 +190,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           <div
             style={{ 
               cursor: "pointer", 
-              ...menuItemStyle("about", false)
+              ...menuItemStyle()
             }}
             onMouseEnter={() => setHovered("about")}
             onMouseLeave={() => setHovered(null)}
@@ -208,7 +208,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           <div 
             style={{ 
               cursor: "pointer", 
-              ...menuItemStyle("community", false)
+              ...menuItemStyle()
             }} 
             onMouseEnter={() => setHovered("community")} 
             onMouseLeave={() => setHovered(null)}
@@ -227,7 +227,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           <div 
             style={{ 
               cursor: "pointer", 
-              ...menuItemStyle("issues", false) 
+              ...menuItemStyle() 
             }} 
             onMouseEnter={() => setHovered("issues")} 
             onMouseLeave={() => setHovered(null)}
@@ -246,7 +246,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           <div 
             style={{ 
               cursor: "pointer", 
-              ...menuItemStyle("documentation", false) 
+              ...menuItemStyle() 
             }} 
             onMouseEnter={() => setHovered("documentation")} 
             onMouseLeave={() => setHovered(null)}
@@ -265,7 +265,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           <div 
             style={{ 
               cursor: "pointer", 
-              ...menuItemStyle("github", false) 
+              ...menuItemStyle() 
             }} 
             onMouseEnter={() => setHovered("github")} 
             onMouseLeave={() => setHovered(null)}
