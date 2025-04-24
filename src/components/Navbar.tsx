@@ -1,6 +1,6 @@
 // import { useSpring, animated } from "react-spring";
 import { useState } from "react";
-import { Menu, Dropdown, Button, Image, Grid } from "antd";
+import { Dropdown, Button, Image, Grid } from "antd";
 import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
@@ -34,68 +34,78 @@ function Navbar({ scrollToFooter }: NavbarProps) {
   //   config: { duration: 1000 },
   // });
 
-  const mobileMenu = (
-    <Menu>
-      <Menu.Item key="home">
-        <a href="/" target="_self">Template Playground</a>
-      </Menu.Item>
-
-      <Menu.Item key="explore" onClick={scrollToFooter}>
-        Explore
-      </Menu.Item>
-
-      <Menu.Item key="about">
-        <a 
-          href="https://github.com/accordproject/template-playground/blob/main/README.md" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <QuestionOutlined /> About
-        </a>
-      </Menu.Item>
-
-      <Menu.Item key="community">
-        <a 
-          href="https://discord.com/invite/Zm99SKhhtA" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <UserOutlined /> Community
-        </a>
-      </Menu.Item>
-
-      <Menu.Item key="issues">
-        <a
-          href="https://github.com/accordproject/template-playground/issues" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <InfoOutlined /> Issues
-        </a>
-      </Menu.Item>
-
-      <Menu.Item key="documentation">
-        <a 
-          href="https://github.com/accordproject/template-playground" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <GithubOutlined /> Github
-        </a>
-      </Menu.Item>
-
-      <Menu.Item key="documentation">
-        <a 
-          href="https://github.com/accordproject/template-engine/blob/main/README.md" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <BookOutlined /> Documentation
-        </a>
-      </Menu.Item>
-
-    </Menu>
-  );
+  const mobileMenu = {
+    items: [
+      {
+        key: "home",
+        label: <a href="/" target="_self">Template Playground</a>,
+      },
+      {
+        key: "explore",
+        label: <div onClick={scrollToFooter}>Explore</div>,
+      },
+      {
+        key: "about",
+        label: (
+          <a
+            href="https://github.com/accordproject/template-playground/blob/main/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <QuestionOutlined /> About
+          </a>
+        ),
+      },
+      {
+        key: "community",
+        label: (
+          <a
+            href="https://discord.com/invite/Zm99SKhhtA"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <UserOutlined /> Community
+          </a>
+        ),
+      },
+      {
+        key: "issues",
+        label: (
+          <a
+            href="https://github.com/accordproject/template-playground/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <InfoOutlined /> Issues
+          </a>
+        ),
+      },
+      {
+        key: "github",
+        label: (
+          <a
+            href="https://github.com/accordproject/template-playground"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <GithubOutlined /> Github
+          </a>
+        ),
+      },
+      {
+        key: "documentation",
+        label: (
+          <a
+            href="https://github.com/accordproject/template-engine/blob/main/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <BookOutlined /> Documentation
+          </a>
+        ),
+      },
+    ],
+  };
 
   const menuItemStyle = () => ({
     display: "flex",
@@ -285,7 +295,7 @@ function Navbar({ scrollToFooter }: NavbarProps) {
         <div 
           style={{ marginLeft: "5px" }}
         >
-          <Dropdown overlay={mobileMenu} trigger={["click"]}>
+          <Dropdown menu={mobileMenu} trigger={["click"]}>
             <Button 
               style={{ 
                 background: "transparent", 
