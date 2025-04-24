@@ -27,13 +27,10 @@ const SampleDropdown = function SampleDropdown({
   const items: MenuProps["items"] = useMemo(
     () =>
       samples?.map((s) => ({
-        label: s.NAME,
+        label: <span style={{ color: backgroundColor === '#121212' ? '#ffffff' : 'inherit' }}>{s.NAME}</span>,
         key: s.NAME,
-        style: backgroundColor === '#121212' ? {
-          color: '#fff'
-        } : undefined
       })) || [],
-    [samples]
+    [samples, backgroundColor]
   );
 
   const handleMenuClick = useCallback(
@@ -63,14 +60,14 @@ const SampleDropdown = function SampleDropdown({
           onClick: (e) => void handleMenuClick(e),
           style: backgroundColor === '#121212' ? {
             backgroundColor: '#1f1f1f',
-            color: '#fff',
+            color: '#ffffff',
           } : undefined,
         }} 
         trigger={["click"]}
         dropdownRender={menu => (
           <div style={backgroundColor === '#121212' ? {
             backgroundColor: '#1f1f1f',
-            color: '#fff',
+            color: '#ffffff',
           } : undefined}>
             {menu}
           </div>
