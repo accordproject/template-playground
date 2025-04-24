@@ -11,12 +11,13 @@ const SampleDropdown = function SampleDropdown({
 }: {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
-  const { samples, loadSample, sampleName } = useStoreWithEqualityFn(
+  const { samples, loadSample, sampleName, backgroundColor } = useStoreWithEqualityFn(
     useAppStore,
     (state) => ({
       samples: state.samples,
       loadSample: state.loadSample as (key: string) => Promise<void>,
-      sampleName: state.sampleName
+      sampleName: state.sampleName,
+      backgroundColor: state.backgroundColor
     }),
     shallow
   );
@@ -28,6 +29,9 @@ const SampleDropdown = function SampleDropdown({
       samples?.map((s) => ({
         label: s.NAME,
         key: s.NAME,
+        style: backgroundColor === '#121212' ? {
+          color: '#fff'
+        } : undefined
       })) || [],
     [samples]
   );
@@ -53,9 +57,34 @@ const SampleDropdown = function SampleDropdown({
   
   return (
     <Space>
-      <Dropdown menu={{ items, onClick: (e) => void handleMenuClick(e) }} trigger={["click"]}>
+      <Dropdown 
+        menu={{ 
+          items, 
+          onClick: (e) => void handleMenuClick(e),
+          style: backgroundColor === '#121212' ? {
+            backgroundColor: '#1f1f1f',
+            color: '#fff',
+          } : undefined,
+        }} 
+        trigger={["click"]}
+        dropdownRender={menu => (
+          <div style={backgroundColor === '#121212' ? {
+            backgroundColor: '#1f1f1f',
+            color: '#fff',
+          } : undefined}>
+            {menu}
+          </div>
+        )}
+      >
         <div className="samples-element">
-          <Button aria-label="Load sample dropdown">
+          <Button 
+            aria-label="Load sample dropdown"
+            style={{
+              backgroundColor: backgroundColor === '#121212' ? '#1f1f1f' : undefined,
+              borderColor: backgroundColor === '#121212' ? '#434343' : undefined,
+              color: backgroundColor === '#121212' ? '#fff' : undefined
+            }}
+          >
             {sampleName || "Load Sample"} <DownOutlined />
           </Button>
         </div>
