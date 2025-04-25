@@ -3,6 +3,7 @@ import "@testing-library/jest-dom";
 import Navbar from "../../components/Navbar";
 import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 
 vi.mock("../../components/ToggleDarkMode", () => ({
   default: () => <div data-testid="toggle-dark-mode">Dark Mode Toggle</div>,
@@ -27,10 +28,13 @@ describe("Navbar", () => {
     expect(title).toBeInTheDocument();
   });
 
-  it("renders Github link on all screens", () => {
+  it("renders Github link on all screens", async () => {
     renderNavbar();
 
-    const githubLink = screen.getByRole("link", { name: /Github/i });
+    const menuButton = screen.getByRole("button", { name: /menu/i });
+    await userEvent.click(menuButton);
+
+    const githubLink = await screen.findByRole("link", { name: /Github/i });
     expect(githubLink).toBeInTheDocument();
   });
 
