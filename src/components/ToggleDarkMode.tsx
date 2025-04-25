@@ -5,12 +5,9 @@ import useAppStore from "../store/store";
 
 const ToggleDarkMode: React.FC = () => {
   const { backgroundColor, toggleDarkMode } = useAppStore();
-  const [isDarkMode, setIsDarkMode] = useState(backgroundColor === "#121212");
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(localStorage.getItem('theme') === 'dark');
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    setIsDarkMode(savedTheme === 'dark');
-  }, []);
+ 
 
   const handleChange = () => {
     toggleDarkMode();

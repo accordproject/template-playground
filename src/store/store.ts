@@ -9,6 +9,7 @@ import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
+import { darkBackgroundColor, darkTextColor, lightBackgroundColor, lightTextColor } from "../constants";
 
 interface AppState {
   templateMarkdown: string;
@@ -90,15 +91,15 @@ const useAppStore = create<AppState>()(
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
           set(() => ({
-            backgroundColor: '#121212',
-            textColor: '#ffffff',
+            backgroundColor: darkBackgroundColor,
+            textColor: darkTextColor,
           }));
           document.documentElement.setAttribute("data-theme", "dark");
         }
         else {
           set(() => ({
-            backgroundColor: '#ffffff',
-            textColor: '#121212',
+            backgroundColor: lightBackgroundColor,
+            textColor: lightTextColor,
           }));
           document.documentElement.setAttribute("data-theme", "light");
         }
