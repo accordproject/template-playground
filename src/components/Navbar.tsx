@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Menu, Dropdown, Button, Image, Grid } from "antd";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
@@ -325,4 +325,4 @@ function Navbar({ scrollToFooter }: NavbarProps) {
   );
 }
 
-export default Navbar;
+export default React.memo(Navbar);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useAppStore from '../store/store';
 
 interface ResizableContainerProps {
@@ -116,4 +116,4 @@ const ResizableContainer: React.FC<ResizableContainerProps> = ({
   );
 };
 
-export default ResizableContainer;
+export default React.memo(ResizableContainer);
