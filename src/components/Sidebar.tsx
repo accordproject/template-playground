@@ -50,4 +50,4 @@ const Sidebar: React.FC<SidebarProps> = ({ steps }) => {
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);

@@ -136,4 +136,4 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   );
 };
 
-export default LearnContent;
+export default React.memo(LearnContent);
