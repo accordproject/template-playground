@@ -1,6 +1,6 @@
+// import { useSpring, animated } from "react-spring";
 import { useState } from "react";
-import { Menu, Dropdown, Button, Image, Grid } from "antd";
-import { useSpring, animated } from "react-spring";
+import { Dropdown, Button, Image, Grid } from "antd";
 import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
@@ -8,8 +8,8 @@ import {
   UserOutlined,
   InfoOutlined,
   BookOutlined,
-  CaretDownFilled,
-  MenuOutlined
+  MenuOutlined,
+  // CaretDownFilled,
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
@@ -20,75 +20,33 @@ interface NavbarProps {
 }
 
 function Navbar({ scrollToFooter }: NavbarProps) {
-  const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github" | "join"
-  >(null);
+  const [hovered, setHovered] = useState<null | "home" | "help" | "about" | "community" | "issues" | "documentation" | "github" | "join">(null);
   const screens = useBreakpoint();
   const location = useLocation();
 
-  const props = useSpring({
-    loop: true,
-    from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
-    to: [
-      { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
-      { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
-    ],
-    config: { duration: 1000 },
-  });
+  // const props = useSpring({
+  //   loop: true,
+  //   from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+  //   to: [
+  //     { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
+  //     { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+  //   ],
+  //   config: { duration: 1000 },
+  // });
 
-  const mobileMenu = (
-    <Menu>
-      <Menu.Item key="home">
-        <Link to="/">
-          Template Playground
-        </Link>
-      </Menu.Item>
-      <Menu.Item key="explore" onClick={scrollToFooter}>
-        Explore
-      </Menu.Item>
-      <Menu.Item key="about">
-        <a
-          href="https://github.com/accordproject/template-playground/blob/main/README.md"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <QuestionOutlined /> About
-        </a>
-      </Menu.Item>
-      <Menu.Item key="community">
-        <a
-          href="https://discord.com/invite/Zm99SKhhtA"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <UserOutlined /> Community
-        </a>
-      </Menu.Item>
-      <Menu.Item key="issues">
-        <a
-          href="https://github.com/accordproject/template-playground/issues"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <InfoOutlined /> Issues
-        </a>
-      </Menu.Item>
-      <Menu.Item key="documentation">
-        <a
-          href="https://github.com/accordproject/template-engine/blob/main/README.md"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <BookOutlined /> Documentation
-        </a>
-      </Menu.Item>
-    </Menu>
-  );
-
-  const helpMenu = (
-    <Menu>
-      <Menu.ItemGroup key="info" title="Info">
-        <Menu.Item key="about">
+  const mobileMenu = {
+    items: [
+      {
+        key: "home",
+        label: <a href="/" target="_self">Template Playground</a>,
+      },
+      {
+        key: "explore",
+        label: <div onClick={scrollToFooter}>Explore</div>,
+      },
+      {
+        key: "about",
+        label: (
           <a
             href="https://github.com/accordproject/template-playground/blob/main/README.md"
             target="_blank"
@@ -96,8 +54,11 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           >
             <QuestionOutlined /> About
           </a>
-        </Menu.Item>
-        <Menu.Item key="community">
+        ),
+      },
+      {
+        key: "community",
+        label: (
           <a
             href="https://discord.com/invite/Zm99SKhhtA"
             target="_blank"
@@ -105,8 +66,11 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           >
             <UserOutlined /> Community
           </a>
-        </Menu.Item>
-        <Menu.Item key="issues">
+        ),
+      },
+      {
+        key: "issues",
+        label: (
           <a
             href="https://github.com/accordproject/template-playground/issues"
             target="_blank"
@@ -114,10 +78,23 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           >
             <InfoOutlined /> Issues
           </a>
-        </Menu.Item>
-      </Menu.ItemGroup>
-      <Menu.ItemGroup title="Documentation">
-        <Menu.Item key="documentation">
+        ),
+      },
+      {
+        key: "github",
+        label: (
+          <a
+            href="https://github.com/accordproject/template-playground"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <GithubOutlined /> Github
+          </a>
+        ),
+      },
+      {
+        key: "documentation",
+        label: (
           <a
             href="https://github.com/accordproject/template-engine/blob/main/README.md"
             target="_blank"
@@ -125,23 +102,43 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           >
             <BookOutlined /> Documentation
           </a>
-        </Menu.Item>
-      </Menu.ItemGroup>
-    </Menu>
-  );
+        ),
+      },
+    ],
+  };
 
-  const menuItemStyle = (key: string, isLast: boolean) => ({
+  const menuItemStyle = () => ({
     display: "flex",
     alignItems: "center",
-    padding: screens.md ? "0 20px" : "0",
-    backgroundColor:
-      hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
     height: "65px",
-    borderRight:
-      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
+    padding: screens.md ? "0 5px" : "0",
+    backgroundColor: "transparent",
+    transition: "background-color 0.3s ease",
   });
 
   const isLearnPage = location.pathname.startsWith("/learn");
+
+  const menuItemButtonStyle = (key: string): React.CSSProperties => ({
+    background: 'transparent',
+    border: "none",
+    color: hovered === key ? "#19c6c7" : '#fff',
+    height: "65px",
+    alignItems: "center",
+    fontSize: "1rem",
+    fontWeight: "600",
+    fontStyle: "normal",
+    position: "relative",
+    display: "block",
+    lineHeight: "1",
+    textDecoration: "none", 
+    transition: 'all 0.3s ease',
+  });
+
+  const iconStyle = { 
+    color: "#19c6c7", 
+    fontSize: "17px" 
+  };
+
 
   return (
     <div
@@ -155,87 +152,161 @@ function Navbar({ scrollToFooter }: NavbarProps) {
         display: "flex",
         alignItems: "center",
         paddingLeft: screens.lg ? 40 : screens.md ? 10 : 10,
-        paddingRight: screens.lg ? 40 : screens.md ? 10 : 10,
+        paddingRight: screens.lg ? 40 : screens.md ? 10 : 10
       }}
     >
       <div
         style={{
-          cursor: "pointer",
-          ...menuItemStyle("home", false),
+          cursor: "pointer", 
+          ...menuItemStyle()
         }}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
-        <Link
-          to="/"
-          rel="noopener noreferrer"
-          style={{ display: "flex", alignItems: "center" }}
+        <Link 
+          to="/" 
+          rel="noopener noreferrer" 
+          style={{ 
+            display: "flex", 
+            alignItems: "center" 
+          }}
         >
           <Image
-            src={screens.lg ? "/logo.png" : "/accord_logo.png"}
+            src="/accord_logo.png"
             alt="Template Playground"
             preview={false}
             style={{
-              paddingRight: screens.md ? "8px" : "2px",
-              height: "26px",
-              maxWidth: screens.md ? "184.17px" : "36.67px",
+              paddingRight: screens.md ? "10px" : "2px",
+              height: "30px",
+              maxWidth: screens.md ? "184.17px" : "36.67px"
             }}
           />
-          <span style={{ color: "white", display: screens.lg ? "block" : "none" }}>Template Playground</span>
-
+          <span
+            style={{
+              color: "white",
+              display: screens.lg ? "block" : "none",
+              fontFamily: "Graphik, Helvetica, Arial, sans-serif",
+              fontStyle: "normal",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              borderRight: "2px solid rgba(255, 255, 255, 0.2)",
+              paddingRight: "2rem",
+            }}
+          >
+            Template Playground
+          </span>
         </Link>
       </div>
+
       {screens.md ? (
         <>
           <div
-            style={{
-              ...menuItemStyle("explore", false),
-              cursor: "pointer",
+            style={{ 
+              cursor: "pointer", 
+              ...menuItemStyle()
             }}
-            onClick={scrollToFooter}
-            onMouseEnter={() => setHovered("explore")}
+            onMouseEnter={() => setHovered("about")}
             onMouseLeave={() => setHovered(null)}
           >
-            <span style={{ color: "white" }}>Explore</span>
-          </div>
-          <div
-            style={{
-              ...menuItemStyle("help", false),
-              cursor: "pointer",
-            }}
-            onMouseEnter={() => setHovered("help")}
-            onMouseLeave={() => setHovered(null)}
-          >
-            <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "white",
-                  height: "65px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                Help
-                <CaretDownFilled
-                  style={{ fontSize: "10px", marginLeft: "5px" }}
-                />
+            <a 
+              href="https://github.com/accordproject/template-playground/blob/main/README.md" target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button style={menuItemButtonStyle("about")}>
+                <QuestionOutlined style={iconStyle} /> About
               </Button>
-            </Dropdown>
+            </a>
+          </div>
+
+          <div 
+            style={{ 
+              cursor: "pointer", 
+              ...menuItemStyle()
+            }} 
+            onMouseEnter={() => setHovered("community")} 
+            onMouseLeave={() => setHovered(null)}
+          >
+            <a 
+              href="https://discord.com/invite/Zm99SKhhtA" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button style={menuItemButtonStyle("community")}>
+                <UserOutlined style={iconStyle} /> Community
+              </Button>
+            </a>
+          </div>
+
+          <div 
+            style={{ 
+              cursor: "pointer", 
+              ...menuItemStyle() 
+            }} 
+            onMouseEnter={() => setHovered("issues")} 
+            onMouseLeave={() => setHovered(null)}
+          >
+            <a 
+              href="https://github.com/accordproject/template-playground/issues" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button style={menuItemButtonStyle("issues")}>
+                <InfoOutlined style={iconStyle} /> Issues
+              </Button>
+            </a>
+          </div>
+
+          <div 
+            style={{ 
+              cursor: "pointer", 
+              ...menuItemStyle() 
+            }} 
+            onMouseEnter={() => setHovered("documentation")} 
+            onMouseLeave={() => setHovered(null)}
+          >
+            <a 
+              href="https://github.com/accordproject/template-engine/blob/main/README.md" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button style={menuItemButtonStyle("documentation")}>
+                <BookOutlined style={iconStyle} /> Documentation
+              </Button>
+            </a>
+          </div>
+
+          <div 
+            style={{ 
+              cursor: "pointer", 
+              ...menuItemStyle() 
+            }} 
+            onMouseEnter={() => setHovered("github")} 
+            onMouseLeave={() => setHovered(null)}
+          >
+            <a 
+              href="https://github.com/accordproject/template-playground" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button style={menuItemButtonStyle("github")}>
+                <GithubOutlined style={iconStyle} /> Github
+              </Button>
+            </a>
           </div>
         </>
       ) : (
-        <div style={{ marginLeft: "5px" }}>
-          <Dropdown overlay={mobileMenu} trigger={["click"]}>
-            <Button
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "white",
-                height: "65px",
-                display: "flex",
-                alignItems: "center",
+        <div 
+          style={{ marginLeft: "5px" }}
+        >
+          <Dropdown menu={mobileMenu} trigger={["click"]}>
+            <Button 
+              style={{ 
+                background: "transparent", 
+                border: "none", 
+                color: "white", 
+                height: "65px", 
+                display: "flex", 
+                alignItems: "center" 
               }}
             >
               <MenuOutlined style={{ fontSize: "20px" }} />
@@ -243,86 +314,63 @@ function Navbar({ scrollToFooter }: NavbarProps) {
           </Dropdown>
         </div>
       )}
-      <div
-        style={{
-          display: "flex",
-          marginLeft: "auto",
-          alignItems: "center",
-          height: "65px",
-          gap: screens.md ? "20px" : "10px",
-          marginRight: screens.md ? 0 : "5px"
+
+      <div 
+        style={{ 
+          display: "flex", 
+          marginLeft: "auto", 
+          alignItems: "center", 
+          height: "65px", 
+          gap: screens.md ? "20px" : "10px", 
+          marginRight: screens.md ? 0 : "5px" 
         }}
       >
-        <div style={{ marginLeft: screens.md ? 0 : "auto" }}>
-          <ToggleDarkMode />
-        </div>
+
         {!isLearnPage && (
           <div
             style={{
-              height: "65px",
+              height: "2.2rem",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor:
-                hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+              color: "white",
+              backgroundColor: hovered === "join" ? "#17b2b3" : "#19c6c7",
+              padding: "1rem",
+              borderRadius: "1rem",
               cursor: "pointer",
+              border: "none",
+              fontSize: "1rem",
+              fontWeight: "600",
+              fontStyle: "normal",
+              position: "relative",
+              lineHeight: "1",
+              textDecoration: "none",
+              transform: hovered === "join" ? "scale(1.05)" : "scale(1)",
+              boxShadow: hovered === "join" ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "none",
+              transition: "all 0.3s ease",
             }}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Link to="/learn/intro" className="learnNow-button">
-              <animated.button
-                style={{
-                  ...props,
-                  padding: "10px 22px",
-                  backgroundColor: "#19c6c7",
-                  color: "#050c40",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                }}
-              >
-                Learn
-              </animated.button>
+            <Link
+              to="/learn/intro"
+              className="ant-btn ant-btn-primary ant-btn-lg"
+              style={{ color: "#fff", textDecoration: "none" }}
+            >
+              Learn
             </Link>
           </div>
         )}
-        <div
-          style={{
-            height: "65px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: screens.md ? "0 20px" : "0 10px",
-            borderRadius: "5px",
-            borderLeft: screens.md
-              ? "1.5px solid rgba(255, 255, 255, 0.1)"
-              : "none",
-            paddingLeft: screens.md ? 16 : 5,
-            paddingRight: screens.md ? 16 : 5,
-            backgroundColor:
-              hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
-            cursor: "pointer",
+
+
+        <div 
+          style={{ 
+            marginLeft: screens.md ? 0 : "auto" 
           }}
-          onMouseEnter={() => setHovered("github")}
-          onMouseLeave={() => setHovered(null)}
         >
-          <a
-            href="https://github.com/accordproject/template-playground"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", color: "white" }}
-          >
-            <GithubOutlined
-              style={{
-                fontSize: "20px",
-                color: "white",
-                marginRight: screens.md ? "5px" : "0",
-              }}
-            />
-            <span style={{ display: screens.md ? "inline" : "none" }}>Github</span>
-          </a>
+          <ToggleDarkMode />
         </div>
+
       </div>
     </div>
   );
