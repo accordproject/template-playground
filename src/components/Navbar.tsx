@@ -146,6 +146,9 @@ function Navbar({ scrollToFooter }: NavbarProps) {
   return (
     <div
       style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 1000,
         background: "#1b2540",
         height: "65px",
         lineHeight: "65px",
