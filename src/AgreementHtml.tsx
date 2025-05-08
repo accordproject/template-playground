@@ -3,6 +3,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
 import FullScreenModal from "./components/FullScreenModal";
+import ExportDropdown from "./components/Export";
 
 function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boolean }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -33,6 +34,9 @@ function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boole
         <h2 style={{ flexGrow: 1, textAlign: "center", paddingLeft: "34px", color: textColor }}>
           Preview Output
         </h2>
+        
+        <ExportDropdown text={agreementHtml} />
+
         {!isModal && <FullScreenModal />}
       </div>
       <p style={{ textAlign: "center", color: textColor }}>
