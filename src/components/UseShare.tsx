@@ -2,10 +2,15 @@ import { useState } from "react";
 import { Button, message } from "antd";
 import { ShareAltOutlined } from "@ant-design/icons";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 
 const UseShare = () => {
-  const generateShareableLink = useAppStore(
-    (state) => state.generateShareableLink
+  const { generateShareableLink, backgroundColor } = useAppStore(
+    (state) => ({
+      generateShareableLink: state.generateShareableLink,
+      backgroundColor: state.backgroundColor
+    }),
+    shallow
   );
   const [copied, setCopied] = useState(false);
 
@@ -24,7 +29,15 @@ const UseShare = () => {
 
   return (
     <div className="share-element">
-      <Button icon={<ShareAltOutlined />} onClick={handleCopy}>
+      <Button 
+        icon={<ShareAltOutlined />} 
+        onClick={handleCopy}
+        style={{
+          backgroundColor: backgroundColor === '#121212' ? '#1f1f1f' : undefined,
+          borderColor: backgroundColor === '#121212' ? '#434343' : undefined,
+          color: backgroundColor === '#121212' ? '#fff' : undefined
+        }}
+      >
         {copied ? "Copied!" : "Share"}
       </Button>
     </div>
