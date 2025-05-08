@@ -1,15 +1,16 @@
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
 
-export const SidebarContainer = styled.div`
-  width: 260px;
+export const SidebarContainer = styled.div<{ isOpen?: boolean }>`
+  width: 100%;
+  height: 100%;
   background-color: var(--bg-color) !important;
   padding: 1rem;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
   position: relative;
   overflow-y: auto;
   border-right: 1px solid #ddd;
+  transition: all 0.3s ease;
+  
   @media (max-width: 768px) {
     width: 100%;
     height: auto;
@@ -21,13 +22,18 @@ export const SidebarTitle = styled.h2`
   font-size: 1.2rem;
   font-weight: 500;
   margin-bottom: 1rem;
+  margin-top: 2.5rem;
   color: var(--text-color) !important;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 `;
 
 export const SidebarList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 `;
 
 export const SidebarListItem = styled.li`
@@ -98,4 +104,27 @@ export const DividerLine = styled.div`
   height: 1px;
   background-color: #ddd;
   margin: 7rem 0 1rem 0;
+`;
+
+export const HamburgerButton = styled.button<{ isOpen?: boolean }>`
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 10px;
+  right: ${props => props.isOpen ? "220px" : "20px"};
+  z-index: 100;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  &:hover {
+    color: #19c6c7;
+    background-color: rgba(25, 198, 199, 0.1);
+  }
 `;
