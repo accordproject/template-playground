@@ -17,6 +17,7 @@ import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
 import FloatingFAB from "./components/FabButton";
 import ResizableContainer from "./components/ResizableContainer";
+import FileUpload from "./components/FileUpload";
 
 const { Content } = Layout;
 
@@ -129,7 +130,7 @@ const App = () => {
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                minHeight: "calc(100vh - 64px - 70px)", // Adjust for Navbar and Footer height
+                minHeight: "calc(100vh - 64px - 70px)",
               }}
             >
               <Spinner />
@@ -159,6 +160,7 @@ const App = () => {
                         >
                           <SampleDropdown setLoading={setLoading} />
                           <UseShare />
+                          <FileUpload />
                         </Row>
                       </Col>
                       <Col span={18}>
@@ -173,19 +175,19 @@ const App = () => {
                       }}
                     >
                       <ResizableContainer
-  leftPane={
-    <Collapse
-      defaultActiveKey={activePanel}
-      onChange={onChange}
-      items={panels}
-     style={{ marginBottom: "24px" }}
-    />
-  }
-  rightPane={<AgreementHtml loading={loading} isModal={false} />}
-  initialLeftWidth={66}
-  minLeftWidth={30}
-  minRightWidth={30}
-/>
+                        leftPane={
+                          <Collapse
+                            defaultActiveKey={activePanel}
+                            onChange={onChange}
+                            items={panels}
+                            style={{ marginBottom: "24px" }}
+                          />
+                        }
+                        rightPane={<AgreementHtml loading={loading} isModal={false} />}
+                        initialLeftWidth={66}
+                        minLeftWidth={30}
+                        minRightWidth={30}
+                      />
                     </div>
                     <FloatingFAB />
                   </div>
