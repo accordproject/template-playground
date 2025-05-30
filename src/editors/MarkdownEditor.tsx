@@ -1,13 +1,10 @@
-import { useEffect } from "react";
-import Editor, { useMonaco } from "@monaco-editor/react";
+import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
 import useAppStore from "../store/store";
+import { useMonaco } from "@monaco-editor/react";
 
-const options = {
-  minimap: { enabled: false },
-  wordWrap: "on" as const,
-  automaticLayout: true,
-  scrollBeyondLastLine: false,
-};
+const MonacoEditor = lazy(() =>
+  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
+);
 
 export default function MarkdownEditor({
   value,
@@ -16,47 +13,63 @@ export default function MarkdownEditor({
   value: string;
   onChange?: (value: string | undefined) => void;
 }) {
-  const monaco = useMonaco();
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
+  const monaco = useMonaco();
+
+  const themeName = useMemo(
+    () => (backgroundColor ? "darkTheme" : "lightTheme"),
+    [backgroundColor]
+  );
 
   useEffect(() => {
     if (monaco) {
-      monaco.editor.defineTheme("lightTheme", {
-        base: "vs",
-        inherit: true,
-        rules: [],
-        colors: {
-          "editor.background": backgroundColor,
-          "editor.foreground": textColor,
-          "editor.lineHighlightBorder": "#EDE8DC",
-        },
-      });
+      const defineTheme = (name: string, base: "vs" | "vs-dark") => {
+        monaco.editor.defineTheme(name, {
+          base,
+          inherit: true,
+          rules: [],
+          colors: {
+            "editor.background": backgroundColor,
+            "editor.foreground": textColor,
+            "editor.lineHighlightBorder": "#EDE8DC",
+          },
+        });
+      };
 
-      monaco.editor.defineTheme("darkTheme", {
-        base: "vs-dark",
-        inherit: true,
-        rules: [],
-        colors: {
-          "editor.background": backgroundColor,
-          "editor.foreground": textColor,
-          "editor.lineHighlightBorder": "#EDE8DC",
-        },
-      });
-      monaco.editor.setTheme(backgroundColor ? "darkTheme" : "lightTheme");
+      defineTheme("lightTheme", "vs");
+      defineTheme("darkTheme", "vs-dark");
+
+      monaco.editor.setTheme(themeName);
     }
-  }, [monaco, backgroundColor, textColor]);
+  }, [monaco, backgroundColor, textColor, themeName]);
+
+  const editorOptions = {
+    minimap: { enabled: false },
+    wordWrap: "on" as const,
+    automaticLayout: true,
+    scrollBeyondLastLine: false,
+  };
+
+  const handleChange = useCallback(
+    (val: string | undefined) => {
+      if (onChange) onChange(val);
+    },
+    [onChange]
+  );
 
   return (
     <div className="editorwrapper">
-      <Editor
-        options={options}
-        language="markdown"
-        height="60vh"
-        value={value}
-        onChange={onChange}
-        theme={backgroundColor ? "darkTheme" : "lightTheme"}
-      />
+      <Suspense fallback={<div>Loading Editor...</div>}>
+        <MonacoEditor
+          options={editorOptions}
+          language="markdown"
+          height="60vh"
+          value={value}
+          onChange={handleChange}
+          theme={themeName}
+        />
+      </Suspense>
     </div>
   );
 }

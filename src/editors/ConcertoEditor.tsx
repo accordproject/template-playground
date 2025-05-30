@@ -1,14 +1,11 @@
-import * as monaco from "@monaco-editor/react";
-import { editor, MarkerSeverity } from "monaco-editor";
+import { useMonaco } from "@monaco-editor/react";
+import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
+import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
-import { useEffect, useMemo } from "react";
 
-const options: editor.IStandaloneEditorConstructionOptions = {
-  minimap: { enabled: false },
-  wordWrap: "on",
-  automaticLayout: true,
-  scrollBeyondLastLine: false,
-};
+const MonacoEditor = lazy(() =>
+  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
+);
 
 const concertoKeywords = [
   "map",
@@ -43,115 +40,163 @@ const concertoTypes = [
   "Boolean",
 ];
 
+const handleEditorWillMount = (monacoInstance: typeof monaco) => {
+  monacoInstance.languages.register({
+    id: "concerto",
+    extensions: [".cto"],
+    aliases: ["Concerto", "concerto"],
+    mimetypes: ["application/vnd.accordproject.concerto"],
+  });
+
+  monacoInstance.languages.setLanguageConfiguration("concerto", {
+    brackets: [
+      ["{", "}"],
+      ["[", "]"],
+      ["(", ")"],
+    ],
+    autoClosingPairs: [
+      { open: "{", close: "}" },
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
+      { open: "\"", close: "\"" },
+    ],
+    surroundingPairs: [
+      { open: "{", close: "}" },
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
+      { open: "\"", close: "\"" },
+    ],
+  });
+
+  monacoInstance.languages.setMonarchTokensProvider("concerto", {
+    keywords: concertoKeywords,
+    typeKeywords: concertoTypes,
+    operators: ["=", "{", "}", "@", '"'],
+    symbols: /[=}{@"]+/,
+    escapes: /\\(?:[btnfru"'\\]|\\u[0-9A-Fa-f]{4})/,
+    tokenizer: {
+      root: [
+        { include: "@whitespace" },
+        [
+          /[a-zA-Z_]\w*/,
+          {
+            cases: {
+              "@keywords": "keyword",
+              "@typeKeywords": "type",
+              "@default": "identifier",
+            },
+          },
+        ],
+        [/"([^"\\]|\\.)*$/, "string.invalid"], // non-terminated string
+        [/"/, "string", "@string"],
+      ],
+      string: [
+        [/[^\\"]+/, "string"],
+        [/@escapes/, "string.escape"],
+        [/\\./, "string.escape.invalid"],
+        [/"/, "string", "@pop"],
+      ],
+      whitespace: [
+        [/\s+/, "white"],
+        [/(\/\/.*)/, "comment"],
+      ],
+    },
+  });
+
+  monacoInstance.editor.defineTheme("concertoTheme", {
+    base: "vs",
+    inherit: true,
+    rules: [
+      { token: "keyword", foreground: "cd2184" },
+      { token: "type", foreground: "008080" },
+      { token: "identifier", foreground: "000000" },
+      { token: "string", foreground: "008000" },
+      { token: "string.escape", foreground: "800000" },
+      { token: "comment", foreground: "808080" },
+      { token: "white", foreground: "FFFFFF" },
+    ],
+    colors: {},
+  });
+
+  monacoInstance.editor.setTheme("concertoTheme");
+};
+
+interface ConcertoEditorProps {
+  value: string;
+  onChange?: (value: string | undefined) => void;
+}
+
 export default function ConcertoEditor({
   value,
   onChange,
-}: {
-  value: string;
-  onChange?: (value: string | undefined) => void;
-}) {
-  const monacoEditor = monaco.useMonaco();
+}: ConcertoEditorProps) {
+  const monacoInstance = useMonaco();
   const error = useAppStore((state) => state.error);
-  const ctoErr = useMemo(() => {
-    if (error && error.startsWith("c:")) {
-      return error;
-    }
-  }, [error]);
+  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const ctoErr = error?.startsWith("c:") ? error : undefined;
+
+  const themeName = useMemo(
+    () => (backgroundColor ? "darkTheme" : "lightTheme"),
+    [backgroundColor]
+  );
+
+  const options: monaco.editor.IStandaloneEditorConstructionOptions = {
+    minimap: { enabled: false },
+    wordWrap: "on",
+    automaticLayout: true,
+    scrollBeyondLastLine: false,
+    autoClosingBrackets: "languageDefined",
+    autoSurround: "languageDefined",
+    bracketPairColorization: { enabled: true },
+  };
+
+  const handleChange = useCallback(
+    (val: string | undefined) => {
+      if (onChange) onChange(val);
+    },
+    [onChange]
+  );
 
   useEffect(() => {
-    const model = monacoEditor?.editor.getModels()[0];
-    if (ctoErr && monacoEditor && model) {
+    if (!monacoInstance) return;
+
+    const model = monacoInstance.editor.getModels()?.[0];
+    if (!model) return;
+
+    if (ctoErr) {
       const match = ctoErr.match(/Line (\d+) column (\d+)/);
       if (match) {
         const lineNumber = parseInt(match[1], 10);
         const columnNumber = parseInt(match[2], 10);
-        monacoEditor.editor.setModelMarkers(model, "customMarker", [
+        monacoInstance.editor.setModelMarkers(model, "customMarker", [
           {
             startLineNumber: lineNumber,
             startColumn: columnNumber - 1,
             endLineNumber: lineNumber,
             endColumn: columnNumber + 1,
             message: ctoErr,
-            severity: MarkerSeverity.Error,
+            severity: monaco.MarkerSeverity.Error,
           },
         ]);
       }
-    } else if (monacoEditor && model) {
-      monacoEditor.editor.setModelMarkers(model, "customMarker", []);
+    } else {
+      monacoInstance.editor.setModelMarkers(model, "customMarker", []);
     }
-  }, [ctoErr, monacoEditor]);
-
-  function handleEditorWillMount(monaco: monaco.Monaco) {
-    monaco.languages.register({
-      id: "concerto",
-      extensions: [".cto"],
-      aliases: ["Concerto", "concerto"],
-      mimetypes: ["application/vnd.accordproject.concerto"],
-    });
-
-    monaco.languages.setMonarchTokensProvider("concerto", {
-      keywords: concertoKeywords,
-      typeKeywords: concertoTypes,
-      operators: ["=", "{", "}", "@", '"'],
-      symbols: /[=}{@"]+/,
-      escapes: /\\(?:[btnfru"'\\]|\\u[0-9A-Fa-f]{4})/,
-      tokenizer: {
-        root: [
-          { include: "@whitespace" },
-          [
-            /[a-zA-Z_]\w*/,
-            {
-              cases: {
-                "@keywords": "keyword",
-                "@typeKeywords": "type",
-                "@default": "identifier",
-              },
-            },
-          ],
-          [/"([^"\\]|\\.)*$/, "string.invalid"], // non-terminated string
-          [/"/, "string", "@string"],
-        ],
-        string: [
-          [/[^\\"]+/, "string"],
-          [/@escapes/, "string.escape"],
-          [/\\./, "string.escape.invalid"],
-          [/"/, "string", "@pop"],
-        ],
-        whitespace: [
-          [/\s+/, "white"],
-          [/(\/\/.*)/, "comment"],
-        ],
-      },
-    });
-
-    monaco.editor.defineTheme("concertoTheme", {
-      base: "vs",
-      inherit: true,
-      rules: [
-        { token: "keyword", foreground: "cd2184" },
-        { token: "type", foreground: "008080" },
-        { token: "identifier", foreground: "000000" },
-        { token: "string", foreground: "008000" },
-        { token: "string.escape", foreground: "800000" },
-        { token: "comment", foreground: "808080" },
-        { token: "white", foreground: "FFFFFF" },
-      ],
-      colors: {},
-    });
-
-    monaco.editor.setTheme("concertoTheme");
-  }
+  }, [ctoErr, monacoInstance]);
 
   return (
     <div className="editorwrapper">
-      <monaco.Editor
-        options={options}
-        language="concerto"
-        height="60vh"
-        value={value}
-        onChange={onChange}
-        beforeMount={handleEditorWillMount}
-      />
+      <Suspense fallback={<div>Loading Editor...</div>}>
+        <MonacoEditor
+          options={options}
+          language="concerto"
+          height="60vh"
+          value={value}
+          onChange={handleChange}
+          beforeMount={handleEditorWillMount}
+          theme={themeName}
+        />
+      </Suspense>
     </div>
   );
 }
