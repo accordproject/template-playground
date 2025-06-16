@@ -3,7 +3,6 @@ import { App as AntdApp, Layout, Row, Col, Collapse, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 import tour from "./components/Tour";
 import AgreementData from "./editors/editorsContainer/AgreementData";
 import LearnNow from "./pages/LearnNow";
@@ -200,7 +199,6 @@ const App = () => {
             </Routes>
           )}
         </Content>
-        <Footer />
       </Layout>
     </AntdApp>
   );
