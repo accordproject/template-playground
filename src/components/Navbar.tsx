@@ -259,19 +259,19 @@ function Navbar({ scrollToFooter }: NavbarProps) {
         {!isLearnPage && (
           <div
             style={{
-              height: "65px",
+              height: "40px",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor:
-                hovered === "join" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+              boxShadow: hovered === "join" ? "0 0 10px 10px rgba(255, 255, 255, 0.1)": "none", 
               cursor: "pointer",
+              borderRadius: "5px"
             }}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
           >
             <Link to="/learn/intro" className="learnNow-button">
-              <animated.button
+              <button
                 style={{
                   ...props,
                   padding: "10px 22px",
@@ -280,10 +280,10 @@ function Navbar({ scrollToFooter }: NavbarProps) {
                   border: "none",
                   borderRadius: "5px",
                   cursor: "pointer",
-                }}
+                } as any}
               >
                 Learn
-              </animated.button>
+              </button>
             </Link>
           </div>
         )}

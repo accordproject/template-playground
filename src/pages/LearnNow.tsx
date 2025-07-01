@@ -7,9 +7,7 @@ import { steps } from "../constants/learningSteps/steps";
 const LearnNow: React.FC = () => {
   return (
     <LearnNowContainer>
-      <SidebarContainer>
         <Sidebar steps={steps} />
-      </SidebarContainer>
       <ContentContainer>
         <Outlet />
       </ContentContainer>
