@@ -127,6 +127,7 @@ const App = () => {
                 flex: 1,
                 display: "flex",
                 justifyContent: "center",
+                background: backgroundColor,
                 alignItems: "center",
                 minHeight: "calc(100vh - 64px - 70px)", // Adjust for Navbar and Footer height
               }}
@@ -206,17 +207,17 @@ const App = () => {
 
 const Spinner = () => (
   <div
-    style={{
-      flex: 1,
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-    }}
-  >
-    <Spin
-      indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
-    />
-  </div>
+          style={{
+            flex: 1,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Spin
+            indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
+          />
+        </div>
 );
 
 export default App;
