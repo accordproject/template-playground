@@ -16,7 +16,7 @@ function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boole
         border: "1px solid #d9d9d9",
         borderRadius: "8px",
         padding: "16px",
-        height: "calc(100vh - 64px)",
+        height: isModal ? "calc(100vh - 150px)" : "calc(100vh - 64px)",
         overflowY: "auto",
         display: "flex",
         flexDirection: "column",
