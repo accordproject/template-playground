@@ -21,6 +21,8 @@
     "@accordproject/markdown-template": "^0.16.19",
     "@accordproject/markdown-transform": "^0.16.19",
     "@accordproject/template-engine": "^2.3.5",
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
     "@ant-design/icons": "^5.3.7",
     "@monaco-editor/react": "^4.6.0",
     "@types/styled-components": "^5.1.34",
