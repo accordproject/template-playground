@@ -3,6 +3,7 @@ import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
 
 import { FaUndo, FaRedo } from "react-icons/fa";
+import { AIButton } from "../../components/AIAssistant/AIButton";
 
 function TemplateModel() {
   const textColor = useAppStore((state) => state.textColor);
@@ -14,11 +15,11 @@ function TemplateModel() {
     setEditorModelCto,
     setModelCto // Sync to main state and rebuild
   );
- 
+
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       setValue(value); // Update editor state and sync
-      setModelCto(value); 
+      setModelCto(value);
     }
   };
 
@@ -27,6 +28,7 @@ function TemplateModel() {
       <div className="tooltip" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ color: textColor }}>Concerto Model</h3>
         <div>
+          <AIButton editorType="concerto" currentContent={value} onComplete={handleChange} />
           <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
           <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
         </div>
