@@ -9,6 +9,7 @@ import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
+import { AIConfig, ChatState } from '../types/components/AIAssistant.types';
 
 interface AppState {
   templateMarkdown: string;
@@ -21,8 +22,13 @@ interface AppState {
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
+  isAIConfigOpen: boolean;
+  isAIChatOpen: boolean;
   backgroundColor: string;
   textColor: string;
+  chatState: ChatState;
+  aiConfig: AIConfig | null;
+  chatAbortController: AbortController | null;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
@@ -35,6 +41,13 @@ interface AppState {
   generateShareableLink: () => string;
   loadFromLink: (compressedData: string) => Promise<void>;
   toggleDarkMode: () => void;
+  setAIConfigOpen: (visible: boolean) => void;
+  setAIChatOpen: (visible: boolean) => void;
+  setChatState: (state: ChatState) => void;
+  updateChatState: (partial: Partial<ChatState>) => void;
+  setAIConfig: (config: AIConfig | null) => void;
+  setChatAbortController: (controller: AbortController | null) => void;
+  resetChat: () => void;
 }
 
 export interface DecompressedData {
@@ -82,8 +95,17 @@ const useAppStore = create<AppState>()(
       data: JSON.stringify(playground.DATA, null, 2),
       editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       agreementHtml: "",
+      isAIConfigOpen: false,
+      isAIChatOpen: false,
       error: undefined,
       samples: SAMPLES,
+      chatState: {
+        messages: [],
+        isLoading: false,
+        error: null,
+      },
+      aiConfig: null,
+      chatAbortController: null,
       init: async () => {
         const params = new URLSearchParams(window.location.search);
         const compressedData = params.get("data");
@@ -201,6 +223,26 @@ const useAppStore = create<AppState>()(
             backgroundColor: isDark ? '#ffffff' : '#121212',
             textColor: isDark ? '#121212' : '#ffffff',
           };
+        });
+      },
+      setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
+      setAIChatOpen: (isOpen: boolean) => set(() => ({ isAIChatOpen: isOpen })),
+      setChatState: (state) => set({ chatState: state }),
+      updateChatState: (partial) => set((state) => ({ 
+        chatState: { ...state.chatState, ...partial } 
+      })),
+      setAIConfig: (config) => set({ aiConfig: config }),
+      setChatAbortController: (controller) => set({ chatAbortController: controller }),
+      resetChat: () => {
+        const chatAbortController = get().chatAbortController;
+        if (chatAbortController) {
+          chatAbortController.abort();
+          get().setChatAbortController(null);
+        }
+        get().setChatState({
+          messages: [],
+          isLoading: false,
+          error: null,
         });
       },
     }))

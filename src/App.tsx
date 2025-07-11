@@ -15,8 +15,8 @@ import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
-import FloatingFAB from "./components/FabButton";
 import ResizableContainer from "./components/ResizableContainer";
+import { AIChatPanel } from "./components/AIChatPanel";
 
 const { Content } = Layout;
 
@@ -24,6 +24,11 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
+  const { isAIChatOpen, setAIChatOpen } = useAppStore((state) => ({  
+      isAIChatOpen: state.isAIChatOpen,
+      setAIChatOpen: state.setAIChatOpen
+    }
+  ));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [activePanel, setActivePanel] = useState<string | string[]>();
@@ -160,6 +165,41 @@ const App = () => {
                         >
                           <SampleDropdown setLoading={setLoading} />
                           <UseShare />
+                          <button id="ai-assistant" onClick={() => setAIChatOpen(!isAIChatOpen)} className="flex cursor-pointer items-center justify-center px-4 py-1.5 h-8 text-sm bg-white border border-solid border-gray-300 rounded-md transition-all duration-400 ease-in-out hover:border-[#4096ff] hover:text-[#4096ff]">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 45 20"
+                              fill="none"
+                              className="size-8"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                stroke="currentColor"
+                                d="M12 13.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 0.444 3 5c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 14c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"
+                                transform="translate(0, 3)"
+                              />
+                              <defs>
+                                <linearGradient id="ai-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                  <stop offset="0%" stopColor="#a78bfa" />
+                                  <stop offset="50%" stopColor="#ec4899" />
+                                  <stop offset="100%" stopColor="#ef4444" />
+                                </linearGradient>
+                              </defs>
+                              <text
+                                x="32"
+                                y="6"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="url(#ai-gradient)"
+                                textAnchor="middle"
+                              >
+                                AI
+                              </text>
+                            </svg>
+                            <span>Assistant</span>
+                          </button>
                         </Row>
                       </Col>
                       <Col span={18}>
@@ -174,21 +214,21 @@ const App = () => {
                       }}
                     >
                       <ResizableContainer
-  leftPane={
-    <Collapse
-      defaultActiveKey={activePanel}
-      onChange={onChange}
-      items={panels}
-     style={{ marginBottom: "24px" }}
-    />
-  }
-  rightPane={<AgreementHtml loading={loading} isModal={false} />}
-  initialLeftWidth={66}
-  minLeftWidth={30}
-  minRightWidth={30}
-/>
+                        leftPane={
+                          <Collapse
+                            defaultActiveKey={activePanel}
+                            onChange={onChange}
+                            items={panels}
+                            style={{ marginBottom: "24px" }}
+                          />
+                        }
+                        rightPane={<AgreementHtml loading={loading} isModal={false} />}
+                        aiChatPane={isAIChatOpen ? <AIChatPanel /> : null}
+                        initialLeftWidth={66}
+                        minLeftWidth={30}
+                        minRightWidth={30}
+                      />
                     </div>
-                    <FloatingFAB />
                   </div>
                 }
               />
@@ -209,17 +249,17 @@ const App = () => {
 
 const Spinner = () => (
   <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Spin
-            indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
-          />
-        </div>
+    style={{
+      flex: 1,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <Spin
+      indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
+    />
+  </div>
 );
 
 export default App;

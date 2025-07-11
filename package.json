@@ -22,6 +22,9 @@
     "@accordproject/markdown-transform": "^0.16.19",
     "@accordproject/template-engine": "^2.3.5",
     "@ant-design/icons": "^5.3.7",
+    "@anthropic-ai/sdk": "^0.56.0",
+    "@google/genai": "^1.8.0",
+    "@mistralai/mistralai": "^1.7.3",
     "@monaco-editor/react": "^4.6.0",
     "@types/styled-components": "^5.1.34",
     "antd": "^5.7.2",
@@ -33,6 +36,7 @@
     "monaco-editor": "^0.50.0",
     "node-stdlib-browser": "^1.2.0",
     "normalize.css": "^8.0.1",
+    "openai": "^5.8.3",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dark-mode-toggle": "^0.2.0",
@@ -50,6 +54,7 @@
     "shepherd.js": "^13.0.3",
     "styled-components": "^6.1.12",
     "ts-debounce": "^4.0.0",
+    "uuid": "^11.1.0",
     "zustand": "^4.3.9"
   },
   "devDependencies": {
@@ -80,6 +85,7 @@
     "rollup-plugin-polyfill-node": "^0.12.0",
     "rollup-plugin-visualizer": "^5.14.0",
     "tailwindcss": "^3.4.17",
+    "tailwindcss-scoped-preflight": "^3.4.12",
     "typescript": "^5.1.6",
     "vite": "^4.5.6",
     "vite-plugin-node-polyfills": "^0.9.0",
