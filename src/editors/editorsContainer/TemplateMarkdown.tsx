@@ -23,19 +23,19 @@ function TemplateMarkdown() {
   };
 
   return (
-    <div className="column" style={{ backgroundColor }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h3 style={{ color: textColor }}>TemplateMark</h3>
-        <div>
-          <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
-          <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
-        </div>
-      </div>
-      <p style={{ color: textColor }}>
-        A natural language template with embedded variables, conditional sections, and TypeScript code.
-      </p>
+    // <div className="column" style={{ backgroundColor }}>
+    //   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    //     <h3 style={{ color: textColor }}>TemplateMark</h3>
+    //     <div>
+    //       <FaUndo onClick={undo} title="Undo" style={{ cursor: "pointer", color: textColor, marginRight: "8px" }} />
+    //       <FaRedo onClick={redo} title="Redo" style={{ cursor: "pointer", color: textColor }} />
+    //     </div>
+    //   </div>
+    //   <p style={{ color: textColor }}>
+    //     A natural language template with embedded variables, conditional sections, and TypeScript code.
+    //   </p>
       <MarkdownEditor value={value} onChange={handleChange} />
-    </div>
+    // </div>
   );
 }
 
