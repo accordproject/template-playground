@@ -11,6 +11,9 @@ import AgreementHtml from "./AgreementHtml";
 import Errors from "./utils/helpers/Errors";
 import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
 import TemplateModel from "./editors/editorsContainer/TemplateModel";
+import TemplateMetadata from "./editors/editorsContainer/TemplateMetadata";
+import TemplateLogic from "./editors/editorsContainer/TemplateLogic";
+import ApiUpload from "./components/ApiUpload";
 import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
 import UseShare from "./components/UseShare";
@@ -114,6 +117,21 @@ const App = () => {
       key: "model",
       label: "Concerto Model",
       children: <TemplateModel />,
+    },
+    {
+      key: "metadata",
+      label: "Template Metadata",
+      children: <TemplateMetadata />,
+    },
+    {
+      key: "logic",
+      label: "Template Logic",
+      children: <TemplateLogic />,
+    },
+    {
+      key: "api",
+      label: "API Upload",
+      children: <ApiUpload />,
     },
     {
       key: "data",
