@@ -42,6 +42,30 @@ The Accord Project Playground is an open-source project, welcoming contributions
 
 The Template Playground is deployed at: [https://playground.accordproject.org](https://playground.accordproject.org)
 
+## API Configuration
+
+The playground can connect to an Accord Protocol API server for template and agreement management. To configure the API server URL:
+
+### Environment Variable Configuration
+
+Create a `.env` file in the project root with:
+
+```bash
+# Accord Protocol API Server URL
+VITE_API_SERVER_URL=http://your-accord-server:port
+```
+
+### Default Configuration
+
+If no environment variable is set, the playground defaults to:
+```
+http://ec2-3-80-94-40.compute-1.amazonaws.com:9000
+```
+
+### Development Proxy
+
+In development mode, the playground automatically proxies `/api/*` requests to the configured server to avoid CORS issues.
+
 ---
 
 <p align="center">

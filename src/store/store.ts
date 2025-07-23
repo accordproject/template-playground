@@ -29,12 +29,28 @@ interface AppState {
   chatState: ChatState;
   aiConfig: AIConfig | null;
   chatAbortController: AbortController | null;
+  templateMetadata: {
+    author: string;
+    displayName: string;
+    version: string;
+    description: string;
+    license: string;
+    keywords: string[];
+    metadata: {
+      runtime: string;
+      template: string;
+      cicero: string;
+    };
+  };
+  templateLogic: string;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
   setEditorModelCto: (value: string) => void;
   setData: (data: string) => Promise<void>;
   setEditorAgreementData: (value: string) => void;
+  setTemplateMetadata: (metadata: AppState['templateMetadata']) => void;
+  setTemplateLogic: (logic: string) => Promise<void>;
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
@@ -55,6 +71,20 @@ export interface DecompressedData {
   modelCto: string;
   data: string;
   agreementHtml: string;
+  templateMetadata?: {
+    author: string;
+    displayName: string;
+    version: string;
+    description: string;
+    license: string;
+    keywords: string[];
+    metadata: {
+      runtime: string;
+      template: string;
+      cicero: string;
+    };
+  };
+  templateLogic?: string;
 }
 
 const rebuildDeBounce = debounce(rebuild, 500);
@@ -98,6 +128,20 @@ const useAppStore = create<AppState>()(
       isAIConfigOpen: false,
       isAIChatOpen: false,
       error: undefined,
+      templateMetadata: {
+        author: "",
+        displayName: "",
+        version: "1.0.0",
+        description: "",
+        license: "Apache-2",
+        keywords: [],
+        metadata: {
+          runtime: "typescript",
+          template: "clause",
+          cicero: "0.25.x"
+        }
+      },
+      templateLogic: "",
       samples: SAMPLES,
       chatState: {
         messages: [],
@@ -128,6 +172,20 @@ const useAppStore = create<AppState>()(
             editorModelCto: sample.MODEL,
             data: JSON.stringify(sample.DATA, null, 2),
             editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+            templateMetadata: {
+              author: "",
+              displayName: sample.NAME,
+              version: "1.0.0",
+              description: `Sample template: ${sample.NAME}`,
+              license: "Apache-2",
+              keywords: [],
+              metadata: {
+                runtime: "typescript",
+                template: "clause",
+                cicero: "0.25.x"
+              }
+            },
+            templateLogic: "",
           }));
           await get().rebuild();
         }
@@ -183,6 +241,12 @@ const useAppStore = create<AppState>()(
       setEditorAgreementData: (value: string) => {
         set(() => ({ editorAgreementData: value }));
       },
+      setTemplateMetadata: (metadata: AppState['templateMetadata']) => {
+        set(() => ({ templateMetadata: metadata }));
+      },
+      setTemplateLogic: async (logic: string) => {
+        set(() => ({ templateLogic: logic }));
+      },
       generateShareableLink: () => {
         const state = get();
         const compressedData = compress({
@@ -190,12 +254,14 @@ const useAppStore = create<AppState>()(
           modelCto: state.modelCto,
           data: state.data,
           agreementHtml: state.agreementHtml,
+          templateMetadata: state.templateMetadata,
+          templateLogic: state.templateLogic,
         });
         return `${window.location.origin}?data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
         try {
-          const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
+          const { templateMarkdown, modelCto, data, agreementHtml, templateMetadata, templateLogic } = decompress(compressedData);
           if (!templateMarkdown || !modelCto || !data) {
             throw new Error("Invalid share link data");
           }
@@ -207,6 +273,20 @@ const useAppStore = create<AppState>()(
             data,
             editorAgreementData: data,
             agreementHtml,
+            templateMetadata: templateMetadata || {
+              author: "",
+              displayName: "",
+              version: "1.0.0",
+              description: "",
+              license: "Apache-2",
+              keywords: [],
+              metadata: {
+                runtime: "typescript",
+                template: "clause",
+                cicero: "0.25.x"
+              }
+            },
+            templateLogic: templateLogic || "",
             error: undefined,
           }));
           await get().rebuild();
