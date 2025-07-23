@@ -9,13 +9,14 @@ const API_SERVER_URL = process.env.VITE_API_SERVER_URL || 'http://ec2-3-80-94-40
 
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
-  plugins: [nodePolyfills(), react(), visualizer({
+  plugins: [nodePolyfills(), visualizer({
     emitFile: true,
     filename: "stats.html",
   })],
   optimizeDeps: {
     include: ["immer"],
     needsInterop: ['@accordproject/template-engine'],
+    exclude: ['for-each']
   },
   server: {
     proxy: {
@@ -24,14 +25,17 @@ const viteConfig = defineViteConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log(`Sending Request to the Target: ${req.method} ${req.url}`);
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
           });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log(`Received Response from the Target: ${proxyRes.statusCode} ${req.url}`);
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Sending Request to the Target:', req.method, req.url);
           });
-        }
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+          });
+        },
       }
     }
   },
