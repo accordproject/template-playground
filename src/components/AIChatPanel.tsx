@@ -183,7 +183,7 @@ export const AIChatPanel = () => {
   }, [chatState.messages, chatState.isLoading]);
 
   return (
-    <div className="twp pl-4 pr-4 pt-3 flex flex-col border rounded-md h-[calc(100vh-150px)]">
+    <div className="twp pl-4 pr-4 pt-3 flex flex-col border rounded-md h-[calc(100vh-150px)] h-full">
       <div className="flex justify-between items-center h-4">
         <h2 className="text-lg font-bold">AI Assistant</h2>
         <div className="flex items-center gap-2">

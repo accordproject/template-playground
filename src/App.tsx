@@ -3,7 +3,6 @@ import { App as AntdApp, Layout, Row, Col, Collapse, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 import tour from "./components/Tour";
 import AgreementData from "./editors/editorsContainer/AgreementData";
 import LearnNow from "./pages/LearnNow";
@@ -16,7 +15,7 @@ import SampleDropdown from "./components/SampleDropdown";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
 import ResizableContainer from "./components/ResizableContainer";
-import { AIChatPanel } from "./components/AIChatPanel";
+import MainContainer from "./pages/MainContainer";
 
 const { Content } = Layout;
 
@@ -24,11 +23,6 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIChatOpen, setAIChatOpen } = useAppStore((state) => ({  
-      isAIChatOpen: state.isAIChatOpen,
-      setAIChatOpen: state.setAIChatOpen
-    }
-  ));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [activePanel, setActivePanel] = useState<string | string[]>();
@@ -124,7 +118,7 @@ const App = () => {
 
   return (
     <AntdApp>
-      <Layout style={{ minHeight: "100vh" }}>
+      <Layout style={{ height: "100vh" }}>
         <Navbar scrollToFooter={scrollToFooter} />
         <Content>
           {loading ? (
@@ -146,14 +140,13 @@ const App = () => {
                 path="/"
                 element={
                   <div
+                  className="h-full"
                     style={{
-                      padding: 24,
-                      paddingBottom: 24,
-                      minHeight: 360,
                       background: backgroundColor,
                     }}
                   >
-                    <Row>
+                    <MainContainer />
+                    {/* <Row>
                       <Col xs={24} sm={8}>
                         <Row
                           style={{
@@ -222,13 +215,15 @@ const App = () => {
                             style={{ marginBottom: "24px" }}
                           />
                         }
-                        rightPane={<AgreementHtml loading={loading} isModal={false} />}
-                        aiChatPane={isAIChatOpen ? <AIChatPanel /> : null}
+                        rightPane={
+                          <AgreementHtml loading={loading} isModal={false} />
+                        }
                         initialLeftWidth={66}
                         minLeftWidth={30}
                         minRightWidth={30}
                       />
                     </div>
+                    <FloatingFAB /> */}
                   </div>
                 }
               />
@@ -241,7 +236,6 @@ const App = () => {
             </Routes>
           )}
         </Content>
-        <Footer />
       </Layout>
     </AntdApp>
   );
