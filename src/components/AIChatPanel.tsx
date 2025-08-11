@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import AIConfigPopup from "./AIConfigPopup";
 import ReactMarkdown from "react-markdown";
 import useAppStore from "../store/store";
-import { sendMessage, stopMessage, loadConfigFromLocalStorage } from "../ai-assistant/chatRelay";
+import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
 
 export const AIChatPanel = () => {
   const [promptPreset, setPromptPreset] = useState<string | null>(null);
@@ -16,7 +15,7 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, isAIConfigOpen, setAIConfig, setAIConfigOpen, setAIChatOpen } = useAppStore.getState()
+  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen } = useAppStore.getState()
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
   
@@ -29,11 +28,6 @@ export const AIChatPanel = () => {
   const [includeDataContent, setIncludeDataContent] = useState<boolean>(
     localStorage.getItem('aiIncludeData') === 'true'
   );
-  
-  const handleConfigSave = () => {
-    loadConfigFromLocalStorage();
-    setAIConfigOpen(false);
-  };
   
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
@@ -115,8 +109,11 @@ export const AIChatPanel = () => {
     if (!content || !content.includes('```')) {
       console.log("content is", content);
       return (
-        <div className="text-sm prose prose-sm max-w-none">
-          <ReactMarkdown>
+        <div className="text-sm prose prose-sm break-all max-w-none">
+          <ReactMarkdown
+            components={{
+              code: ({ children, className }) => <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className}`}>{children}</code>,
+          }}>
             {content}
           </ReactMarkdown>
         </div>
@@ -306,7 +303,7 @@ export const AIChatPanel = () => {
         <div className="flex flex-col gap-2">
             {promptPreset && (
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-600 bg-opacity-95 text-white rounded-lg self-start">
-                <span className="text-sm font-medium whitespace-nowrap">
+                <span className="text-sm font-medium prose lg:prose-md">
                   {
                     promptPreset === "textToTemplate" ? "Text to TemplateMark" : "Create Concerto Model"
                   }
@@ -537,11 +534,6 @@ export const AIChatPanel = () => {
             </div>
         </div>
     </div>
-        <AIConfigPopup
-            isOpen={isAIConfigOpen}
-            onClose={() => setAIConfigOpen(false)}
-            onSave={handleConfigSave}
-        />
     </div>
   );
 }

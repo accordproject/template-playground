@@ -25,19 +25,34 @@ const includeEditorContents = (prompt: string, aiConfig: any, editorsContent: ed
 
 export const prepareSystemPrompt = {
   textToTemplate: (editorsContent: editorsContent, aiConfig?: any) => {
-    let prompt = `You are a helpful assistant that converts the following text into a valid Accord Project TemplateMark template.\n\n`;
+    let prompt = `You are a helpful assistant that converts the following text into a valid Accord Project TemplateMark template without corresponding Concerto and JSON data.\n\n`;
     return includeEditorContents(prompt, aiConfig, editorsContent);
   },
 
   createConcertoModel: (editorsContent: editorsContent, aiConfig?: any) => {
-    let prompt = `You are a helpful assistant that creates valid Accord Project Concerto models.\n\n`;
+    let prompt = `You are a helpful assistant that creates valid Accord Project Concerto models without corresponding TemplateMark and JSON data.\n\n`;
+    return includeEditorContents(prompt, aiConfig, editorsContent);
+  },
+
+  explainCode: (editorsContent: editorsContent, aiConfig?: any, editorType?: 'markdown' | 'concerto' | 'json') => {
+    const editorTypeMap = {
+      "markdown": 'TemplateMark',
+      "concerto": 'Concerto',
+      "json": 'JSON Data'
+    };
+    
+    const typeName = editorType ? editorTypeMap[editorType] || editorType : '';
+    
+    let prompt = `You are a helpful assistant that explains Accord Project ${typeName} code clearly and concisely. 
+    Focus on what the code does, its purpose, and any important details about its structure or syntax. 
+    Provide easy to understand explanations for developers.\n\n`;
+    
     return includeEditorContents(prompt, aiConfig, editorsContent);
   },
 
   default: (editorsContent: editorsContent, aiConfig?: any) => {
     let prompt = `You are a helpful assistant that answers questions about open source Accord Project. You assist the user 
     to work with TemplateMark, Concerto models and JSON data. Code blocks returned by you should enclosed in backticks\n\n`;
-    console.log("aiConfig", aiConfig)
     return includeEditorContents(prompt, aiConfig, editorsContent);
   }
 };
