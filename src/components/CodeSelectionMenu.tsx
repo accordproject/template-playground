@@ -169,7 +169,20 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
             <div className="text-sm text-gray-700 prose lg:prose-md">
               <ReactMarkdown
                 components={{
-                  code: ({ children, className }) => <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className}`}>{children}</code>,
+                  pre: ({ children }) => {
+                    return (
+                      <pre className="[&_code]:bg-transparent">
+                        {children}
+                      </pre>
+                    );
+                  },
+                  code: ({ children, className }) => {
+                    return (
+                      <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className}`}>
+                        {children}
+                      </code>
+                    );
+                  }
               }}>
                 {explanation}
               </ReactMarkdown>

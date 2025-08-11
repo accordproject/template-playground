@@ -45,8 +45,9 @@ export const prepareSystemPrompt = {
     
     let prompt = `You are a helpful assistant that explains Accord Project ${typeName} code clearly and concisely. 
     Focus on what the code does, its purpose, and any important details about its structure or syntax. 
-    Provide easy to understand explanations for developers.\n\n`;
-    
+    Provide easy to understand explanations for developers. You can break down the code in detail line-by-line
+    but don't include the complete code block in your response as it is, user already knows their selection.\n\n`;
+
     return includeEditorContents(prompt, aiConfig, editorsContent);
   },
 
