@@ -2,6 +2,10 @@ import styled from "styled-components";
 
 export const LearnNowContainer = styled.div`
   display: flex;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+  }
 `;
 
 export const SidebarContainer = styled.div`
@@ -27,6 +31,10 @@ export const SidebarContainer = styled.div`
     text-decoration: none;
     color: var(--text-color) !important; 
   }
+
+  @media (max-width: 767px) {
+    display: none;
+  }
 `;
 
 export const ContentContainer = styled.div`
@@ -34,4 +42,12 @@ export const ContentContainer = styled.div`
   padding: 20px;
   background-color: var(--bg-color) !important; 
   color: var(--text-color) !important;
+
+  @media (max-width: 767px) {
+    margin-top: 25px;
+    margin-bottom: 30px;
+
+    h1 {
+      margin-top: 0;
+  }
 `;
