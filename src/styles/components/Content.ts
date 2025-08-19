@@ -101,6 +101,7 @@ export const NavigationButtons = styled.div`
   margin-bottom: 1.25rem;
   display: flex;
   justify-content: space-between;
+  gap: 1rem;
 
   @media (max-width: 48rem) {
     flex-direction: column;
@@ -112,28 +113,40 @@ export const NavigationButtons = styled.div`
 `;
 
 export const NavigationButton = styled.button`
-  padding: 0.625rem 1.25rem;
-  border: 0.125rem solid #19c6c7;
-  border-radius: 0.25rem;
-  background-color: white;
-  color: #1b2540;
+  padding: 0.75rem 1.5rem;
+  border: 0.125rem solid #2c3e50;
+  border-radius: 2rem;
+  background-color: #2c3e50;
+  color: white;
   cursor: pointer;
   font-weight: 600;
   font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.2);
+  position: relative;
+  overflow: hidden;
 
   &:disabled {
-    background-color: #e0e0e0;
-    color: #9e9e9e;
+    background-color: #95a5a6;
+    color: #ecf0f1;
     cursor: not-allowed;
-    border-color: #e0e0e0;
+    border-color: #95a5a6;
+    box-shadow: none;
   }
 
   &:hover:not(:disabled) {
-    background-color: #19c6c7;
-    color: white;
-    text-decoration: underline;
+    background-color: white;
+    color: #2c3e50;
+    border-color: #2c3e50;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(44, 62, 80, 0.2);
   }
 `;
