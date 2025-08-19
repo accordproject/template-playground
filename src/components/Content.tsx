@@ -30,24 +30,29 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const [copied, setCopied] = useState<string | null>(null);
   const navigate = useNavigate();
 
+
   useEffect(() => {
+    let isMounted = true; // to avoid state updates if component unmounts
     const loadContent = async () => {
       try {
         setLoading(true);
-        const contentData = await fetchContent(file);
-        setContent(contentData);
-        setError(null);
-      } catch (err) {
-        setError("Failed to load content");
-        console.error(err);
+        const data = await fetchContent(file);
+        if (isMounted) {
+          setContent(data);
+        }
+      } catch (error) {
+       setError("Error while fetching the documents")
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     loadContent();
-  }, [file]);
 
+    return () => {
+      isMounted = false;
+    };
+  }, [file]);
   const currentIndex = steps.findIndex((step) =>
     step.link.includes(file.split(".")[0])
   );
