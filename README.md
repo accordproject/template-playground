@@ -102,3 +102,4 @@ Copyright 2018-2019 Clause, Inc. All trademarks are the property of their respec
 [developers]: https://github.com/accordproject/models/blob/master/DEVELOPERS.md
 [apache]: https://github.com/accordproject/models/blob/master/LICENSE
 [creativecommons]: http://creativecommons.org/licenses/by/4.0/
+#DCO FIX
