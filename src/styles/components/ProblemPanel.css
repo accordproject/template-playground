@@ -1,0 +1,91 @@
+.problem-panel-container {
+  @apply h-full flex flex-col bg-white border border-gray-200;
+}
+
+.problem-panel-header {
+  @apply flex items-center px-4 py-2 bg-gray-50 border-b border-gray-200;
+}
+
+.problem-panel-title {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.problem-panel-content {
+  @apply flex-1 overflow-y-auto;
+}
+
+.problem-panel-empty-state {
+  @apply flex flex-col items-center justify-center h-full text-gray-500;
+}
+
+.problem-panel-empty-state-content {
+  @apply text-center;
+}
+
+.problem-panel-empty-state-icon {
+  @apply text-2xl mb-2;
+}
+
+.problem-panel-empty-state-text {
+  @apply text-sm;
+}
+
+.problem-panel-problems-list {
+  @apply divide-y divide-gray-100;
+}
+
+.problem-panel-problem-item {
+  @apply p-3 hover:bg-gray-50 cursor-pointer border-l-4;
+}
+
+.problem-panel-problem-item-error {
+  @apply border-l-red-500;
+}
+
+.problem-panel-problem-item-warning {
+  @apply border-l-yellow-500;
+}
+
+.problem-panel-problem-item-info {
+  @apply border-l-blue-500;
+}
+
+.problem-panel-problem-content {
+  @apply flex items-start space-x-3;
+}
+
+.problem-panel-problem-details {
+  @apply flex-1 min-w-0;
+}
+
+.problem-panel-problem-meta {
+  @apply flex items-center justify-between;
+}
+
+.problem-panel-problem-tags {
+  @apply flex items-center space-x-2;
+}
+
+.problem-panel-problem-type-badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border;
+}
+
+.problem-panel-problem-source {
+  @apply text-xs text-gray-500;
+}
+
+.problem-panel-problem-location {
+  @apply text-xs text-gray-400;
+}
+
+.problem-panel-problem-timestamp {
+  @apply text-xs text-gray-400;
+}
+
+.problem-panel-problem-message-container {
+  @apply mt-1;
+}
+
+.problem-panel-problem-message {
+  @apply text-sm text-gray-900 break-words font-mono;
+}

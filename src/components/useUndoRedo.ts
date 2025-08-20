@@ -1,16 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function useUndoRedo<T>(initialValue: T, onChange?: (value: T) => void, onSync?: (value: T) => Promise<void>) {
   const [past, setPast] = useState<T[]>([]);
   const [present, setPresent] = useState<T>(initialValue);
   const [future, setFuture] = useState<T[]>([]);
 
+  useEffect(() => {
+    if (initialValue !== present) {
+      setPresent(initialValue);
+      setPast([]);
+      setFuture([]);
+    }
+  }, [initialValue, present]);
+
   const setValue = (newValue: T) => {
     setPast((prevPast) => [...prevPast, present]);
     setPresent(newValue);
     setFuture([]);
     if (onChange) onChange(newValue); // Update editor state
-    if (onSync) onSync(newValue); // Sync to main state and rebuild
+    if (onSync) void onSync(newValue);
   };
 
   const undo = () => {
@@ -19,8 +27,8 @@ function useUndoRedo<T>(initialValue: T, onChange?: (value: T) => void, onSync?:
     setPast((prevPast) => prevPast.slice(0, -1));
     setFuture((prevFuture) => [present, ...prevFuture]);
     setPresent(previous);
-    if (onChange) onChange(previous); // Update editor state
-    if (onSync) onSync(previous); // Sync to main state and rebuild
+    if (onChange) onChange(previous);
+    if (onSync) void onSync(previous);
   };
 
   const redo = () => {
@@ -29,8 +37,8 @@ function useUndoRedo<T>(initialValue: T, onChange?: (value: T) => void, onSync?:
     setFuture((prevFuture) => prevFuture.slice(1));
     setPast((prevPast) => [...prevPast, present]);
     setPresent(next);
-    if (onChange) onChange(next); // Update editor state
-    if (onSync) onSync(next); // Sync to main state and rebuild
+    if (onChange) onChange(next);
+    if (onSync) void onSync(next);
   };
 
   return { value: present, setValue, undo, redo };
