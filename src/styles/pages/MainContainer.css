@@ -1,0 +1,67 @@
+.main-container {
+  @apply h-full bg-slate-50;
+}
+
+.main-container-panel-group {
+  @apply h-full;
+}
+
+.main-container-editors-panel {
+  @apply h-full bg-white border-r border-gray-200;
+}
+
+.main-container-editors-panel-group {
+  @apply h-full;
+}
+
+.main-container-editor-section {
+  @apply h-full flex flex-col;
+}
+
+.main-container-editor-header {
+  @apply bg-slate-100 border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 flex items-center justify-between;
+}
+
+.main-container-editor-header-left {
+  @apply flex items-center gap-4;
+}
+
+.main-container-ai-assistant-button {
+  @apply flex cursor-pointer items-center justify-center px-4 py-1.5 h-8 text-sm bg-white border border-solid border-gray-300 rounded-md transition-all duration-300 ease-in-out hover:border-[#4096ff] hover:text-[#4096ff];
+}
+
+.main-container-ai-assistant-icon {
+  @apply size-8;
+}
+
+.main-container-editor-content {
+  @apply flex-1 overflow-hidden relative;
+}
+
+.main-container-panel-resize-handle-vertical {
+  @apply h-1 bg-gray-200 hover:bg-gray-300 transition-colors;
+}
+
+.main-container-panel-resize-handle-horizontal {
+  @apply w-1 bg-gray-200 hover:bg-gray-300 transition-colors;
+}
+
+.main-container-preview-panel {
+  @apply h-full bg-white flex flex-col;
+}
+
+.main-container-preview-header {
+  @apply bg-slate-100 border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 flex justify-between items-center;
+}
+
+.main-container-preview-content {
+  @apply flex-1 p-4 bg-white;
+}
+
+.main-container-preview-text {
+  @apply text-gray-500;
+}
+
+.main-container-agreement {
+  @apply flex-1;
+}
