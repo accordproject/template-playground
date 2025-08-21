@@ -16,6 +16,7 @@ import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
 import ResizableContainer from "./components/ResizableContainer";
 import MainContainer from "./pages/MainContainer";
+import { AIChatPanel } from "./components/AIChatPanel";
 
 const { Content } = Layout;
 
@@ -23,6 +24,11 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
+  const { isAIChatOpen, setAIChatOpen } = useAppStore((state) => ({  
+      isAIChatOpen: state.isAIChatOpen,
+      setAIChatOpen: state.setAIChatOpen
+    }
+  ));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [activePanel, setActivePanel] = useState<string | string[]>();
@@ -218,6 +224,8 @@ const App = () => {
                         rightPane={
                           <AgreementHtml loading={loading} isModal={false} />
                         }
+                        rightPane={<AgreementHtml loading={loading} isModal={false} />}
+                        aiChatPane={isAIChatOpen ? <AIChatPanel /> : null}
                         initialLeftWidth={66}
                         minLeftWidth={30}
                         minRightWidth={30}

@@ -1,4 +1,3 @@
-
 import { scopedPreflightStyles, isolateInsideOfContainer } from 'tailwindcss-scoped-preflight';
 /** @type {import('tailwindcss').Config} */
 module.exports = {
