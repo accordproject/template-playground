@@ -38,7 +38,7 @@ const MainContainer = () => {
               <div className="main-container-editors-panel">
                 <PanelGroup direction="vertical" className="main-container-editors-panel-group">
                   <Panel defaultSize={30} minSize={20}>
-                    <div className="main-container-editor-section">
+                    <div className="main-container-editor-section tour-concerto-model">
                       <div className="main-container-editor-header">
                         {/* Left side */}
                         <div className="main-container-editor-header-left">
@@ -48,7 +48,7 @@ const MainContainer = () => {
                         <button
                           id="ai-assistant"
                           onClick={() => setAIChatOpen(!isAIChatOpen)}
-                          className="main-container-ai-assistant-button"
+                          className="main-container-ai-assistant-button tour-ai-assistant"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +99,7 @@ const MainContainer = () => {
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
                   <Panel defaultSize={30} minSize={20}>
-                    <div className="main-container-editor-section">
+                    <div className="main-container-editor-section tour-template-mark">
                       <div className="main-container-editor-header">
                         TemplateMark
                       </div>
@@ -112,7 +112,7 @@ const MainContainer = () => {
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
                   <Panel defaultSize={30} minSize={20}>
-                    <div className="main-container-editor-section">
+                    <div className="main-container-editor-section tour-json-data">
                       <div className="main-container-editor-header">
                         JSON Data
                       </div>
@@ -138,7 +138,7 @@ const MainContainer = () => {
         {isPreviewVisible && (
           <>
             <Panel defaultSize={30} minSize={20}>
-              <div className="main-container-preview-panel">
+              <div className="main-container-preview-panel tour-preview-panel">
                 <div className="main-container-preview-header">
                   <span>Preview</span>
                 </div>

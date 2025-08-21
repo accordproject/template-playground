@@ -6,6 +6,7 @@ import { FaCirclePlay } from "react-icons/fa6";
 import useAppStore from "../store/store";
 import { message } from "antd";
 import FullScreenModal from "./FullScreenModal";
+import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
 const PlaygroundSidebar = () => {
@@ -17,7 +18,6 @@ const PlaygroundSidebar = () => {
     setPreviewVisible,
     setProblemPanelVisible,
     generateShareableLink,
-    startTour,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -26,7 +26,6 @@ const PlaygroundSidebar = () => {
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
     generateShareableLink: state.generateShareableLink,
-    startTour: state.startTour,
   }));
 
   const handleShare = async () => {
@@ -42,6 +41,15 @@ const PlaygroundSidebar = () => {
 
   const handleSettings = () => {
     void message.info('Settings feature coming soon!');
+  };
+
+  const handleStartTour = async () => {
+    try {
+      await tour.start();
+      localStorage.setItem("hasVisited", "true");
+    } catch (error) {
+      console.error("Tour failed to start:", error);
+    }
   };
 
   const handleEditorToggle = () => {
@@ -108,7 +116,7 @@ const PlaygroundSidebar = () => {
     { 
       title: "Start Tour", 
       icon: FaCirclePlay,
-      onClick: startTour
+      onClick: () => void handleStartTour()
     },
     { 
       title: "Settings", 
@@ -129,7 +137,7 @@ const PlaygroundSidebar = () => {
             onClick={onClick}
             className={`group playground-sidebar-nav-item ${
               active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
-            }`}
+            } tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             {component ? (
               <div className="playground-sidebar-nav-item-icon-container">
@@ -151,7 +159,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
-            className="group playground-sidebar-nav-bottom-item"
+            className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             <Icon size={22} />
             <span className="playground-sidebar-nav-item-title">{title}</span>
