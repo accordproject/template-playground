@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Row, Col, Collapse, Spin } from "antd";
+import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
-import AgreementData from "./editors/editorsContainer/AgreementData";
+// import AgreementData from "./editors/editorsContainer/AgreementData";
 import LearnNow from "./pages/LearnNow";
-import AgreementHtml from "./AgreementHtml";
-import Errors from "./utils/helpers/Errors";
-import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
-import TemplateModel from "./editors/editorsContainer/TemplateModel";
+// import AgreementHtml from "./AgreementHtml";
+// import Errors from "./utils/helpers/Errors";
+// import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
+// import TemplateModel from "./editors/editorsContainer/TemplateModel";
 import useAppStore from "./store/store";
-import SampleDropdown from "./components/SampleDropdown";
-import UseShare from "./components/UseShare";
+// import SampleDropdown from "./components/SampleDropdown";
+// import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
-import ResizableContainer from "./components/ResizableContainer";
+// import ResizableContainer from "./components/ResizableContainer";
 import MainContainer from "./pages/MainContainer";
-import { AIChatPanel } from "./components/AIChatPanel";
+// import { AIChatPanel } from "./components/AIChatPanel";
 
 const { Content } = Layout;
 
@@ -24,14 +24,14 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIChatOpen, setAIChatOpen } = useAppStore((state) => ({  
-      isAIChatOpen: state.isAIChatOpen,
-      setAIChatOpen: state.setAIChatOpen
-    }
-  ));
+  // const { isAIChatOpen, setAIChatOpen } = useAppStore((state) => ({  
+  //     isAIChatOpen: state.isAIChatOpen,
+  //     setAIChatOpen: state.setAIChatOpen
+  //   }
+  // ));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
-  const [activePanel, setActivePanel] = useState<string | string[]>();
+  // const [activePanel, setActivePanel] = useState<string | string[]>();
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
@@ -42,9 +42,9 @@ const App = () => {
     }
   };
 
-  const onChange = (key: string | string[]) => {
-    setActivePanel(key);
-  };
+  // const onChange = (key: string | string[]) => {
+  //   setActivePanel(key);
+  // };
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -104,23 +104,23 @@ const App = () => {
     }
   }, [searchParams]);
 
-  const panels = [
-    {
-      key: "templateMark",
-      label: "TemplateMark",
-      children: <TemplateMarkdown />,
-    },
-    {
-      key: "model",
-      label: "Concerto Model",
-      children: <TemplateModel />,
-    },
-    {
-      key: "data",
-      label: "Preview Data",
-      children: <AgreementData />,
-    },
-  ];
+  // const panels = [
+  //   {
+  //     key: "templateMark",
+  //     label: "TemplateMark",
+  //     children: <TemplateMarkdown />,
+  //   },
+  //   {
+  //     key: "model",
+  //     label: "Concerto Model",
+  //     children: <TemplateModel />,
+  //   },
+  //   {
+  //     key: "data",
+  //     label: "Preview Data",
+  //     children: <AgreementData />,
+  //   },
+  // ];
 
   return (
     <AntdApp>

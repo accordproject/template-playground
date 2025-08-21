@@ -1,15 +1,14 @@
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
-
-import { FaUndo, FaRedo } from "react-icons/fa";
+// import { FaUndo, FaRedo } from "react-icons/fa";
 
 function AgreementData() {
-  const textColor = useAppStore((state) => state.textColor);
+  // const textColor = useAppStore((state) => state.textColor);
   const editorAgreementData = useAppStore((state) => state.editorAgreementData);
   const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
   const setData = useAppStore((state) => state.setData);
-  const { value, setValue, undo, redo } = useUndoRedo(
+  const { value, setValue } = useUndoRedo(
     editorAgreementData,
     setEditorAgreementData,
     setData // Sync to main state and rebuild

@@ -1,15 +1,15 @@
 import MarkdownEditor from "../MarkdownEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
-import { FaUndo, FaRedo } from "react-icons/fa";
+// import { FaUndo, FaRedo } from "react-icons/fa";
 
 function TemplateMarkdown() {
-  const textColor = useAppStore((state) => state.textColor);
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  // const textColor = useAppStore((state) => state.textColor);
+  // const backgroundColor = useAppStore((state) => state.backgroundColor);
   const editorValue = useAppStore((state) => state.editorValue);
   const setEditorValue = useAppStore((state) => state.setEditorValue);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-  const { value, setValue, undo, redo } = useUndoRedo(
+  const { value, setValue} = useUndoRedo(
     editorValue,
     setEditorValue,
     setTemplateMarkdown // Sync to main state and rebuild
