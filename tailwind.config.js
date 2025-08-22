@@ -12,6 +12,7 @@ module.exports = {
     extend: {},
   },
   plugins: [
+    require('@tailwindcss/typography'),
     scopedPreflightStyles({
       isolationStrategy: isolateInsideOfContainer('.twp', {
         except: '.no-twp',
