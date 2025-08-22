@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react';
-import useAppStore from '../store/store';
-import { AIConfig } from '../types/components/AIAssistant.types.ts';
-
-interface AIConfigPopupProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: () => void;
-}
+import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const [provider, setProvider] = useState<string>('');
@@ -17,8 +10,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const [maxTokens, setMaxTokens] = useState<string>('');
   
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
-  
-  const setAIConfig = useAppStore((state) => state.setAIConfig);
+  const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
 
   useEffect(() => {
     if (isOpen) {
@@ -29,7 +21,8 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       const savedMaxTokens = localStorage.getItem('aiResMaxTokens');
       
       const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
-
+      const savedEnableCodeSelection = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
+      
       if (savedProvider) setProvider(savedProvider);
       if (savedModel) setModel(savedModel);
       if (savedApiKey) setApiKey(savedApiKey);
@@ -37,6 +30,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       if (savedMaxTokens) setMaxTokens(savedMaxTokens);
       
       setShowFullPrompt(savedShowFullPrompt);
+      setEnableCodeSelectionMenu(savedEnableCodeSelection);
     }
   }, [isOpen]);
 
@@ -58,20 +52,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
     }
     
     localStorage.setItem('aiShowFullPrompt', showFullPrompt.toString());
-    
-    const config: AIConfig = {
-      provider,
-      model,
-      apiKey,
-      customEndpoint: provider === 'openai-compatible' ? customEndpoint : undefined,
-      maxTokens: maxTokens ? parseInt(maxTokens) : undefined,
-      showFullPrompt,
-      includeTemplateMarkContent: true,
-      includeConcertoModelContent: true,
-      includeDataContent: true,
-    };
-    
-    setAIConfig(config);
+    localStorage.setItem('aiEnableCodeSelectionMenu', enableCodeSelectionMenu.toString());
     
     onSave(); 
     onClose();
@@ -237,6 +218,22 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 </div>
                 <div className="mt-1 text-xs text-gray-500">
                   When enabled, you'll see the complete prompt sent to the AI (including any context), not just your input
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="enableCodeSelectionMenu"
+                    checked={enableCodeSelectionMenu}
+                    onChange={(e) => setEnableCodeSelectionMenu(e.target.checked)}
+                    className="h-4 w-4 text-blue-500 rounded focus:ring-blue-400"
+                  />
+                  <label htmlFor="enableCodeSelectionMenu" className="ml-2 text-sm text-gray-700">
+                    Enable Code Selection Menu
+                  </label>
+                </div>
+                <div className="mt-1 text-xs text-gray-500">
+                  When enabled, selecting code in editors will show a menu with "Explain" and "Chat" options
                 </div>
               </div>
             )}

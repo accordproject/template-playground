@@ -4,7 +4,6 @@ import { prepareSystemPrompt } from "./prompts";
 import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
 
-
 export const loadConfigFromLocalStorage = () => {
   const setAIConfig = useAppStore.getState().setAIConfig;
   
@@ -19,6 +18,7 @@ export const loadConfigFromLocalStorage = () => {
   const savedIncludeData = localStorage.getItem('aiIncludeData') === 'true';
   
   const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
+  const savedEnableCodeSelectionMenu = localStorage.getItem('aiEnableCodeSelectionMenu') === 'true';
 
   if (savedProvider && savedModel && savedApiKey) {
     const config: AIConfig = {
@@ -28,7 +28,8 @@ export const loadConfigFromLocalStorage = () => {
       includeTemplateMarkContent: savedIncludeTemplateMark,
       includeConcertoModelContent: savedIncludeConcertoModel,
       includeDataContent: savedIncludeData,
-      showFullPrompt: savedShowFullPrompt
+      showFullPrompt: savedShowFullPrompt,
+      enableCodeSelectionMenu: savedEnableCodeSelectionMenu,
     };
     
     if (savedCustomEndpoint && savedProvider === 'openai-compatible') {
@@ -86,7 +87,16 @@ export const stopMessage = () => {
   });
 };
 
-export const sendMessage = async (userInput: string, promptPreset: string | null, editorsContent: editorsContent) => {
+export const sendMessage = async (
+  userInput: string, 
+  promptPreset: string | null, 
+  editorsContent: editorsContent,
+  addToChat: boolean = true,
+  editorType?: 'markdown' | 'concerto' | 'json',
+  onChunk?: (chunk: string) => void,
+  onError?: (error: Error) => void,
+  onComplete?: () => void
+) => {
   const { 
     aiConfig, 
     chatState, 
@@ -106,9 +116,12 @@ export const sendMessage = async (userInput: string, promptPreset: string | null
   const signal = newAbortController.signal;
   
   if (!aiConfig) {
-    updateChatState({
-      error: 'Please configure AI settings first'
-    });
+    const error = new Error('Please configure AI settings first');
+    if (onError) {
+      onError(error);
+    } else if (addToChat) {
+      updateChatState({ error: error.message });
+    }
     return;
   }
   
@@ -117,6 +130,8 @@ export const sendMessage = async (userInput: string, promptPreset: string | null
     systemPrompt = prepareSystemPrompt.textToTemplate(editorsContent, aiConfig);
   } else if (promptPreset === "createConcertoModel") {
     systemPrompt = prepareSystemPrompt.createConcertoModel(editorsContent, aiConfig);
+  } else if (promptPreset === "explainCode") {
+    systemPrompt = prepareSystemPrompt.explainCode(editorsContent, aiConfig, editorType);
   } else {
     systemPrompt = prepareSystemPrompt.default(editorsContent, aiConfig);
   }
@@ -142,19 +157,24 @@ export const sendMessage = async (userInput: string, promptPreset: string | null
     timestamp: new Date(),
   };
   
-  const updatedChatState = {
-    messages: [...chatState.messages, systemMessage, userMessage, assistantMessage],
-    isLoading: true,
-    error: null
-  };
+  let updatedChatState;
   
-  setChatState(updatedChatState);
+  if (addToChat) {
+    updatedChatState = {
+      messages: [...chatState.messages, systemMessage, userMessage, assistantMessage],
+      isLoading: true,
+      error: null
+    };
+    setChatState(updatedChatState);
+  }
 
   try {
     const Provider = getLLMProvider(aiConfig);
     let fullResponse = '';
     
-    const messagesForAPI = [...updatedChatState.messages.slice(0, -1)];
+    const messagesForAPI = addToChat ? 
+      [...(updatedChatState?.messages.slice(0, -1) || [])] : 
+      [systemMessage, userMessage];
     
     const abortPromise = new Promise((_, reject) => {
       signal.addEventListener('abort', () => reject(new Error('Request aborted')));
@@ -169,33 +189,46 @@ export const sendMessage = async (userInput: string, promptPreset: string | null
             
             fullResponse += chunk;
             
-            const { chatState, setChatState } = useAppStore.getState();
-            const updatedMessages = [...chatState.messages];
-
-            updatedMessages[updatedMessages.length - 1] = {
-              ...updatedMessages[updatedMessages.length - 1],
-              content: fullResponse,
-            };
+            if (onChunk) {
+              onChunk(chunk);
+            }
             
-            setChatState({
-              ...chatState,
-              messages: updatedMessages,
-            });
+            if (addToChat) {
+              const { chatState, setChatState } = useAppStore.getState();
+              const updatedMessages = [...chatState.messages];
+
+              updatedMessages[updatedMessages.length - 1] = {
+                ...updatedMessages[updatedMessages.length - 1],
+                content: fullResponse,
+              };
+              
+              setChatState({
+                ...chatState,
+                messages: updatedMessages,
+              });
+            }
           },
           (error) => {
             if (!signal.aborted) {
-              updateChatState({
-                isLoading: false,
-                error: error.message,
-              });
+              if (onError) {
+                onError(error);
+              } else if (addToChat) {
+                updateChatState({
+                  isLoading: false,
+                  error: error.message,
+                });
+              }
             }
           },
           () => {
             if (!signal.aborted) {
-              updateChatState({
-                isLoading: false,
-              });
+              if (onComplete) {
+                onComplete();
+              }
               
+              if (addToChat) {
+                updateChatState({ isLoading: false });
+              }
               setChatAbortController(null);
             }
           }
@@ -209,10 +242,16 @@ export const sendMessage = async (userInput: string, promptPreset: string | null
     }
   } catch (error) {
     if (!newAbortController || !newAbortController.signal.aborted) {
-      updateChatState({
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'An unknown error occurred',
-      });
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      
+      if (onError) {
+        onError(error instanceof Error ? error : new Error(errorMessage));
+      } else if (addToChat) {
+        updateChatState({
+          isLoading: false,
+          error: errorMessage,
+        });
+      }
     }
   }
 };

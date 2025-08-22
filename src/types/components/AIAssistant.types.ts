@@ -21,6 +21,13 @@ export interface AIConfig {
   includeTemplateMarkContent: boolean;
   includeConcertoModelContent: boolean;
   includeDataContent: boolean;
+  enableCodeSelectionMenu?: boolean;
+}
+
+export interface AIConfigPopupProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: () => void;
 }
 
 export interface editorsContent {
@@ -29,12 +36,9 @@ export interface editorsContent {
   editorAgreementData: string,
 }
 
-export type ChatContextType = {
-  chatState: ChatState;
-  sendMessage: (userInput: string, promptPreset: string | null, editorsContent: editorsContent) => Promise<void>;
-  stopMessage: () => void;
-  resetChat: () => void;
-  aiConfig: AIConfig | null;
-  setAIConfig: (config: AIConfig | null) => void;
-  loadConfigFromLocalStorage: () => void;
-};
+export interface CodeSelectionMenuProps {
+  selectedText: string;
+  position: { x: number; y: number };
+  onClose: () => void;
+  editorType: 'markdown' | 'concerto' | 'json';
+}
