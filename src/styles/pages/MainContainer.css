@@ -1,5 +1,5 @@
 .main-container {
-  @apply h-full bg-slate-50;
+  @apply h-full;
 }
 
 .main-container-panel-group {
@@ -7,7 +7,7 @@
 }
 
 .main-container-editors-panel {
-  @apply h-full bg-white border-r border-gray-200;
+  @apply h-full border-r border-gray-200;
 }
 
 .main-container-editors-panel-group {
@@ -19,7 +19,15 @@
 }
 
 .main-container-editor-header {
-  @apply bg-slate-100 border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 flex items-center justify-between;
+  @apply border-b border-gray-200 px-4 py-2 text-sm font-medium flex items-center justify-between;
+}
+
+.main-container-editor-header-light {
+  @apply bg-slate-100 text-gray-700;
+}
+
+.main-container-editor-header-dark {
+  @apply bg-gray-700 text-white;
 }
 
 .main-container-editor-header-left {
@@ -47,15 +55,23 @@
 }
 
 .main-container-preview-panel {
-  @apply h-full bg-white flex flex-col;
+  @apply h-full flex flex-col;
 }
 
 .main-container-preview-header {
-  @apply bg-slate-100 border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 flex justify-between items-center;
+  @apply border-b border-gray-200 px-4 py-2 text-sm font-medium flex justify-between items-center;
+}
+
+.main-container-preview-header-light {
+  @apply bg-slate-100 text-gray-700;
+}
+
+.main-container-preview-header-dark {
+  @apply bg-gray-700 text-white;
 }
 
 .main-container-preview-content {
-  @apply flex-1 p-4 bg-white;
+  @apply flex-1 p-4;
 }
 
 .main-container-preview-text {

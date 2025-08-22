@@ -2,6 +2,7 @@ import styled from "styled-components";
 
 export const LearnNowContainer = styled.div`
   display: flex;
+  width: 100%;
 `;
 
 export const SidebarContainer = styled.div`

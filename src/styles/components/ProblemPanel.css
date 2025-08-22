@@ -1,13 +1,21 @@
 .problem-panel-container {
-  @apply h-full flex flex-col bg-white border border-gray-200;
+  @apply h-full flex flex-col border border-gray-200;
 }
 
 .problem-panel-header {
-  @apply flex items-center px-4 py-2 bg-gray-50 border-b border-gray-200;
+  @apply flex items-center px-4 py-2 border-b border-gray-200;
+}
+
+.problem-panel-header-light {
+  @apply bg-slate-100 text-gray-700;
+}
+
+.problem-panel-header-dark {
+  @apply bg-gray-700 text-white;
 }
 
 .problem-panel-title {
-  @apply text-sm font-medium text-gray-700;
+  @apply text-sm font-medium;
 }
 
 .problem-panel-content {
@@ -35,7 +43,15 @@
 }
 
 .problem-panel-problem-item {
-  @apply p-3 hover:bg-gray-50 cursor-pointer border-l-4;
+  @apply p-3 cursor-pointer border-l-4;
+}
+
+.problem-panel-problem-item-light {
+  @apply bg-white hover:bg-gray-50;
+}
+
+.problem-panel-problem-item-dark {
+  @apply bg-gray-800 hover:bg-gray-700;
 }
 
 .problem-panel-problem-item-error {
@@ -71,15 +87,15 @@
 }
 
 .problem-panel-problem-source {
-  @apply text-xs text-gray-500;
+  @apply text-xs;
 }
 
 .problem-panel-problem-location {
-  @apply text-xs text-gray-400;
+  @apply text-xs;
 }
 
 .problem-panel-problem-timestamp {
-  @apply text-xs text-gray-400;
+  @apply text-xs;
 }
 
 .problem-panel-problem-message-container {
@@ -87,5 +103,5 @@
 }
 
 .problem-panel-problem-message {
-  @apply text-sm text-gray-900 break-words font-mono;
+  @apply text-sm break-words font-mono;
 }

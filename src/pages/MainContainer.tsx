@@ -30,16 +30,16 @@ const MainContainer = () => {
   const [, setLoading] = useState(true);
 
   return (
-    <div className="main-container">
+    <div className="main-container" style={{ backgroundColor }}>
       <PanelGroup direction="horizontal" className="main-container-panel-group">
         {isEditorsVisible && (
           <>
             <Panel defaultSize={50} minSize={30}>
-              <div className="main-container-editors-panel">
+              <div className="main-container-editors-panel" style={{ backgroundColor }}>
                 <PanelGroup direction="vertical" className="main-container-editors-panel-group">
                   <Panel defaultSize={30} minSize={20}>
                     <div className="main-container-editor-section tour-concerto-model">
-                      <div className="main-container-editor-header">
+                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         {/* Left side */}
                         <div className="main-container-editor-header-left">
                           <span>Concerto Model</span>
@@ -91,7 +91,7 @@ const MainContainer = () => {
                           <span>Assistant</span>
                         </button>
                       </div>
-                      <div className="main-container-editor-content">
+                      <div className="main-container-editor-content" style={{ backgroundColor }}>
                         <TemplateModel />
                       </div>
                     </div>
@@ -100,10 +100,10 @@ const MainContainer = () => {
 
                   <Panel defaultSize={30} minSize={20}>
                     <div className="main-container-editor-section tour-template-mark">
-                      <div className="main-container-editor-header">
+                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         TemplateMark
                       </div>
-                      <div className="main-container-editor-content">
+                      <div className="main-container-editor-content" style={{ backgroundColor }}>
                         <TemplateMarkdown />
                       </div>
                     </div>
@@ -113,10 +113,10 @@ const MainContainer = () => {
 
                   <Panel defaultSize={30} minSize={20}>
                     <div className="main-container-editor-section tour-json-data">
-                      <div className="main-container-editor-header">
+                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         JSON Data
                       </div>
-                      <div className="main-container-editor-content">
+                      <div className="main-container-editor-content" style={{ backgroundColor }}>
                         <AgreementData />
                       </div>
                     </div>
@@ -138,11 +138,11 @@ const MainContainer = () => {
         {isPreviewVisible && (
           <>
             <Panel defaultSize={30} minSize={20}>
-              <div className="main-container-preview-panel tour-preview-panel">
-                <div className="main-container-preview-header">
+              <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor }}>
+                <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`}>
                   <span>Preview</span>
                 </div>
-                <div className="main-container-preview-content">
+                <div className="main-container-preview-content" style={{ backgroundColor }}>
                   <div className="main-container-preview-text">
                     <div
                       className="main-container-agreement"

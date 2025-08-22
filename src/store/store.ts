@@ -89,12 +89,27 @@ async function rebuild(template: string, model: string, dataString: string) {
   );
 }
 
+const getInitialTheme = () => {
+  if (typeof window !== 'undefined') {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      return { backgroundColor: '#121212', textColor: '#ffffff' };
+    } else if (savedTheme === 'light') {
+      return { backgroundColor: '#ffffff', textColor: '#121212' };
+    }
+  }
+  // Default to light theme
+  return { backgroundColor: '#ffffff', textColor: '#121212' };
+};
+
 const useAppStore = create<AppState>()(
   immer(
-    devtools((set, get) => ({
-      backgroundColor: '#ffffff',
-      textColor: '#121212',
-      sampleName: playground.NAME,
+    devtools((set, get) => {
+      const initialTheme = getInitialTheme();
+      return {
+        backgroundColor: initialTheme.backgroundColor,
+        textColor: initialTheme.textColor,
+        sampleName: playground.NAME,
       templateMarkdown: playground.TEMPLATE,
       editorValue: playground.TEMPLATE,
       modelCto: playground.MODEL,
@@ -245,10 +260,16 @@ const useAppStore = create<AppState>()(
       toggleDarkMode: () => {
         set((state) => {
           const isDark = state.backgroundColor === '#121212';
-          return {
+          const newTheme = {
             backgroundColor: isDark ? '#ffffff' : '#121212',
             textColor: isDark ? '#121212' : '#ffffff',
           };
+          
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+          }
+          
+          return newTheme;
         });
       },
       setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
@@ -273,7 +294,8 @@ const useAppStore = create<AppState>()(
       startTour: () => {
         console.log('Starting tour...');
       },
-    }))
+      }
+    })
   )
 );
 
