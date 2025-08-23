@@ -33,7 +33,7 @@ export default function JSONEditor({
     []
   );
 
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });

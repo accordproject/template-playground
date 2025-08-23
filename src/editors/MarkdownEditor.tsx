@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
 import useAppStore from "../store/store";
 import { useMonaco } from "@monaco-editor/react";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
+import type { editor } from "monaco-editor";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -53,7 +54,7 @@ export default function MarkdownEditor({
     scrollBeyondLastLine: false,
   };
 
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });

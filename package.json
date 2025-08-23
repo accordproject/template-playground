@@ -29,6 +29,7 @@
     "@types/styled-components": "^5.1.34",
     "antd": "^5.7.2",
     "core-js": "^3.37.1",
+    "diff": "^8.0.2",
     "highlight.js": "^11.10.0",
     "immer": "^10.1.1",
     "jest-canvas-mock": "^2.5.2",

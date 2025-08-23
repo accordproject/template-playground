@@ -152,7 +152,7 @@ export default function ConcertoEditor({
     bracketPairColorization: { enabled: true },
   };
 
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });

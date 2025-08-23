@@ -42,3 +42,17 @@ export interface CodeSelectionMenuProps {
   onClose: () => void;
   editorType: 'markdown' | 'concerto' | 'json';
 }
+
+export interface LineDiffProps {
+  line: string;
+  type: 'added' | 'removed' | 'unchanged';
+  displayLineNumber: number | null;
+}
+
+export interface CodeDiffPopupProps {
+  newCode: string;
+  currentCode: string;
+  language: string;
+  onApply: (code: string) => void;
+  onClose: () => void;
+}

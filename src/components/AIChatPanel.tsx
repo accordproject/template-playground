@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import useAppStore from "../store/store";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
+import CodeDiffPopup from "./CodeDiffPopup";
 
 export const AIChatPanel = () => {
   const [promptPreset, setPromptPreset] = useState<string | null>(null);
@@ -15,7 +16,21 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor } = useAppStore.getState()
+  const {
+    chatState,
+    resetChat,
+    aiConfig,
+    setAIConfig,
+    setAIConfigOpen,
+    setAIChatOpen,
+    setEditorValue,
+    setTemplateMarkdown,
+    setEditorModelCto,
+    setModelCto,
+    setEditorAgreementData,
+    setData,
+    textColor
+  } = useAppStore.getState()
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
   
@@ -105,64 +120,88 @@ export const AIChatPanel = () => {
     }
   };
 
-  const renderMessageContent = (content: string) => {
-    if (!content || !content.includes('```')) {
-      console.log("content is", content);
-      return (
-        <div className="text-sm prose prose-sm break-all max-w-none">
-          <ReactMarkdown
-            components={{
-              code: ({ children, className }) => <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className}`}>{children}</code>,
-          }}>
-            {content}
-          </ReactMarkdown>
-        </div>
-      );
+  const [showDiffPopup, setShowDiffPopup] = useState(false);
+  const [diffCodeProps, setDiffCodeProps] = useState({
+    newCode: "",
+    currentCode: "",
+    language: "",
+    onApply: (_code: string) => {}
+  });
+
+  const handleApplyCode = (code: string, language: string) => {
+    let currentCode = "";
+    let applyFunction = (_code: string) => {};
+    
+    if (language === "concerto") {
+      currentCode = editorsContent.editorModelCto;
+      applyFunction = (code: string) => {
+        setEditorModelCto(code);
+        setModelCto(code);
+      };
+    } else if (language === "templatemark") {
+      currentCode = editorsContent.editorTemplateMark;
+      applyFunction = (code: string) => {
+        setEditorValue(code);
+        setTemplateMarkdown(code);
+      };
+    } else if (language === "json") {
+      currentCode = editorsContent.editorAgreementData;
+      applyFunction = (code: string) => {
+        setEditorAgreementData(code);
+        setData(code);
+      };
     }
 
-    const parts = [];
-    let key = 0;
-    
-    const segments = content.split('```');
-    
-    if (segments[0]) {
-      parts.push(
-        <div className="text-sm prose prose-sm max-w-none" key={key++}>
-          <ReactMarkdown>
-            {segments[0]}
-          </ReactMarkdown>
-        </div>
-      );
+    const normalize = (str: string) => str.trim();
+    if (normalize(currentCode) === normalize(code)) {
+      applyFunction(code);
+      return;
     }
-    
-    for (let i = 1; i < segments.length; i++) {
-      if (i % 2 === 1 && segments[i]) {
-        const firstLineBreak = segments[i].indexOf('\n');
-        let code = segments[i];
-        
-        if (firstLineBreak > -1) {
-          code = segments[i].substring(firstLineBreak + 1);
-        }
-        
-        parts.push(
-          <div key={key++} className="relative mt-2 mb-2">
-            <pre className="bg-gray-800 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">
-              {code.trim()}
-            </pre>
-          </div>
-        );
-      } else if (i % 2 === 0 && segments[i]) {
-        parts.push(
-          <div className="text-sm prose prose-sm max-w-none" key={key++}>
-            <ReactMarkdown>
-              {segments[i]}
-            </ReactMarkdown>
-          </div>
-        );
-      }
-    }
-    
-    return parts;
+
+    setDiffCodeProps({
+      newCode: code,
+      currentCode,
+      language,
+      onApply: applyFunction
+    });
+    setShowDiffPopup(true);
+  };
+
+  const renderMessageContent = (content: string) => {
+    return (
+      <div className="text-sm prose prose-md break-all max-w-none">
+        <ReactMarkdown
+          components={{
+            code: ({ children, className }) => {
+              if (className === undefined) return <code className={`rounded-md`}>{children}</code>;
+              let language = ((className as string).match(/language-[^ ]*/)?.toString())?.split("-")[1] || "";
+              const isApplicable = ["concertoApply", "templatemarkApply", "jsonApply"].includes(language);
+              language = language.slice(0, -5)
+              const codeContent = children?.toString() || "";
+
+              return (
+                <div className="relative">
+                  {isApplicable && (
+                    <button
+                      onClick={() => handleApplyCode(codeContent, language)}
+                      className="sticky top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors flex items-center"
+                      title={`Apply to ${language} editor`}
+                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 14L4 9L9 4" />
+                      <path d="M4 9H16C18.2091 9 20 10.7909 20 13C20 15.2091 18.2091 17 16 17H12" />
+                    </svg>
+                    </button>
+                  )}
+                  <code className={`rounded-md ${className} block p-4`}>{children}</code>
+                </div>
+              );
+            }
+          }}>
+          {content}
+        </ReactMarkdown>
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -252,7 +291,7 @@ export const AIChatPanel = () => {
           </button>
         </div>
       </div>
-      <div className="w-full h-[calc(100%-3rem)] flex flex-col">
+      <div className="w-full h-[calc(100%-1rem)] flex flex-col">
         <div className="flex-1 overflow-y-auto mb-4 px-2 mt-4">
           <div className="space-y-2">
             {chatState.messages.length === 0 ? (
@@ -303,7 +342,7 @@ export const AIChatPanel = () => {
         <div className="flex flex-col gap-2">
             {promptPreset && (
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-600 bg-opacity-95 text-white rounded-lg self-start">
-                <span className="text-sm font-medium prose lg:prose-md">
+                <span className="text-sm font-medium">
                   {
                     promptPreset === "textToTemplate" ? "Text to TemplateMark" : "Create Concerto Model"
                   }
@@ -534,6 +573,15 @@ export const AIChatPanel = () => {
             </div>
         </div>
     </div>
+    {showDiffPopup && (
+      <CodeDiffPopup
+        newCode={diffCodeProps.newCode}
+        currentCode={diffCodeProps.currentCode}
+        language={diffCodeProps.language}
+        onApply={diffCodeProps.onApply}
+        onClose={() => setShowDiffPopup(false)}
+      />
+    )}
     </div>
   );
 }
