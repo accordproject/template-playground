@@ -10,8 +10,6 @@ import LearnContent from "./components/Content";
 import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
-import ResizableContainer from "./components/ResizableContainer";
-import { AIChatPanel } from "./components/AIChatPanel";
 import AIConfigPopup from "./components/AIConfigPopup";
 import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
 
@@ -21,13 +19,11 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIChatOpen, setAIChatOpen, isAIConfigOpen, setAIConfigOpen } = useAppStore((state) => ({
-      isAIChatOpen: state.isAIChatOpen,
-      setAIChatOpen: state.setAIChatOpen,
+  const { isAIConfigOpen, setAIConfigOpen } =
+    useAppStore((state) => ({
       isAIConfigOpen: state.isAIConfigOpen,
-      setAIConfigOpen: state.setAIConfigOpen
-    }
-  ));
+      setAIConfigOpen: state.setAIConfigOpen,
+    }));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);
@@ -43,10 +39,6 @@ const App = () => {
   const handleConfigSave = () => {
     loadConfigFromLocalStorage();
     setAIConfigOpen(false);
-  };
-
-  const onChange = (key: string | string[]) => {
-    setActivePanel(key);
   };
 
   useEffect(() => {
@@ -141,6 +133,11 @@ const App = () => {
                       </div>
                     )}
                   </Content>
+                  <AIConfigPopup
+                    isOpen={isAIConfigOpen}
+                    onClose={() => setAIConfigOpen(false)}
+                    onSave={handleConfigSave}
+                  />
                 </>
               }
             />

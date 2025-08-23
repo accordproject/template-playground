@@ -15,7 +15,7 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, isAIConfigOpen, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor } = useAppStore.getState()
+  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor } = useAppStore.getState()
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
   
