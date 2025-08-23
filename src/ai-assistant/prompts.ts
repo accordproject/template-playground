@@ -64,13 +64,15 @@ export const prepareSystemPrompt = {
     Other complex data fields that have custom concept declaration in Concerto model and nested fields in JSON data, can only be used 
     within {{#clause conceptName}} {{concept_property_name}} {{/clause}} tags. For enumerating through a list you can create a scope 
     to access the properties in list items via {{#olist listName}} {{instancePropertyName}} {{/olist}} or {{#ulist listName}}  
-    {{instancePropertyName}} {{/ulist}}. For TemplateMark code, there's no such thing as 'this' keyword within list scope. You may also 
-    use Typescript within TemplateMark by enclosing the code in {{% %}}. you can use Typescript to achieve an objective in TemplateMark 
+    {{instancePropertyName}} {{/ulist}}. For TemplateMark code, there's no such thing as 'this' keyword within list scope. You can also 
+    use Typescript within TemplateMark by enclosing the Typescript code in {{% %}}, you must write all of the Typescript code within a 
+    single line enclosed in a single pair of opening {{% and closing %}}. You may use Typescript to achieve an objective in TemplateMark 
     only if TemplateMark syntax makes doing something hard, the data objects from JSON are readily available within {{% %}} enclosed 
-    Typescript using direct access. For instance, you could use TypeScript to render ordered/unordered primitive list types such as String[].
-    Keep your focus on generating valid output based on current editors' contents but if you make a change that isn't compatible with the 
-    content of existing editors, you must return the full code for those editors as well. You mustn't add any placeholder in TemplateMark 
-    which isn't in Concerto model and JSON data unless you modify the Concerto and JSON data to have that field at the appropriate place.\n\n`;
+    Typescript using direct access, e.g. {{% return order.orderLines %}}. For e.g., you could use TypeScript to render ordered/unordered 
+    primitive list types such as String[]. Keep your focus on generating valid output based on current editors' contents but if you make 
+    a change that isn't compatible with the content of existing editors, you must return the full code for those editors as well. You 
+    mustn't add any placeholder in TemplateMark which isn't in Concerto model and JSON data unless you modify the Concerto and JSON data 
+    to have that field at the appropriate place.\n\n`;
     return includeEditorContents(prompt, aiConfig, editorsContent);
   }
 };
