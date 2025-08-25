@@ -1,0 +1,4 @@
+.main-section {
+    @apply flex w-full;
+    height: calc(100% - 64px);
+}
