@@ -16,7 +16,7 @@ import { BulbOutlined } from "@ant-design/icons";
 interface SidebarProps {
   steps: { title: string; link: string }[];
 }
-const Sidebar: React.FC<SidebarProps> = ({ steps }) => {
+const LearningPathwaySidebar: React.FC<SidebarProps> = ({ steps }) => {
   return (
     <SidebarContainer>
       <SidebarTitle>Learning Pathway</SidebarTitle>
@@ -50,4 +50,4 @@ const Sidebar: React.FC<SidebarProps> = ({ steps }) => {
   );
 };
 
-export default Sidebar;
+export default LearningPathwaySidebar;

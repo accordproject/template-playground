@@ -1,39 +1,15 @@
-.logo {
-  padding: 20px;
+.app-layout {
+  @apply flex flex-row;
 }
 
-blockquote {
-  background: #f9f9f9;
-  border-left: 10px solid #ccc;
-  margin: 1.5em 10px;
-  padding: 0.5em 10px;
-  quotes: "\201C""\201D""\2018""\2019";
-}
-blockquote:before {
-  color: #ccc;
-  content: open-quote;
-  font-size: 4em;
-  line-height: 0.1em;
-  margin-right: 0.25em;
-  vertical-align: -0.4em;
-}
-blockquote p {
-  display: inline;
+.app-content-loading {
+  @apply flex justify-center items-center min-h-[calc(100vh-64px)];
 }
 
-.space-align-container {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+.app-main-content {
+  @apply h-full;
 }
-.space-align-block {
-  flex: none;
-  margin: 8px 4px;
-  padding: 4px;
-  border: 1px solid #40a9ff;
-}
-.space-align-block .mock-block {
-  display: inline-block;
-  padding: 32px 8px 16px;
-  background: rgba(150, 150, 150, 0.2);
+
+.app-spinner-container {
+  @apply flex-1 flex justify-center items-center;
 }

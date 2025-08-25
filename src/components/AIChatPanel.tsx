@@ -15,7 +15,7 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen } = useAppStore.getState()
+  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor } = useAppStore.getState()
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
   
@@ -37,7 +37,7 @@ export const AIChatPanel = () => {
       return;
     }
     
-    let prompt = userInput;
+    const prompt = userInput;
     
     setUserInput("");
     setIsDropdownOpen(false);
@@ -101,7 +101,7 @@ export const AIChatPanel = () => {
         return;
       }
       e.preventDefault();
-      handleSendMessage();
+      void handleSendMessage();
     }
   };
 
@@ -180,9 +180,9 @@ export const AIChatPanel = () => {
   }, [chatState.messages, chatState.isLoading]);
 
   return (
-    <div className="twp pl-4 pr-4 pt-3 flex flex-col border rounded-md h-[calc(100vh-150px)]">
+    <div className="twp pl-4 pr-4 pt-3 flex flex-col border rounded-md h-[calc(100vh-150px)] h-full">
       <div className="flex justify-between items-center h-4">
-        <h2 className="text-lg font-bold">AI Assistant</h2>
+        <h2 className="text-lg font-bold" style={{ color: textColor }}>AI Assistant</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setAIConfigOpen(true)}
@@ -277,7 +277,7 @@ export const AIChatPanel = () => {
                     }
                   >
                     <div className={`${message.role === 'assistant' ? 'bg-blue-100' : 'bg-gray-100'} p-3 rounded-lg`}>
-                      <p className="text-xs font-semibold text-gray-600 mb-1">
+                      <p className="text-xs font-semibold mb-1" style={{ color: textColor }}>
                           {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
                       {message.content && renderMessageContent(
@@ -332,7 +332,7 @@ export const AIChatPanel = () => {
             
             {/* Context selection row */}
             <div className="flex items-center justify-start px-2 gap-2">
-              <span className="text-xs text-gray-600 mr-1">Context:</span>
+              <span className="text-xs text-gray-600 mr-1" style={{color: textColor}}>Context:</span>
               {/* TemplateMark Button */}
               <div
                 onClick={() => handleTemplateMarkToggle(!includeTemplateMarkContent)}
@@ -524,7 +524,7 @@ export const AIChatPanel = () => {
                 </button>
               ) : (
                 <button 
-                  onClick={handleSendMessage}
+                  onClick={() => void handleSendMessage()}
                   disabled={!userInput.trim()}
                   className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >

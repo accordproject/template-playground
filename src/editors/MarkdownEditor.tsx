@@ -67,12 +67,12 @@ export default function MarkdownEditor({
   );
 
   return (
-    <div className="editorwrapper relative">
+    <div className="editorwrapper h-full w-full">
       <Suspense fallback={<div>Loading Editor...</div>}>
         <MonacoEditor
           options={editorOptions}
           language="markdown"
-          height="60vh"
+          height="100%"
           value={value}
           onMount={handleEditorDidMount}
           onChange={handleChange}

@@ -1,0 +1,36 @@
+/* PlaygroundSidebar Component Styles */
+.playground-sidebar {
+  @apply w-16 h-full bg-[#1B2540] text-white flex flex-col justify-between items-center py-6 shadow-md;
+}
+
+.playground-sidebar-nav {
+  @apply flex flex-col gap-6;
+}
+
+.playground-sidebar-nav-item {
+  @apply p-[10px] flex flex-col items-center justify-center cursor-pointer transition-colors;
+}
+
+.playground-sidebar-nav-item-active {
+  @apply text-cyan-400;
+}
+
+.playground-sidebar-nav-item-inactive {
+  @apply text-white hover:text-cyan-400;
+}
+
+.playground-sidebar-nav-item-icon-container {
+  @apply flex items-center justify-center;
+}
+
+.playground-sidebar-nav-item-title {
+  @apply sr-only;
+}
+
+.playground-sidebar-nav-bottom {
+  @apply flex flex-col gap-6;
+}
+
+.playground-sidebar-nav-bottom-item {
+  @apply p-[10px] flex flex-col items-center justify-center text-white hover:text-cyan-400 cursor-pointer transition-colors;
+}

@@ -47,12 +47,12 @@ export default function JSONEditor({
   );
 
   return (
-    <div className="editorwrapper relative">
+    <div className="editorwrapper h-full w-full">
       <Suspense fallback={<div>Loading Editor...</div>}>
         <MonacoEditor
           options={options}
           language="json"
-          height="60vh"
+          height="100%"
           value={value}
           onMount={handleEditorDidMount}
           onChange={handleChange}
