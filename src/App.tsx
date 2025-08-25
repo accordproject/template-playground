@@ -29,12 +29,6 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
-  const scrollToFooter = () => {
-    const exploreContent = document.getElementById("footer");
-    if (exploreContent) {
-      exploreContent.scrollIntoView({ behavior: "smooth" });
-    }
-  };
 
   const handleConfigSave = () => {
     loadConfigFromLocalStorage();
