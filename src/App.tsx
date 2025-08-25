@@ -104,7 +104,7 @@ const App = () => {
   return (
     <AntdApp>
       <Layout style={{ height: "100vh" }}>
-        <Navbar scrollToFooter={scrollToFooter} />
+        <Navbar />
         <Layout className="app-layout">
           <Routes>
             <Route
