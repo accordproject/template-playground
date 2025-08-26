@@ -125,8 +125,8 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   };
 
   const popupPosition = {
-    left: Math.max(10, Math.min(position.x, window.innerWidth - 350)),
-    top: Math.max(10, Math.min(position.y - 20, window.innerHeight - 300)),
+    left: Math.max(300, Math.min(position.x, window.innerWidth - 350)),
+    top: isExplaining ? position.y - 20 : Math.max(10, Math.min(position.y - 20, window.innerHeight - 300)),
   };
   
   useEffect(() => {
@@ -165,7 +165,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <div className={`max-h-[60vh] pr-6 ${isExplaining ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+        <div className={`max-h-64 pr-6 ${isExplaining ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {isExplaining ? (
             <div className="flex items-center text-gray-500 text-sm">
               <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
