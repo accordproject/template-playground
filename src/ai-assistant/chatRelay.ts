@@ -18,7 +18,8 @@ export const loadConfigFromLocalStorage = () => {
   const savedIncludeData = localStorage.getItem('aiIncludeData') === 'true';
   
   const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
-  const savedEnableCodeSelectionMenu = localStorage.getItem('aiEnableCodeSelectionMenu') === 'true';
+  const savedEnableCodeSelectionMenu = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
+  const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
 
   if (savedProvider && savedModel && savedApiKey) {
     const config: AIConfig = {
@@ -30,6 +31,7 @@ export const loadConfigFromLocalStorage = () => {
       includeDataContent: savedIncludeData,
       showFullPrompt: savedShowFullPrompt,
       enableCodeSelectionMenu: savedEnableCodeSelectionMenu,
+      enableInlineSuggestions: savedEnableInlineSuggestions,
     };
     
     if (savedCustomEndpoint && savedProvider === 'openai-compatible') {
@@ -132,6 +134,8 @@ export const sendMessage = async (
     systemPrompt = prepareSystemPrompt.createConcertoModel(editorsContent, aiConfig);
   } else if (promptPreset === "explainCode") {
     systemPrompt = prepareSystemPrompt.explainCode(editorsContent, aiConfig, editorType);
+  } else if (promptPreset === "inlineSuggestion") {
+    systemPrompt = prepareSystemPrompt.inlineSuggestion(editorsContent, aiConfig, editorType);
   } else {
     systemPrompt = prepareSystemPrompt.default(editorsContent, aiConfig);
   }

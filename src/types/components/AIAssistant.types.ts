@@ -22,6 +22,7 @@ export interface AIConfig {
   includeConcertoModelContent: boolean;
   includeDataContent: boolean;
   enableCodeSelectionMenu?: boolean;
+  enableInlineSuggestions?: boolean;
 }
 
 export interface AIConfigPopupProps {
