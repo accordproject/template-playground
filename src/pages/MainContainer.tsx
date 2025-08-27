@@ -31,7 +31,8 @@ const MainContainer = () => {
 
   return (
     <div className="main-container" style={{ backgroundColor }}>
-      <PanelGroup direction="horizontal" className="main-container-panel-group">
+      <PanelGroup direction="horizontal" className="main-container-panel-group"
+       style={{position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)"}}>
         {isEditorsVisible && (
           <>
             <Panel defaultSize={50} minSize={30}>
