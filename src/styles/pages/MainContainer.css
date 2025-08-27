@@ -71,13 +71,13 @@
 }
 
 .main-container-preview-content {
-  @apply flex-1 p-4;
+  @apply flex-1 p-4 overflow-auto;
 }
 
 .main-container-preview-text {
-  @apply text-gray-500;
+  @apply text-gray-500 h-full;
 }
 
 .main-container-agreement {
-  @apply flex-1;
+  @apply flex-1 h-full;
 }
