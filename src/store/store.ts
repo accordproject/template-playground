@@ -48,6 +48,13 @@ interface AppState {
   setAIConfig: (config: AIConfig | null) => void;
   setChatAbortController: (controller: AbortController | null) => void;
   resetChat: () => void;
+  isEditorsVisible: boolean;
+  isPreviewVisible: boolean;
+  isProblemPanelVisible: boolean;
+  setEditorsVisible: (value: boolean) => void;
+  setPreviewVisible: (value: boolean) => void;
+  setProblemPanelVisible: (value: boolean) => void;
+  startTour: () => void;
 }
 
 export interface DecompressedData {
@@ -82,12 +89,27 @@ async function rebuild(template: string, model: string, dataString: string) {
   );
 }
 
+const getInitialTheme = () => {
+  if (typeof window !== 'undefined') {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      return { backgroundColor: '#121212', textColor: '#ffffff' };
+    } else if (savedTheme === 'light') {
+      return { backgroundColor: '#ffffff', textColor: '#121212' };
+    }
+  }
+  // Default to light theme
+  return { backgroundColor: '#ffffff', textColor: '#121212' };
+};
+
 const useAppStore = create<AppState>()(
   immer(
-    devtools((set, get) => ({
-      backgroundColor: '#ffffff',
-      textColor: '#121212',
-      sampleName: playground.NAME,
+    devtools((set, get) => {
+      const initialTheme = getInitialTheme();
+      return {
+        backgroundColor: initialTheme.backgroundColor,
+        textColor: initialTheme.textColor,
+        sampleName: playground.NAME,
       templateMarkdown: playground.TEMPLATE,
       editorValue: playground.TEMPLATE,
       modelCto: playground.MODEL,
@@ -106,6 +128,24 @@ const useAppStore = create<AppState>()(
       },
       aiConfig: null,
       chatAbortController: null,
+      isEditorsVisible: true,
+      isPreviewVisible: true,
+      isProblemPanelVisible: false,
+      setEditorsVisible: (value) => {
+        const state = get();
+        if (!value && !state.isPreviewVisible) {
+          return;
+        }
+        set({ isEditorsVisible: value });
+      },
+      setPreviewVisible: (value) => {
+        const state = get();
+        if (!value && !state.isEditorsVisible) {
+          return;
+        }
+        set({ isPreviewVisible: value });
+      },
+      setProblemPanelVisible: (value) => set({ isProblemPanelVisible: value }),
       init: async () => {
         const params = new URLSearchParams(window.location.search);
         const compressedData = params.get("data");
@@ -138,7 +178,7 @@ const useAppStore = create<AppState>()(
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
       },
       setTemplateMarkdown: async (template: string) => {
@@ -148,7 +188,7 @@ const useAppStore = create<AppState>()(
           const result = await rebuildDeBounce(template, modelCto, data);
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
       },
       setEditorValue: (value: string) => {
@@ -161,7 +201,7 @@ const useAppStore = create<AppState>()(
           const result = await rebuildDeBounce(templateMarkdown, model, data);
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
       },
       setEditorModelCto: (value: string) => {
@@ -177,7 +217,7 @@ const useAppStore = create<AppState>()(
           );
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
-          set(() => ({ error: formatError(error) }));
+          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
       },
       setEditorAgreementData: (value: string) => {
@@ -213,16 +253,23 @@ const useAppStore = create<AppState>()(
         } catch (error) {
           set(() => ({
             error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),
+            isProblemPanelVisible: true,
           }));
         }
       },
       toggleDarkMode: () => {
         set((state) => {
           const isDark = state.backgroundColor === '#121212';
-          return {
+          const newTheme = {
             backgroundColor: isDark ? '#ffffff' : '#121212',
             textColor: isDark ? '#121212' : '#ffffff',
           };
+          
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+          }
+          
+          return newTheme;
         });
       },
       setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
@@ -234,10 +281,9 @@ const useAppStore = create<AppState>()(
       setAIConfig: (config) => set({ aiConfig: config }),
       setChatAbortController: (controller) => set({ chatAbortController: controller }),
       resetChat: () => {
-        const chatAbortController = get().chatAbortController;
+        const { chatAbortController } = get();
         if (chatAbortController) {
           chatAbortController.abort();
-          get().setChatAbortController(null);
         }
         get().setChatState({
           messages: [],
@@ -245,7 +291,11 @@ const useAppStore = create<AppState>()(
           error: null,
         });
       },
-    }))
+      startTour: () => {
+        console.log('Starting tour...');
+      },
+      }
+    })
   )
 );
 

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Menu, Dropdown, Button, Image, Grid } from "antd";
-import { useSpring } from "react-spring";
+import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
@@ -13,15 +12,157 @@ import {
 } from "@ant-design/icons";
 import ToggleDarkMode from "./ToggleDarkMode";
 
-const { useBreakpoint } = Grid;
 
-interface NavbarProps {
-  scrollToFooter: () => void;
+interface DropdownProps {
+  children: React.ReactNode;
+  overlay: React.ReactNode;
+  trigger: string[];
+  className?: string;
 }
 
-function Navbar({ scrollToFooter }: NavbarProps) {
+const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleClick = () => {
+    if (trigger.includes("click")) {
+      setIsOpen(!isOpen);
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (trigger.includes("hover")) {
+      setIsOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (trigger.includes("hover")) {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div 
+      className={`relative ${className}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div onClick={handleClick}>
+        {children}
+      </div>
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
+            {overlay}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const Menu = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <div className={`py-1 ${className}`}>
+    {children}
+  </div>
+);
+
+const MenuItem = ({ 
+  children, 
+  onClick, 
+  className = "" 
+}: { 
+  children: React.ReactNode; 
+  onClick?: () => void;
+  className?: string;
+}) => (
+  <div 
+    className={`px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`}
+    onClick={onClick}
+  >
+    {children}
+  </div>
+);
+
+const MenuItemGroup = ({ 
+  title, 
+  children, 
+  className = "" 
+}: { 
+  title: string; 
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div className={className}>
+    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide border-b border-gray-200 dark:border-gray-700">
+      {title}
+    </div>
+    {children}
+  </div>
+);
+
+const Button = ({ 
+  children, 
+  onClick, 
+  className = "" 
+}: { 
+  children: React.ReactNode; 
+  onClick?: () => void;
+  className?: string;
+}) => (
+  <button 
+    className={`flex items-center ${className}`}
+    onClick={onClick}
+  >
+    {children}
+  </button>
+);
+
+const Image = ({ 
+  src, 
+  alt, 
+  className = "" 
+}: { 
+  src: string; 
+  alt: string;
+  className?: string;
+}) => (
+  <img src={src} alt={alt} className={className} />
+);
+
+const useBreakpoint = () => {
+  const [screenSize, setScreenSize] = useState({
+    sm: false,
+    md: false,
+    lg: false,
+    xl: false,
+  });
+
+  useState(() => {
+    const checkSize = () => {
+      setScreenSize({
+        sm: window.innerWidth >= 640,
+        md: window.innerWidth >= 768,
+        lg: window.innerWidth >= 1024,
+        xl: window.innerWidth >= 1280,
+      });
+    };
+
+    checkSize();
+    window.addEventListener('resize', checkSize);
+    return () => window.removeEventListener('resize', checkSize);
+  });
+
+  return screenSize;
+};
+
+function Navbar() {
   const [hovered, setHovered] = useState<
-    null | "home" | "explore" | "help" | "github" | "join"
+    null | "home" | "help" | "github" | "join"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
@@ -38,272 +179,206 @@ function Navbar({ scrollToFooter }: NavbarProps) {
 
   const mobileMenu = (
     <Menu>
-      <Menu.Item key="home">
-        <Link to="/">
-          Template Playground
+      <MenuItem>
+        <Link to="/" className="flex items-center space-x-2">
+          <span>Template Playground</span>
         </Link>
-      </Menu.Item>
-      <Menu.Item key="explore" onClick={scrollToFooter}>
-        Explore
-      </Menu.Item>
-      <Menu.Item key="about">
+      </MenuItem>
+      <MenuItem>
         <a
           href="https://github.com/accordproject/template-playground/blob/main/README.md"
           target="_blank"
           rel="noopener noreferrer"
+          className="flex items-center space-x-2"
         >
-          <QuestionOutlined /> About
+          <QuestionOutlined />
+          <span>About</span>
         </a>
-      </Menu.Item>
-      <Menu.Item key="community">
+      </MenuItem>
+      <MenuItem>
         <a
           href="https://discord.com/invite/Zm99SKhhtA"
           target="_blank"
           rel="noopener noreferrer"
+          className="flex items-center space-x-2"
         >
-          <UserOutlined /> Community
+          <UserOutlined />
+          <span>Community</span>
         </a>
-      </Menu.Item>
-      <Menu.Item key="issues">
+      </MenuItem>
+      <MenuItem>
         <a
           href="https://github.com/accordproject/template-playground/issues"
           target="_blank"
           rel="noopener noreferrer"
+          className="flex items-center space-x-2"
         >
-          <InfoOutlined /> Issues
+          <InfoOutlined />
+          <span>Issues</span>
         </a>
-      </Menu.Item>
-      <Menu.Item key="documentation">
+      </MenuItem>
+      <MenuItem>
         <a
           href="https://github.com/accordproject/template-engine/blob/main/README.md"
           target="_blank"
           rel="noopener noreferrer"
+          className="flex items-center space-x-2"
         >
-          <BookOutlined /> Documentation
+          <BookOutlined />
+          <span>Documentation</span>
         </a>
-      </Menu.Item>
+      </MenuItem>
     </Menu>
   );
 
   const helpMenu = (
     <Menu>
-      <Menu.ItemGroup key="info" title="Info">
-        <Menu.Item key="about">
+      <MenuItemGroup title="Info">
+        <MenuItem>
           <a
             href="https://github.com/accordproject/template-playground/blob/main/README.md"
             target="_blank"
             rel="noopener noreferrer"
+            className="flex items-center space-x-2"
           >
-            <QuestionOutlined /> About
+            <QuestionOutlined />
+            <span>About</span>
           </a>
-        </Menu.Item>
-        <Menu.Item key="community">
+        </MenuItem>
+        <MenuItem>
           <a
             href="https://discord.com/invite/Zm99SKhhtA"
             target="_blank"
             rel="noopener noreferrer"
+            className="flex items-center space-x-2"
           >
-            <UserOutlined /> Community
+            <UserOutlined />
+            <span>Community</span>
           </a>
-        </Menu.Item>
-        <Menu.Item key="issues">
+        </MenuItem>
+        <MenuItem>
           <a
             href="https://github.com/accordproject/template-playground/issues"
             target="_blank"
             rel="noopener noreferrer"
+            className="flex items-center space-x-2"
           >
-            <InfoOutlined /> Issues
+            <InfoOutlined />
+            <span>Issues</span>
           </a>
-        </Menu.Item>
-      </Menu.ItemGroup>
-      <Menu.ItemGroup title="Documentation">
-        <Menu.Item key="documentation">
+        </MenuItem>
+      </MenuItemGroup>
+      <MenuItemGroup title="Documentation">
+        <MenuItem>
           <a
             href="https://github.com/accordproject/template-engine/blob/main/README.md"
             target="_blank"
             rel="noopener noreferrer"
+            className="flex items-center space-x-2"
           >
-            <BookOutlined /> Documentation
+            <BookOutlined />
+            <span>Documentation</span>
           </a>
-        </Menu.Item>
-      </Menu.ItemGroup>
+        </MenuItem>
+      </MenuItemGroup>
     </Menu>
   );
 
-  const menuItemStyle = (key: string, isLast: boolean) => ({
-    display: "flex",
-    alignItems: "center",
-    padding: screens.md ? "0 20px" : "0",
-    backgroundColor:
-      hovered === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
-    height: "65px",
-    borderRight:
-      screens.md && !isLast ? "1.5px solid rgba(255, 255, 255, 0.1)" : "none",
-  });
+  const menuItemClasses = (key: string, isLast: boolean) => {
+    const baseClasses = "flex items-center h-16";
+    const paddingClasses = screens.md ? "px-5" : "px-0";
+    const bgClasses = hovered === key ? "bg-white bg-opacity-10" : "bg-transparent";
+    const borderClasses = screens.md && !isLast ? "border-r border-white border-opacity-10" : "";
+    
+    return `${baseClasses} ${paddingClasses} ${bgClasses} ${borderClasses}`;
+  };
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 1000,
-        background: "#1b2540",
-        height: "65px",
-        lineHeight: "65px",
-        display: "flex",
-        alignItems: "center",
-        paddingLeft: screens.lg ? 40 : screens.md ? 10 : 10,
-        paddingRight: screens.lg ? 40 : screens.md ? 10 : 10,
-      }}
-    >
+    <div className={`sticky top-0 z-50 bg-[#1b2540] h-16 flex items-center ${
+      screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
+    }`}>
       <div
-        style={{
-          cursor: "pointer",
-          ...menuItemStyle("home", false),
-        }}
+        className={`cursor-pointer ${menuItemClasses("home", false)}`}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
         <Link
           to="/"
           rel="noopener noreferrer"
-          style={{ display: "flex", alignItems: "center" }}
+          className="flex items-center"
         >
           <Image
             src={screens.lg ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
-            preview={false}
-            style={{
-              paddingRight: screens.md ? "8px" : "2px",
-              height: "26px",
-              maxWidth: screens.md ? "184.17px" : "36.67px",
-            }}
+            className={`h-6.5 ${screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"}`}
           />
-          <span style={{ color: "white", display: screens.lg ? "block" : "none" }}>Template Playground</span>
-
+          <span className={`text-white ${screens.lg ? "block" : "hidden"}`}>
+            Template Playground
+          </span>
         </Link>
       </div>
+      
       {screens.md ? (
         <>
           <div
-            style={{
-              ...menuItemStyle("explore", false),
-              cursor: "pointer",
-            }}
-            onClick={scrollToFooter}
-            onMouseEnter={() => setHovered("explore")}
-            onMouseLeave={() => setHovered(null)}
-          >
-            <span style={{ color: "white" }}>Explore</span>
-          </div>
-          <div
-            style={{
-              ...menuItemStyle("help", false),
-              cursor: "pointer",
-            }}
+            className={`${menuItemClasses("help", false)} cursor-pointer`}
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
             <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "white",
-                  height: "65px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
+              <Button className="bg-transparent border-none text-white h-16 flex items-center">
                 Help
-                <CaretDownFilled
-                  style={{ fontSize: "10px", marginLeft: "5px" }}
-                />
+                <CaretDownFilled className="text-xs ml-1.5" />
               </Button>
             </Dropdown>
           </div>
         </>
       ) : (
-        <div style={{ marginLeft: "5px" }}>
+        <div className="ml-1.5">
           <Dropdown overlay={mobileMenu} trigger={["click"]}>
-            <Button
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "white",
-                height: "65px",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <MenuOutlined style={{ fontSize: "20px" }} />
+            <Button className="bg-transparent border-none text-white h-16 flex items-center">
+              <MenuOutlined className="text-xl text-white" />
             </Button>
           </Dropdown>
         </div>
       )}
-      <div
-        style={{
-          display: "flex",
-          marginLeft: "auto",
-          alignItems: "center",
-          height: "65px",
-          gap: screens.md ? "20px" : "10px",
-          marginRight: screens.md ? 0 : "5px"
-        }}
-      >
-        <div style={{ marginLeft: screens.md ? 0 : "auto" }}>
+      
+      <div className={`flex ml-auto items-center h-16 ${
+        screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
+      }`}>
+        <div className={screens.md ? "ml-0" : "ml-auto"}>
           <ToggleDarkMode />
         </div>
+        
         {!isLearnPage && (
           <div
-            style={{
-              height: "40px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              boxShadow: hovered === "join" ? "0 0 10px 10px rgba(255, 255, 255, 0.1)": "none", 
-              cursor: "pointer",
-              borderRadius: "5px"
-            }}
+            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${
+              hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
+            }`}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
           >
             <Link to="/learn/intro" className="learnNow-button">
-              <button
-                style={{
-                  ...props,
-                  padding: "10px 22px",
-                  backgroundColor: "#19c6c7",
-                  color: "#050c40",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                } as any}
+              <animated.button
+                style={props}
+                className="px-[22px] py-[10px] bg-[#19c6c7] text-[#050c40] border-none rounded-md cursor-pointer"
               >
                 Learn
-              </button>
+              </animated.button>
             </Link>
           </div>
         )}
+        
         <div
-          style={{
-            height: "65px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: screens.md ? "0 20px" : "0 10px",
-            borderRadius: "5px",
-            borderLeft: screens.md
-              ? "1.5px solid rgba(255, 255, 255, 0.1)"
-              : "none",
-            paddingLeft: screens.md ? 16 : 5,
-            paddingRight: screens.md ? 16 : 5,
-            backgroundColor:
-              hovered === "github" ? "rgba(255, 255, 255, 0.1)" : "transparent",
-            cursor: "pointer",
-          }}
+          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
+            screens.md 
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
+              : "px-2.5 pl-1.5 pr-1.5"
+          } ${
+            hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
+          }`}
           onMouseEnter={() => setHovered("github")}
           onMouseLeave={() => setHovered(null)}
         >
@@ -311,16 +386,12 @@ function Navbar({ scrollToFooter }: NavbarProps) {
             href="https://github.com/accordproject/template-playground"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", color: "white" }}
+            className="flex items-center text-white"
           >
-            <GithubOutlined
-              style={{
-                fontSize: "20px",
-                color: "white",
-                marginRight: screens.md ? "5px" : "0",
-              }}
-            />
-            <span style={{ display: screens.md ? "inline" : "none" }}>Github</span>
+            <GithubOutlined className={`text-xl text-white ${
+              screens.md ? "mr-1.5" : "mr-0"
+            }`} />
+            <span className={screens.md ? "inline" : "hidden"}>Github</span>
           </a>
         </div>
       </div>

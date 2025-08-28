@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { sendMessage } from '../ai-assistant/chatRelay';
 import { CodeSelectionMenuProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
@@ -18,6 +18,16 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   const { aiConfig, setAIConfigOpen, setAIChatOpen } = useAppStore();
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
+  const handleClose = useCallback(() => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+    }
+    setIsExplaining(false);
+    setShowExplanation(false);
+    onClose();
+  }, [abortController, onClose]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -31,7 +41,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [handleClose]);
 
   const editorsContent = useAppStore((state) => ({
       editorTemplateMark: state.editorValue,
@@ -114,25 +124,36 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
     );
   };
 
-  const handleClose = () => {
-    if (abortController) {
-      abortController.abort();
-      setAbortController(null);
-    }
-    setIsExplaining(false);
-    setShowExplanation(false);
-    onClose();
+  const popupPosition = {
+    left: Math.max(300, Math.min(position.x, window.innerWidth - 350)),
+    top: isExplaining ? position.y - 20 : Math.max(10, Math.min(position.y - 20, window.innerHeight - 300)),
   };
+  
+  useEffect(() => {
+    if (explanationRef.current && showExplanation) {
+      const popup = explanationRef.current;
+      const rect = popup.getBoundingClientRect();
+      
+      if (rect.right > window.innerWidth) {
+        popup.style.left = `${window.innerWidth - rect.width - 10}px`;
+      }
+      
+      if (rect.bottom > window.innerHeight) {
+        popup.style.top = `${window.innerHeight - rect.height - 10}px`;
+      }
+    }
+  }, [showExplanation, position]);
 
   if (showExplanation) {
     return (
       <div
         ref={explanationRef}
-        className="twp absolute bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-md z-50"
+        className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-md z-50"
         style={{
-          left: position.x,
-          top: position.y - 20,
-          transform: 'translateY(-50%)',
+          left: popupPosition.left,
+          top: popupPosition.top,
+          maxHeight: '80vh',
+          maxWidth: '80vw',
         }}
       >
         <button
@@ -178,7 +199,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
                   },
                   code: ({ children, className }) => {
                     return (
-                      <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className}`}>
+                      <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className || ''}`}>
                         {children}
                       </code>
                     );
@@ -196,15 +217,15 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   return (
     <div
       ref={menuRef}
-      className="twp absolute bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 flex"
+      className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 flex"
       style={{ 
-        left: 225, 
-        top: position.y,
+        left: Math.max(10, Math.min(225, window.innerWidth - 150)), 
+        top: Math.max(10, Math.min(position.y, window.innerHeight - 50)),
         minWidth: '120px'
       }}
     >
       <button
-        onClick={handleExplain}
+        onClick={() => void handleExplain()}
         className="flex-1 px-1 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-center border-r border-gray-200"
       >
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,7 +234,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
         Explain
       </button>
       <button
-        onClick={handleChat}
+        onClick={() => void handleChat()}
         className="flex-1 px-1 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-center"
       >
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,10 +259,26 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
       const selectedText = editor.getModel()?.getValueInRange(selection).trim();
       if (selectedText && selectedText.length > 0) {
         const position = editor.getScrolledVisiblePosition(selection.getStartPosition());
+        const editorContainer = editor.getDomNode().closest('.editorwrapper');
+        const editorRect = editorContainer?.getBoundingClientRect();
+        
+        let x, y;
+        
+        if (editorRect) {
+          x = Math.max(editorRect.left + 20, Math.min(position.left, editorRect.right - 150));
+          y = Math.max(editorRect.top + 20, Math.min(position.top, editorRect.bottom - 50));
+          
+          x = Math.max(10, Math.min(x, window.innerWidth - 150));
+          y = Math.max(10, Math.min(y, window.innerHeight - 50));
+        } else {
+          x = Math.max(10, Math.min(position.left, window.innerWidth - 150));
+          y = Math.max(10, Math.min(position.top, window.innerHeight - 50));
+        }
+        
         setSelectedText(selectedText);
         setMenuPosition({
-          x: position.left,
-          y: position.top
+          x: x,
+          y: y
         });
         setShowMenu(true);
       }

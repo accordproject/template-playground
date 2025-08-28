@@ -193,12 +193,12 @@ export default function ConcertoEditor({
   }, [ctoErr, monacoInstance]);
 
   return (
-    <div className="editorwrapper relative">
+    <div className="editorwrapper h-full w-full">
       <Suspense fallback={<div>Loading Editor...</div>}>
         <MonacoEditor
           options={options}
           language="concerto"
-          height="60vh"
+          height="100%"
           value={value}
           beforeMount={handleEditorWillMount}
           onMount={handleEditorDidMount}
