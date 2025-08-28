@@ -131,7 +131,7 @@ export const AIChatPanel = () => {
   const handleApplyCode = (code: string, language: string) => {
     let currentCode = "";
     let applyFunction = (_code: string) => {};
-    
+
     if (language === "concerto") {
       currentCode = editorsContent.editorModelCto;
       applyFunction = (code: string) => {
