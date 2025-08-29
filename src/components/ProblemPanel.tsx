@@ -1,6 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import useAppStore from '../store/store';
 import '../styles/components/ProblemPanel.css';
+import { sendMessage } from '../ai-assistant/chatRelay';
+import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 
 export interface ProblemItem {
   id: string;
@@ -18,6 +20,31 @@ const ProblemPanel: React.FC = () => {
     backgroundColor: state.backgroundColor,
     textColor: state.textColor
   }));
+
+  const [isSending, setIsSending] = useState(false);
+
+  const editorsContent = useAppStore((state) => ({
+    editorTemplateMark: state.editorValue,
+    editorModelCto: state.editorModelCto,
+    editorAgreementData: state.editorAgreementData,
+  }));
+
+  const handleFixProblem = async (problem: ProblemItem) => {
+    if (isSending) return;
+
+    setIsSending(true);
+    try {
+      const prompt = `Fix this ${problem.type}: ${problem.message}
+      Source: ${problem.source || 'Unknown'}
+      ${problem.line ? `Line: ${problem.line}` : ''}
+      ${problem.column ? `Column: ${problem.column}` : ''}`;
+
+      await sendMessage(prompt, null, editorsContent);
+      useAppStore.getState().setAIChatOpen(true);
+    } finally {
+      setIsSending(false);
+    }
+  };
   
   const parseError = (errorMessage: string) => {
     const errors: Omit<ProblemItem, 'id' | 'timestamp'>[] = [];
@@ -84,6 +111,27 @@ const ProblemPanel: React.FC = () => {
     <div className="problem-panel-container" style={{ backgroundColor }}>
       <div className={`problem-panel-header ${backgroundColor === '#ffffff' ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
         <span className="problem-panel-title">Problems</span>
+        {problems.length > 0 && (
+          <button
+            onClick={() => handleFixProblem(problems[0])}
+            disabled={isSending}
+            className="relative flex items-center px-2 py-1 bg-blue-400 hover:bg-blue-600 text-white rounded-md text-sm"
+            title="Ask AI to fix this problem"
+          >
+            <div className="relative w-5 h-5 mr-1.5">
+              <IoChatbubbleEllipsesOutline size={20} />
+              <div
+                className="absolute -top-2.5 -right-3 text-[10px] font-bold px-0.5 py-0 bg-white rounded shadow-sm text-transparent bg-gradient-to-r from-[#bdff68ff] via-[#e6fc6dff] to-[#ebb6b6ff] bg-clip-text"
+                style={{
+                  WebkitBackgroundClip: "text"
+                }}
+              >
+                AI
+              </div>
+            </div>
+            <span className="ml-2">{isSending ? "Suggesting a fix..." : "Fix"}</span>
+          </button>
+        )}
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
         {problems.length === 0 ? (

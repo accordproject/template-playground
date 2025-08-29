@@ -3,6 +3,7 @@ import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
 import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
+import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
 import { message } from "antd";
 import FullScreenModal from "./FullScreenModal";
@@ -14,17 +15,21 @@ const PlaygroundSidebar = () => {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
+    isAIChatOpen,
     setEditorsVisible,
     setPreviewVisible,
     setProblemPanelVisible,
+    setAIChatOpen,
     generateShareableLink,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
+    isAIChatOpen: state.isAIChatOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
+    setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
   }));
 
@@ -94,6 +99,26 @@ const PlaygroundSidebar = () => {
       icon: FiTerminal,
       onClick: () => setProblemPanelVisible(!isProblemPanelVisible),
       active: isProblemPanelVisible
+    },
+    {
+      title: "AI Assistant",
+      component: (
+        <div className="flex items-center justify-center">
+          <div className="relative w-6 h-6">
+            <IoChatbubbleEllipsesOutline size={24} />
+            <div
+              className="absolute -top-3 -right-3.5 text-[12.5px] font-bold px-1 py-0 rounded bg-white text-transparent bg-gradient-to-r from-[#a78bfa] via-[#ec4899] to-[#ef4444] bg-clip-text shadow-sm"
+              style={{
+                WebkitBackgroundClip: "text"
+              }}
+            >
+              AI
+            </div>
+          </div>
+        </div>
+      ),
+      onClick: () => setAIChatOpen(!isAIChatOpen),
+      active: isAIChatOpen
     },
     { 
       title: "Fullscreen", 
