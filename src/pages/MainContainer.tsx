@@ -33,10 +33,10 @@ const MainContainer = () => {
        style={{position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)"}}>
         {isEditorsVisible && (
           <>
-            <Panel defaultSize={50} minSize={30}>
+            <Panel defaultSize={62.5} minSize={30}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
                 <PanelGroup direction="vertical" className="main-container-editors-panel-group">
-                  <Panel defaultSize={30} minSize={20}>
+                  <Panel minSize={20}>
                     <div className="main-container-editor-section tour-concerto-model">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         {/* Left side */}
@@ -52,7 +52,7 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel defaultSize={30} minSize={20}>
+                  <Panel minSize={20}>
                     <div className="main-container-editor-section tour-template-mark">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         TemplateMark
@@ -65,7 +65,7 @@ const MainContainer = () => {
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel defaultSize={30} minSize={20}>
+                  <Panel minSize={20}>
                     <div className="main-container-editor-section tour-json-data">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         JSON Data
@@ -91,7 +91,7 @@ const MainContainer = () => {
         )}
         {isPreviewVisible && (
           <>
-            <Panel defaultSize={30} minSize={20}>
+            <Panel defaultSize={37.5} minSize={20}>
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`}>
                   <span>Preview</span>
