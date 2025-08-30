@@ -1,38 +1,26 @@
 import ConcertoEditor from "../ConcertoEditor";
 import useAppStore from "../../store/store";
-import { useCallback } from "react";
-import { debounce } from "ts-debounce";
+import useUndoRedo from "../../components/useUndoRedo";
 
 function TemplateModel() {
   const editorModelCto = useAppStore((state) => state.editorModelCto);
   const setEditorModelCto = useAppStore((state) => state.setEditorModelCto);
   const setModelCto = useAppStore((state) => state.setModelCto);
-  const textColor = useAppStore((state) => state.textColor);
-
-  const debouncedSetModelCto = useCallback(
-    debounce((value: string) => {
-      void setModelCto(value);
-    }, 500),
-    [setModelCto]
+  const { value, setValue} = useUndoRedo(
+    editorModelCto,
+    setEditorModelCto,
+    setModelCto // Sync to main state and rebuild
   );
-
+ 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
-      setEditorModelCto(value);
-      debouncedSetModelCto(value);
+      setValue(value); // Update editor state and sync
+      setModelCto(value); 
     }
   };
 
   return (
-    <div className="column">
-      <div className="tooltip">
-        <h3 style={{ color: textColor }}>Concerto Model</h3>
-        <span style={{ color: textColor }} className="tooltiptext">
-          Defines the data model for the template and its logic.
-        </span>
-      </div>
-      <ConcertoEditor value={editorModelCto} onChange={handleChange} />
-    </div>
+    <ConcertoEditor value={value} onChange={handleChange} />
   );
 }
 

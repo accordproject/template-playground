@@ -14,6 +14,8 @@ const ToggleDarkMode: React.FC = () => {
   const handleChange = () => {
     toggleDarkMode();
     setIsDarkMode((prev) => !prev);
+    const newTheme = !isDarkMode ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", newTheme);
   };
 
   return (
@@ -22,7 +24,7 @@ const ToggleDarkMode: React.FC = () => {
         className="dark-mode-toggle"
         onChange={handleChange}
         checked={isDarkMode}
-        size={80}
+        size={60}
       />
     </ToggleDarkModeContainer>
   );

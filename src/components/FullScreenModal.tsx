@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "antd";
 import AgreementHtml from "../AgreementHtml";
-import { FullscreenOutlined } from "@ant-design/icons";
+import { MdFullscreen } from "react-icons/md";
 import useAppStore from "../store/store";
 
 const FullScreenModal: React.FC = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
 
@@ -31,9 +31,10 @@ const FullScreenModal: React.FC = () => {
   }, [textColor, backgroundColor]);
 
   return (
-    <div style={{ textAlign: "right", display: "flex", alignItems: "center", justifyContent: "flex-end", color: textColor, }} className="preview-element">
-      <FullscreenOutlined
-        style={{ fontSize: "24px", cursor: "pointer", margin: "5px" }}
+    <>
+      <MdFullscreen
+        size={24}
+        style={{ cursor: "pointer" }}
         onClick={() => setOpen(true)}
       />
       <Modal
@@ -46,7 +47,7 @@ const FullScreenModal: React.FC = () => {
       >
         <AgreementHtml loading={false} isModal={true} />
       </Modal>
-    </div>
+    </>
   );
 };
 

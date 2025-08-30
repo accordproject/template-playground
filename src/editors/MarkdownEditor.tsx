@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
 import useAppStore from "../store/store";
 import { useMonaco } from "@monaco-editor/react";
+import { useCodeSelection } from "../components/CodeSelectionMenu";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -13,6 +14,7 @@ export default function MarkdownEditor({
   value: string;
   onChange?: (value: string | undefined) => void;
 }) {
+  const { handleSelection, MenuComponent } = useCodeSelection("markdown");
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const monaco = useMonaco();
@@ -51,7 +53,11 @@ export default function MarkdownEditor({
     scrollBeyondLastLine: false,
   };
 
-  const options = useMemo(() => editorOptions, []);
+  const handleEditorDidMount = (editor: any) => {
+    editor.onDidChangeCursorSelection(() => {
+      handleSelection(editor);
+    });
+  };
 
   const handleChange = useCallback(
     (val: string | undefined) => {
@@ -61,17 +67,19 @@ export default function MarkdownEditor({
   );
 
   return (
-    <div className="editorwrapper">
+    <div className="editorwrapper h-full w-full">
       <Suspense fallback={<div>Loading Editor...</div>}>
         <MonacoEditor
-          options={options}
+          options={editorOptions}
           language="markdown"
-          height="60vh"
+          height="100%"
           value={value}
+          onMount={handleEditorDidMount}
           onChange={handleChange}
           theme={themeName}
         />
       </Suspense>
+      {MenuComponent}
     </div>
   );
 }
