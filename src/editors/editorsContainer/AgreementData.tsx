@@ -1,6 +1,7 @@
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
+import { updateEditorActivity } from "../../ai-assistant/activityTracker";
 
 function AgreementData() {
   const editorAgreementData = useAppStore((state) => state.editorAgreementData);
@@ -14,6 +15,7 @@ function AgreementData() {
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
+      updateEditorActivity('json');
       setValue(value); // Update editor state and sync
       setData(value); 
     }

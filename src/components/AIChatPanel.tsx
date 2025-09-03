@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import useAppStore from "../store/store";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
@@ -15,9 +15,62 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor } = useAppStore.getState()
+  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
+    chatState: state.chatState,
+    resetChat: state.resetChat,
+    aiConfig: state.aiConfig,
+    setAIConfig: state.setAIConfig,
+    setAIConfigOpen: state.setAIConfigOpen,
+    setAIChatOpen: state.setAIChatOpen,
+    textColor: state.textColor,
+    backgroundColor: state.backgroundColor
+  }));
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
+
+  const theme = useMemo(() => {
+    const isDarkMode = backgroundColor !== '#ffffff';
+    return {
+      header: `h-10 -ml-4 -mr-4 -mt-1 p-2 border-gray-200 text-sm font-medium flex justify-between items-center ${
+        isDarkMode ? 'bg-gray-700 text-white' : 'bg-slate-100 text-gray-700'
+      }`,
+
+      welcomeMessage: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
+      welcomeText: isDarkMode ? 'text-gray-300' : 'text-gray-600',
+      messageAssistant: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
+      messageUser: isDarkMode ? 'bg-gray-700' : 'bg-gray-100',
+      thinkingText: isDarkMode ? 'text-gray-400' : 'text-gray-500',
+
+      inputContainer: isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-200',
+      textarea: {
+        base: isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900',
+        loading: isDarkMode ? 'bg-gray-600' : 'bg-gray-100'
+      },
+      dropdownButton: isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+      dropdownMenu: isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200',
+      dropdownItem: isDarkMode ? 'hover:bg-gray-700 text-gray-100' : 'hover:bg-gray-50 text-gray-900',
+
+      contextButtons: {
+        templateMark: {
+          active: isDarkMode ? 'bg-blue-900 text-blue-300 border-blue-700' : 'bg-blue-100 text-blue-700 border-blue-200',
+          inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border-gray-600 line-through opacity-70 hover:bg-blue-900 hover:text-blue-300 hover:border-blue-700' : 'bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200',
+          cross: isDarkMode ? 'text-blue-300 hover:text-blue-100' : 'text-blue-700 hover:text-blue-900'
+        },
+        concerto: {
+          active: isDarkMode ? 'bg-green-900 text-green-300 border-green-700' : 'bg-green-100 text-green-700 border-green-200',
+          inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border-gray-600 line-through opacity-70 hover:bg-green-900 hover:text-green-300 hover:border-green-700' : 'bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-green-50 hover:text-green-700 hover:border-green-200',
+          cross: isDarkMode ? 'text-green-300 hover:text-green-100' : 'text-green-700 hover:text-green-900'
+        },
+        data: {
+          active: isDarkMode ? 'bg-yellow-900 text-yellow-300 border-yellow-700' : 'bg-yellow-100 text-yellow-700 border-yellow-200',
+          inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border-gray-600 line-through opacity-70 hover:bg-yellow-900 hover:text-yellow-300 hover:border-yellow-700' : 'bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200',
+          cross: isDarkMode ? 'text-yellow-300 hover:text-yellow-100' : 'text-yellow-700 hover:text-yellow-900'
+        }
+      },
+
+      inlineCode: isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
+    };
+  }, [backgroundColor]);
   
   const [includeTemplateMarkContent, setIncludeTemplateMarkContent] = useState<boolean>(
     localStorage.getItem('aiIncludeTemplateMark') === 'true'
@@ -109,10 +162,10 @@ export const AIChatPanel = () => {
     if (!content || !content.includes('```')) {
       console.log("content is", content);
       return (
-        <div className="text-sm prose prose-sm break-all max-w-none">
+        <div className="text-sm prose prose-sm break-all max-w-none" style={{ color: textColor }}>
           <ReactMarkdown
             components={{
-              code: ({ children, className }) => <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className}`}>{children}</code>,
+              code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className}`}>{children}</code>,
           }}>
             {content}
           </ReactMarkdown>
@@ -127,7 +180,7 @@ export const AIChatPanel = () => {
     
     if (segments[0]) {
       parts.push(
-        <div className="text-sm prose prose-sm max-w-none" key={key++}>
+        <div className="text-sm prose prose-sm max-w-none" key={key++} style={{ color: textColor }}>
           <ReactMarkdown>
             {segments[0]}
           </ReactMarkdown>
@@ -153,7 +206,7 @@ export const AIChatPanel = () => {
         );
       } else if (i % 2 === 0 && segments[i]) {
         parts.push(
-          <div className="text-sm prose prose-sm max-w-none" key={key++}>
+          <div className="text-sm prose prose-sm max-w-none" key={key++} style={{ color: textColor }}>
             <ReactMarkdown>
               {segments[i]}
             </ReactMarkdown>
@@ -180,8 +233,8 @@ export const AIChatPanel = () => {
   }, [chatState.messages, chatState.isLoading]);
 
   return (
-    <div className="twp pl-4 pr-4 pt-3 flex flex-col border rounded-md h-[calc(100vh-150px)] h-full">
-      <div className="flex justify-between items-center h-4">
+    <div className="twp pl-4 pr-4 -mr-1 flex flex-col border rounded-md h-[calc(100vh-150px)] h-full">
+      <div className={theme.header}>
         <h2 className="text-lg font-bold" style={{ color: textColor }}>AI Assistant</h2>
         <div className="flex items-center gap-2">
           <button
@@ -209,7 +262,6 @@ export const AIChatPanel = () => {
               />
             </svg>
           </button>
-          {/* Reset Chat Button */}
           <button
             onClick={resetChat}
             className="text-gray-500 hover:text-gray-800"
@@ -257,9 +309,9 @@ export const AIChatPanel = () => {
           <div className="space-y-2">
             {chatState.messages.length === 0 ? (
               <div className="w-full">
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <p className="text-xs font-semibold text-gray-600 mb-1">Assistant</p>
-                  <p className="text-sm">Hello! How can I help you today?</p>
+                <div className={`${theme.welcomeMessage} p-3 rounded-lg`}>
+                  <p className={`text-xs font-semibold mb-1 ${theme.welcomeText}`}>Assistant</p>
+                  <p className="text-sm" style={{ color: textColor }}>Hello! How can I help you today?</p>
                 </div>
               </div>
             ) : (
@@ -276,7 +328,11 @@ export const AIChatPanel = () => {
                       : null
                     }
                   >
-                    <div className={`${message.role === 'assistant' ? 'bg-blue-100' : 'bg-gray-100'} p-3 rounded-lg`}>
+                    <div className={`${
+                      message.role === 'assistant'
+                        ? theme.messageAssistant
+                        : theme.messageUser
+                    } p-3 rounded-lg`}>
                       <p className="text-xs font-semibold mb-1" style={{ color: textColor }}>
                           {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
@@ -291,7 +347,7 @@ export const AIChatPanel = () => {
                       {message.role === 'assistant' && 
                           message.id === chatState.messages[chatState.messages.length - 1].id && 
                           chatState.isLoading && (
-                          <p className="text-sm mt-2 text-gray-500 italic">Thinking...</p>
+                          <p className={`text-sm mt-2 italic ${theme.thinkingText}`}>Thinking...</p>
                         )
                       }
                     </div>
@@ -303,7 +359,7 @@ export const AIChatPanel = () => {
         <div className="flex flex-col gap-2">
             {promptPreset && (
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-600 bg-opacity-95 text-white rounded-lg self-start">
-                <span className="text-sm font-medium prose lg:prose-md">
+                <span className="text-sm font-medium">
                   {
                     promptPreset === "textToTemplate" ? "Text to TemplateMark" : "Create Concerto Model"
                   }
@@ -339,8 +395,8 @@ export const AIChatPanel = () => {
                 className={
                   `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
                   ${includeTemplateMarkContent
-                    ? "bg-blue-100 text-blue-700 border-blue-200"
-                    : "bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"}`
+                    ? theme.contextButtons.templateMark.active
+                    : theme.contextButtons.templateMark.inactive}`
                 }
               >
                 <span>TemplateMark</span>
@@ -350,7 +406,7 @@ export const AIChatPanel = () => {
                       e.stopPropagation();
                       handleTemplateMarkToggle(false);
                     }}
-                    className="ml-1 text-blue-700 hover:text-blue-900 focus:outline-none"
+                    className={`ml-1 focus:outline-none ${theme.contextButtons.templateMark.cross}`}
                     tabIndex={-1}
                     type="button"
                   >
@@ -373,8 +429,8 @@ export const AIChatPanel = () => {
                 className={
                   `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
                   ${includeConcertoModelContent
-                    ? "bg-green-100 text-green-700 border-green-200"
-                    : "bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-green-50 hover:text-green-700 hover:border-green-200"}`
+                    ? theme.contextButtons.concerto.active
+                    : theme.contextButtons.concerto.inactive}`
                 }
               >
                 <span>Concerto</span>
@@ -384,7 +440,7 @@ export const AIChatPanel = () => {
                       e.stopPropagation();
                       handleConcertoModelToggle(false);
                     }}
-                    className="ml-1 text-green-700 hover:text-green-900 focus:outline-none"
+                    className={`ml-1 focus:outline-none ${theme.contextButtons.concerto.cross}`}
                     tabIndex={-1}
                     type="button"
                   >
@@ -407,8 +463,8 @@ export const AIChatPanel = () => {
                 className={
                   `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
                   ${includeDataContent
-                    ? "bg-yellow-100 text-yellow-700 border-yellow-200"
-                    : "bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200"}`
+                    ? theme.contextButtons.data.active
+                    : theme.contextButtons.data.inactive}`
                 }
               >
                 <span>Data</span>
@@ -418,7 +474,7 @@ export const AIChatPanel = () => {
                       e.stopPropagation();
                       handleDataToggle(false);
                     }}
-                    className="ml-1 text-yellow-700 hover:text-yellow-900 focus:outline-none"
+                    className={`ml-1 focus:outline-none ${theme.contextButtons.data.cross}`}
                     tabIndex={-1}
                     type="button"
                   >
@@ -437,7 +493,7 @@ export const AIChatPanel = () => {
               </div>
             </div>
             
-            <div className="flex gap-2 p-2 bg-gray-50 rounded-lg border">
+            <div className={`flex gap-2 p-2 rounded-lg border ${theme.inputContainer}`}>
               <textarea
                   ref={textareaRef}
                   value={userInput}
@@ -452,15 +508,15 @@ export const AIChatPanel = () => {
                         ? "Press 'Stop' to send another message..."
                         : "Type your message..."
                   }
-                  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none min-h-[42px] max-h-[42px] overflow-y-hidden ${
-                    chatState.isLoading ? 'bg-gray-100' : ''
+                  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-[42px] overflow-y-hidden ${
+                    chatState.isLoading ? theme.textarea.loading : theme.textarea.base
                   }`}
                   rows={1}
               />
               <div className="relative">
                   <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={`h-full bg-gray-100 text-gray-700 px-3 rounded-lg hover:bg-gray-200 flex items-center justify-center ${
+                  className={`h-full px-3 rounded-lg flex items-center justify-center ${theme.dropdownButton} ${
                     chatState.isLoading ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   title="Select Prompt Mode"
@@ -482,13 +538,13 @@ export const AIChatPanel = () => {
                   </svg>
                   </button>
                   {isDropdownOpen && !chatState.isLoading && (
-                  <div className="absolute bottom-full mb-1 right-0 w-48 bg-white rounded-lg shadow-lg border py-1">
+                  <div className={`absolute bottom-full mb-1 right-0 w-48 rounded-lg shadow-lg border py-1 ${theme.dropdownMenu}`}>
                       <button
                       onClick={() => {
                           setPromptPreset("textToTemplate");
                           setIsDropdownOpen(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                      className={`w-full px-4 py-2 text-left text-sm ${theme.dropdownItem}`}
                       >
                       Text to TemplateMark
                       </button>
@@ -497,7 +553,7 @@ export const AIChatPanel = () => {
                           setPromptPreset("createConcertoModel");
                           setIsDropdownOpen(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                      className={`w-full px-4 py-2 text-left text-sm ${theme.dropdownItem}`}
                       >
                       Create Concerto Model
                       </button>
