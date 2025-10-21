@@ -4,6 +4,53 @@ import { prepareSystemPrompt } from "./prompts";
 import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
 
+// Function to limit messages based on configuration
+const limitMessages = (messages: Message[], aiConfig: AIConfig): Message[] => {
+  const maxAssistantMessages = aiConfig.maxAssistantMessages || 10;
+  const maxUserMessages = aiConfig.maxUserMessages || 10;
+  
+  // Separate messages by role
+  const systemMessages = messages.filter(msg => msg.role === 'system');
+  const userMessages = messages.filter(msg => msg.role === 'user');
+  const assistantMessages = messages.filter(msg => msg.role === 'assistant');
+  
+  // Limit user and assistant messages
+  const limitedUserMessages = userMessages.slice(-maxUserMessages);
+  const limitedAssistantMessages = assistantMessages.slice(-maxAssistantMessages);
+  
+  // Combine messages maintaining chronological order
+  const allMessages = [...systemMessages, ...userMessages, ...assistantMessages];
+  const limitedMessages: Message[] = [];
+  
+  // Keep system messages at the beginning
+  limitedMessages.push(...systemMessages);
+  
+  // Add limited user and assistant messages in chronological order
+  let userIndex = 0;
+  let assistantIndex = 0;
+  
+  for (const message of allMessages) {
+    if (message.role === 'system') {
+      // System messages already added
+      continue;
+    } else if (message.role === 'user') {
+      if (userIndex < limitedUserMessages.length && 
+          limitedUserMessages[userIndex].id === message.id) {
+        limitedMessages.push(message);
+        userIndex++;
+      }
+    } else if (message.role === 'assistant') {
+      if (assistantIndex < limitedAssistantMessages.length && 
+          limitedAssistantMessages[assistantIndex].id === message.id) {
+        limitedMessages.push(message);
+        assistantIndex++;
+      }
+    }
+  }
+  
+  return limitedMessages;
+};
+
 export const loadConfigFromLocalStorage = () => {
   const setAIConfig = useAppStore.getState().setAIConfig;
   
@@ -20,6 +67,8 @@ export const loadConfigFromLocalStorage = () => {
   const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
   const savedEnableCodeSelectionMenu = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
   const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
+  const savedMaxAssistantMessages = localStorage.getItem('aiMaxAssistantMessages');
+  const savedMaxUserMessages = localStorage.getItem('aiMaxUserMessages');
 
   if (savedProvider && savedModel && savedApiKey) {
     const config: AIConfig = {
@@ -33,6 +82,14 @@ export const loadConfigFromLocalStorage = () => {
       enableCodeSelectionMenu: savedEnableCodeSelectionMenu,
       enableInlineSuggestions: savedEnableInlineSuggestions,
     };
+    
+    if (savedMaxAssistantMessages) {
+      config.maxAssistantMessages = parseInt(savedMaxAssistantMessages);
+    }
+    
+    if (savedMaxUserMessages) {
+      config.maxUserMessages = parseInt(savedMaxUserMessages);
+    }
     
     if (savedCustomEndpoint && savedProvider === 'openai-compatible') {
       config.customEndpoint = savedCustomEndpoint;
@@ -140,12 +197,24 @@ export const sendMessage = async (
     systemPrompt = prepareSystemPrompt.default(editorsContent, aiConfig);
   }
 
-  const systemMessage: Message = {
+  // Check if we already have a recent system message with the same content
+  const existingSystemMessage = chatState.messages
+    .filter(msg => msg.role === 'system')
+    .find(msg => msg.content === systemPrompt);
+
+  const systemMessage: Message = existingSystemMessage || {
     id: uuidv4(),
     role: 'system',
     content: systemPrompt,
     timestamp: new Date(),
   };
+
+  // Debug: Log system message reuse
+  if (existingSystemMessage) {
+    console.log(`♻️ Reusing existing system message (${systemPrompt.length} chars)`);
+  } else {
+    console.log(`🆕 Creating new system message (${systemPrompt.length} chars)`);
+  }
 
   const userMessage: Message = {
     id: uuidv4(),
@@ -177,8 +246,37 @@ export const sendMessage = async (
     let fullResponse = '';
     
     const messagesForAPI = addToChat ? 
-      [...(updatedChatState?.messages.slice(0, -1) || [])] : 
+      limitMessages(updatedChatState?.messages.slice(0, -1) || [], aiConfig) : 
       [systemMessage, userMessage];
+    
+    // Debug: Log how many messages are being sent to LLM
+    console.log(`🚀 Sending ${messagesForAPI.length} messages to LLM:`, {
+      totalMessages: messagesForAPI.length,
+      systemMessages: messagesForAPI.filter(m => m.role === 'system').length,
+      userMessages: messagesForAPI.filter(m => m.role === 'user').length,
+      assistantMessages: messagesForAPI.filter(m => m.role === 'assistant').length,
+      maxAssistantLimit: aiConfig.maxAssistantMessages || 10,
+      maxUserLimit: aiConfig.maxUserMessages || 10
+    });
+    
+    // Debug: Show actual message content being sent
+    console.log(`📝 Detailed message breakdown:`, messagesForAPI.map((msg, index) => ({
+      index: index + 1,
+      role: msg.role,
+      contentLength: msg.content.length,
+      contentPreview: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : ''),
+      timestamp: msg.timestamp
+    })));
+    
+    // Debug: Show why system messages increase
+    const allMessages = updatedChatState?.messages.slice(0, -1) || [];
+    console.log(`🔍 Why system messages increase:`, {
+      totalMessagesInChat: allMessages.length,
+      systemMessagesInChat: allMessages.filter(m => m.role === 'system').length,
+      userMessagesInChat: allMessages.filter(m => m.role === 'user').length,
+      assistantMessagesInChat: allMessages.filter(m => m.role === 'assistant').length,
+      reason: "System messages are created for each new conversation turn and are never limited"
+    });
     
     const abortPromise = new Promise((_, reject) => {
       signal.addEventListener('abort', () => reject(new Error('Request aborted')));
