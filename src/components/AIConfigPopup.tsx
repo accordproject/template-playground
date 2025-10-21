@@ -52,6 +52,8 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
   const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
+  const [maxAssistantMessages, setMaxAssistantMessages] = useState<string>('10');
+  const [maxUserMessages, setMaxUserMessages] = useState<string>('10');
 
   useEffect(() => {
     if (isOpen) {
@@ -64,6 +66,8 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
       const savedEnableCodeSelection = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
       const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
+      const savedMaxAssistantMessages = localStorage.getItem('aiMaxAssistantMessages') || '10';
+      const savedMaxUserMessages = localStorage.getItem('aiMaxUserMessages') || '10';
       
       if (savedProvider) setProvider(savedProvider);
       if (savedModel) setModel(savedModel);
@@ -74,6 +78,8 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       setShowFullPrompt(savedShowFullPrompt);
       setEnableCodeSelectionMenu(savedEnableCodeSelection);
       setEnableInlineSuggestions(savedEnableInlineSuggestions);
+      setMaxAssistantMessages(savedMaxAssistantMessages);
+      setMaxUserMessages(savedMaxUserMessages);
     }
   }, [isOpen]);
 
@@ -97,6 +103,8 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
     localStorage.setItem('aiShowFullPrompt', showFullPrompt.toString());
     localStorage.setItem('aiEnableCodeSelectionMenu', enableCodeSelectionMenu.toString());
     localStorage.setItem('aiEnableInlineSuggestions', enableInlineSuggestions.toString());
+    localStorage.setItem('aiMaxAssistantMessages', maxAssistantMessages);
+    localStorage.setItem('aiMaxUserMessages', maxUserMessages);
     
     onSave(); 
     onClose();
@@ -294,6 +302,44 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 </div>
                 <div className={`mt-1 text-xs ${theme.helpText}`}>
                   When enabled, AI will provide ghost text suggestions as you type in the editors
+                </div>
+
+                <div className={`border-t my-4 ${theme.divider}`}></div>
+                
+                <div>
+                  <label className={`block text-sm font-medium ${theme.label} mb-1`}>
+                    Max Assistant Messages in History
+                  </label>
+                  <input
+                    type="number"
+                    value={maxAssistantMessages}
+                    onChange={(e) => setMaxAssistantMessages(e.target.value)}
+                    placeholder="10"
+                    min="1"
+                    max="100"
+                    className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+                  />
+                  <div className={`mt-1 text-xs ${theme.helpText}`}>
+                    Maximum number of assistant messages to include in chat history (default: 10)
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium ${theme.label} mb-1`}>
+                    Max User Messages in History
+                  </label>
+                  <input
+                    type="number"
+                    value={maxUserMessages}
+                    onChange={(e) => setMaxUserMessages(e.target.value)}
+                    placeholder="10"
+                    min="1"
+                    max="100"
+                    className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+                  />
+                  <div className={`mt-1 text-xs ${theme.helpText}`}>
+                    Maximum number of user messages to include in chat history (default: 10)
+                  </div>
                 </div>
               </div>
             )}

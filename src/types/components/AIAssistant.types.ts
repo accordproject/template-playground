@@ -23,6 +23,8 @@ export interface AIConfig {
   includeDataContent: boolean;
   enableCodeSelectionMenu?: boolean;
   enableInlineSuggestions?: boolean;
+  maxAssistantMessages?: number;
+  maxUserMessages?: number;
 }
 
 export interface AIConfigPopupProps {
