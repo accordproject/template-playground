@@ -8,8 +8,9 @@ import {
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
-  MenuOutlined
+  MenuOutlined,
 } from "@ant-design/icons";
+import { FaDiscord } from 'react-icons/fa';
 import ToggleDarkMode from "./ToggleDarkMode";
 
 
@@ -162,7 +163,7 @@ const useBreakpoint = () => {
 
 function Navbar() {
   const [hovered, setHovered] = useState<
-    null | "home" | "help" | "github" | "join"
+    null | "home" | "help" | "github" | "discord" | "join"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
@@ -370,6 +371,30 @@ function Navbar() {
             </Link>
           </div>
         )}
+        
+        <div
+          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
+            screens.md 
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
+              : "px-2.5 pl-1.5 pr-1.5"
+          } ${
+            hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
+          }`}
+          onMouseEnter={() => setHovered("discord")}
+          onMouseLeave={() => setHovered(null)}
+        >
+          <a
+            href="https://discord.com/invite/Zm99SKhhtA"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center text-white"
+          >
+            <FaDiscord className={`text-xl text-white ${
+              screens.md ? "mr-1.5" : "mr-0"
+            }`} />
+            <span className={screens.md ? "inline" : "hidden"}>Discord</span>
+          </a>
+        </div>
         
         <div
           className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
