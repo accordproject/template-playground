@@ -158,6 +158,7 @@ const PlaygroundSidebar = () => {
             key={title}
             role="button"
             aria-label={title}
+            title={title}
             tabIndex={0}
             onClick={onClick}
             className={`group playground-sidebar-nav-item ${
@@ -182,6 +183,7 @@ const PlaygroundSidebar = () => {
             key={title}
             role="button"
             aria-label={title}
+            title={title}
             tabIndex={0}
             onClick={onClick}
             className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
