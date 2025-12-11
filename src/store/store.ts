@@ -29,6 +29,9 @@ interface AppState {
   chatState: ChatState;
   aiConfig: AIConfig | null;
   chatAbortController: AbortController | null;
+  templateModifications: Record<string, { templateMarkdown: string; modelCto: string; data: string }>;
+  saveCurrentTemplate: () => void;
+  clearCurrentTemplateModifications: () => void;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
@@ -102,6 +105,20 @@ const getInitialTheme = () => {
   return { backgroundColor: '#ffffff', textColor: '#121212' };
 };
 
+const getInitialTemplateModifications = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('template-modifications');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return {};
+      }
+    }
+  }
+  return {};
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
@@ -109,6 +126,7 @@ const useAppStore = create<AppState>()(
       return {
         backgroundColor: initialTheme.backgroundColor,
         textColor: initialTheme.textColor,
+        templateModifications: getInitialTemplateModifications(),
         sampleName: playground.NAME,
       templateMarkdown: playground.TEMPLATE,
       editorValue: playground.TEMPLATE,
@@ -158,24 +176,40 @@ const useAppStore = create<AppState>()(
       loadSample: async (name: string) => {
         const sample = SAMPLES.find((s) => s.NAME === name);
         if (sample) {
-          set(() => ({
-            sampleName: sample.NAME,
-            agreementHtml: undefined,
-            error: undefined,
-            templateMarkdown: sample.TEMPLATE,
-            editorValue: sample.TEMPLATE,
-            modelCto: sample.MODEL,
-            editorModelCto: sample.MODEL,
-            data: JSON.stringify(sample.DATA, null, 2),
-            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
-          }));
+          const { templateModifications } = get();
+          const savedMods = templateModifications[name];
+          if (savedMods) {
+            set(() => ({
+              sampleName: sample.NAME,
+              agreementHtml: undefined,
+              error: undefined,
+              templateMarkdown: savedMods.templateMarkdown,
+              editorValue: savedMods.templateMarkdown,
+              modelCto: savedMods.modelCto,
+              editorModelCto: savedMods.modelCto,
+              data: savedMods.data,
+              editorAgreementData: savedMods.data,
+            }));
+          } else {
+            set(() => ({
+              sampleName: sample.NAME,
+              agreementHtml: undefined,
+              error: undefined,
+              templateMarkdown: sample.TEMPLATE,
+              editorValue: sample.TEMPLATE,
+              modelCto: sample.MODEL,
+              editorModelCto: sample.MODEL,
+              data: JSON.stringify(sample.DATA, null, 2),
+              editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+            }));
+          }
           await get().rebuild();
         }
       },
       rebuild: async () => {
-        const { templateMarkdown, modelCto, data } = get();
+        const { editorValue, editorModelCto, editorAgreementData } = get();
         try {
-          const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
+          const result = await rebuildDeBounce(editorValue, editorModelCto, editorAgreementData);
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
         } catch (error: any) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
@@ -290,6 +324,29 @@ const useAppStore = create<AppState>()(
           isLoading: false,
           error: null,
         });
+      },
+      saveCurrentTemplate: () => {
+        const { sampleName, editorValue, editorModelCto, editorAgreementData, templateModifications } = get();
+        const updatedModifications = {
+          ...templateModifications,
+          [sampleName]: {
+            templateMarkdown: editorValue,
+            modelCto: editorModelCto,
+            data: editorAgreementData,
+          },
+        };
+        set({ templateModifications: updatedModifications });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('template-modifications', JSON.stringify(updatedModifications));
+        }
+      },
+      clearCurrentTemplateModifications: () => {
+        const { sampleName, templateModifications } = get();
+        const { [sampleName]: _, ...remainingModifications } = templateModifications;
+        set({ templateModifications: remainingModifications });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('template-modifications', JSON.stringify(remainingModifications));
+        }
       },
       startTour: () => {
         console.log('Starting tour...');

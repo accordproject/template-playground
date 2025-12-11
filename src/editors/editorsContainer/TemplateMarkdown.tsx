@@ -6,18 +6,17 @@ import { updateEditorActivity } from "../../ai-assistant/activityTracker";
 function TemplateMarkdown() {
   const editorValue = useAppStore((state) => state.editorValue);
   const setEditorValue = useAppStore((state) => state.setEditorValue);
-  const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
+  const rebuild = useAppStore((state) => state.rebuild);
   const { value, setValue} = useUndoRedo(
     editorValue,
-    setEditorValue,
-    setTemplateMarkdown // Sync to main state and rebuild
+    setEditorValue
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       updateEditorActivity('markdown');
-      setValue(value); // Update editor state and sync
-      setTemplateMarkdown(value); 
+      setValue(value);
+      void rebuild();
     }
   };
 
