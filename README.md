@@ -38,6 +38,84 @@ The Accord Project Playground is an open-source project, welcoming contributions
 - **Functionality Enhancements:** Improve existing features based on user feedback and project needs.
 - **Documentation and Tutorials:** Contribute to comprehensive documentation and tutorials that guide users through the platform effectively.
 
+<h2>Local Development</h2>
+
+<p>
+This project can be run locally for development and contribution purposes.
+</p>
+
+<h3>Prerequisites</h3>
+
+<p>
+Ensure you have the following installed:
+</p>
+
+<ul>
+  <li><strong>Node.js ≥ 18</strong></li>
+  <li><strong>npm</strong></li>
+</ul>
+
+<p>Check your versions using:</p>
+
+<pre><code>node -v
+npm -v
+</code></pre>
+
+<h3>Setup</h3>
+
+<p>
+Clone the repository and install dependencies:
+</p>
+
+<pre><code>git clone https://github.com/accordproject/template-playground
+cd template-playground
+npm install
+</code></pre>
+
+<h3>Running the Development Server</h3>
+
+<p>
+This project uses <strong>Vite</strong> for local development.
+</p>
+
+<p>Start the development server using:</p>
+
+<pre><code>npm run dev
+</code></pre>
+
+<p>
+The application will be available at:
+</p>
+
+<pre><code>http://localhost:5173
+</code></pre>
+
+<p>
+<strong>Note:</strong> This project does <strong>not</strong> define an
+<code>npm start</code> script. Use <code>npm run dev</code> for local development.
+</p>
+
+<h3>Useful Scripts</h3>
+
+<ul>
+  <li>
+    Run unit tests:
+    <pre><code>npm test</code></pre>
+  </li>
+  <li>
+    Lint the codebase:
+    <pre><code>npm run lint</code></pre>
+  </li>
+  <li>
+    Build the project for production:
+    <pre><code>npm run build</code></pre>
+  </li>
+  <li>
+    Preview the production build locally:
+    <pre><code>npm run preview</code></pre>
+  </li>
+</ul>
+
 ## Demo
 
 The Template Playground is deployed at: [https://playground.accordproject.org](https://playground.accordproject.org)
