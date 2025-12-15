@@ -266,7 +266,13 @@ const useAppStore = create<AppState>()(
           };
           
           if (typeof window !== 'undefined') {
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+            const themeValue = isDark ? 'light' : 'dark';
+            localStorage.setItem('theme', themeValue);
+            try {
+              document.documentElement.setAttribute('data-theme', themeValue);
+            } catch (e) {
+              // ignore
+            }
           }
           
           return newTheme;
