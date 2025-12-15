@@ -29,6 +29,17 @@ interface AppState {
   chatState: ChatState;
   aiConfig: AIConfig | null;
   chatAbortController: AbortController | null;
+  markdownEditorCommands?: {
+    toggleBold: () => void;
+    toggleItalic: () => void;
+    insertLink: () => void;
+    toggleHeading1: () => void;
+    toggleHeading2: () => void;
+    toggleHeading3: () => void;
+    toggleUnorderedList: () => void;
+    toggleOrderedList: () => void;
+    insertImage: () => void;
+  };
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
@@ -61,6 +72,7 @@ interface AppState {
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
+  setMarkdownEditorCommands: (commands?: AppState["markdownEditorCommands"]) => void;
 }
 
 export interface DecompressedData {
@@ -352,6 +364,8 @@ const useAppStore = create<AppState>()(
       startTour: () => {
         console.log('Starting tour...');
       },
+      markdownEditorCommands: undefined,
+      setMarkdownEditorCommands: (commands) => set({ markdownEditorCommands: commands }),
       }
     })
   )

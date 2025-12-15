@@ -7,6 +7,7 @@ import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
 import { useState, useRef } from "react";
+import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button } from "antd";
@@ -157,6 +158,8 @@ const MainContainer = () => {
                           </button>
                           <span>TemplateMark</span>
                         </div>
+                        <span>TemplateMark</span>
+                        <TemplateMarkdownToolbar />
                       </div>
                       {!isTemplateCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
