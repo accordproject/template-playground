@@ -24,6 +24,7 @@
     "@ant-design/icons": "^5.3.7",
     "@anthropic-ai/sdk": "^0.56.0",
     "@google/genai": "^1.8.0",
+    "@google/generative-ai": "^0.24.1",
     "@mistralai/mistralai": "^1.7.3",
     "@monaco-editor/react": "^4.6.0",
     "@types/styled-components": "^5.1.34",
