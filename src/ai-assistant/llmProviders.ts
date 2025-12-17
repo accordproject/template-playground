@@ -4,6 +4,7 @@ import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
 import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
 import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
+import { AIConfig, Message, TokenUsage } from '../types/components/AIAssistant.types';
 
 export abstract class LLMProvider {
   protected config: AIConfig;
@@ -16,7 +17,8 @@ export abstract class LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
+    onUsage?:(usage:TokenUsage)=>void
   ): Promise<void>;
 }
 
@@ -50,6 +52,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
         model: this.config.model,
         messages: formattedMessages,
         stream: true,
+        stream_options:{include_usage:true}
       };
       
       if (this.config.maxTokens) {
@@ -62,6 +65,13 @@ export class OpenAICompatibleProvider extends LLMProvider {
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
           onChunk(content);
+        }
+        if (chunk.usage && onUsage){
+          onUsage({
+            prompt_tokens:chunk.usage.prompt_tokens,
+            completion_tokens:chunk.usage.completion_tokens,
+            total_tokens:chunk.usage.total_tokens
+          });
         }
       }
       
@@ -122,7 +132,16 @@ export class AnthropicProvider extends LLMProvider {
       ).on('text', (textDelta) => {
         console.log(textDelta)
         onChunk(textDelta);
+      }).on('message',(message)=>{
+        if(onUsage){onUsage({
+          prompt_tokens:message.usage.input_tokens,
+          completion_tokens:message.usage.output_tokens,
+          total_tokens:message.usage.input_tokens+message.usage.output_tokens
+        });
+                   }
       });
+              
+        
 
       onComplete();
     } catch (error) {
@@ -168,6 +187,13 @@ export class GoogleProvider extends LLMProvider {
         if (chunk.text) {
           onChunk(chunk.text);
         }
+        const response = await result.response;
+        if(onUsage && response.usageMetadata){
+          onUsage({
+            prompt_tokens:response.usageMetadata.promptTokenCount,
+            completion_tokens: response.usageMetadata,candiatesTokenCount,
+            total_tokens:response.usageMetadata.totalTokenCount
+          });
       }
 
       onComplete();
