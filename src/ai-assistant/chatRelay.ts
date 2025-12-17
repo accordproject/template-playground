@@ -4,6 +4,30 @@ import { prepareSystemPrompt } from "./prompts";
 import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
 
+/**
+ * Calculates dollar cost based on token usage.
+ * Rates based on standard December 2025 market pricing (per 1M tokens).
+ */
+const calculateCost = (model: string, usage?: { prompt_tokens: number; completion_tokens: number }) => {
+  if (!usage) return 0;
+  
+  const rates: Record<string, { input: number; output: number }> = {
+    'gpt-4o': { input: 2.50, output: 10.00 },
+    'gpt-4o-mini': { input: 0.15, output: 0.60 },
+    'claude-3-5-sonnet': { input: 3.00, output: 15.00 },
+    'gemini-1.5-flash': { input: 0.075, output: 0.30 },
+    'default': { input: 1.00, output: 2.00 }
+  };
+
+  const modelKey = Object.keys(rates).find(key => model.toLowerCase().includes(key)) || 'default';
+  const rate = rates[modelKey];
+
+  const inputCost = (usage.prompt_tokens / 1_000_000) * rate.input;
+  const outputCost = (usage.completion_tokens / 1_000_000) * rate.output;
+  
+  return inputCost + outputCost;
+};
+
 export const loadConfigFromLocalStorage = () => {
   const setAIConfig = useAppStore.getState().setAIConfig;
   
@@ -47,9 +71,8 @@ export const loadConfigFromLocalStorage = () => {
 };
 
 export const resetChat = () => {
-  const { setChatAbortController, setChatState } = useAppStore.getState();
+  const { setChatAbortController, setChatState, chatAbortController } = useAppStore.getState();
   
-  const chatAbortController = useAppStore.getState().chatAbortController;
   if (chatAbortController) {
     chatAbortController.abort();
     setChatAbortController(null);
@@ -63,7 +86,7 @@ export const resetChat = () => {
 };
 
 export const stopMessage = () => {
-  const { updateChatState, chatAbortController, setChatAbortController } = useAppStore.getState();
+  const { updateChatState, chatAbortController, setChatAbortController, chatState, setChatState } = useAppStore.getState();
 
   if (chatAbortController) {
     chatAbortController.abort();
@@ -72,7 +95,6 @@ export const stopMessage = () => {
   
   updateChatState({ isLoading: false });
   
-  const { chatState, setChatState } = useAppStore.getState();
   const updatedMessages = [...chatState.messages];
   const lastMessage = updatedMessages[updatedMessages.length - 1];
   
@@ -81,12 +103,8 @@ export const stopMessage = () => {
       ...lastMessage,
       content: lastMessage.content + ' [Stopped]',
     };
+    setChatState({ ...chatState, messages: updatedMessages });
   }
-  
-  setChatState({
-    ...chatState,
-    messages: updatedMessages,
-  });
 };
 
 export const sendMessage = async (
@@ -104,14 +122,11 @@ export const sendMessage = async (
     chatState, 
     setChatState, 
     updateChatState,
-    chatAbortController,
     setChatAbortController
   } = useAppStore.getState();
   
-  if (chatAbortController) {
-    chatAbortController.abort();
-    setChatAbortController(null);
-  }
+  const oldController = useAppStore.getState().chatAbortController;
+  if (oldController) oldController.abort();
   
   const newAbortController = new AbortController();
   setChatAbortController(newAbortController);
@@ -119,11 +134,8 @@ export const sendMessage = async (
   
   if (!aiConfig) {
     const error = new Error('Please configure AI settings first');
-    if (onError) {
-      onError(error);
-    } else if (addToChat) {
-      updateChatState({ error: error.message });
-    }
+    if (onError) onError(error);
+    else if (addToChat) updateChatState({ error: error.message });
     return;
   }
   
@@ -140,124 +152,82 @@ export const sendMessage = async (
     systemPrompt = prepareSystemPrompt.default(editorsContent, aiConfig);
   }
 
-  const systemMessage: Message = {
-    id: uuidv4(),
-    role: 'system',
-    content: systemPrompt,
-    timestamp: new Date(),
-  };
-
-  const userMessage: Message = {
-    id: uuidv4(),
-    role: 'user',
-    content: userInput,
-    timestamp: new Date(),
-  };
-
-  const assistantMessage: Message = {
-    id: uuidv4(),
-    role: 'assistant',
-    content: ' ',
-    timestamp: new Date(),
-  };
-  
-  let updatedChatState;
+  const systemMessage: Message = { id: uuidv4(), role: 'system', content: systemPrompt, timestamp: new Date() };
+  const userMessage: Message = { id: uuidv4(), role: 'user', content: userInput, timestamp: new Date() };
+  const assistantMessage: Message = { id: uuidv4(), role: 'assistant', content: '', timestamp: new Date(), cost: 0 };
   
   if (addToChat) {
-    updatedChatState = {
+    setChatState({
       messages: [...chatState.messages, systemMessage, userMessage, assistantMessage],
       isLoading: true,
       error: null
-    };
-    setChatState(updatedChatState);
+    });
   }
 
   try {
     const Provider = getLLMProvider(aiConfig);
     let fullResponse = '';
     
-    const messagesForAPI = addToChat ? 
-      [...(updatedChatState?.messages.slice(0, -1) || [])] : 
-      [systemMessage, userMessage];
-    
-    const abortPromise = new Promise((_, reject) => {
-      signal.addEventListener('abort', () => reject(new Error('Request aborted')));
-    });
+    const messagesForAPI = [systemMessage, userMessage];
 
-    try {
-      await Promise.race([
-        Provider.streamChat(
-          messagesForAPI,
-          (chunk) => {
-            if (signal.aborted) return;
-            
-            fullResponse += chunk;
-            
-            if (onChunk) {
-              onChunk(chunk);
-            }
-            
-            if (addToChat) {
-              const { chatState, setChatState } = useAppStore.getState();
-              const updatedMessages = [...chatState.messages];
-
-              updatedMessages[updatedMessages.length - 1] = {
-                ...updatedMessages[updatedMessages.length - 1],
-                content: fullResponse,
-              };
-              
-              setChatState({
-                ...chatState,
-                messages: updatedMessages,
-              });
-            }
-          },
-          (error) => {
-            if (!signal.aborted) {
-              if (onError) {
-                onError(error);
-              } else if (addToChat) {
-                updateChatState({
-                  isLoading: false,
-                  error: error.message,
-                });
-              }
-            }
-          },
-          () => {
-            if (!signal.aborted) {
-              if (onComplete) {
-                onComplete();
-              }
-              
-              if (addToChat) {
-                updateChatState({ isLoading: false });
-              }
-              setChatAbortController(null);
-            }
+    await Provider.streamChat(
+      messagesForAPI,
+      (chunk) => {
+        if (signal.aborted) return;
+        fullResponse += chunk;
+        if (onChunk) onChunk(chunk);
+        
+        if (addToChat) {
+          const currentMessages = [...useAppStore.getState().chatState.messages];
+          const lastIdx = currentMessages.length - 1;
+          if (lastIdx >= 0) {
+            currentMessages[lastIdx] = { ...currentMessages[lastIdx], content: fullResponse };
+            updateChatState({ messages: currentMessages });
           }
-        ),
-        abortPromise
-      ]);
-    } catch (err) {
-      if (!signal.aborted) {
-        throw err;
+        }
+      },
+      (error) => {
+        if (signal.aborted) return;
+        if (onError) onError(error);
+        else if (addToChat) updateChatState({ isLoading: false, error: error.message });
+      },
+      (usage) => {
+        if (signal.aborted) return;
+
+        if (addToChat) {
+          const finalMessages = [...useAppStore.getState().chatState.messages];
+          const lastIdx = finalMessages.length - 1;
+          const cost = calculateCost(aiConfig.model, usage);
+          
+          finalMessages[lastIdx] = {
+            ...finalMessages[lastIdx],
+            content: fullResponse,
+            cost: cost 
+          };
+
+          setChatState({
+            ...useAppStore.getState().chatState,
+            messages: finalMessages,
+            isLoading: false
+          });
+        }
+
+        if (onComplete) onComplete();
+        setChatAbortController(null);
       }
-    }
+    );
   } catch (error) {
-    if (!newAbortController || !newAbortController.signal.aborted) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      
-      if (onError) {
-        onError(error instanceof Error ? error : new Error(errorMessage));
-      } else if (addToChat) {
-        updateChatState({
-          isLoading: false,
-          error: errorMessage,
-        });
-      }
+    if (!signal.aborted) {
+      updateChatState({ 
+        isLoading: false, 
+        error: error instanceof Error ? error.message : 'An unknown error occurred' 
+      });
     }
   }
 };
 
+/**
+ * INITIALIZATION: This line runs immediately when this file is imported
+ * to load saved settings from the user's browser storage.
+ */
 loadConfigFromLocalStorage();
