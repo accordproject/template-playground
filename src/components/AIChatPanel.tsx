@@ -71,6 +71,15 @@ export const AIChatPanel = () => {
       inlineCode: isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
     };
   }, [backgroundColor]);
+
+  const totalSessionCost=useMemo(()=>{
+    return chatState.messages.reduce((sum,msg)=> sum +(msg.cost||0),0);
+  },[chatState.messages]);
+
+  const formatCurrency=(value:number)=>{
+    if(value==0) return "$0.00";
+    return value<0.01?'$${value.toFixed(6)}':'$${value.toFixed(2)}';};
+  
   
   const [includeTemplateMarkContent, setIncludeTemplateMarkContent] = useState<boolean>(
     localStorage.getItem('aiIncludeTemplateMark') === 'true'
@@ -236,6 +245,11 @@ export const AIChatPanel = () => {
     <div className="twp pl-4 pr-4 -mr-1 flex flex-col border rounded-md h-[calc(100vh-150px)] h-full">
       <div className={theme.header}>
         <h2 className="text-lg font-bold" style={{ color: textColor }}>AI Assistant</h2>
+        {/* NEW: Session Cost Display */}
+        <span className="text-[10px] opacity-70" style={{ color: textColor }}>
+         Session Cost: <span className="font-mono font-bold">{formatCurrency(totalSessionCost)}
+         </span>
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setAIConfigOpen(true)}
@@ -348,8 +362,12 @@ export const AIChatPanel = () => {
                           message.id === chatState.messages[chatState.messages.length - 1].id && 
                           chatState.isLoading && (
                           <p className={`text-sm mt-2 italic ${theme.thinkingText}`}>Thinking...</p>
-                        )
-                      }
+                        )}
+                      {message.cost!==undefined &&message.cost>0 &&(<span className='text-[10px] font-mono opacity-60" title="cost of the response">
+                                                                      Cost:{formatCurrency(message.cost)}
+                                                                      </span>)}
+                                                                      
+                        
                     </div>
                   </div>
                 )})

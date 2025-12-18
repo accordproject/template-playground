@@ -1,14 +1,26 @@
+export interface TokenUsage{
+  prompt_tokens:number;
+  completion_token:number;
+  total_tokens:number;
+  estimated_cost?:number;
+}
 export interface Message {
   id: string,
   role: 'system' | 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  usage?:TokenUsage;
 }
 
 export interface ChatState {
   messages: Message[];
   isLoading: boolean;
   error: string | null;
+  totalUsage?:{
+    totalPromptTokens:number;
+    totalCompletionTokens:number;
+    totalCost: number;
+  };
 }
 
 export interface AIConfig {
