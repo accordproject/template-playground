@@ -7,6 +7,8 @@ import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
 import { useState, useRef } from "react";
+import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
+import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button } from "antd";
@@ -124,35 +126,18 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
-                    <div className="main-container-editor-section tour-template-mark">
-                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        <div className="main-container-editor-header-left">
-                          <button
-                            className="collapse-button"
-                            onClick={toggleTemplateCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
-                              cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
-                            }}
-                            title={isTemplateCollapsed ? "Expand" : "Collapse"}
-                          >
-                            {isTemplateCollapsed ? '▶' : '▼'}
-                          </button>
+                  <Panel minSize={20}>
+                    <MarkdownEditorProvider>
+                      <div className="main-container-editor-section tour-template-mark">
+                        <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                           <span>TemplateMark</span>
+                          <TemplateMarkdownToolbar />
                         </div>
-                      </div>
-                      {!isTemplateCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
                           <TemplateMarkdown />
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    </MarkdownEditorProvider>
                   </Panel>
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
