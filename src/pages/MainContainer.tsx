@@ -51,14 +51,35 @@ const MainContainer = () => {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
+    isModelCollapsed,
+    isTemplateCollapsed,
+    isDataCollapsed,
+    toggleModelCollapse,
+    toggleTemplateCollapse,
+    toggleDataCollapse,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
+    isModelCollapsed: state.isModelCollapsed,
+    isTemplateCollapsed: state.isTemplateCollapsed,
+    isDataCollapsed: state.isDataCollapsed,
+    toggleModelCollapse: state.toggleModelCollapse,
+    toggleTemplateCollapse: state.toggleTemplateCollapse,
+    toggleDataCollapse: state.toggleDataCollapse,
   }));
 
   const [, setLoading] = useState(true);
+
+  // Calculate dynamic panel sizes based on collapse states
+  const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
+  const expandedCount = 3 - collapsedCount;
+  const collapsedSize = 5;
+  const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
+  
+  // Create a key that changes when collapse state changes to force panel re-layout
+  const panelKey = `${isModelCollapsed}-${isTemplateCollapsed}-${isDataCollapsed}`;
 
   return (
     <div className="main-container" style={{ backgroundColor }}>
@@ -68,44 +89,102 @@ const MainContainer = () => {
           <>
             <Panel defaultSize={62.5} minSize={30}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
-                <PanelGroup direction="vertical" className="main-container-editors-panel-group">
-                  <Panel minSize={20}>
+                <PanelGroup key={panelKey} direction="vertical" className="main-container-editors-panel-group">
+                  <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-concerto-model">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         {/* Left side */}
                         <div className="main-container-editor-header-left">
+                          <button
+                            className="collapse-button"
+                            onClick={toggleModelCollapse}
+                            style={{ 
+                              color: textColor, 
+                              background: 'transparent', 
+                              border: 'none', 
+                              cursor: 'pointer',
+                              fontSize: '16px',
+                              padding: '4px 8px',
+                              marginRight: '8px'
+                            }}
+                            title={isModelCollapsed ? "Expand" : "Collapse"}
+                          >
+                            {isModelCollapsed ? '▶' : '▼'}
+                          </button>
                           <span>Concerto Model</span>
                           <SampleDropdown setLoading={setLoading} />
                         </div>
                       </div>
-                      <div className="main-container-editor-content" style={{ backgroundColor }}>
-                        <TemplateModel />
-                      </div>
+                      {!isModelCollapsed && (
+                        <div className="main-container-editor-content" style={{ backgroundColor }}>
+                          <TemplateModel />
+                        </div>
+                      )}
                     </div>
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={20}>
+                  <Panel minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-template-mark">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        TemplateMark
+                        <div className="main-container-editor-header-left">
+                          <button
+                            className="collapse-button"
+                            onClick={toggleTemplateCollapse}
+                            style={{ 
+                              color: textColor, 
+                              background: 'transparent', 
+                              border: 'none', 
+                              cursor: 'pointer',
+                              fontSize: '16px',
+                              padding: '4px 8px',
+                              marginRight: '8px'
+                            }}
+                            title={isTemplateCollapsed ? "Expand" : "Collapse"}
+                          >
+                            {isTemplateCollapsed ? '▶' : '▼'}
+                          </button>
+                          <span>TemplateMark</span>
+                        </div>
                       </div>
-                      <div className="main-container-editor-content" style={{ backgroundColor }}>
-                        <TemplateMarkdown />
-                      </div>
+                      {!isTemplateCollapsed && (
+                        <div className="main-container-editor-content" style={{ backgroundColor }}>
+                          <TemplateMarkdown />
+                        </div>
+                      )}
                     </div>
                   </Panel>
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={20}>
+                  <Panel minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-json-data">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        JSON Data
+                        <div className="main-container-editor-header-left">
+                          <button
+                            className="collapse-button"
+                            onClick={toggleDataCollapse}
+                            style={{ 
+                              color: textColor, 
+                              background: 'transparent', 
+                              border: 'none', 
+                              cursor: 'pointer',
+                              fontSize: '16px',
+                              padding: '4px 8px',
+                              marginRight: '8px'
+                            }}
+                            title={isDataCollapsed ? "Expand" : "Collapse"}
+                          >
+                            {isDataCollapsed ? '▶' : '▼'}
+                          </button>
+                          <span>JSON Data</span>
+                        </div>
                       </div>
-                      <div className="main-container-editor-content" style={{ backgroundColor }}>
-                        <AgreementData />
-                      </div>
+                      {!isDataCollapsed && (
+                        <div className="main-container-editor-content" style={{ backgroundColor }}>
+                          <AgreementData />
+                        </div>
+                      )}
                     </div>
                   </Panel>
                   {isProblemPanelVisible && (
