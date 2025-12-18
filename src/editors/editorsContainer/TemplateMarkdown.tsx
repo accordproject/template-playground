@@ -4,14 +4,13 @@ import MarkdownEditor from "../MarkdownEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
 import { updateEditorActivity } from "../../ai-assistant/activityTracker";
+import { useMarkdownEditorContext } from "../../contexts/MarkdownEditorContext";
 
 function TemplateMarkdown() {
   const editorValue = useAppStore((state) => state.editorValue);
   const setEditorValue = useAppStore((state) => state.setEditorValue);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-  const setMarkdownEditorCommands = useAppStore(
-    (state) => state.setMarkdownEditorCommands
-  );
+  const { setCommands } = useMarkdownEditorContext();
 
   const { value, setValue } = useUndoRedo(
     editorValue,
@@ -24,9 +23,9 @@ function TemplateMarkdown() {
   useEffect(() => {
     return () => {
       // Clear commands when unmounting
-      setMarkdownEditorCommands(undefined);
+      setCommands(undefined);
     };
-  }, [setMarkdownEditorCommands]);
+  }, [setCommands]);
 
   const handleChange = (val: string | undefined) => {
     if (val !== undefined) {
@@ -298,7 +297,7 @@ function TemplateMarkdown() {
   const handleEditorReady = (editor: MonacoEditorNS.IStandaloneCodeEditor) => {
     editorRef.current = editor;
 
-    setMarkdownEditorCommands({
+    setCommands({
       toggleBold: () => {
         applyWrappedEdit("**");
       },
