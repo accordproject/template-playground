@@ -10,15 +10,13 @@ function SampleDropdown({
 }: {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
-  const { samples, loadSample, backgroundColor, textColor, saveCurrentTemplate, clearCurrentTemplateModifications } = useStoreWithEqualityFn(
+  const { samples, loadSample, backgroundColor, textColor } = useStoreWithEqualityFn(
     useAppStore,
     (state) => ({
       samples: state.samples,
       loadSample: state.loadSample as (key: string) => Promise<void>,
       backgroundColor: state.backgroundColor,
       textColor: state.textColor,
-      saveCurrentTemplate: state.saveCurrentTemplate,
-      clearCurrentTemplateModifications: state.clearCurrentTemplateModifications,
     }),
     shallow
   );
@@ -105,50 +103,23 @@ function SampleDropdown({
             title: <span style={{ color: textColor }}>Unsaved Changes</span>,
             content: (
               <div>
-                <p style={{ color: textColor }}>There are unsaved changes in current template. Do you want to discard them and switch to another sample?</p>
-                <div style={{ marginTop: '16px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                  <Button
-                    onClick={() => {
-                      Modal.destroyAll();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      Modal.destroyAll();
-                      saveCurrentTemplate();
-                      void proceedWithLoad(e.key);
-                    }}
-                  >
-                    Keep Changes
-                  </Button>
-                  <Button
-                    danger
-                    onClick={() => {
-                      Modal.destroyAll();
-                      clearCurrentTemplateModifications();
-                      void proceedWithLoad(e.key);
-                    }}
-                  >
-                    Discard Changes
-                  </Button>
-                </div>
+                <p style={{ color: textColor }}>You have unsaved changes that will be lost if you switch templates. Do you want to continue?</p>
               </div>
             ),
+            okText: 'Continue',
+            cancelText: 'Cancel',
             icon: null,
-            footer: null,
             rootClassName: "sample-switch-confirm",
-            closable: true,
-            maskClosable: true,
+            onOk: () => {
+              void proceedWithLoad(e.key);
+            },
           });
         } else {
           await proceedWithLoad(e.key);
         }
       }
     },
-    [proceedWithLoad, saveCurrentTemplate, clearCurrentTemplateModifications, textColor]
+    [proceedWithLoad, textColor]
   );
   
   
