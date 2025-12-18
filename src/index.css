@@ -19,6 +19,7 @@ html[data-theme="dark"] {
     --active-text-color: #ffffff; 
     --hover-bg-color: #444444;
     --hover-text-color: #ffffff;
+    background-color: #121212;
 }
 
 html[data-theme="light"] {
@@ -29,4 +30,5 @@ html[data-theme="light"] {
     --active-text-color: #1b2540; 
     --hover-bg-color: #e0e0e0;
     --hover-text-color: #050c40;
+    background-color: #ffffff;
 }

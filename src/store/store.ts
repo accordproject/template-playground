@@ -55,6 +55,12 @@ interface AppState {
   setPreviewVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
   startTour: () => void;
+  isModelCollapsed: boolean;
+  isTemplateCollapsed: boolean;
+  isDataCollapsed: boolean;
+  toggleModelCollapse: () => void;
+  toggleTemplateCollapse: () => void;
+  toggleDataCollapse: () => void;
 }
 
 export interface DecompressedData {
@@ -131,6 +137,12 @@ const useAppStore = create<AppState>()(
       isEditorsVisible: true,
       isPreviewVisible: true,
       isProblemPanelVisible: false,
+      isModelCollapsed: false,
+      isTemplateCollapsed: false,
+      isDataCollapsed: false,
+      toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
+      toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
+      toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
       setEditorsVisible: (value) => {
         const state = get();
         if (!value && !state.isPreviewVisible) {
@@ -266,7 +278,13 @@ const useAppStore = create<AppState>()(
           };
           
           if (typeof window !== 'undefined') {
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+            const themeValue = isDark ? 'light' : 'dark';
+            localStorage.setItem('theme', themeValue);
+            try {
+              document.documentElement.setAttribute('data-theme', themeValue);
+            } catch (e) {
+              // ignore
+            }
           }
           
           return newTheme;
