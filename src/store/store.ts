@@ -55,6 +55,12 @@ interface AppState {
   setPreviewVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
   startTour: () => void;
+  isModelCollapsed: boolean;
+  isTemplateCollapsed: boolean;
+  isDataCollapsed: boolean;
+  toggleModelCollapse: () => void;
+  toggleTemplateCollapse: () => void;
+  toggleDataCollapse: () => void;
 }
 
 export interface DecompressedData {
@@ -131,6 +137,12 @@ const useAppStore = create<AppState>()(
       isEditorsVisible: true,
       isPreviewVisible: true,
       isProblemPanelVisible: false,
+      isModelCollapsed: false,
+      isTemplateCollapsed: false,
+      isDataCollapsed: false,
+      toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
+      toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
+      toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
       setEditorsVisible: (value) => {
         const state = get();
         if (!value && !state.isPreviewVisible) {
