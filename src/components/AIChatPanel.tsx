@@ -242,11 +242,12 @@ export const AIChatPanel = () => {
   }, [chatState.messages, chatState.isLoading]);
 
   return (
+    <>
     <div className="twp pl-4 pr-4 -mr-1 flex flex-col border rounded-md h-[calc(100vh-150px)] h-full">
       <div className={theme.header}>
         <h2 className="text-lg font-bold" style={{ color: textColor }}>AI Assistant</h2>
         {/* NEW: Session Cost Display */}
-        <span className="text-[10px] opacity-70" style={{ color: textColor }}>
+        <span className="text-[10px] opacity-70" style={{ color: textColor }}> </span>
          Session Cost: <span className="font-mono font-bold">{formatCurrency(totalSessionCost)}
          </span>
         </div>
@@ -318,6 +319,7 @@ export const AIChatPanel = () => {
           </button>
         </div>
       </div>
+      
       <div className="w-full h-[calc(100%-3rem)] flex flex-col">
         <div className="flex-1 overflow-y-auto mb-4 px-2 mt-4">
           <div className="space-y-2">
@@ -608,6 +610,7 @@ export const AIChatPanel = () => {
             </div>
         </div>
     </div>
-    </div>
+    </div> 
+              </>
   );
 }
