@@ -1,11 +1,9 @@
-import useAppStore from "../store/store";
 import { LuHeading1, LuHeading2, LuHeading3 } from "react-icons/lu";
 import { FaBold, FaItalic, FaLink, FaImage, FaListUl, FaListOl } from "react-icons/fa";
+import { useMarkdownEditorContext } from "../contexts/MarkdownEditorContext";
 
 export const TemplateMarkdownToolbar = () => {
-  const markdownEditorCommands = useAppStore(
-    (state) => state.markdownEditorCommands
-  );
+  const { commands: markdownEditorCommands } = useMarkdownEditorContext();
 
   return (
     <div className="markdown-toolbar">
