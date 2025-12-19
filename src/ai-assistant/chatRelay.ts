@@ -213,13 +213,94 @@ export const sendMessage = async (
             }
           },
           (error) => {
+            function extractErrorCode(input: string, depth = 0): number | undefined {
+              if (depth > 3) return;
+
+              try {
+                const parsed = JSON.parse(input);
+
+                if (typeof parsed === "string") {
+                  return extractErrorCode(parsed, depth + 1);
+                }
+
+                // Common API error shapes
+                if (typeof parsed?.error?.code === "number") return parsed.error.code;
+                if (typeof parsed?.code === "number") return parsed.code;
+
+                return;
+              } catch {
+                return;
+              }
+            }
+
+            function extractErrorMessage(error: unknown): string {
+            let message =
+              error instanceof Error
+                ? error.message
+                : typeof error === "string"
+                ? error
+                : "";
+
+            if (!message) return "An unknown error occurred";
+
+            const code = extractErrorCode(message);
+            if(code === 429) {
+              return 'You have exceeded your usage quota. Please check your plan and try again later.';
+            }
+
+            return unwrapMessage(message);
+          }
+
+          function unwrapMessage(input: string, depth = 0): string {
+            if (depth > 3) return input;
+
+            try {
+              const parsed = JSON.parse(input);
+
+              if (typeof parsed === "string") {
+                return unwrapMessage(parsed, depth + 1);
+              }
+              if (parsed?.error?.message) {
+                return unwrapMessage(parsed.error.message, depth + 1);
+              }
+              if (parsed?.message) {
+                return unwrapMessage(parsed.message, depth + 1);
+              }
+
+              return input;
+            } catch {
+              return input.trim() || "An unknown error occurred";
+            }
+          }
+
+
             if (!signal.aborted) {
+              
+              const displayMessage = extractErrorMessage(error);
+              
               if (onError) {
-                onError(error);
+                onError(
+                  error instanceof Error ? error : new Error(displayMessage)
+                );
               } else if (addToChat) {
-                updateChatState({
+                // Update last assistant message with simplified error message
+                const { chatState, setChatState } = useAppStore.getState();
+                const updatedMessages = [...chatState.messages];
+                if (updatedMessages.length > 0) {
+                  const lastMsgIdx = updatedMessages.length - 1;
+                  if (updatedMessages[lastMsgIdx].role === "assistant") {
+                    updatedMessages[lastMsgIdx] = {
+                      ...updatedMessages[lastMsgIdx],
+                      content: `[ERROR] Sorry, something went wrong. Please try again.\n${displayMessage}`,
+                    };
+                  }
+                }
+
+                setChatState({
+                  ...chatState,
                   isLoading: false,
-                  error: error.message,
+                  error: displayMessage,
+                  messages: updatedMessages,
                 });
               }
             }
@@ -246,14 +327,39 @@ export const sendMessage = async (
     }
   } catch (error) {
     if (!newAbortController || !newAbortController.signal.aborted) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      let displayMessage = errorMessage;
+      // Try to parse and simplify error message if it's JSON
+      try {
+        const parsed = JSON.parse(errorMessage);
+        if (parsed && parsed.error && parsed.error.message) {
+          displayMessage = parsed.error.message;
+        }
+      } catch (e) {
+        // Not JSON, use as is
+      }
       if (onError) {
-        onError(error instanceof Error ? error : new Error(errorMessage));
+        onError(error instanceof Error ? error : new Error(displayMessage));
       } else if (addToChat) {
-        updateChatState({
+        // Update last assistant message with simplified error message
+        const { chatState, setChatState } = useAppStore.getState();
+        const updatedMessages = [...chatState.messages];
+        if (updatedMessages.length > 0) {
+          const lastMsgIdx = updatedMessages.length - 1;
+          if (updatedMessages[lastMsgIdx].role === "assistant") {
+            updatedMessages[lastMsgIdx] = {
+              ...updatedMessages[lastMsgIdx],
+              content: `[ERROR] Sorry, something went wrong. Please try again.\n${displayMessage}`,
+            };
+          }
+        }
+
+        setChatState({
+          ...chatState,
           isLoading: false,
-          error: errorMessage,
+          error: displayMessage,
+          messages: updatedMessages,
         });
       }
     }
