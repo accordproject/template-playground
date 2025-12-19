@@ -72,27 +72,34 @@ export interface DecompressedData {
 
 const rebuildDeBounce = debounce(rebuild, 500);
 
-async function rebuild(template: string, model: string, dataString: string) {
+async function rebuild(template: string, model: string, dataString: string): Promise<string> {
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
   const engine = new TemplateMarkInterpreter(modelManager, {});
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
     { content: template },
     modelManager,
     "contract",
     { verbose: false }
-  );
-  const data = JSON.parse(dataString);
+  ) as unknown;
+  const data = JSON.parse(dataString) as object;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const ciceroMark = await engine.generate(templateMarkDom, data);
-  return await transform(
-    ciceroMark.toJSON(),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  const ciceroMarkJson = ciceroMark.toJSON() as unknown;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  const result = await transform(
+    ciceroMarkJson,
     "ciceromark_parsed",
     ["html"],
     {},
     { verbose: false }
-  );
+  ) as string;
+  return result;
 }
 
 const getInitialTheme = () => {
@@ -189,7 +196,7 @@ const useAppStore = create<AppState>()(
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
-        } catch (error: any) {
+        } catch (error: unknown) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
       },
@@ -199,7 +206,7 @@ const useAppStore = create<AppState>()(
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
-        } catch (error: any) {
+        } catch (error: unknown) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
       },
@@ -212,7 +219,7 @@ const useAppStore = create<AppState>()(
         try {
           const result = await rebuildDeBounce(templateMarkdown, model, data);
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
-        } catch (error: any) {
+        } catch (error: unknown) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
       },
@@ -228,7 +235,7 @@ const useAppStore = create<AppState>()(
             data
           );
           set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
-        } catch (error: any) {
+        } catch (error: unknown) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
       },
@@ -320,14 +327,15 @@ const useAppStore = create<AppState>()(
 
 export default useAppStore;
 
-function formatError(error: any): string {
+function formatError(error: unknown): string {
   console.error(error);
   if (typeof error === "string") return error;
   if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
-  if (error.code) {
-    const sub = error.errors ? formatError(error.errors) : "";
-    const msg = error.renderedMessage || "";
-    return `Error: ${error.code} ${sub} ${msg}`;
+  if (error && typeof error === "object" && "code" in error) {
+    const errorObj = error as { code?: unknown; errors?: unknown; renderedMessage?: unknown };
+    const sub = errorObj.errors ? formatError(errorObj.errors) : "";
+    const msg = String(errorObj.renderedMessage ?? "");
+    return `Error: ${String(errorObj.code ?? "")} ${sub} ${msg}`;
   }
-  return error.toString();
+  return String(error);
 }

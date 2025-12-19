@@ -17,7 +17,7 @@ function AgreementData() {
     if (value !== undefined) {
       updateEditorActivity('json');
       setValue(value); // Update editor state and sync
-      setData(value); 
+      void setData(value); 
     }
   };
 

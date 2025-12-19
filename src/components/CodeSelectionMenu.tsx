@@ -3,6 +3,7 @@ import { sendMessage } from '../ai-assistant/chatRelay';
 import { CodeSelectionMenuProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 import ReactMarkdown from "react-markdown";
+import * as monaco from 'monaco-editor';
 
 const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   selectedText,
@@ -246,6 +247,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') => {
   const [selectedText, setSelectedText] = useState('');
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
@@ -253,7 +255,7 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
   const enableCodeSelectionMenu = useAppStore((state) => state.aiConfig?.enableCodeSelectionMenu ?? true);
 
 
-  const handleSelection = (editor: any) => {
+  const handleSelection = (editor: monaco.editor.IStandaloneCodeEditor) => {
     const selection = editor.getSelection();
     if (selection && !selection.isEmpty()) {
       const selectedText = editor.getModel()?.getValueInRange(selection).trim();
@@ -261,20 +263,22 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
         const position = editor.getScrolledVisiblePosition(selection.getStartPosition());
         const editorContainer = editor.getDomNode().closest('.editorwrapper');
         const editorRect = editorContainer?.getBoundingClientRect();
-        
-        let x, y;
-        
-        if (editorRect) {
+
+        let x: number, y: number;
+
+        if (editorRect && position) {
           x = Math.max(editorRect.left + 20, Math.min(position.left, editorRect.right - 150));
           y = Math.max(editorRect.top + 20, Math.min(position.top, editorRect.bottom - 50));
-          
+
           x = Math.max(10, Math.min(x, window.innerWidth - 150));
           y = Math.max(10, Math.min(y, window.innerHeight - 50));
-        } else {
+        } else if (position) {
           x = Math.max(10, Math.min(position.left, window.innerWidth - 150));
           y = Math.max(10, Math.min(position.top, window.innerHeight - 50));
+        } else {
+          return;
         }
-        
+
         setSelectedText(selectedText);
         setMenuPosition({
           x: x,
