@@ -103,7 +103,14 @@ const App = () => {
     <AntdApp>
       <Layout style={{ height: "100vh" }}>
         <Navbar />
-        <Layout className="app-layout" style={{ backgroundColor, minHeight: '100vh' }}>
+        <Layout
+          className="app-layout"
+          style={{
+            backgroundColor,
+            height: "calc(100vh - 64px)",
+            overflow: "hidden",
+          }}
+        >
           <Routes>
             <Route
               path="/"
