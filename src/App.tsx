@@ -12,6 +12,7 @@ import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
 import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 const { Content } = Layout;
 
@@ -28,6 +29,9 @@ const App = () => {
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
+
+  // Initialize keyboard shortcuts
+  useKeyboardShortcuts();
 
 
   const handleConfigSave = () => {
