@@ -14,10 +14,20 @@ Object.defineProperty(window, "matchMedia", {
     matches: false,
     media: query,
     onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => {},
+    addListener: () => {
+      // Mock implementation for tests
+    },
+    removeListener: () => {
+      // Mock implementation for tests
+    },
+    addEventListener: () => {
+      // Mock implementation for tests
+    },
+    removeEventListener: () => {
+      // Mock implementation for tests
+    },
+    dispatchEvent: () => {
+      return false;
+    },
   }),
 });

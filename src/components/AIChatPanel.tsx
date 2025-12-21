@@ -165,7 +165,7 @@ export const AIChatPanel = () => {
         <div className="text-sm prose prose-sm break-all max-w-none" style={{ color: textColor }}>
           <ReactMarkdown
             components={{
-              code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className}`}>{children}</code>,
+              code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className ?? ''}`}>{children}</code>,
           }}>
             {content}
           </ReactMarkdown>
