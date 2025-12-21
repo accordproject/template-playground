@@ -86,6 +86,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
     "contract",
     { verbose: false }
   ) as object;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data = JSON.parse(dataString);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
   const ciceroMark = await engine.generate(templateMarkDom, data);
