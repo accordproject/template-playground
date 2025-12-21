@@ -85,9 +85,9 @@ async function rebuild(template: string, model: string, dataString: string): Pro
     modelManager,
     "contract",
     { verbose: false }
-  ) as unknown;
-  const data = JSON.parse(dataString) as object;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  ) as object;
+  const data = JSON.parse(dataString);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
   const ciceroMark = await engine.generate(templateMarkDom, data);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   const ciceroMarkJson = ciceroMark.toJSON() as unknown;

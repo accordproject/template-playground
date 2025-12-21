@@ -261,7 +261,7 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
       const selectedText = editor.getModel()?.getValueInRange(selection).trim();
       if (selectedText && selectedText.length > 0) {
         const position = editor.getScrolledVisiblePosition(selection.getStartPosition());
-        const editorContainer = editor.getDomNode().closest('.editorwrapper');
+        const editorContainer = editor.getDomNode()?.closest('.editorwrapper');
         const editorRect = editorContainer?.getBoundingClientRect();
 
         let x: number, y: number;
