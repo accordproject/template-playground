@@ -128,14 +128,6 @@ export class AnthropicProvider extends LLMProvider {
         messages: formattedMessages,
         max_tokens: this.config.maxTokens ?? 4096,
       })
-      .on('streamEvent', (event) => {
-        // Anthropic sends usage in message_start and message_delta/stop events
-        if (event.type === 'message_start') {
-          promptTokens = event.message.usage.input_tokens;
-        } else if (event.type === 'message_delta') {
-          completionTokens = event.usage.output_tokens;
-        }
-      })
       .on('text', (textDelta) => {
         onChunk(textDelta);
       })
