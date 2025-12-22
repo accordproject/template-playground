@@ -68,11 +68,11 @@ export const AIChatPanel = () => {
     };
   }, [backgroundColor]);
 
+
   const totalSessionCost = useMemo(() => {
     return chatState.messages.reduce((sum, msg) => sum + (msg.cost || 0), 0);
   }, [chatState.messages]);
 
-  // FIX: Use correct backticks for template literals
   const formatCurrency = (value: number) => {
     if (value === 0) return "$0.00";
     return value < 0.01 ? `$${value.toFixed(6)}` : `$${value.toFixed(2)}`;
@@ -263,6 +263,7 @@ export const AIChatPanel = () => {
                           ? `**System message:** ${chatState.messages[index - 1].content}\n**User message:** ${message.content}`
                           : message.content
                       )}
+
                       {message.role === 'assistant' && index === chatState.messages.length - 1 && chatState.isLoading && (
                         <p className={`text-sm mt-2 italic ${theme.thinkingText}`}>Thinking...</p>
                       )}
