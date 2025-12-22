@@ -1,9 +1,10 @@
 import OpenAI from 'openai';
 import { AIConfig, Message } from '../types/components/AIAssistant.types';
-import { GoogleGenAI, GenerateContentConfig } from '@google/generative-ai'; // Corrected import
+// FIX: Corrected Google imports
+import { GoogleGenerativeAI, GenerationConfig } from '@google/generative-ai'; 
 import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
-import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
+// REMOVED: ChatCompletionStreamRequest import (unused)
 
 export interface TokenUsage {
   prompt_tokens: number;
@@ -121,9 +122,6 @@ export class AnthropicProvider extends LLMProvider {
           content: msg.content,
         }));
 
-      let promptTokens = 0;
-      let completionTokens = 0;
-
       await client.messages.stream({
         model: this.config.model,
         system: systemInstruction,
@@ -162,7 +160,7 @@ export class GoogleProvider extends LLMProvider {
     onComplete: (usage?: TokenUsage) => void
   ): Promise<void> {
     try {
-      const genAI = new GoogleGenAI(this.config.apiKey);
+      const genAI = new GoogleGenerativeAI(this.config.apiKey);
       const systemInstruction = messages.find(m => m.role === 'system')?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
       
@@ -175,7 +173,7 @@ export class GoogleProvider extends LLMProvider {
         contents: geminiMessages,
         generationConfig: {
           maxOutputTokens: this.config.maxTokens,
-        },
+        } as GenerationConfig,
       });
 
       for await (const chunk of result.stream) {
