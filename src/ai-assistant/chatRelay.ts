@@ -3,6 +3,7 @@ import { AIConfig, Message, editorsContent } from '../types/components/AIAssista
 import { prepareSystemPrompt } from "./prompts";
 import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
+import { calculateCost } from '../utils/costCalculator';
 
 export const loadConfigFromLocalStorage = () => {
   const setAIConfig = useAppStore.getState().setAIConfig;
@@ -234,6 +235,29 @@ export const sendMessage = async (
                 updateChatState({ isLoading: false });
               }
               setChatAbortController(null);
+            }
+          },
+          (usage) => {
+            if (signal.aborted) return;
+            if (addToChat) {
+              const { chatState, setChatState, aiConfig } = useAppStore.getState();
+              const updatedMessages = [...chatState.messages];
+              const lastMsg = updatedMessages[updatedMessages.length - 1];
+              
+              const cost = calculateCost(aiConfig?.model || '', usage);
+              
+              updatedMessages[updatedMessages.length - 1] = {
+                ...lastMsg,
+                tokenUsage: {
+                  ...usage,
+                  estimatedCost: cost
+                }
+              };
+              
+              setChatState({
+                ...chatState,
+                messages: updatedMessages,
+              });
             }
           }
         ),

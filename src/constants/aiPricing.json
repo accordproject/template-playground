@@ -1,0 +1,29 @@
+{
+  "lastUpdated": "2025-12-22",
+  "sources": {
+    "openai": "https://openai.com/pricing",
+    "anthropic": "https://www.anthropic.com/pricing",
+    "mistral": "https://mistral.ai/pricing"
+  },
+  "models": {
+    "gpt-4o": { "input": 5.00, "output": 15.00 },
+    "gpt-4o-mini": { "input": 0.15, "output": 0.60 },
+    "gpt-4-turbo": { "input": 10.00, "output": 30.00 },
+    "gpt-4": { "input": 30.00, "output": 60.00 },
+    "gpt-3.5-turbo": { "input": 0.50, "output": 1.50 },
+    "claude-3-5-sonnet-20240620": { "input": 3.00, "output": 15.00 },
+    "claude-3-opus-20240229": { "input": 15.00, "output": 75.00 },
+    "claude-3-sonnet-20240229": { "input": 3.00, "output": 15.00 },
+    "claude-3-haiku-20240307": { "input": 0.25, "output": 1.25 },
+    "mistral-large-latest": { "input": 4.00, "output": 12.00 },
+    "mistral-medium-latest": { "input": 2.70, "output": 8.10 },
+    "mistral-small-latest": { "input": 1.00, "output": 3.00 },
+    "open-mistral-7b": { "input": 0.25, "output": 0.25 },
+    "open-mixtral-8x7b": { "input": 0.70, "output": 0.70 },
+    "open-mixtral-8x22b": { "input": 2.00, "output": 6.00 },
+    "gemini-1.5-pro": { "input": 3.50, "output": 10.50 },
+    "gemini-1.5-flash": { "input": 0.075, "output": 0.30 },
+    "gemini-1.0-pro": { "input": 0.50, "output": 1.50 },
+    "gemini-2.5-flash": { "input": 0.075, "output": 0.30 }
+  }
+}
