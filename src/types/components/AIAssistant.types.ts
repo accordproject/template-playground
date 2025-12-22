@@ -10,6 +10,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   usage?:TokenUsage;
+  cost?:number;
 }
 
 export interface ChatState {
