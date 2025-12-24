@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useCallback } from "react";
+import { lazy, Suspense, useMemo, useCallback, useState, useEffect } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
@@ -11,11 +11,14 @@ const MonacoEditor = lazy(() =>
 export default function JSONEditor({
   value,
   onChange,
+  editorRef,
 }: {
   value: string;
   onChange?: (value: string | undefined) => void;
+  editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("json");
+  const [editorInstance, setEditorInstance] = useState<monaco.editor.IStandaloneCodeEditor | null>(null);
   
   const { backgroundColor, aiConfig } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
@@ -58,9 +61,19 @@ export default function JSONEditor({
   };
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    setEditorInstance(editor);
+    if (editorRef) {
+      editorRef.current = editor;
+    }
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
+  };
+
+  const handleFormat = () => {
+    if (editorInstance) {
+      editorInstance.getAction('editor.action.formatDocument')?.run();
+    }
   };
 
   const handleChange = useCallback(
