@@ -22,7 +22,16 @@ const FullScreenModal: React.FC = () => {
       }
       .ant-modal-title{
         color: ${textColor} !important;
-        }
+      }
+      .ant-modal-body {
+        max-height: 85vh;
+        overflow-y: auto;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
+      .ant-modal-body::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+      }
     `;
     document.head.appendChild(style);
     return () => {
@@ -44,6 +53,7 @@ const FullScreenModal: React.FC = () => {
         onOk={() => setOpen(false)}
         onCancel={() => setOpen(false)}
         width={1000}
+
       >
         <AgreementHtml loading={false} isModal={true} />
       </Modal>
