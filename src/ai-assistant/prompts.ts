@@ -24,6 +24,7 @@ const includeEditorContents = (prompt: string, aiConfig: any, editorsContent: ed
       prompt += `\n\nCurrent JSON Data content:\n\`\`\`toon\n${toonData}\n\`\`\``;
     } catch (e) {
       // Fallback to original JSON if parsing fails
+      
       prompt += `\n\nCurrent JSON Data content:\n\`\`\`\n${editorsContent.editorAgreementData}\n\`\`\``;
     }
   }
