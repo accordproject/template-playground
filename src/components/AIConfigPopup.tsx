@@ -2,6 +2,38 @@ import { useState, useEffect, useMemo } from 'react';
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 
+const PROVIDER_MODEL_OPTIONS: Record<string, string[]> = {
+  openai: [
+    'gpt-4.1-mini',
+    'gpt-4.1',
+    'gpt-4o-mini',
+    'gpt-4o',
+    'gpt-3.5-turbo'
+  ],
+  anthropic: [
+    'claude-3-opus-20240229',
+    'claude-3-sonnet-20240229',
+    'claude-3-haiku-20240307'
+  ],
+  google: [
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+    'gemini-1.0-pro'
+  ],
+  mistral: [
+    'mistral-large-latest',
+    'mistral-small-latest',
+    'mistral-medium-latest',
+    'codestral-latest'
+  ],
+  openrouter: [
+    'anthropic/claude-3.5-sonnet',
+    'anthropic/claude-3-opus',
+    'meta-llama/llama-3.1-8b-instruct',
+    'meta-llama/llama-3.1-70b-instruct'
+  ]
+};
+
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const { backgroundColor } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
@@ -137,7 +169,11 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             </label>
             <select
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => {
+                setProvider(e.target.value);
+                // Clear model when provider changes
+                setModel('');
+              }}
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
             >
               <option value="">Select a provider</option>
@@ -172,20 +208,36 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             <label className={`block text-sm font-medium ${theme.label} mb-1`}>
               Model Name
             </label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="Enter model name"
-              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-            />
+            {PROVIDER_MODEL_OPTIONS[provider] && PROVIDER_MODEL_OPTIONS[provider].length > 0 ? (
+              <select
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                autoComplete="off"
+                className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
+              >
+                <option value="">Select a model</option>
+                {PROVIDER_MODEL_OPTIONS[provider].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Enter model name"
+                className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+              />
+            )}
             {provider && (
               <div className={`mt-1 text-xs ${theme.helpText}`}>
-                {provider === 'openai' && 'Example: gpt-4-turbo, gpt-3.5-turbo'}
+                {provider === 'openai' && 'Example: gpt-4.1, gpt-4o, gpt-3.5-turbo'}
                 {provider === 'anthropic' && 'Example: claude-3-opus-20240229, claude-3-sonnet-20240229'}
                 {provider === 'google' && 'Example: gemini-1.5-pro, gemini-1.0-pro'}
                 {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
-                {provider === 'openrouter' && 'Example: anthropic/claude-3-opus, meta-llama/llama-3-70b-instruct'}
+                {provider === 'openrouter' && 'Example: anthropic/claude-3.5-sonnet, meta-llama/llama-3.1-70b-instruct'}
               </div>
             )}
           </div>
