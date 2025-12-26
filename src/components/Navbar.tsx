@@ -10,9 +10,8 @@ import {
   CaretDownFilled,
   MenuOutlined,
 } from "@ant-design/icons";
-import { FaDiscord } from 'react-icons/fa';
+import { FaDiscord } from "react-icons/fa";
 import ToggleDarkMode from "./ToggleDarkMode";
-
 
 interface DropdownProps {
   children: React.ReactNode;
@@ -21,7 +20,12 @@ interface DropdownProps {
   className?: string;
 }
 
-const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps) => {
+const Dropdown = ({
+  children,
+  overlay,
+  trigger,
+  className = "",
+}: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = () => {
@@ -43,18 +47,16 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
   };
 
   return (
-    <div 
+    <div
       className={`relative ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div onClick={handleClick}>
-        {children}
-      </div>
+      <div onClick={handleClick}>{children}</div>
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-10" 
+          <div
+            className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
@@ -66,22 +68,24 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
   );
 };
 
-const Menu = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`py-1 ${className}`}>
-    {children}
-  </div>
-);
+const Menu = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => <div className={`py-1 ${className}`}>{children}</div>;
 
-const MenuItem = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const MenuItem = ({
+  children,
+  onClick,
+  className = "",
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
   className?: string;
 }) => (
-  <div 
+  <div
     className={`px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`}
     onClick={onClick}
   >
@@ -89,12 +93,12 @@ const MenuItem = ({
   </div>
 );
 
-const MenuItemGroup = ({ 
-  title, 
-  children, 
-  className = "" 
-}: { 
-  title: string; 
+const MenuItemGroup = ({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
   children: React.ReactNode;
   className?: string;
 }) => (
@@ -106,34 +110,29 @@ const MenuItemGroup = ({
   </div>
 );
 
-const Button = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const Button = ({
+  children,
+  onClick,
+  className = "",
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
   className?: string;
 }) => (
-  <button 
-    className={`flex items-center ${className}`}
-    onClick={onClick}
-  >
+  <button className={`flex items-center ${className}`} onClick={onClick}>
     {children}
   </button>
 );
 
-const Image = ({ 
-  src, 
-  alt, 
-  className = "" 
-}: { 
-  src: string; 
+const Image = ({
+  src,
+  alt,
+  className = "",
+}: {
+  src: string;
   alt: string;
   className?: string;
-}) => (
-  <img src={src} alt={alt} className={className} />
-);
+}) => <img src={src} alt={alt} className={className} />;
 
 const useBreakpoint = () => {
   const [screenSize, setScreenSize] = useState({
@@ -154,8 +153,8 @@ const useBreakpoint = () => {
     };
 
     checkSize();
-    window.addEventListener('resize', checkSize);
-    return () => window.removeEventListener('resize', checkSize);
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
   });
 
   return screenSize;
@@ -288,39 +287,41 @@ function Navbar() {
   const menuItemClasses = (key: string, isLast: boolean) => {
     const baseClasses = "flex items-center h-16";
     const paddingClasses = screens.md ? "px-5" : "px-0";
-    const bgClasses = hovered === key ? "bg-white bg-opacity-10" : "bg-transparent";
-    const borderClasses = screens.md && !isLast ? "border-r border-white border-opacity-10" : "";
-    
+    const bgClasses =
+      hovered === key ? "bg-white bg-opacity-10" : "bg-transparent";
+    const borderClasses =
+      screens.md && !isLast ? "border-r border-white border-opacity-10" : "";
+
     return `${baseClasses} ${paddingClasses} ${bgClasses} ${borderClasses}`;
   };
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`sticky top-0 z-50 bg-[#1b2540] h-16 flex items-center ${
-      screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
-    }`}>
+    <div
+      className={`sticky top-0 z-50 bg-[#1b2540] h-16 flex items-center ${
+        screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
+      }`}
+    >
       <div
         className={`cursor-pointer ${menuItemClasses("home", false)}`}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
-        <Link
-          to="/"
-          rel="noopener noreferrer"
-          className="flex items-center"
-        >
+        <Link to="/" rel="noopener noreferrer" className="flex items-center">
           <Image
             src={screens.lg ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
-            className={`h-6.5 ${screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"}`}
+            className={`h-6.5 ${
+              screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"
+            }`}
           />
           <span className={`text-white ${screens.lg ? "block" : "hidden"}`}>
             Template Playground
           </span>
         </Link>
       </div>
-      
+
       {screens.md ? (
         <>
           <div
@@ -345,18 +346,24 @@ function Navbar() {
           </Dropdown>
         </div>
       )}
-      
-      <div className={`flex ml-auto items-center h-16 ${
-        screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
-      }`}>
+
+      <div
+        className={`flex ml-auto items-center h-16 ${
+          screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
+        }`}
+      >
         <div className={screens.md ? "ml-0" : "ml-auto"}>
           <ToggleDarkMode />
         </div>
-        
+
         {!isLearnPage && (
           <div
-            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${
-              hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
+            className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
+              screens.md
+                ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+                : "px-2.5 pl-1.5 pr-1.5"
+            } ${
+              hovered === "join" ? "bg-white bg-opacity-10" : "bg-transparent"
             }`}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
@@ -371,11 +378,11 @@ function Navbar() {
             </Link>
           </div>
         )}
-        
+
         <div
           className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
+            screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
               : "px-2.5 pl-1.5 pr-1.5"
           } ${
             hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
@@ -389,17 +396,17 @@ function Navbar() {
             rel="noopener noreferrer"
             className="flex items-center text-white"
           >
-            <FaDiscord className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
+            <FaDiscord
+              className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"}`}
+            />
             <span className={screens.md ? "inline" : "hidden"}>Discord</span>
           </a>
         </div>
-        
+
         <div
           className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
+            screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
               : "px-2.5 pl-1.5 pr-1.5"
           } ${
             hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
@@ -413,9 +420,9 @@ function Navbar() {
             rel="noopener noreferrer"
             className="flex items-center text-white"
           >
-            <GithubOutlined className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
+            <GithubOutlined
+              className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"}`}
+            />
             <span className={screens.md ? "inline" : "hidden"}>Github</span>
           </a>
         </div>
