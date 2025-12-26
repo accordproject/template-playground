@@ -12,6 +12,20 @@ export abstract class LLMProvider {
     this.config = config;
   }
 
+  //  NEW: Helper method to correctly extract system messages
+  protected extractSystemMessage(messages: Message[]): {
+    system: string;
+    conversation: Message[];
+  } {
+    const systemMessage = messages.find(msg => msg.role === 'system');
+    const conversationMessages = messages.filter(msg => msg.role !== 'system');
+    
+    return {
+      system: systemMessage?.content || '',
+      conversation: conversationMessages
+    };
+  }
+
   abstract streamChat(
     messages: Message[],
     onChunk: (chunk: string) => void,
@@ -97,30 +111,26 @@ export class AnthropicProvider extends LLMProvider {
         dangerouslyAllowBrowser: true
       });
 
-      const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
-      const formattedMessages: Anthropic.MessageParam[] = [];
-      messages.forEach(
-        (msg) => {
-          if (msg.role === 'user' || msg.role === 'assistant') {
-            formattedMessages.push({
-              role: msg.role,
-              content: msg.content,
-            });
-          }
-        }
-      );
+     // FIXED: Use helper method for correct system message extraction
+const { system, conversation } = this.extractSystemMessage(messages);
+
+const formattedMessages: Anthropic.MessageParam[] = conversation
+  .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+  .map(msg => ({
+    role: msg.role as 'user' | 'assistant',
+    content: msg.content,
+  }));
 
       const params: Anthropic.MessageStreamParams = {
-        model: this.config.model,
-        system: systemInstruction,
-        messages: formattedMessages,
-        max_tokens: this.config.maxTokens ?? 100000,
-      }
+  model: this.config.model,
+  system: system,  //  Use extracted system message
+  messages: formattedMessages,
+  max_tokens: this.config.maxTokens ?? 100000,
+}
 
       await client.messages.stream(
         params
       ).on('text', (textDelta) => {
-        console.log(textDelta)
         onChunk(textDelta);
       });
 
@@ -144,17 +154,16 @@ export class GoogleProvider extends LLMProvider {
   ): Promise<void> {
     try {
       const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
-      console.log("messages are", messages)
-      const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
-      const geminiMessages = this.convertToGeminiFormat(messages);
+      // FIXED: Use helper method for correct system message extraction
+      const { system, conversation } = this.extractSystemMessage(messages);
+      const geminiMessages = this.convertToGeminiFormat(conversation);
       const generationConfig: GenerateContentConfig = {};
       if (this.config.maxTokens) {
         generationConfig.maxOutputTokens = this.config.maxTokens;
       }
-      if (systemInstruction) {
-        generationConfig.systemInstruction = systemInstruction;
-      }
-      console.log(geminiMessages.slice(0,-1));
+        if (system) {
+          generationConfig.systemInstruction = system;
+        }
       const chat = genAI.chats.create({
         model: this.config.model,
         history: geminiMessages.slice(0,-1),
