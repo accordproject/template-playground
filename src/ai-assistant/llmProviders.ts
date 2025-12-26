@@ -13,7 +13,8 @@ export abstract class LLMProvider {
     this.config = config;
   }
 
-  //  NEW: Helper method to correctly extract system messages
+  
+  //  NEW: Helper method to correctly extract system messages. 
   protected extractSystemMessage(messages: Message[]): {
     system: string;
     conversation: Message[];
