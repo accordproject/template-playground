@@ -1,10 +1,15 @@
-
+import { forwardRef } from "react";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
 import FullScreenModal from "./components/FullScreenModal";
 
-function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boolean }) {
+interface AgreementHtmlProps {
+  loading: boolean;
+  isModal?: boolean;
+}
+
+const AgreementHtml = forwardRef<HTMLDivElement, AgreementHtmlProps>(({ loading, isModal }, ref) => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -44,6 +49,7 @@ function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boole
         </div>
       ) : (
         <div
+          ref={ref}
           className="agreement"
           dangerouslySetInnerHTML={{ __html: agreementHtml }}
           style={{ flex: 1, color: textColor, backgroundColor: backgroundColor }}
@@ -51,6 +57,8 @@ function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boole
       )}
     </div>
   );
-}
+});
+
+AgreementHtml.displayName = "AgreementHtml";
 
 export default AgreementHtml;
