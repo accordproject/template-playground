@@ -11,7 +11,7 @@ import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
 const PlaygroundSidebar = () => {
-  const { 
+  const {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
@@ -82,20 +82,20 @@ const PlaygroundSidebar = () => {
   }
 
   const navTop: NavItem[] = [
-    { 
-      title: "Editor", 
-      icon: IoCodeSlash, 
+    {
+      title: "Editor",
+      icon: IoCodeSlash,
       onClick: handleEditorToggle,
       active: isEditorsVisible
     },
-    { 
-      title: "Preview", 
+    {
+      title: "Preview",
       icon: VscOutput,
       onClick: handlePreviewToggle,
       active: isPreviewVisible
     },
-    { 
-      title: "Problems", 
+    {
+      title: "Problems",
       icon: FiTerminal,
       onClick: () => setProblemPanelVisible(!isProblemPanelVisible),
       active: isProblemPanelVisible
@@ -120,8 +120,8 @@ const PlaygroundSidebar = () => {
       onClick: () => setAIChatOpen(!isAIChatOpen),
       active: isAIChatOpen
     },
-    { 
-      title: "Fullscreen", 
+    {
+      title: "Fullscreen",
       component: <FullScreenModal />
     },
   ];
@@ -133,25 +133,25 @@ const PlaygroundSidebar = () => {
   }
 
   const navBottom: NavBottomItem[] = [
-    { 
-      title: "Share", 
+    {
+      title: "Share",
       icon: FiShare2,
       onClick: () => void handleShare()
     },
-    { 
-      title: "Start Tour", 
+    {
+      title: "Start Tour",
       icon: FaCirclePlay,
       onClick: () => void handleStartTour()
     },
-    { 
-      title: "Settings", 
+    {
+      title: "Settings",
       icon: FiSettings,
       onClick: handleSettings
     },
   ];
 
   return (
-    <aside className="playground-sidebar">
+    <aside className="playground-sidebar h-[calc(100vh-64px)]">
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <div
@@ -161,9 +161,8 @@ const PlaygroundSidebar = () => {
             title={title}
             tabIndex={0}
             onClick={onClick}
-            className={`group playground-sidebar-nav-item ${
-              active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
-            } tour-${title.toLowerCase().replace(' ', '-')}`}
+            className={`group playground-sidebar-nav-item ${active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
+              } tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             {component ? (
               <div className="playground-sidebar-nav-item-icon-container">
