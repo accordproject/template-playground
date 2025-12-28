@@ -20,9 +20,13 @@ const FullScreenModal: React.FC = () => {
         background-color: ${backgroundColor} !important;
         color: ${textColor} !important;
       }
-      .ant-modal-title{
+      .ant-modal-title {
         color: ${textColor} !important;
-        }
+      }
+      /* Fixes invisible close button in dark mode */
+      .ant-modal-close {
+        color: ${textColor} !important;
+      }
     `;
     document.head.appendChild(style);
     return () => {
