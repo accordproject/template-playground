@@ -5,12 +5,7 @@ import nodePolyfills from "vite-plugin-node-stdlib-browser";
 import { visualizer } from "rollup-plugin-visualizer";
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
-  plugins: [react({
-    babel: {
-      babelrc: false,
-      configFile: false,
-    },
-  }), nodePolyfills(), visualizer({
+  plugins: [nodePolyfills(), react(), visualizer({
     emitFile: true,
     filename: "stats.html",
   })],
