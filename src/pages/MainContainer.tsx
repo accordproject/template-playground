@@ -78,6 +78,15 @@ const MainContainer = () => {
   const collapsedSize = 5;
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
   
+  // Create distinct preview background for better visual separation
+  const previewBackgroundColor = backgroundColor === '#ffffff' 
+    ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
+    : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
+  
+  const previewHeaderColor = backgroundColor === '#ffffff'
+    ? '#dbeafe'  // Slightly darker blue for header in light mode
+    : '#0f172a';  // Even darker shade for header in dark mode
+  
   // Create a key that changes when collapse state changes to force panel re-layout
   const panelKey = `${isModelCollapsed}-${isTemplateCollapsed}-${isDataCollapsed}`;
 
@@ -204,8 +213,8 @@ const MainContainer = () => {
         {isPreviewVisible && (
           <>
             <Panel defaultSize={37.5} minSize={20}>
-              <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor }}>
-                <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`}>
+              <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
+                <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
                   <Button 
                     onClick={handleDownloadPdf}
@@ -215,7 +224,7 @@ const MainContainer = () => {
                    Download PDF
                   </Button>
                 </div>
-                <div className="main-container-preview-content" style={{ backgroundColor }}>
+                <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor }}>
                   <div className="main-container-preview-text">
                     <div
                       ref={downloadRef}
@@ -223,7 +232,7 @@ const MainContainer = () => {
                       dangerouslySetInnerHTML={{ __html: agreementHtml }}
                       style={{
                         color: textColor,
-                        backgroundColor: backgroundColor,
+                        backgroundColor: previewBackgroundColor,
                         padding: "20px"
                       }}
                     />
