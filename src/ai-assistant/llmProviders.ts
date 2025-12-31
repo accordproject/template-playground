@@ -51,7 +51,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
         messages: formattedMessages,
         stream: true,
       };
-      
+
       if (this.config.maxTokens) {
         options.max_tokens = this.config.maxTokens;
       }
@@ -64,7 +64,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
           onChunk(content);
         }
       }
-      
+
       onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));
@@ -120,7 +120,6 @@ export class AnthropicProvider extends LLMProvider {
       await client.messages.stream(
         params
       ).on('text', (textDelta) => {
-        console.log(textDelta)
         onChunk(textDelta);
       });
 
@@ -143,8 +142,7 @@ export class GoogleProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
-      const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
-      console.log("messages are", messages)
+      const genAI = new GoogleGenAI({ apiKey: this.config.apiKey });
       const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
       const generationConfig: GenerateContentConfig = {};
@@ -154,10 +152,9 @@ export class GoogleProvider extends LLMProvider {
       if (systemInstruction) {
         generationConfig.systemInstruction = systemInstruction;
       }
-      console.log(geminiMessages.slice(0,-1));
       const chat = genAI.chats.create({
         model: this.config.model,
-        history: geminiMessages.slice(0,-1),
+        history: geminiMessages.slice(0, -1),
         config: generationConfig
       });
 
@@ -178,7 +175,7 @@ export class GoogleProvider extends LLMProvider {
 
   private convertToGeminiFormat(messages: Message[]) {
     const geminiMessages = [];
-    
+
     for (const message of messages) {
       const role = message.role === 'assistant' ? 'model' : message.role;
       if (role !== "system") {
@@ -188,7 +185,7 @@ export class GoogleProvider extends LLMProvider {
         });
       }
     }
-    
+
     return geminiMessages;
   }
 }
@@ -206,7 +203,7 @@ export class MistralProvider extends LLMProvider {
         content: msg.content
       }));
 
-      const mistral = new Mistral({apiKey: this.config.apiKey});
+      const mistral = new Mistral({ apiKey: this.config.apiKey });
 
       const options: ChatCompletionStreamRequest = {
         model: this.config.model,
@@ -225,7 +222,7 @@ export class MistralProvider extends LLMProvider {
           onChunk((content as string));
         }
       }
-      
+
       onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));
