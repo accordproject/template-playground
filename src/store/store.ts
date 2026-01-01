@@ -71,6 +71,19 @@ export interface DecompressedData {
 }
 
 const rebuildDeBounce = debounce(rebuild, 500);
+// Format complex Accord Project types (Duration, Period, MonetaryAmount) as readable text
+function formatComplexTypes(html: string): string {
+  return html.replace(/\{"\$class":"[^"]+",(?:[^{}]|\{[^{}]*\})*\}/g, (match) => {
+    try {
+      const obj = JSON.parse(match);
+      const $class = obj.$class || "";
+      if ($class.includes(".Duration") || $class.includes(".Period")) return `${obj.amount} ${obj.unit}`;
+      if ($class.includes(".MonetaryAmount")) return `${obj.currencyCode} ${obj.doubleValue}`;
+      return match;
+    } catch { return match; }
+  });
+}
+
 
 async function rebuild(template: string, model: string, dataString: string) {
   const modelManager = new ModelManager({ strict: true });
@@ -86,13 +99,14 @@ async function rebuild(template: string, model: string, dataString: string) {
   );
   const data = JSON.parse(dataString);
   const ciceroMark = await engine.generate(templateMarkDom, data);
-  return await transform(
+  const html = await transform(
     ciceroMark.toJSON(),
     "ciceromark_parsed",
     ["html"],
     {},
     { verbose: false }
   );
+  return formatComplexTypes(html);
 }
 
 const getInitialTheme = () => {
