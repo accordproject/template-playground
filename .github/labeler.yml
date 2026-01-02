@@ -1,0 +1,69 @@
+# Label configuration for actions/labeler
+# See: https://github.com/actions/labeler
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+
+components:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/components/**'
+
+editors:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/editors/**'
+
+pages:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/pages/**'
+
+utils:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/utils/**'
+
+store:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/store/**'
+
+styles:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/styles/**'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/tests/**'
+
+ai-assistant:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/ai-assistant/**'
+
+assets:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'public/**'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
+
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.config.*'
+          - 'tsconfig.*'
