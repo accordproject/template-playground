@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { AIConfig, Message } from '../types/components/AIAssistant.types';
+import { AIConfig, Message, Attachment } from '../types/components/AIAssistant.types';
 import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
 import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
@@ -18,6 +18,30 @@ export abstract class LLMProvider {
     onError: (error: Error) => void,
     onComplete: () => void
   ): Promise<void>;
+
+  protected formatAttachments(attachments?: Attachment[]): string {
+    if (!attachments || attachments.length === 0) return '';
+    
+    let attachmentText = '\n\n--- Attached Files ---\n';
+    for (const att of attachments) {
+      attachmentText += `\nFile: ${att.fileName} (${att.mimeType})\n`;
+      
+      // For text files, decode and include content
+      if (att.fileType === 'text' || att.mimeType === 'application/json') {
+        try {
+          const decoded = atob(att.base64Content);
+          attachmentText += `Content:\n${decoded}\n`;
+        } catch (e) {
+          attachmentText += '[Content could not be decoded]\n';
+        }
+      } else if (att.fileType === 'image') {
+        attachmentText += '[Image attached - see multimodal content]\n';
+      } else {
+        attachmentText += '[Binary file attached]\n';
+      }
+    }
+    return attachmentText;
+  }
 }
 
 export class OpenAICompatibleProvider extends LLMProvider {
@@ -35,10 +59,53 @@ export class OpenAICompatibleProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
-      const formattedMessages = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
+      const formattedMessages = messages.map(msg => {
+        // Handle attachments for user messages
+        if (msg.role === 'user' && msg.attachments && msg.attachments.length > 0) {
+          const imageAttachments = msg.attachments.filter(att => att.fileType === 'image');
+          
+          // If we have images and model supports vision, use multimodal format
+          if (imageAttachments.length > 0) {
+            const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
+              { type: 'text', text: msg.content }
+            ];
+            
+            // Add images
+            imageAttachments.forEach(img => {
+              content.push({
+                type: 'image_url',
+                image_url: {
+                  url: `data:${img.mimeType};base64,${img.base64Content}`
+                }
+              });
+            });
+            
+            // Add text attachments as text
+            const textContent = this.formatAttachments(
+              msg.attachments.filter(att => att.fileType !== 'image')
+            );
+            if (textContent) {
+              content[0].text += textContent;
+            }
+            
+            return {
+              role: msg.role,
+              content: content as never
+            };
+          }
+        }
+        
+        // Default text-only format
+        let content = msg.content;
+        if (msg.attachments) {
+          content += this.formatAttachments(msg.attachments);
+        }
+        
+        return {
+          role: msg.role,
+          content: content
+        };
+      });
 
       const openai = new OpenAI({
         apiKey: this.config.apiKey,
@@ -48,7 +115,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
 
       const options: OpenAI.Chat.ChatCompletionCreateParamsStreaming = {
         model: this.config.model,
-        messages: formattedMessages,
+        messages: formattedMessages as never,
         stream: true,
       };
       
@@ -102,9 +169,53 @@ export class AnthropicProvider extends LLMProvider {
       messages.forEach(
         (msg) => {
           if (msg.role === 'user' || msg.role === 'assistant') {
+            // Handle attachments for user messages
+            if (msg.role === 'user' && msg.attachments && msg.attachments.length > 0) {
+              const imageAttachments = msg.attachments.filter(att => att.fileType === 'image');
+              
+              if (imageAttachments.length > 0) {
+                // Anthropic multimodal format
+                const content: Array<{ type: string; text?: string; source?: { type: string; media_type: string; data: string } }> = [
+                  { type: 'text', text: msg.content }
+                ];
+                
+                // Add images
+                imageAttachments.forEach(img => {
+                  content.push({
+                    type: 'image' as const,
+                    source: {
+                      type: 'base64',
+                      media_type: img.mimeType,
+                      data: img.base64Content
+                    }
+                  } as never);
+                });
+                
+                // Add text attachments
+                const textContent = this.formatAttachments(
+                  msg.attachments.filter(att => att.fileType !== 'image')
+                );
+                if (textContent) {
+                  content[0].text += textContent;
+                }
+                
+                formattedMessages.push({
+                  role: msg.role,
+                  content: content as never,
+                });
+                return;
+              }
+            }
+            
+            // Default text format
+            let content = msg.content;
+            if (msg.attachments) {
+              content += this.formatAttachments(msg.attachments);
+            }
+            
             formattedMessages.push({
               role: msg.role,
-              content: msg.content,
+              content: content,
             });
           }
         }
@@ -162,7 +273,7 @@ export class GoogleProvider extends LLMProvider {
       });
 
       const stream = await chat.sendMessageStream({
-        message: geminiMessages.slice(-1)[0].parts[0].text,
+        message: geminiMessages.slice(-1)[0].parts[0].text || '',
       });
       for await (const chunk of stream) {
         if (chunk.text) {
@@ -182,9 +293,51 @@ export class GoogleProvider extends LLMProvider {
     for (const message of messages) {
       const role = message.role === 'assistant' ? 'model' : message.role;
       if (role !== "system") {
+        // Handle attachments for user messages
+        if (message.role === 'user' && message.attachments && message.attachments.length > 0) {
+          const imageAttachments = message.attachments.filter(att => att.fileType === 'image');
+          
+          if (imageAttachments.length > 0) {
+            // Google multimodal format
+            const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
+              { text: message.content }
+            ];
+            
+            // Add images
+            imageAttachments.forEach(img => {
+              parts.push({
+                inlineData: {
+                  mimeType: img.mimeType,
+                  data: img.base64Content
+                }
+              });
+            });
+            
+            // Add text attachments
+            const textContent = this.formatAttachments(
+              message.attachments.filter(att => att.fileType !== 'image')
+            );
+            if (textContent) {
+              parts[0].text += textContent;
+            }
+            
+            geminiMessages.push({
+              role: role,
+              parts: parts
+            });
+            continue;
+          }
+        }
+        
+        // Default text format
+        let content = message.content;
+        if (message.attachments) {
+          content += this.formatAttachments(message.attachments);
+        }
+        
         geminiMessages.push({
           role: role,
-          parts: [{ text: message.content }]
+          parts: [{ text: content }]
         });
       }
     }
@@ -201,10 +354,18 @@ export class MistralProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
-      const formattedMessages = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
+      const formattedMessages = messages.map(msg => {
+        // Add attachment text for Mistral (no native vision support for most models)
+        let content = msg.content;
+        if (msg.attachments) {
+          content += this.formatAttachments(msg.attachments);
+        }
+        
+        return {
+          role: msg.role,
+          content: content
+        };
+      });
 
       const mistral = new Mistral({apiKey: this.config.apiKey});
 
@@ -253,4 +414,31 @@ export function getLLMProvider(config: AIConfig): LLMProvider {
     default:
       throw new Error(`Unsupported provider: ${config.provider}`);
   }
+}
+
+export interface ModelCapabilities {
+  supportsVision: boolean;
+  supportsDocuments: boolean;
+}
+
+export function getModelCapabilities(_provider: string, model: string): ModelCapabilities {
+  const modelLower = model.toLowerCase();
+  
+  // Vision-capable models
+  const visionModels = [
+    'gpt-4o', 'gpt-4-turbo', 'gpt-4-vision',
+    'claude-3', 'claude-opus', 'claude-sonnet', 'claude-haiku',
+    'gemini-pro-vision', 'gemini-1.5', 'gemini-2.0',
+    'pixtral'
+  ];
+  
+  const supportsVision = visionModels.some(vm => modelLower.includes(vm));
+  
+  // Most models support text documents
+  const supportsDocuments = true;
+  
+  return {
+    supportsVision,
+    supportsDocuments
+  };
 }
