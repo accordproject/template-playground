@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { AIConfig, Message, editorsContent } from '../types/components/AIAssistant.types';
+import { AIConfig, Message, editorsContent, Attachment } from '../types/components/AIAssistant.types';
 import { prepareSystemPrompt } from "./prompts";
 import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
@@ -95,6 +95,7 @@ export const sendMessage = async (
   editorsContent: editorsContent,
   addToChat: boolean = true,
   editorType?: 'markdown' | 'concerto' | 'json',
+  attachments?: Attachment[],
   onChunk?: (chunk: string) => void,
   onError?: (error: Error) => void,
   onComplete?: () => void
@@ -152,6 +153,7 @@ export const sendMessage = async (
     role: 'user',
     content: userInput,
     timestamp: new Date(),
+    attachments: attachments && attachments.length > 0 ? attachments : undefined,
   };
 
   const assistantMessage: Message = {
