@@ -17,9 +17,10 @@ export default function JSONEditor({
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("json");
   
-  const { backgroundColor, aiConfig } = useAppStore((state) => ({
+  const { backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     aiConfig: state.aiConfig,
+    showLineNumbers: state.showLineNumbers,
   }));
 
   const themeName = useMemo(
@@ -32,6 +33,7 @@ export default function JSONEditor({
     wordWrap: "on",
     automaticLayout: true,
     scrollBeyondLastLine: false,
+    lineNumbers: showLineNumbers ? 'on' : 'off',
     inlineSuggest: {
       enabled: aiConfig?.enableInlineSuggestions !== false,
       mode: "prefix",
@@ -48,7 +50,7 @@ export default function JSONEditor({
     acceptSuggestionOnCommitCharacter: false,
     acceptSuggestionOnEnter: "off",
     tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions]);
+  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
 
 
   const handleEditorWillMount = (monacoInstance: typeof monaco) => {
