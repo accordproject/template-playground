@@ -9,7 +9,8 @@ import SampleDropdown from "../components/SampleDropdown";
 import { useState, useRef } from "react";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
-import { Button } from "antd";
+import { Button, message, Tooltip } from "antd";
+import { CopyOutlined } from "@ant-design/icons";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -17,6 +18,12 @@ const MainContainer = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
+  const editorAgreementData = useAppStore((state) => state.editorAgreementData);
+
+  const handleCopyJson = () => {
+    navigator.clipboard.writeText(editorAgreementData);
+    message.success("JSON copied to clipboard!");
+  };
 
   const handleDownloadPdf = async () => {
     const element = downloadRef.current;
@@ -178,6 +185,19 @@ const MainContainer = () => {
                             {isDataCollapsed ? '▶' : '▼'}
                           </button>
                           <span>JSON Data</span>
+                          <Tooltip title="Copy JSON">
+                            <Button
+                              type="text"
+                              icon={<CopyOutlined />}
+                              size="small"
+                              onClick={handleCopyJson}
+                              style={{ 
+                                color: textColor, 
+                                marginLeft: '8px',
+                                background: 'transparent'
+                              }}
+                            />
+                          </Tooltip>
                         </div>
                       </div>
                       {!isDataCollapsed && (
