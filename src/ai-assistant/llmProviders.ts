@@ -5,6 +5,47 @@ import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
 import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
 
+/**
+ * Parse error and return user-friendly error message
+ */
+function parseErrorMessage(error: any): string {
+  const errorString = error?.message || String(error);
+
+  // Check for HTTP status codes in error message or error object
+  const statusCode = error?.status || error?.statusCode || error?.response?.status;
+
+  // Network errors
+  if (errorString.toLowerCase().includes('network') ||
+    errorString.toLowerCase().includes('fetch failed') ||
+    errorString.toLowerCase().includes('failed to fetch')) {
+    return 'Unable to connect. Please check your internet connection.';
+  }
+
+  // Handle specific HTTP status codes
+  if (statusCode === 401 || errorString.includes('401') ||
+    errorString.toLowerCase().includes('unauthorized') ||
+    errorString.toLowerCase().includes('invalid api key') ||
+    errorString.toLowerCase().includes('authentication')) {
+    return 'Invalid API key. Please check your configuration.';
+  }
+
+  if (statusCode === 429 || errorString.includes('429') ||
+    errorString.toLowerCase().includes('rate limit') ||
+    errorString.toLowerCase().includes('too many requests')) {
+    return 'Rate limit exceeded. Please try again in a few moments.';
+  }
+
+  if (statusCode >= 500 || errorString.includes('500') || errorString.includes('502') ||
+    errorString.includes('503') || errorString.includes('504') ||
+    errorString.toLowerCase().includes('service unavailable') ||
+    errorString.toLowerCase().includes('internal server error')) {
+    return 'The AI service is temporarily unavailable. Please try again later.';
+  }
+
+  // Return original error message if no specific pattern matched
+  return errorString;
+}
+
 export abstract class LLMProvider {
   protected config: AIConfig;
 
@@ -51,7 +92,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
         messages: formattedMessages,
         stream: true,
       };
-      
+
       if (this.config.maxTokens) {
         options.max_tokens = this.config.maxTokens;
       }
@@ -64,7 +105,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
           onChunk(content);
         }
       }
-      
+
       onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));
@@ -126,7 +167,8 @@ export class AnthropicProvider extends LLMProvider {
 
       onComplete();
     } catch (error) {
-      onError(error instanceof Error ? error : new Error('Unknown error'));
+      const friendlyMessage = parseErrorMessage(error);
+      onError(new Error(friendlyMessage));
     }
   }
 }
@@ -143,7 +185,7 @@ export class GoogleProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
-      const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
+      const genAI = new GoogleGenAI({ apiKey: this.config.apiKey });
       console.log("messages are", messages)
       const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
@@ -154,10 +196,10 @@ export class GoogleProvider extends LLMProvider {
       if (systemInstruction) {
         generationConfig.systemInstruction = systemInstruction;
       }
-      console.log(geminiMessages.slice(0,-1));
+      console.log(geminiMessages.slice(0, -1));
       const chat = genAI.chats.create({
         model: this.config.model,
-        history: geminiMessages.slice(0,-1),
+        history: geminiMessages.slice(0, -1),
         config: generationConfig
       });
 
@@ -178,7 +220,7 @@ export class GoogleProvider extends LLMProvider {
 
   private convertToGeminiFormat(messages: Message[]) {
     const geminiMessages = [];
-    
+
     for (const message of messages) {
       const role = message.role === 'assistant' ? 'model' : message.role;
       if (role !== "system") {
@@ -188,7 +230,7 @@ export class GoogleProvider extends LLMProvider {
         });
       }
     }
-    
+
     return geminiMessages;
   }
 }
@@ -206,7 +248,7 @@ export class MistralProvider extends LLMProvider {
         content: msg.content
       }));
 
-      const mistral = new Mistral({apiKey: this.config.apiKey});
+      const mistral = new Mistral({ apiKey: this.config.apiKey });
 
       const options: ChatCompletionStreamRequest = {
         model: this.config.model,
@@ -225,7 +267,7 @@ export class MistralProvider extends LLMProvider {
           onChunk((content as string));
         }
       }
-      
+
       onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));

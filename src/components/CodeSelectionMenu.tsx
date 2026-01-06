@@ -3,8 +3,10 @@ import { sendMessage } from '../ai-assistant/chatRelay';
 import { CodeSelectionMenuProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 import ReactMarkdown from "react-markdown";
+import ErrorBoundary from './ErrorBoundary';
+import AIErrorFallback from './AIErrorFallback';
 
-const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
+const CodeSelectionMenuComponent: React.FC<CodeSelectionMenuProps> = ({
   selectedText,
   position,
   onClose,
@@ -44,9 +46,9 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   }, [handleClose]);
 
   const editorsContent = useAppStore((state) => ({
-      editorTemplateMark: state.editorValue,
-      editorModelCto: state.editorModelCto,
-      editorAgreementData: state.editorAgreementData,
+    editorTemplateMark: state.editorValue,
+    editorModelCto: state.editorModelCto,
+    editorAgreementData: state.editorAgreementData,
   }));
 
   const handleExplain = async () => {
@@ -65,10 +67,10 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
 
     try {
       const selectedCode = `Code: \n \`\`\`${selectedText}\`\`\` \n`
-      
+
       const newAbortController = new AbortController();
       setAbortController(newAbortController);
-      
+
       await sendMessage(
         selectedCode,
         'explainCode',
@@ -113,7 +115,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
 
     setAIChatOpen(true);
     onClose();
-    
+
     const selectedCode = `Code: \n \`\`\`${selectedText}\`\`\` \n`
     await sendMessage(
       selectedCode,
@@ -128,16 +130,16 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
     left: Math.max(300, Math.min(position.x, window.innerWidth - 350)),
     top: isExplaining ? position.y - 20 : Math.max(10, Math.min(position.y - 20, window.innerHeight - 300)),
   };
-  
+
   useEffect(() => {
     if (explanationRef.current && showExplanation) {
       const popup = explanationRef.current;
       const rect = popup.getBoundingClientRect();
-      
+
       if (rect.right > window.innerWidth) {
         popup.style.left = `${window.innerWidth - rect.width - 10}px`;
       }
-      
+
       if (rect.bottom > window.innerHeight) {
         popup.style.top = `${window.innerHeight - rect.height - 10}px`;
       }
@@ -204,7 +206,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
                       </code>
                     );
                   }
-              }}>
+                }}>
                 {explanation}
               </ReactMarkdown>
             </div>
@@ -218,8 +220,8 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
     <div
       ref={menuRef}
       className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 flex"
-      style={{ 
-        left: Math.max(10, Math.min(225, window.innerWidth - 150)), 
+      style={{
+        left: Math.max(10, Math.min(225, window.innerWidth - 150)),
         top: Math.max(10, Math.min(position.y, window.innerHeight - 50)),
         minWidth: '120px'
       }}
@@ -261,20 +263,20 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
         const position = editor.getScrolledVisiblePosition(selection.getStartPosition());
         const editorContainer = editor.getDomNode().closest('.editorwrapper');
         const editorRect = editorContainer?.getBoundingClientRect();
-        
+
         let x, y;
-        
+
         if (editorRect) {
           x = Math.max(editorRect.left + 20, Math.min(position.left, editorRect.right - 150));
           y = Math.max(editorRect.top + 20, Math.min(position.top, editorRect.bottom - 50));
-          
+
           x = Math.max(10, Math.min(x, window.innerWidth - 150));
           y = Math.max(10, Math.min(y, window.innerHeight - 50));
         } else {
           x = Math.max(10, Math.min(position.left, window.innerWidth - 150));
           y = Math.max(10, Math.min(position.top, window.innerHeight - 50));
         }
-        
+
         setSelectedText(selectedText);
         setMenuPosition({
           x: x,
@@ -308,5 +310,12 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
     MenuComponent
   };
 };
+
+// Wrap CodeSelectionMenu with ErrorBoundary to prevent crashes from propagating to the entire app
+const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = (props) => (
+  <ErrorBoundary fallback={(error, resetError) => <AIErrorFallback error={error} resetError={resetError} />}>
+    <CodeSelectionMenuComponent {...props} />
+  </ErrorBoundary>
+);
 
 export default CodeSelectionMenu;
