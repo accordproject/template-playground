@@ -57,7 +57,6 @@ const MainContainer = () => {
     isTemplateCollapsed,
     isDataCollapsed,
     toggleModelCollapse,
-    toggleTemplateCollapse,
     toggleDataCollapse,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
@@ -68,7 +67,6 @@ const MainContainer = () => {
     isTemplateCollapsed: state.isTemplateCollapsed,
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
-    toggleTemplateCollapse: state.toggleTemplateCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
   }));
 
