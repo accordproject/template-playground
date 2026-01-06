@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
+import { message } from "antd";
 import useAppStore from "../store/store";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
 import { Attachment } from "../types/components/AIAssistant.types";
@@ -153,7 +154,7 @@ export const AIChatPanel = () => {
     const maxFiles = 5;
     
     if (attachments.length + files.length > maxFiles) {
-      alert(`Maximum ${maxFiles} files allowed`);
+      message.error(`Maximum ${maxFiles} files allowed`);
       return;
     }
 
@@ -168,12 +169,12 @@ export const AIChatPanel = () => {
       const file = files[i];
       
       if (file.size > maxSize) {
-        alert(`File ${file.name} exceeds 10MB limit`);
+        message.error(`File ${file.name} exceeds 10MB limit`);
         continue;
       }
 
       if (!allowedTypes.includes(file.type)) {
-        alert(`File type ${file.type} not supported`);
+        message.error(`File type ${file.type} not supported`);
         continue;
       }
 
@@ -190,7 +191,7 @@ export const AIChatPanel = () => {
         newAttachments.push(attachment);
       } catch (error) {
         console.error(`Error processing file ${file.name}:`, error);
-        alert(`Failed to process ${file.name}`);
+        message.error(`Failed to process ${file.name}`);
       }
     }
 
