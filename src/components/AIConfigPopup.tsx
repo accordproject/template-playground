@@ -38,7 +38,10 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       saveButton: {
         enabled: 'bg-blue-500 text-white hover:bg-blue-600',
         disabled: isDarkMode ? 'bg-gray-600 text-gray-400' : 'bg-gray-400 text-gray-200'
-      }
+      },
+      resetButton: isDarkMode
+        ? 'border-red-600 text-red-400 hover:bg-red-900 hover:border-red-500'
+        : 'border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600'
     };
   }, [backgroundColor]);
 
@@ -100,6 +103,40 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
     
     onSave(); 
     onClose();
+  };
+
+  const handleReset = () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to reset all AI configuration? This will clear your API key and all settings.'
+    );
+    
+    if (confirmed) {
+      // Clear all AI-related localStorage items
+      localStorage.removeItem('aiProvider');
+      localStorage.removeItem('aiModel');
+      localStorage.removeItem('aiApiKey');
+      localStorage.removeItem('aiCustomEndpoint');
+      localStorage.removeItem('aiResMaxTokens');
+      localStorage.removeItem('aiShowFullPrompt');
+      localStorage.removeItem('aiEnableCodeSelectionMenu');
+      localStorage.removeItem('aiEnableInlineSuggestions');
+      localStorage.removeItem('aiIncludeTemplateMark');
+      localStorage.removeItem('aiIncludeConcertoModel');
+      localStorage.removeItem('aiIncludeData');
+      
+      // Reset all state variables to default
+      setProvider('');
+      setModel('');
+      setApiKey('');
+      setCustomEndpoint('');
+      setMaxTokens('');
+      setShowFullPrompt(false);
+      setEnableCodeSelectionMenu(true);
+      setEnableInlineSuggestions(true);
+      
+      // Notify parent and reload config
+      onSave();
+    }
   };
 
   if (!isOpen) return null;
@@ -318,6 +355,13 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             }`}
           >
             Save Configuration
+          </button>
+
+          <button
+            onClick={handleReset}
+            className={`w-full py-2 rounded-lg border-2 transition-colors ${theme.resetButton}`}
+          >
+            Reset Configuration
           </button>
         </div>
       </div>
