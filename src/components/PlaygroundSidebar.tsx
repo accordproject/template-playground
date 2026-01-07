@@ -5,7 +5,7 @@ import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
-import { message } from "antd";
+import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
 import SettingsModal from "./SettingsModal";
 import tour from "./Tour";
@@ -157,11 +157,10 @@ const PlaygroundSidebar = () => {
     <aside key="sidebar" className="playground-sidebar">
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
+          <Tooltip key={title} title={title} placement="right">
           <div
-            key={title}
             role="button"
             aria-label={title}
-            title={title}
             tabIndex={0}
             onClick={onClick}
             className={`group playground-sidebar-nav-item ${
@@ -177,16 +176,16 @@ const PlaygroundSidebar = () => {
             ) : null}
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
+          </Tooltip>
         ))}
       </nav>
 
       <nav className="playground-sidebar-nav-bottom">
         {navBottom.map(({ title, icon: Icon, onClick }) => (
+          <Tooltip key={title} title={title} placement="right">
           <div
-            key={title}
             role="button"
             aria-label={title}
-            title={title}
             tabIndex={0}
             onClick={onClick}
             className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
@@ -194,6 +193,7 @@ const PlaygroundSidebar = () => {
             <Icon size={22} />
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
+          </Tooltip>
         ))}
       </nav>
     </aside>,

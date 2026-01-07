@@ -266,7 +266,7 @@ const useAppStore = create<AppState>()(
           data: state.data,
           agreementHtml: state.agreementHtml,
         });
-        return `${window.location.origin}?data=${compressedData}`;
+        return `${window.location.origin}/#data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
         try {
