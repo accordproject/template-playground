@@ -81,3 +81,15 @@
 .main-container-agreement {
   @apply flex-1 h-full;
 }
+
+.collapse-button {
+  @apply transition-opacity duration-200;
+}
+
+.collapse-button:hover {
+  @apply opacity-70;
+}
+
+.collapse-button:active {
+  @apply opacity-50;
+}
