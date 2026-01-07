@@ -151,6 +151,13 @@ export class OpenRouterProvider extends OpenAICompatibleProvider {
   }
 }
 
+export class OllamaProvider extends OpenAICompatibleProvider {
+  constructor(config: AIConfig) {
+    const modifiedConfig = { ...config, apiKey: config.apiKey || 'ollama' };
+    super(modifiedConfig, 'http://localhost:11434/v1');
+  }
+}
+
 export class AnthropicProvider extends LLMProvider {
   async streamChat(
     messages: Message[],
@@ -406,6 +413,8 @@ export function getLLMProvider(config: AIConfig): LLMProvider {
       return new MistralProvider(config);
     case 'openrouter':
       return new OpenRouterProvider(config);
+    case 'ollama':  
+      return new OllamaProvider(config);
     case 'openai-compatible':
       if (!config.customEndpoint) {
         throw new Error('Custom API endpoint is required for OpenAI Compatible API');
