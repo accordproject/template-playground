@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Modal, Switch } from 'antd';
 import DarkModeToggle from 'react-dark-mode-toggle';
 import useAppStore from '../store/store';
@@ -23,18 +23,6 @@ const SettingsModal: React.FC = () => {
   }));
 
   const isDarkMode = backgroundColor === '#121212';
-  const [darkModeState, setDarkModeState] = useState(isDarkMode);
-
-  useEffect(() => {
-    setDarkModeState(isDarkMode);
-  }, [isDarkMode]);
-
-  const handleDarkModeChange = () => {
-    toggleDarkMode();
-    setDarkModeState((prev) => !prev);
-    const newTheme = !darkModeState ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
 
   return (
     <Modal
@@ -59,8 +47,8 @@ const SettingsModal: React.FC = () => {
           </div>
           <div className="flex-shrink-0">
             <DarkModeToggle
-              onChange={handleDarkModeChange}
-              checked={darkModeState}
+              onChange={toggleDarkMode}
+              checked={isDarkMode}
               size={50}
             />
           </div>

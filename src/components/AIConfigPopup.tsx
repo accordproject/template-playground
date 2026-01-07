@@ -188,7 +188,6 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
                 {provider === 'openrouter' && 'Example: anthropic/claude-3-opus, meta-llama/llama-3-70b-instruct'}
                 
-                {/* ADD THIS BLOCK FOR OLLAMA */}
                 {provider === 'ollama' && (
                   <span className="text-orange-500 font-bold">
                     ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
