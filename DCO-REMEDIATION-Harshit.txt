@@ -1,7 +1,0 @@
-DCO remediation
-
-DCO Remediation Commit for Harshit Kumar <10harshitkumar@gmail.com>
-
-I, Harshit Kumar <10harshitkumar@gmail.com>, hereby add my Signed-off-by to this commit: 0544d3e878974bd1dc0154808b930868b62e4571
-
-Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
