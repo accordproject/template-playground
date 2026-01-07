@@ -12,6 +12,7 @@ import * as invitation from "./invitation";
 import * as announcement from "./announcement";
 import * as blank from "./blank";
 import * as paymentReceipt from './paymentReceipt';
+import * as employmentOffer from "./employmentOffer";
 
 export type Sample = {
   NAME: string;
@@ -23,6 +24,7 @@ export type Sample = {
 export const SAMPLES: Array<Sample> = [
   playground,
   helloworld,
+  employmentOffer,
   formula,
   formulanow,
   join,

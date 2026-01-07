@@ -11,9 +11,11 @@ const MonacoEditor = lazy(() =>
 export default function JSONEditor({
   value,
   onChange,
+  editorRef,
 }: {
   value: string;
   onChange?: (value: string | undefined) => void;
+  editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("json");
   
@@ -58,6 +60,9 @@ export default function JSONEditor({
   };
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    if (editorRef) {
+      editorRef.current = editor;
+    }
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });

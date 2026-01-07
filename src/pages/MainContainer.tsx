@@ -12,10 +12,13 @@ import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button } from "antd";
+import * as monaco from "monaco-editor";
+import { MdFormatAlignLeft } from "react-icons/md";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
+  const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -47,6 +50,12 @@ const MainContainer = () => {
       setIsDownloading(false);
     }
   }
+
+  const handleJsonFormat = () => {
+    if (jsonEditorRef.current) {
+      jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+    }
+  };
 
   const {
     isAIChatOpen,
@@ -162,10 +171,17 @@ const MainContainer = () => {
                           </button>
                           <span>JSON Data</span>
                         </div>
+                        <button
+                          onClick={handleJsonFormat}
+                          className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
+                          disabled={!jsonEditorRef.current || isDataCollapsed}
+                        >
+                          <MdFormatAlignLeft size={16} />
+                        </button>
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <AgreementData />
+                          <AgreementData editorRef={jsonEditorRef} />
                         </div>
                       )}
                     </div>

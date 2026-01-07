@@ -144,6 +144,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
               <option value="mistral">Mistral</option>
+              <option value="ollama">Ollama (Local)</option> 
               <option value="openai">OpenAI</option>
               <option value="openrouter">OpenRouter</option>
               <option value="openai-compatible">OpenAI Compatible API</option>
@@ -186,6 +187,14 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 {provider === 'google' && 'Example: gemini-1.5-pro, gemini-1.0-pro'}
                 {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
                 {provider === 'openrouter' && 'Example: anthropic/claude-3-opus, meta-llama/llama-3-70b-instruct'}
+                
+                {/* ADD THIS BLOCK FOR OLLAMA */}
+                {provider === 'ollama' && (
+                  <span className="text-orange-500 font-bold">
+                    ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
+                    <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -299,11 +308,11 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             )}
           </div>
 
-          <button
+           <button
             onClick={handleSave}
-            disabled={!provider || !model || !apiKey || (provider === 'openai-compatible' && !customEndpoint)}
+            disabled={!provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
             className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${
-              !provider || !model || !apiKey || (provider === 'openai-compatible' && !customEndpoint)
+              !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)
                 ? theme.saveButton.disabled
                 : theme.saveButton.enabled
             }`}
