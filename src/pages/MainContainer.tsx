@@ -85,8 +85,11 @@ const MainContainer = () => {
   const modelPanelRef = useRef<ImperativePanelHandle>(null);
   const templatePanelRef = useRef<ImperativePanelHandle>(null);
   const dataPanelRef = useRef<ImperativePanelHandle>(null);
-  
-  const panelMap = {
+
+  type PanelKey = "model" | "template" | "data";
+  type PanelValues = { ref: React.RefObject<ImperativePanelHandle> , collapsed: boolean}
+
+  const panelMap: Record<PanelKey,PanelValues> = {
   model: {
     ref: modelPanelRef,
     collapsed: isModelCollapsed
@@ -98,17 +101,17 @@ const MainContainer = () => {
   data: {
     ref: dataPanelRef,
     collapsed: isDataCollapsed
-  },
-  };
+  }}
 
-  const prevCollapsed = useRef({
+  const prevCollapsed = useRef<Record<PanelKey,boolean>>({
     model: isModelCollapsed,
     template: isTemplateCollapsed,
     data: isDataCollapsed,
   }); 
 
   useEffect(() => {
-    Object.entries(panelMap).forEach(([key, panel]) => {
+ 
+    (Object.entries(panelMap) as [PanelKey, typeof panelMap[PanelKey]][]).forEach(([key, panel]) => {
       if (prevCollapsed.current[key] !== panel.collapsed) {
         panel.ref.current?.resize(panel.collapsed ? collapsedSize : expandedSize);
       }
