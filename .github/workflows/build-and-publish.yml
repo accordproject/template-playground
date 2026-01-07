@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
 
     steps:
       - name: Checkout code
@@ -45,7 +45,7 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
         with:
-          role-to-assume: GitHubActionsRole
+          role-to-assume: ${{ secrets.AWS_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy to S3
