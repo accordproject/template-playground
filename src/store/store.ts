@@ -201,7 +201,6 @@ const useAppStore = create<AppState>()(
         set({ isProblemPanelVisible: value });
         savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
       },
-      setProblemPanelVisible: (value) => set({ isProblemPanelVisible: value }),
       setFullScreenModalOpen: (value) => set({ isFullScreenModalOpen: value }),
       setTourRunning: (value) => set({ isTourRunning: value }),
       init: async () => {
