@@ -112,10 +112,42 @@ const getInitialTheme = () => {
   return { backgroundColor: '#ffffff', textColor: '#121212' };
 };
 
+/* --- Helper to safely load panel state --- */
+const getInitialPanelState = () => {
+  const defaults = {
+    isEditorsVisible: true,
+    isPreviewVisible: true,
+    isProblemPanelVisible: false,
+    isAIChatOpen: false,
+  };
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('ui-panels');
+      if (saved) return { ...defaults, ...JSON.parse(saved) };
+    } catch (e) { /* ignore */ }
+  }
+  return defaults;
+};
+
+/* --- Helper to safely save panel state --- */
+const savePanelState = (state: Partial<AppState>) => {
+  if (typeof window !== 'undefined') {
+    const panels = {
+      isEditorsVisible: state.isEditorsVisible,
+      isPreviewVisible: state.isPreviewVisible,
+      isProblemPanelVisible: state.isProblemPanelVisible,
+      isAIChatOpen: state.isAIChatOpen,
+    };
+    localStorage.setItem('ui-panels', JSON.stringify(panels));
+  }
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
       const initialTheme = getInitialTheme();
+      const initialPanels = getInitialPanelState(); // Load saved panels
+
       return {
         backgroundColor: initialTheme.backgroundColor,
         textColor: initialTheme.textColor,
@@ -128,7 +160,7 @@ const useAppStore = create<AppState>()(
       editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       agreementHtml: "",
       isAIConfigOpen: false,
-      isAIChatOpen: false,
+      isAIChatOpen: initialPanels.isAIChatOpen, 
       error: undefined,
       samples: SAMPLES,
       chatState: {
@@ -138,11 +170,11 @@ const useAppStore = create<AppState>()(
       },
       aiConfig: null,
       chatAbortController: null,
-      isEditorsVisible: true,
-      isPreviewVisible: true,
-      isProblemPanelVisible: false,
+      isEditorsVisible: initialPanels.isEditorsVisible, 
+      isPreviewVisible: initialPanels.isPreviewVisible, 
+      isProblemPanelVisible: initialPanels.isProblemPanelVisible, 
       isFullScreenModalOpen: false,
-      isTourRunning: false,
+      isTourRunning: false, 
       isModelCollapsed: false,
       isTemplateCollapsed: false,
       isDataCollapsed: false,
@@ -155,6 +187,7 @@ const useAppStore = create<AppState>()(
           return;
         }
         set({ isEditorsVisible: value });
+        savePanelState({ ...get(), isEditorsVisible: value }); // Save change
       },
       setPreviewVisible: (value) => {
         const state = get();
@@ -162,6 +195,11 @@ const useAppStore = create<AppState>()(
           return;
         }
         set({ isPreviewVisible: value });
+        savePanelState({ ...get(), isPreviewVisible: value }); // Save change
+      },
+      setProblemPanelVisible: (value) => {
+        set({ isProblemPanelVisible: value });
+        savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
       },
       setProblemPanelVisible: (value) => set({ isProblemPanelVisible: value }),
       setFullScreenModalOpen: (value) => set({ isFullScreenModalOpen: value }),
@@ -196,7 +234,7 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
@@ -206,7 +244,7 @@ const useAppStore = create<AppState>()(
         const { modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
@@ -219,7 +257,7 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
@@ -235,7 +273,7 @@ const useAppStore = create<AppState>()(
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
+          set(() => ({ agreementHtml: result, error: undefined })); 
         } catch (error: any) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
@@ -251,7 +289,7 @@ const useAppStore = create<AppState>()(
           data: state.data,
           agreementHtml: state.agreementHtml,
         });
-        return `${window.location.origin}?data=${compressedData}`;
+        return `${window.location.origin}/#data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
         try {
@@ -284,7 +322,7 @@ const useAppStore = create<AppState>()(
             backgroundColor: isDark ? '#ffffff' : '#121212',
             textColor: isDark ? '#121212' : '#ffffff',
           };
-          
+           
           if (typeof window !== 'undefined') {
             const themeValue = isDark ? 'light' : 'dark';
             localStorage.setItem('theme', themeValue);
@@ -294,12 +332,15 @@ const useAppStore = create<AppState>()(
               // ignore
             }
           }
-          
+           
           return newTheme;
         });
       },
       setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
-      setAIChatOpen: (isOpen: boolean) => set(() => ({ isAIChatOpen: isOpen })),
+      setAIChatOpen: (isOpen: boolean) => {
+        set(() => ({ isAIChatOpen: isOpen }));
+        savePanelState({ ...get(), isAIChatOpen: isOpen }); // Save change
+      },
       setChatState: (state) => set({ chatState: state }),
       updateChatState: (partial) => set((state) => ({ 
         chatState: { ...state.chatState, ...partial } 
@@ -339,3 +380,4 @@ function formatError(error: any): string {
   }
   return error.toString();
 }
+
