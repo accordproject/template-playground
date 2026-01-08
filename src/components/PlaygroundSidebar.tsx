@@ -151,7 +151,7 @@ const PlaygroundSidebar = () => {
   ];
 
   return (
-    <aside className="playground-sidebar">
+    <aside className="playground-sidebar justify-start gap-5">
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={title} placement="right">
