@@ -249,7 +249,9 @@ export const sendMessage = async (
               updatedMessages[updatedMessages.length - 1] = {
                 ...lastMsg,
                 tokenUsage: {
-                  ...usage,
+                  inputTokens: usage.inputTokens,
+                  outputTokens: usage.outputTokens,
+                  totalTokens: usage.inputTokens + usage.outputTokens,
                   estimatedCost: cost
                 }
               };

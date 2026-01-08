@@ -112,15 +112,19 @@ export const AIChatPanel = () => {
   }, [chatState.messages]);
 
   const sessionStats = useMemo(() => {
-    return chatState.messages.reduce((acc, msg) => {
+    const stats = chatState.messages.reduce((acc, msg) => {
       if (msg.tokenUsage) {
         acc.inputTokens += msg.tokenUsage.inputTokens;
         acc.outputTokens += msg.tokenUsage.outputTokens;
-        acc.totalTokens += msg.tokenUsage.totalTokens;
         acc.estimatedCost += msg.tokenUsage.estimatedCost || 0;
       }
       return acc;
-    }, { inputTokens: 0, outputTokens: 0, totalTokens: 0, estimatedCost: 0 });
+    }, { inputTokens: 0, outputTokens: 0, estimatedCost: 0 });
+    
+    return {
+      ...stats,
+      totalTokens: stats.inputTokens + stats.outputTokens
+    };
   }, [chatState.messages]);
 
   const exportUsageData = () => {
@@ -141,6 +145,13 @@ export const AIChatPanel = () => {
     a.download = `ai-usage-${new Date().toISOString()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const clearHistory = () => {
+    if (confirm('Clear chat history and usage data? This cannot be undone.')) {
+      localStorage.removeItem('chatHistory');
+      resetChat();
+    }
   };
   
   const handleSendMessage = async () => {
@@ -373,11 +384,28 @@ export const AIChatPanel = () => {
       </div>
       {sessionStats.totalTokens > 0 && (
         <div className={theme.statsPanel}>
-           <div className="flex gap-4">
-             <span>Tokens: {sessionStats.totalTokens} ({sessionStats.inputTokens} in / {sessionStats.outputTokens} out)</span>
-             <span>Est. Cost: ~${formatCost(sessionStats.estimatedCost)}</span>
+           <div className="flex flex-col gap-1">
+             <div className="flex gap-4 items-center">
+               <span>Tokens: {sessionStats.totalTokens} ({sessionStats.inputTokens} in / {sessionStats.outputTokens} out)</span>
+               <span>Est. Cost: ~${formatCost(sessionStats.estimatedCost)} USD</span>
+               <span 
+                 className="cursor-help" 
+                 title="Estimates based on public pricing. Actual costs depend on your subscription plan and tier. Token counts reflect actual API usage including any encoding optimizations."
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                 </svg>
+               </span>
+             </div>
+             <div className="text-[10px] opacity-70">
+               ⚠️ Estimates only. Does not account for subscription plans, quotas, or billing tiers. Data stored locally in browser.
+             </div>
            </div>
-           <button onClick={exportUsageData} className="hover:underline">Export</button>
+           <div className="flex gap-2 items-center">
+             <button onClick={exportUsageData} className="hover:underline text-xs">Export</button>
+             <span className="opacity-50 text-lg">|</span>
+             <button onClick={clearHistory} className="hover:underline text-xs text-red-400 hover:text-red-300">Clear History</button>
+           </div>
         </div>
       )}
       <div className="w-full h-[calc(100%-3rem)] flex flex-col">
@@ -422,9 +450,11 @@ export const AIChatPanel = () => {
                       
                       {message.tokenUsage && (
                         <div className={`mt-2 text-xs pt-1 flex justify-between border-t ${backgroundColor !== '#ffffff' ? 'border-gray-600 text-gray-400' : 'border-gray-200 text-gray-500'}`}>
-                           <span>{message.tokenUsage.totalTokens} tokens</span>
-                           {message.tokenUsage.estimatedCost !== undefined && (
-                             <span>~${formatCost(message.tokenUsage.estimatedCost)}</span>
+                           <span>{message.tokenUsage.totalTokens > 0 ? `${message.tokenUsage.totalTokens} tokens` : 'Token data unavailable'}</span>
+                           {message.tokenUsage.estimatedCost !== undefined && message.tokenUsage.estimatedCost > 0 ? (
+                             <span>~${formatCost(message.tokenUsage.estimatedCost)} USD</span>
+                           ) : (
+                             <span className="opacity-60">Cost: N/A</span>
                            )}
                         </div>
                       )}

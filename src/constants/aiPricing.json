@@ -1,9 +1,11 @@
 {
-  "lastUpdated": "2025-12-22",
+  "lastUpdated": "2026-01-08",
+  "disclaimer": "Estimates based on public pricing. Actual costs depend on your subscription plan, tier, and provider billing. Always verify with your provider dashboard.",
   "sources": {
     "openai": "https://openai.com/pricing",
     "anthropic": "https://www.anthropic.com/pricing",
-    "mistral": "https://mistral.ai/pricing"
+    "mistral": "https://mistral.ai/pricing",
+    "google": "https://ai.google.dev/pricing"
   },
   "models": {
     "gpt-4o": { "input": 5.00, "output": 15.00 },

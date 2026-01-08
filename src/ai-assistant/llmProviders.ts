@@ -5,6 +5,21 @@ import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
 import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
 
+/**
+ * Token Usage Tracking - Provider Support Matrix
+ * 
+ * Provider       | Token Data Available | Notes
+ * ---------------|---------------------|---------------------------------------
+ * OpenAI         | ✅ Yes              | Returns usage object in stream response
+ * Anthropic      | ✅ Yes              | Returns input_tokens, output_tokens
+ * Mistral        | ✅ Yes              | OpenAI-compatible format
+ * Google Gemini  | ✅ Yes              | Returns usageMetadata in response
+ * Custom APIs    | ⚠️  Varies          | Depends on API compatibility
+ * 
+ * When token data is unavailable, the UI will display "N/A" or "--" instead of zeros.
+ * Token counts reflect actual API usage, including any encoding optimizations (e.g., TOON).
+ */
+
 export abstract class LLMProvider {
   protected config: AIConfig;
 
