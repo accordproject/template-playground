@@ -7,18 +7,17 @@ import * as monaco from "monaco-editor";
 function AgreementData({ editorRef }: { editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null> }) {
   const editorAgreementData = useAppStore((state) => state.editorAgreementData);
   const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
-  const setData = useAppStore((state) => state.setData);
+  const rebuild = useAppStore((state) => state.rebuild);
   const { value, setValue } = useUndoRedo(
     editorAgreementData,
-    setEditorAgreementData,
-    setData // Sync to main state and rebuild
+    setEditorAgreementData
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       updateEditorActivity('json');
-      setValue(value); // Update editor state and sync
-      setData(value); 
+      setValue(value);
+      void rebuild();
     }
   };
 

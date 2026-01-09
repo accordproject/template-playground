@@ -148,8 +148,8 @@ const useAppStore = create<AppState>()(
         backgroundColor: initialTheme.backgroundColor,
         textColor: initialTheme.textColor,
         sampleName: playground.NAME,
-      templateMarkdown: playground.TEMPLATE,
-      editorValue: playground.TEMPLATE,
+        templateMarkdown: playground.TEMPLATE,
+        editorValue: playground.TEMPLATE,
       modelCto: playground.MODEL,
       editorModelCto: playground.MODEL,
       data: JSON.stringify(playground.DATA, null, 2),
@@ -225,7 +225,7 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); 
+          set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
@@ -235,7 +235,7 @@ const useAppStore = create<AppState>()(
         const { modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); 
+          set(() => ({ agreementHtml: result, error: undefined }));
         } catch (error: any) {
           set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
         }
