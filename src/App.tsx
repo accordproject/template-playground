@@ -1,17 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
-import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
-import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
 import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
+
+const LearnNow = lazy(() => import("./pages/LearnNow"));
+const MainContainer = lazy(() => import("./pages/MainContainer"));
 
 const { Content } = Layout;
 
@@ -110,38 +111,40 @@ const App = () => {
       <Layout style={{ height: "100vh" }}>
         <Navbar />
         <Layout className="app-layout" style={{ backgroundColor, minHeight: '100vh' }}>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <PlaygroundSidebar />
-                  <Content>
-                    {loading ? (
-                      <div className="app-content-loading">
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="app-main-content">
-                        <MainContainer />
-                      </div>
-                    )}
-                  </Content>
-                  <AIConfigPopup
-                    isOpen={isAIConfigOpen}
-                    onClose={() => setAIConfigOpen(false)}
-                    onSave={handleConfigSave}
-                  />
-                </>
-              }
-            />
-            <Route path="/learn" element={<LearnNow />}>
-              <Route path="intro" element={<LearnContent file="intro.md" />} />
-              <Route path="module1" element={<LearnContent file="module1.md" />} />
-              <Route path="module2" element={<LearnContent file="module2.md" />} />
-              <Route path="module3" element={<LearnContent file="module3.md" />} />
-            </Route>
-          </Routes>
+          <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    <PlaygroundSidebar />
+                    <Content>
+                      {loading ? (
+                        <div className="app-content-loading">
+                          <Spinner />
+                        </div>
+                      ) : (
+                        <div className="app-main-content">
+                          <MainContainer />
+                        </div>
+                      )}
+                    </Content>
+                    <AIConfigPopup
+                      isOpen={isAIConfigOpen}
+                      onClose={() => setAIConfigOpen(false)}
+                      onSave={handleConfigSave}
+                    />
+                  </>
+                }
+              />
+              <Route path="/learn" element={<LearnNow />}>
+                <Route path="intro" element={<LearnContent file="intro.md" />} />
+                <Route path="module1" element={<LearnContent file="module1.md" />} />
+                <Route path="module2" element={<LearnContent file="module2.md" />} />
+                <Route path="module3" element={<LearnContent file="module3.md" />} />
+              </Route>
+            </Routes>
+          </Suspense>
         </Layout>
       </Layout>
     </AntdApp>
