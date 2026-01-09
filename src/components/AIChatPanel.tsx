@@ -508,7 +508,7 @@ export const AIChatPanel = () => {
                         ? "Press 'Stop' to send another message..."
                         : "Type your message..."
                   }
-                  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-[42px] overflow-y-hidden ${
+                  className={`flex-1 p-2 pr-6 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-32 overflow-y-auto ${
                     chatState.isLoading ? theme.textarea.loading : theme.textarea.base
                   }`}
                   rows={1}
