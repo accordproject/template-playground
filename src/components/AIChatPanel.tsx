@@ -162,9 +162,10 @@ export const AIChatPanel = () => {
     // Detect error marker
     const isError = content.startsWith('[ERROR]');
     const displayContent = isError ? content.replace(/^\[ERROR\]\s*/, '') : content;
+    
     if (!displayContent || !displayContent.includes('```')) {
       return (
-        <div className={`text-sm prose prose-sm break-all max-w-none ${isError ? 'text-red-600' : ''}`} style={isError ? {} : { color: textColor }}>
+        <div className={`text-sm prose prose-sm break-all max-w-none ${isError ? 'text-red-700' : ''}`} style={isError ? {} : { color: textColor }}>
           <ReactMarkdown
             components={{
               code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className ?? ''}`}>{children}</code>,
@@ -338,7 +339,7 @@ export const AIChatPanel = () => {
                           : theme.messageAssistant
                         : theme.messageUser
                     }`}>
-                      <p className="text-xs font-semibold mb-1" style={{ color: textColor }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
                           {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
                       {message.content && renderMessageContent(
