@@ -208,6 +208,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
               </div>
             </div>
           )}
+
           {provider !== "openai-compatible" && (
             <div>
               <label

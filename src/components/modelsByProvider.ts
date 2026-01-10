@@ -1,6 +1,6 @@
 type AIModelOption = {
   name: string;
-  pricing: "free" | "paid";
+  pricing: "free" | "paid" ;
 };
 
 const MODELS_BY_PROVIDER: Record<string, AIModelOption[]> = {
