@@ -50,4 +50,5 @@ const MODELS_BY_PROVIDER: Record<string, AIModelOption[]> = {
     { name: "google/gemma-7b-it", pricing: "free" },
   ],
 };
+
 export default MODELS_BY_PROVIDER;
