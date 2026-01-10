@@ -6,6 +6,7 @@ import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
+import { Select } from "antd";
 import { useState, useRef } from "react";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
@@ -18,6 +19,7 @@ const MainContainer = () => {
   const downloadRef = useRef<HTMLDivElement>(null);
   const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [format, setFormat] = useState<"json" | "yaml">("json");
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
 
@@ -48,13 +50,11 @@ const MainContainer = () => {
       setIsDownloading(false);
     }
   }
-
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
       jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
     }
   };
-
   const {
     isAIChatOpen,
     isEditorsVisible,
@@ -188,17 +188,32 @@ const MainContainer = () => {
                           </button>
                           <span>JSON Data</span>
                         </div>
-                        <button
-                          onClick={handleJsonFormat}
-                          className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
-                          disabled={!jsonEditorRef.current || isDataCollapsed}
-                        >
-                          <MdFormatAlignLeft size={16} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <Select
+                            value={format}
+                            onChange={setFormat}
+                            style={{ width: 120 }}
+                            disabled={isDataCollapsed}
+                            options={[
+                              { value: "json", label: "JSON Editor" },
+                              { value: "yaml", label: "YAML Preview" },
+                            ]}
+                          />
+                          {format === "json" && (
+                            <button
+                              onClick={handleJsonFormat}
+                              className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
+                              disabled={!jsonEditorRef.current || isDataCollapsed}
+                              title="Format JSON"
+                            >
+                              <MdFormatAlignLeft size={16} />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <AgreementData editorRef={jsonEditorRef} />
+                          <AgreementData editorRef={jsonEditorRef} format={format} />
                         </div>
                       )}
                     </div>
