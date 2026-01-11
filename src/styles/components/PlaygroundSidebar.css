@@ -1,6 +1,6 @@
 /* PlaygroundSidebar Component Styles */
 .playground-sidebar {
-  @apply w-16 h-full bg-[#1B2540] text-white flex flex-col justify-between items-center py-6 shadow-md;
+  @apply w-16 bg-[#1B2540] text-white flex flex-col justify-evenly items-center py-6 shadow-md flex-shrink-0;
 }
 
 .playground-sidebar-nav {
