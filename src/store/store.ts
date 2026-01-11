@@ -51,9 +51,13 @@ interface AppState {
   isEditorsVisible: boolean;
   isPreviewVisible: boolean;
   isProblemPanelVisible: boolean;
+  isFullScreenModalOpen: boolean;
+  isTourRunning: boolean;
   setEditorsVisible: (value: boolean) => void;
   setPreviewVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
+  setFullScreenModalOpen: (value: boolean) => void;
+  setTourRunning: (value: boolean) => void;
   startTour: () => void;
   isModelCollapsed: boolean;
   isTemplateCollapsed: boolean;
@@ -169,6 +173,8 @@ const useAppStore = create<AppState>()(
       isEditorsVisible: initialPanels.isEditorsVisible, 
       isPreviewVisible: initialPanels.isPreviewVisible, 
       isProblemPanelVisible: initialPanels.isProblemPanelVisible, 
+      isFullScreenModalOpen: false,
+      isTourRunning: false, 
       isModelCollapsed: false,
       isTemplateCollapsed: false,
       isDataCollapsed: false,
@@ -195,6 +201,8 @@ const useAppStore = create<AppState>()(
         set({ isProblemPanelVisible: value });
         savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
       },
+      setFullScreenModalOpen: (value) => set({ isFullScreenModalOpen: value }),
+      setTourRunning: (value) => set({ isTourRunning: value }),
       init: async () => {
         const params = new URLSearchParams(window.location.search);
         const compressedData = params.get("data");
