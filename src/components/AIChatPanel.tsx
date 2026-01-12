@@ -8,6 +8,13 @@ export const AIChatPanel = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInput, setUserInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [userInput]);
   
   const editorsContent = useAppStore((state) => ({
     editorTemplateMark: state.editorValue,
@@ -508,7 +515,7 @@ export const AIChatPanel = () => {
                         ? "Press 'Stop' to send another message..."
                         : "Type your message..."
                   }
-                  className={`flex-1 p-2 pr-6 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-32 overflow-y-auto ${
+                  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-32 overflow-y-auto ${
                     chatState.isLoading ? theme.textarea.loading : theme.textarea.base
                   }`}
                   rows={1}
