@@ -19,7 +19,7 @@ const ToggleDarkMode: React.FC = () => {
   };
 
   return (
-    <ToggleDarkModeContainer>
+    <ToggleDarkModeContainer data-testid="toggle-dark-mode">
       <DarkModeToggle
         className="dark-mode-toggle"
         onChange={handleChange}
