@@ -144,6 +144,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
               <option value="mistral">Mistral</option>
+              <option value="ollama">Ollama (Local)</option> 
               <option value="openai">OpenAI</option>
               <option value="openrouter">OpenRouter</option>
               <option value="openai-compatible">OpenAI Compatible API</option>
@@ -181,11 +182,19 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             />
             {provider && (
               <div className={`mt-1 text-xs ${theme.helpText}`}>
-                {provider === 'openai' && 'Example: gpt-4-turbo, gpt-3.5-turbo'}
-                {provider === 'anthropic' && 'Example: claude-3-opus-20240229, claude-3-sonnet-20240229'}
-                {provider === 'google' && 'Example: gemini-1.5-pro, gemini-1.0-pro'}
+                {provider === 'openai' && 'Example: gpt-5, gpt-5-mini'}
+                {provider === 'anthropic' && 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929'}
+                {provider === 'google' && 'Example: gemini-3-pro, gemini-2.5-flash'}
                 {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
-                {provider === 'openrouter' && 'Example: anthropic/claude-3-opus, meta-llama/llama-3-70b-instruct'}
+                {provider === 'openrouter' && 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct'}
+                {/* ADD THIS BLOCK FOR OLLAMA */}
+                {provider === 'ollama' && (
+                  <span className="text-orange-500 font-bold">
+                    ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
+                    <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
+                  </span>
+                )}
+                
               </div>
             )}
           </div>
@@ -299,11 +308,11 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             )}
           </div>
 
-          <button
+           <button
             onClick={handleSave}
-            disabled={!provider || !model || !apiKey || (provider === 'openai-compatible' && !customEndpoint)}
+            disabled={!provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
             className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${
-              !provider || !model || !apiKey || (provider === 'openai-compatible' && !customEndpoint)
+              !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)
                 ? theme.saveButton.disabled
                 : theme.saveButton.enabled
             }`}
