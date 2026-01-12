@@ -34,7 +34,9 @@ export const AIChatPanel = () => {
       header: `h-10 -ml-4 -mr-4 -mt-1 p-2 border-gray-200 text-sm font-medium flex justify-between items-center ${
         isDarkMode ? 'bg-gray-700 text-white' : 'bg-slate-100 text-gray-700'
       }`,
-
+      statsPanel: `text-xs px-4 py-1 border-b flex justify-between ${
+        isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-500'
+      }`,
       welcomeMessage: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
       welcomeText: isDarkMode ? 'text-gray-300' : 'text-gray-600',
       messageAssistant: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
@@ -81,6 +83,76 @@ export const AIChatPanel = () => {
   const [includeDataContent, setIncludeDataContent] = useState<boolean>(
     localStorage.getItem('aiIncludeData') === 'true'
   );
+
+  useEffect(() => {
+    const savedMessages = localStorage.getItem('chatHistory');
+    if (savedMessages && chatState.messages.length === 0) {
+      try {
+        const parsed = JSON.parse(savedMessages);
+        const messages = parsed.map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+        useAppStore.getState().setChatState({
+          ...chatState,
+          messages,
+          isLoading: false,
+          error: null
+        });
+      } catch (e) {
+        console.error('Failed to load chat history', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (chatState.messages.length > 0) {
+      localStorage.setItem('chatHistory', JSON.stringify(chatState.messages));
+    }
+  }, [chatState.messages]);
+
+  const sessionStats = useMemo(() => {
+    const stats = chatState.messages.reduce((acc, msg) => {
+      if (msg.tokenUsage) {
+        acc.inputTokens += msg.tokenUsage.inputTokens;
+        acc.outputTokens += msg.tokenUsage.outputTokens;
+        acc.estimatedCost += msg.tokenUsage.estimatedCost || 0;
+      }
+      return acc;
+    }, { inputTokens: 0, outputTokens: 0, estimatedCost: 0 });
+    
+    return {
+      ...stats,
+      totalTokens: stats.inputTokens + stats.outputTokens
+    };
+  }, [chatState.messages]);
+
+  const exportUsageData = () => {
+    const data = chatState.messages
+      .filter(m => m.tokenUsage)
+      .map(m => ({
+        id: m.id,
+        role: m.role,
+        timestamp: m.timestamp,
+        model: aiConfig?.model,
+        ...m.tokenUsage
+      }));
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai-usage-${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const clearHistory = () => {
+    if (confirm('Clear chat history and usage data? This cannot be undone.')) {
+      localStorage.removeItem('chatHistory');
+      resetChat();
+    }
+  };
   
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
@@ -232,6 +304,12 @@ export const AIChatPanel = () => {
     }
   }, [chatState.messages, chatState.isLoading]);
 
+  const formatCost = (cost: number) => {
+    if (cost === 0) return '0.0000';
+    if (cost < 0.0001) return cost.toFixed(6);
+    return cost.toFixed(4);
+  };
+
   return (
     <div className="twp pl-4 pr-4 -mr-1 flex flex-col border rounded-md h-full">
       <div className={theme.header}>
@@ -304,6 +382,32 @@ export const AIChatPanel = () => {
           </button>
         </div>
       </div>
+      {sessionStats.totalTokens > 0 && (
+        <div className={theme.statsPanel}>
+           <div className="flex flex-col gap-1">
+             <div className="flex gap-4 items-center">
+               <span>Tokens: {sessionStats.totalTokens} ({sessionStats.inputTokens} in / {sessionStats.outputTokens} out)</span>
+               <span>Est. Cost: ~${formatCost(sessionStats.estimatedCost)} USD</span>
+               <span 
+                 className="cursor-help" 
+                 title="Estimates based on public pricing. Actual costs depend on your subscription plan and tier. Token counts reflect actual API usage including any encoding optimizations."
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                 </svg>
+               </span>
+             </div>
+             <div className="text-[10px] opacity-70">
+               ⚠️ Estimates only. Does not account for subscription plans, quotas, or billing tiers. Data stored locally in browser.
+             </div>
+           </div>
+           <div className="flex gap-2 items-center">
+             <button onClick={exportUsageData} className="hover:underline text-xs">Export</button>
+             <span className="opacity-50 text-lg">|</span>
+             <button onClick={clearHistory} className="hover:underline text-xs text-red-400 hover:text-red-300">Clear History</button>
+           </div>
+        </div>
+      )}
       <div className="w-full h-[calc(100%-3rem)] flex flex-col">
         <div className="flex-1 overflow-y-auto mb-4 px-2 mt-4">
           <div className="space-y-2">
@@ -344,6 +448,17 @@ export const AIChatPanel = () => {
                           : message.content
                       )}
                       
+                      {message.tokenUsage && (
+                        <div className={`mt-2 text-xs pt-1 flex justify-between border-t ${backgroundColor !== '#ffffff' ? 'border-gray-600 text-gray-400' : 'border-gray-200 text-gray-500'}`}>
+                           <span>{message.tokenUsage.totalTokens > 0 ? `${message.tokenUsage.totalTokens} tokens` : 'Token data unavailable'}</span>
+                           {message.tokenUsage.estimatedCost !== undefined && message.tokenUsage.estimatedCost > 0 ? (
+                             <span>~${formatCost(message.tokenUsage.estimatedCost)} USD</span>
+                           ) : (
+                             <span className="opacity-60">Cost: N/A</span>
+                           )}
+                        </div>
+                      )}
+
                       {message.role === 'assistant' && 
                           message.id === chatState.messages[chatState.messages.length - 1].id && 
                           chatState.isLoading && (

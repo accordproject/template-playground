@@ -1,9 +1,24 @@
 import OpenAI from 'openai';
-import { AIConfig, Message } from '../types/components/AIAssistant.types';
+import { AIConfig, Message, TokenUsage } from '../types/components/AIAssistant.types';
 import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
 import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
 import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
+
+/**
+ * Token Usage Tracking - Provider Support Matrix
+ * 
+ * Provider       | Token Data Available | Notes
+ * ---------------|---------------------|---------------------------------------
+ * OpenAI         | ✅ Yes              | Returns usage object in stream response
+ * Anthropic      | ✅ Yes              | Returns input_tokens, output_tokens
+ * Mistral        | ✅ Yes              | OpenAI-compatible format
+ * Google Gemini  | ✅ Yes              | Returns usageMetadata in response
+ * Custom APIs    | ⚠️  Varies          | Depends on API compatibility
+ * 
+ * When token data is unavailable, the UI will display "N/A" or "--" instead of zeros.
+ * Token counts reflect actual API usage, including any encoding optimizations (e.g., TOON).
+ */
 
 export abstract class LLMProvider {
   protected config: AIConfig;
@@ -16,7 +31,8 @@ export abstract class LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
+    onTokenUsage?: (usage: TokenUsage) => void
   ): Promise<void>;
 }
 
@@ -32,7 +48,8 @@ export class OpenAICompatibleProvider extends LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
+    onTokenUsage?: (usage: TokenUsage) => void
   ): Promise<void> {
     try {
       const formattedMessages = messages.map(msg => ({
@@ -50,6 +67,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
         model: this.config.model,
         messages: formattedMessages,
         stream: true,
+        stream_options: { include_usage: true }
       };
       
       if (this.config.maxTokens) {
@@ -62,6 +80,13 @@ export class OpenAICompatibleProvider extends LLMProvider {
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
           onChunk(content);
+        }
+        if (chunk.usage && onTokenUsage) {
+          onTokenUsage({
+            inputTokens: chunk.usage.prompt_tokens,
+            outputTokens: chunk.usage.completion_tokens,
+            totalTokens: chunk.usage.total_tokens
+          });
         }
       }
       
@@ -96,7 +121,8 @@ export class AnthropicProvider extends LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
+    onTokenUsage?: (usage: TokenUsage) => void
   ): Promise<void> {
     try {
       const client = new Anthropic({
@@ -124,16 +150,35 @@ export class AnthropicProvider extends LLMProvider {
         max_tokens: this.config.maxTokens ?? 100000,
       }
 
-      await client.messages.stream(
-        params
-      ).on('text', (textDelta) => {
-        console.log(textDelta)
-        onChunk(textDelta);
+      let inputTokens = 0;
+      let outputTokens = 0;
+
+      const stream = client.messages.stream(params);
+      
+      stream.on('text', (text) => onChunk(text));
+      
+      stream.on('message', (msg) => {
+         if (msg.usage) {
+             inputTokens = msg.usage.input_tokens;
+             outputTokens = msg.usage.output_tokens;
+         }
       });
+      
+      // Wait for the stream to finish
+      await stream.finalMessage();
+      
+      if (onTokenUsage) {
+          onTokenUsage({
+              inputTokens,
+              outputTokens,
+              totalTokens: inputTokens + outputTokens
+          });
+      }
 
       onComplete();
-    } catch (error) {
-      onError(error instanceof Error ? error : new Error('Unknown error'));
+
+    } catch(error) {
+        onError(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }
@@ -147,11 +192,11 @@ export class GoogleProvider extends LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
+    onTokenUsage?: (usage: TokenUsage) => void
   ): Promise<void> {
     try {
       const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
-      console.log("messages are", messages)
       const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
       const generationConfig: GenerateContentConfig = {};
@@ -161,19 +206,27 @@ export class GoogleProvider extends LLMProvider {
       if (systemInstruction) {
         generationConfig.systemInstruction = systemInstruction;
       }
-      console.log(geminiMessages.slice(0,-1));
+      
       const chat = genAI.chats.create({
         model: this.config.model,
         history: geminiMessages.slice(0,-1),
         config: generationConfig
       });
 
-      const stream = await chat.sendMessageStream({
+      const result = await chat.sendMessageStream({
         message: geminiMessages.slice(-1)[0].parts[0].text,
       });
-      for await (const chunk of stream) {
+      
+      for await (const chunk of result) {
         if (chunk.text) {
           onChunk(chunk.text);
+        }
+        if (chunk.usageMetadata && onTokenUsage) {
+            onTokenUsage({
+                inputTokens: chunk.usageMetadata.promptTokenCount || 0,
+                outputTokens: chunk.usageMetadata.candidatesTokenCount || 0,
+                totalTokens: chunk.usageMetadata.totalTokenCount || 0
+            });
         }
       }
 
@@ -205,7 +258,8 @@ export class MistralProvider extends LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
+    onTokenUsage?: (usage: TokenUsage) => void
   ): Promise<void> {
     try {
       const formattedMessages = messages.map(msg => ({
@@ -230,6 +284,13 @@ export class MistralProvider extends LLMProvider {
         const content = chunk.data.choices[0]?.delta?.content || '';
         if (content) {
           onChunk((content as string));
+        }
+        if (chunk.data.usage && onTokenUsage) {
+             onTokenUsage({
+                inputTokens: chunk.data.usage.promptTokens,
+                outputTokens: chunk.data.usage.completionTokens,
+                totalTokens: chunk.data.usage.totalTokens
+             });
         }
       }
       

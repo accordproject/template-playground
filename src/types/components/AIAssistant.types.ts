@@ -1,8 +1,16 @@
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  estimatedCost?: number;
+}
+
 export interface Message {
   id: string,
   role: 'system' | 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  tokenUsage?: TokenUsage;
 }
 
 export interface ChatState {
