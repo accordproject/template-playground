@@ -10,10 +10,13 @@ import { useState, useRef } from "react";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button } from "antd";
+import * as monaco from "monaco-editor";
+import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
+  const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -45,6 +48,12 @@ const MainContainer = () => {
       setIsDownloading(false);
     }
   }
+
+  const handleJsonFormat = () => {
+    if (jsonEditorRef.current) {
+      jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+    }
+  };
 
   const {
     isAIChatOpen,
@@ -107,18 +116,19 @@ const MainContainer = () => {
                           <button
                             className="collapse-button"
                             onClick={toggleModelCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
+                            style={{
+                              color: textColor,
+                              background: 'transparent',
+                              border: 'none',
                               cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '4px',
+                              marginRight: '4px'
                             }}
                             title={isModelCollapsed ? "Expand" : "Collapse"}
                           >
-                            {isModelCollapsed ? '▶' : '▼'}
+                            {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>Concerto Model</span>
                           <SampleDropdown setLoading={setLoading} />
@@ -140,18 +150,19 @@ const MainContainer = () => {
                           <button
                             className="collapse-button"
                             onClick={toggleTemplateCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
+                            style={{
+                              color: textColor,
+                              background: 'transparent',
+                              border: 'none',
                               cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '4px',
+                              marginRight: '4px'
                             }}
                             title={isTemplateCollapsed ? "Expand" : "Collapse"}
                           >
-                            {isTemplateCollapsed ? '▶' : '▼'}
+                            {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>TemplateMark</span>
                         </div>
@@ -173,25 +184,33 @@ const MainContainer = () => {
                           <button
                             className="collapse-button"
                             onClick={toggleDataCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
+                            style={{
+                              color: textColor,
+                              background: 'transparent',
+                              border: 'none',
                               cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '4px',
+                              marginRight: '4px'
                             }}
                             title={isDataCollapsed ? "Expand" : "Collapse"}
                           >
-                            {isDataCollapsed ? '▶' : '▼'}
+                            {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>JSON Data</span>
                         </div>
+                        <button
+                          onClick={handleJsonFormat}
+                          className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
+                          disabled={!jsonEditorRef.current || isDataCollapsed}
+                        >
+                          <MdFormatAlignLeft size={16} />
+                        </button>
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <AgreementData />
+                          <AgreementData editorRef={jsonEditorRef} />
                         </div>
                       )}
                     </div>
@@ -216,12 +235,12 @@ const MainContainer = () => {
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
-                  <Button 
+                  <Button
                     onClick={handleDownloadPdf}
-                    loading={isDownloading} 
+                    loading={isDownloading}
                     style={{ marginLeft: "10px" }}
                   >
-                   Download PDF
+                    Download PDF
                   </Button>
                 </div>
                 <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor }}>
