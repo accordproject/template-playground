@@ -162,7 +162,7 @@ export const AIChatPanel = () => {
     if (!content || !content.includes('```')) {
       console.log("content is", content);
       return (
-        <div className={`text-sm prose prose-sm break-all max-w-none ${backgroundColor !== '#ffffff' ? 'prose-invert' : ''}`} style={{ color: textColor }}>
+        <div className={`text-sm prose prose-sm break-all max-w-none ${isDarkMode ? 'prose-invert' : ''}`} style={{ color: textColor }}>
           <ReactMarkdown
             components={{
               code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className ?? ''}`}>{children}</code>,
@@ -180,7 +180,7 @@ export const AIChatPanel = () => {
     
     if (segments[0]) {
       parts.push(
-        <div className={`text-sm prose prose-sm max-w-none ${backgroundColor !== '#ffffff' ? 'prose-invert' : ''}`} key={key++} style={{ color: textColor }}>
+        <div className={`text-sm prose prose-sm max-w-none ${isDarkMode ? 'prose-invert' : ''}`} key={key++} style={{ color: textColor }}>
           <ReactMarkdown>
             {segments[0]}
           </ReactMarkdown>
@@ -206,7 +206,7 @@ export const AIChatPanel = () => {
         );
       } else if (i % 2 === 0 && segments[i]) {
         parts.push(
-          <div className={`text-sm prose prose-sm max-w-none ${backgroundColor !== '#ffffff' ? 'prose-invert' : ''}`} key={key++} style={{ color: textColor }}>
+          <div className={`text-sm prose prose-sm max-w-none ${isDarkMode ? 'prose-invert' : ''}`} key={key++} style={{ color: textColor }}>
             <ReactMarkdown>
               {segments[i]}
             </ReactMarkdown>
