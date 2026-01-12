@@ -11,7 +11,7 @@ import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button } from "antd";
 import * as monaco from "monaco-editor";
-import { MdFormatAlignLeft } from "react-icons/md";
+import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -86,9 +86,9 @@ const MainContainer = () => {
   const expandedCount = 3 - collapsedCount;
   const collapsedSize = 5;
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
-  
+
   // Create a key that changes when collapse state changes to force panel re-layout
-  const panelKey = `${isModelCollapsed}-${isTemplateCollapsed}-${isDataCollapsed}`;
+  const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
   return (
     <div className="main-container" style={{ backgroundColor }}>
@@ -107,18 +107,19 @@ const MainContainer = () => {
                           <button
                             className="collapse-button"
                             onClick={toggleModelCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
+                            style={{
+                              color: textColor,
+                              background: 'transparent',
+                              border: 'none',
                               cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '4px',
+                              marginRight: '4px'
                             }}
                             title={isModelCollapsed ? "Expand" : "Collapse"}
                           >
-                            {isModelCollapsed ? '▶' : '▼'}
+                            {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>Concerto Model</span>
                           <SampleDropdown setLoading={setLoading} />
@@ -140,18 +141,19 @@ const MainContainer = () => {
                           <button
                             className="collapse-button"
                             onClick={toggleTemplateCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
+                            style={{
+                              color: textColor,
+                              background: 'transparent',
+                              border: 'none',
                               cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '4px',
+                              marginRight: '4px'
                             }}
                             title={isTemplateCollapsed ? "Expand" : "Collapse"}
                           >
-                            {isTemplateCollapsed ? '▶' : '▼'}
+                            {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>TemplateMark</span>
                         </div>
@@ -173,18 +175,19 @@ const MainContainer = () => {
                           <button
                             className="collapse-button"
                             onClick={toggleDataCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
+                            style={{
+                              color: textColor,
+                              background: 'transparent',
+                              border: 'none',
                               cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '4px',
+                              marginRight: '4px'
                             }}
                             title={isDataCollapsed ? "Expand" : "Collapse"}
                           >
-                            {isDataCollapsed ? '▶' : '▼'}
+                            {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>JSON Data</span>
                         </div>
@@ -223,12 +226,12 @@ const MainContainer = () => {
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`}>
                   <span>Preview</span>
-                  <Button 
-                    onClick={handleDownloadPdf}
-                    loading={isDownloading} 
+                  <Button
+                    onClick={() => void handleDownloadPdf()}
+                    loading={isDownloading}
                     style={{ marginLeft: "10px" }}
                   >
-                   Download PDF
+                    Download PDF
                   </Button>
                 </div>
                 <div className="main-container-preview-content" style={{ backgroundColor }}>
