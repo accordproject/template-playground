@@ -1,6 +1,3 @@
-/**
- * Enum for supported AI Models to prevent "magic strings"
- */
 export enum AIModel {
   GPT_4_TURBO = 'gpt-4-turbo',
   GPT_3_5_TURBO = 'gpt-3.5-turbo',
@@ -14,11 +11,7 @@ interface Pricing {
   output: number;
 }
 
-/**
- * Prices per 1M tokens
- * Using Record<AIModel, Pricing> ensures every enum member has a price defined
- */
-export const MODEL_PRICING: Record<AIModel, Pricing> = {
+export const MODEL_PRICING: Record<string, Pricing> = {
   [AIModel.GPT_4_TURBO]: { input: 10.00, output: 30.00 },
   [AIModel.GPT_3_5_TURBO]: { input: 0.50, output: 1.50 },
   [AIModel.CLAUDE_3_OPUS]: { input: 15.00, output: 75.00 },
@@ -26,19 +19,13 @@ export const MODEL_PRICING: Record<AIModel, Pricing> = {
   [AIModel.DEFAULT]: { input: 0, output: 0 }
 };
 
-/**
- * Calculates the estimated cost of an interaction
- */
 export const calculateEstimatedCost = (
-  model: AIModel | string, 
+  model: string, 
   inputTokens: number, 
   outputTokens: number
 ): number => {
-  // We check if the string provided exists in our pricing map
-  const pricing = MODEL_PRICING[model as AIModel] || MODEL_PRICING[AIModel.DEFAULT];
-  
+  const pricing = MODEL_PRICING[model] || MODEL_PRICING[AIModel.DEFAULT];
   const inputCost = (inputTokens / 1_000_000) * pricing.input;
   const outputCost = (outputTokens / 1_000_000) * pricing.output;
-  
   return inputCost + outputCost;
 };
