@@ -99,6 +99,10 @@ const FullScreenModal: React.FC = () => {
           padding: 4px 8px;
         }
       }
+      /* Fixes invisible close button in dark mode */
+      .ant-modal-close {
+        color: ${textColor} !important;
+      }
     `;
     document.head.appendChild(style);
     return () => {

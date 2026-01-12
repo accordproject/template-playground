@@ -6,14 +6,54 @@ import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import "../styles/pages/MainContainer.css";
+import html2pdf from "html2pdf.js";
+import { Button } from "antd";
+import * as monaco from "monaco-editor";
+import { MdFormatAlignLeft } from "react-icons/md";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
+  const downloadRef = useRef<HTMLDivElement>(null);
+  const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
 
+  const handleDownloadPdf = async () => {
+    const element = downloadRef.current;
+    if (!element) return;
+
+    try {
+      setIsDownloading(true);
+      const options = {
+        margin: 10,
+        filename: 'agreement.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: true,
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      } as const;
+
+      await html2pdf().set(options).from(element).save();
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("Failed to generate PDF. Please check the console.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleJsonFormat = () => {
+    if (jsonEditorRef.current) {
+      jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+    }
+  };
   const {
     isAIChatOpen,
     isEditorsVisible,
@@ -147,10 +187,17 @@ const MainContainer = () => {
                           </button>
                           <span>JSON Data</span>
                         </div>
+                        <button
+                          onClick={handleJsonFormat}
+                          className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
+                          disabled={!jsonEditorRef.current || isDataCollapsed}
+                        >
+                          <MdFormatAlignLeft size={16} />
+                        </button>
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <AgreementData />
+                          <AgreementData editorRef={jsonEditorRef} />
                         </div>
                       )}
                     </div>
