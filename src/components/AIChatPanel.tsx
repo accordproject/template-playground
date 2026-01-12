@@ -28,8 +28,9 @@ export const AIChatPanel = () => {
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
 
+  const isDarkMode = useMemo(() => backgroundColor !== '#ffffff', [backgroundColor]);
+
   const theme = useMemo(() => {
-    const isDarkMode = backgroundColor !== '#ffffff';
     return {
       header: `h-10 -ml-4 -mr-4 -mt-1 p-2 border-gray-200 text-sm font-medium flex justify-between items-center ${
         isDarkMode ? 'bg-gray-700 text-white' : 'bg-slate-100 text-gray-700'
