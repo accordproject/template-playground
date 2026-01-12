@@ -2,6 +2,55 @@ import { useState, useEffect, useMemo } from 'react';
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 
+// Model mappings for each provider - updated with latest available models
+const PROVIDER_MODELS: Record<string, string[]> = {
+  'openai': [
+    'gpt-4o',
+    'gpt-4o-mini',
+    'gpt-4-turbo',
+    'gpt-4',
+    'gpt-3.5-turbo',
+  ],
+  'anthropic': [
+    'claude-3-5-sonnet-20241022',
+    'claude-3-5-haiku-20241022',
+    'claude-3-opus-20240229',
+    'claude-3-sonnet-20240229',
+    'claude-3-haiku-20240307',
+  ],
+  'google': [
+    'gemini-2.0-flash-exp',
+    'gemini-1.5-pro',
+    'gemini-1.5-flash',
+    'gemini-1.0-pro',
+  ],
+  'mistral': [
+    'mistral-large-latest',
+    'mistral-medium-latest',
+    'mistral-small-latest',
+    'pixtral-12b-2409',
+  ],
+  'openrouter': [
+    'anthropic/claude-3.5-sonnet',
+    'anthropic/claude-3-opus',
+    'openai/gpt-4o',
+    'openai/gpt-4-turbo',
+    'google/gemini-pro-1.5',
+    'meta-llama/llama-3.1-70b-instruct',
+    'meta-llama/llama-3.1-8b-instruct',
+  ],
+  'ollama': [
+    'llama3.2',
+    'llama3.1',
+    'llama3',
+    'qwen2.5',
+    'mistral',
+    'phi3',
+    'tinyllama',
+  ],
+  'openai-compatible': [],
+};
+
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const { backgroundColor } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
@@ -38,7 +87,10 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       saveButton: {
         enabled: 'bg-blue-500 text-white hover:bg-blue-600',
         disabled: isDarkMode ? 'bg-gray-600 text-gray-400' : 'bg-gray-400 text-gray-200'
-      }
+      },
+      resetButton: isDarkMode
+        ? 'border-red-600 text-red-400 hover:bg-red-900 hover:border-red-500'
+        : 'border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600'
     };
   }, [backgroundColor]);
 
@@ -48,10 +100,17 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const [customEndpoint, setCustomEndpoint] = useState<string>('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
   const [maxTokens, setMaxTokens] = useState<string>('');
+  const [useCustomModel, setUseCustomModel] = useState<boolean>(false);
   
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
   const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
+
+  // Get available models for the selected provider
+  const availableModels = useMemo(() => {
+    if (!provider) return [];
+    return PROVIDER_MODELS[provider] || [];
+  }, [provider]);
 
   useEffect(() => {
     if (isOpen) {
@@ -65,8 +124,18 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       const savedEnableCodeSelection = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
       const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
       
-      if (savedProvider) setProvider(savedProvider);
-      if (savedModel) setModel(savedModel);
+      if (savedProvider) {
+        setProvider(savedProvider);
+        // Determine if saved model should use custom mode
+        const providerModels = PROVIDER_MODELS[savedProvider] || [];
+        if (savedModel) {
+          setModel(savedModel);
+          // If saved model is not in the list, use custom mode
+          setUseCustomModel(!providerModels.includes(savedModel) || providerModels.length === 0);
+        } else {
+          setUseCustomModel(providerModels.length === 0);
+        }
+      }
       if (savedApiKey) setApiKey(savedApiKey);
       if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
       if (savedMaxTokens) setMaxTokens(savedMaxTokens);
@@ -100,6 +169,40 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
     
     onSave(); 
     onClose();
+  };
+
+  const handleReset = () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to reset all AI configuration? This will clear your API key and all settings.'
+    );
+    
+    if (confirmed) {
+      // Clear all AI-related localStorage items
+      localStorage.removeItem('aiProvider');
+      localStorage.removeItem('aiModel');
+      localStorage.removeItem('aiApiKey');
+      localStorage.removeItem('aiCustomEndpoint');
+      localStorage.removeItem('aiResMaxTokens');
+      localStorage.removeItem('aiShowFullPrompt');
+      localStorage.removeItem('aiEnableCodeSelectionMenu');
+      localStorage.removeItem('aiEnableInlineSuggestions');
+      localStorage.removeItem('aiIncludeTemplateMark');
+      localStorage.removeItem('aiIncludeConcertoModel');
+      localStorage.removeItem('aiIncludeData');
+      
+      // Reset all state variables to default
+      setProvider('');
+      setModel('');
+      setApiKey('');
+      setCustomEndpoint('');
+      setMaxTokens('');
+      setShowFullPrompt(false);
+      setEnableCodeSelectionMenu(true);
+      setEnableInlineSuggestions(true);
+      
+      // Notify parent and reload config
+      onSave();
+    }
   };
 
   if (!isOpen) return null;
@@ -137,13 +240,22 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             </label>
             <select
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => {
+                const newProvider = e.target.value;
+                setProvider(newProvider);
+                // Clear model when provider changes
+                setModel('');
+                // Set custom mode based on whether provider has predefined models
+                const providerModels = PROVIDER_MODELS[newProvider] || [];
+                setUseCustomModel(providerModels.length === 0);
+              }}
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
             >
               <option value="">Select a provider</option>
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
               <option value="mistral">Mistral</option>
+              <option value="ollama">Ollama (Local)</option> 
               <option value="openai">OpenAI</option>
               <option value="openrouter">OpenRouter</option>
               <option value="openai-compatible">OpenAI Compatible API</option>
@@ -172,20 +284,62 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             <label className={`block text-sm font-medium ${theme.label} mb-1`}>
               Model Name
             </label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="Enter model name"
-              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-            />
+            {provider && availableModels.length > 0 && !useCustomModel ? (
+              <>
+                <select
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
+                >
+                  <option value="">Select a model</option>
+                  {availableModels.map((modelOption) => (
+                    <option key={modelOption} value={modelOption}>
+                      {modelOption}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseCustomModel(true);
+                    setModel('');
+                  }}
+                  className={`mt-2 text-xs ${theme.helpText} hover:underline`}
+                >
+                  Or enter custom model name
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="Enter model name"
+                  className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+                />
+                {provider && availableModels.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseCustomModel(false);
+                      setModel('');
+                    }}
+                    className={`mt-2 text-xs ${theme.helpText} hover:underline`}
+                  >
+                    Or select from available models
+                  </button>
+                )}
+              </>
+            )}
             {provider && (
               <div className={`mt-1 text-xs ${theme.helpText}`}>
-                {provider === 'openai' && 'Example: gpt-4-turbo, gpt-3.5-turbo'}
-                {provider === 'anthropic' && 'Example: claude-3-opus-20240229, claude-3-sonnet-20240229'}
-                {provider === 'google' && 'Example: gemini-1.5-pro, gemini-1.0-pro'}
-                {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
-                {provider === 'openrouter' && 'Example: anthropic/claude-3-opus, meta-llama/llama-3-70b-instruct'}
+                {provider === 'ollama' && (
+                  <span className="text-orange-500 font-bold">
+                    ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
+                  </span>
+                )}
+                {provider === 'openai-compatible' && 'Enter your custom model name'}
               </div>
             )}
           </div>
@@ -299,16 +453,23 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             )}
           </div>
 
-          <button
+           <button
             onClick={handleSave}
-            disabled={!provider || !model || !apiKey || (provider === 'openai-compatible' && !customEndpoint)}
+            disabled={!provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
             className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${
-              !provider || !model || !apiKey || (provider === 'openai-compatible' && !customEndpoint)
+              !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)
                 ? theme.saveButton.disabled
                 : theme.saveButton.enabled
             }`}
           >
             Save Configuration
+          </button>
+
+          <button
+            onClick={handleReset}
+            className={`w-full py-2 rounded-lg border-2 transition-colors ${theme.resetButton}`}
+          >
+            Reset Configuration
           </button>
         </div>
       </div>
