@@ -493,7 +493,7 @@ export const AIChatPanel = () => {
               </div>
             </div>
             
-            <div className={`flex gap-2 p-2 rounded-lg border ${theme.inputContainer}`}>
+            <div className={`flex gap-2 p-2 rounded-lg border flex-wrap overflow-x-auto ${theme.inputContainer}`}>
               <textarea
                   ref={textareaRef}
                   value={userInput}
@@ -508,7 +508,7 @@ export const AIChatPanel = () => {
                         ? "Press 'Stop' to send another message..."
                         : "Type your message..."
                   }
-                  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-[42px] overflow-y-hidden ${
+                  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y min-h-[72px] sm:min-h-[56px] md:min-h-[42px] max-h-[160px] overflow-y-auto min-w-[90px] whitespace-pre-wrap break-words ${
                     chatState.isLoading ? theme.textarea.loading : theme.textarea.base
                   }`}
                   rows={1}
