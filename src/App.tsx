@@ -95,10 +95,10 @@ const App = () => {
     };
 
     const showTour = searchParams.get("showTour") === "true";
-    if (showTour || !localStorage.getItem("hasVisited")) {
+    if (!loading && (showTour || !localStorage.getItem("hasVisited"))) {
       void startTour();
     }
-  }, [searchParams]);
+  }, [loading, searchParams]);
 
   // Set data-theme attribute on initial load and when theme changes
   useEffect(() => {
@@ -112,14 +112,7 @@ const App = () => {
     <AntdApp>
       <Layout style={{ height: "100vh" }}>
         <Navbar />
-        <Layout
-          className="app-layout"
-          style={{
-            backgroundColor,
-            height: "calc(100vh - 64px)",
-            overflow: "hidden",
-          }}
-        >
+        <Layout className="app-layout" style={{ backgroundColor, minHeight: '100vh' }}>
           <Routes>
             <Route
               path="/"
