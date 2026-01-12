@@ -4,7 +4,6 @@ import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
   QuestionOutlined,
-  UserOutlined,
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
