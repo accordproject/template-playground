@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { App as AntdApp, Layout } from "antd";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
@@ -12,6 +11,7 @@ import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
 import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
+import Preloader from "./components/Preloader";
 
 const { Content } = Layout;
 
@@ -26,7 +26,7 @@ const App = () => {
     }));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(window.location.pathname === "/");
   const [searchParams] = useSearchParams();
 
 
@@ -37,8 +37,9 @@ const App = () => {
 
   useEffect(() => {
     const initializeApp = async () => {
+      const isRoot = window.location.pathname === "/";
+      if (isRoot) setLoading(true);
       try {
-        setLoading(true);
         // Prioritize hash for new links, fallback to searchParams for old links
         let compressedData: string | null = null;
         if (window.location.hash.startsWith("#data=")) {
@@ -57,7 +58,7 @@ const App = () => {
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
-        setLoading(false);
+        if (isRoot) setLoading(false);
       }
     };
     void initializeApp();
@@ -105,7 +106,9 @@ const App = () => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [backgroundColor]);
 
-  return (
+  return loading ? (
+    <Preloader />
+  ) : (
     <AntdApp>
       <Layout style={{ height: "100vh" }}>
         <Navbar />
@@ -117,15 +120,9 @@ const App = () => {
                 <>
                   <PlaygroundSidebar />
                   <Content>
-                    {loading ? (
-                      <div className="app-content-loading">
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="app-main-content">
-                        <MainContainer />
-                      </div>
-                    )}
+                    <div className="app-main-content">
+                      <MainContainer />
+                    </div>
                   </Content>
                   <AIConfigPopup
                     isOpen={isAIConfigOpen}
@@ -147,13 +144,5 @@ const App = () => {
     </AntdApp>
   );
 };
-
-const Spinner = () => (
-  <div className="app-spinner-container">
-    <Spin
-      indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
-    />
-  </div>
-);
 
 export default App;
