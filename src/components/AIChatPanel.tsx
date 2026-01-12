@@ -143,13 +143,8 @@ export const AIChatPanel = () => {
         <div className="text-sm prose prose-sm break-all max-w-none" style={{ color: textColor }}>
           <ReactMarkdown
             components={{
-              code: ({ children, className }) => (
-                <code className={`${theme.inlineCode} p-1 rounded-md ${className}`}>
-                  {children}
-                </code>
-              ),
-            }}
-          >
+              code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className ?? ''}`}>{children}</code>,
+          }}>
             {content}
           </ReactMarkdown>
         </div>
@@ -203,8 +198,7 @@ export const AIChatPanel = () => {
   }, [chatState.messages, chatState.isLoading]);
 
   return (
-    <div className="twp pl-4 pr-4 -mr-1 flex flex-col border rounded-md h-[calc(100vh-150px)] h-full">
-      {/* Header */}
+    <div className="twp pl-4 pr-4 -mr-1 flex flex-col border rounded-md h-full">
       <div className={theme.header}>
         <h2 className="text-lg font-bold" style={{ color: textColor }}>AI Assistant</h2>
         <div className="flex items-center gap-4">

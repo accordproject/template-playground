@@ -101,6 +101,13 @@ export class OpenRouterProvider extends OpenAICompatibleProvider {
   }
 }
 
+export class OllamaProvider extends OpenAICompatibleProvider {
+  constructor(config: AIConfig) {
+    const modifiedConfig = { ...config, apiKey: config.apiKey || 'ollama' };
+    super(modifiedConfig, 'http://localhost:11434/v1');
+  }
+}
+
 export class AnthropicProvider extends LLMProvider {
   async streamChat(
     messages: Message[],
@@ -126,9 +133,12 @@ export class AnthropicProvider extends LLMProvider {
         model: this.config.model,
         system: systemInstruction,
         messages: formattedMessages,
-        max_tokens: this.config.maxTokens ?? 4096,
-      })
-      .on('text', (textDelta) => {
+        max_tokens: this.config.maxTokens ?? 100000,
+      }
+
+      const stream = client.messages.stream(params);
+      stream.on('text', (textDelta) => {
+        console.log(textDelta)
         onChunk(textDelta);
       })
       .on('finalMessage', (message) => {
@@ -138,6 +148,17 @@ export class AnthropicProvider extends LLMProvider {
           });
       });
 
+      // Wait for stream to complete
+      await new Promise<void>((resolve, reject) => {
+        stream.on('end', () => {
+          resolve();
+        });
+        stream.on('error', (error) => {
+          reject(error);
+        });
+      });
+
+      onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error('Unknown error'));
     }
@@ -235,12 +256,24 @@ export class MistralProvider extends LLMProvider {
 
 export function getLLMProvider(config: AIConfig): LLMProvider {
   switch (config.provider) {
-    case 'openai': return new OpenAIProvider(config);
-    case 'anthropic': return new AnthropicProvider(config);
-    case 'google': return new GoogleProvider(config);
-    case 'mistral': return new MistralProvider(config);
-    case 'openrouter': return new OpenRouterProvider(config);
-    case 'openai-compatible': return new OpenAICompatibleProvider(config, config.customEndpoint!);
-    default: throw new Error(`Unsupported provider: ${config.provider}`);
+    case 'openai':
+      return new OpenAIProvider(config);
+    case 'anthropic':
+      return new AnthropicProvider(config);
+    case 'google':
+      return new GoogleProvider(config);
+    case 'mistral':
+      return new MistralProvider(config);
+    case 'openrouter':
+      return new OpenRouterProvider(config);
+    case 'ollama':  
+      return new OllamaProvider(config);
+    case 'openai-compatible':
+      if (!config.customEndpoint) {
+        throw new Error('Custom API endpoint is required for OpenAI Compatible API');
+      }
+      return new OpenAICompatibleProvider(config, config.customEndpoint);
+    default:
+      throw new Error(`Unsupported provider: ${config.provider}`);
   }
 }
