@@ -8,7 +8,7 @@ import {
   BookOutlined,
   CaretDownFilled,
   MenuOutlined,
-  ShareAltOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
 import ToggleDarkMode from "./ToggleDarkMode";
@@ -412,7 +412,7 @@ function Navbar() {
         >
           <Dropdown overlay={socialsMenu} trigger={["click"]}>
             <Button className="bg-transparent border-none text-white h-16 flex items-center">
-              <ShareAltOutlined className="text-xl" />
+              <GlobalOutlined className="text-xl" />
               {screens.md && <span className="ml-1.5">Socials</span>}
               <CaretDownFilled className="text-xs ml-1.5" />
             </Button>
