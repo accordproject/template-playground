@@ -15,6 +15,8 @@ vi.mock("../../store/store", () => ({
         setProblemPanelVisible: vi.fn(),
         setAIChatOpen: vi.fn(),
         generateShareableLink: vi.fn(() => "https://example.com"),
+        exportTemplate: vi.fn(),
+        importTemplate: vi.fn(),
     }),
 }));
 
@@ -45,6 +47,8 @@ describe("PlaygroundSidebar", () => {
     it("renders all bottom navigation items", () => {
         renderSidebar();
 
+        expect(screen.getByRole("button", { name: /Export/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Import/i })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /Share/i })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /Start Tour/i })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /Settings/i })).toBeInTheDocument();
