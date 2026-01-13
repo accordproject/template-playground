@@ -51,7 +51,7 @@ const MainContainer = () => {
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
-      jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+      void jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
     }
   };
 
