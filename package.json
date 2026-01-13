@@ -35,6 +35,7 @@
     "html2pdf.js": "^0.12.1",
     "immer": "^10.1.1",
     "jest-canvas-mock": "^2.5.2",
+    "jszip": "^3.10.1",
     "lz-string": "^1.5.0",
     "monaco-editor": "^0.50.0",
     "node-stdlib-browser": "^1.2.0",
