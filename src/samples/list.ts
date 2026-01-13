@@ -5,7 +5,7 @@ concept Person {
     o String[] middleNames
 }`;
 
-const TEMPLATE = `> Ordered and unorded list expansion
+const TEMPLATE = `> Ordered and unordered list expansion
 
 ## Lists
 
