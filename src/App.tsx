@@ -39,7 +39,13 @@ const App = () => {
     const initializeApp = async () => {
       try {
         setLoading(true);
-        const compressedData = searchParams.get("data");
+        // Prioritize hash for new links, fallback to searchParams for old links
+        let compressedData: string | null = null;
+        if (window.location.hash.startsWith("#data=")) {
+          compressedData = window.location.hash.substring(6);
+        } else {
+          compressedData = searchParams.get("data");
+        }
         if (compressedData) {
           await loadFromLink(compressedData);
           if (window.location.pathname !== "/") {
@@ -103,7 +109,14 @@ const App = () => {
     <AntdApp>
       <Layout style={{ height: "100vh" }}>
         <Navbar />
-        <Layout className="app-layout" style={{ backgroundColor, minHeight: '100vh' }}>
+        <Layout
+          className="app-layout"
+          style={{
+            backgroundColor,
+            height: "calc(100vh - 64px)",
+            overflow: "hidden",
+          }}
+        >
           <Routes>
             <Route
               path="/"
@@ -149,5 +162,5 @@ const Spinner = () => (
     />
   </div>
 );
-
+ 
 export default App;
