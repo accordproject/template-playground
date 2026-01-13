@@ -252,7 +252,7 @@ function Navbar() {
           href="https://discord.com/invite/Zm99SKhhtA"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 no-underline"
         >
           <FaDiscord />
           <span>Discord</span>
@@ -263,7 +263,7 @@ function Navbar() {
           href="https://github.com/accordproject/template-playground"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 no-underline"
         >
           <GithubOutlined />
           <span>GitHub</span>
