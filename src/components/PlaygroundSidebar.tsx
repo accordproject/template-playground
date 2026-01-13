@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
 import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
@@ -7,11 +7,14 @@ import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
+import ShareModal from "./ShareModal";
 import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
 const PlaygroundSidebar = () => {
-  const { 
+  const [isShareModalOpen, setShareModalOpen] = useState(false);
+
+  const {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
@@ -20,7 +23,6 @@ const PlaygroundSidebar = () => {
     setPreviewVisible,
     setProblemPanelVisible,
     setAIChatOpen,
-    generateShareableLink,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -30,18 +32,10 @@ const PlaygroundSidebar = () => {
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
-    generateShareableLink: state.generateShareableLink,
   }));
 
-  const handleShare = async () => {
-    try {
-      const link = generateShareableLink();
-      await navigator.clipboard.writeText(link);
-      void message.success('Link copied to clipboard!');
-    } catch (err) {
-      console.error('Error copying to clipboard:', err);
-      void message.error('Failed to copy link to clipboard');
-    }
+  const handleShare = () => {
+    setShareModalOpen(true);
   };
 
   const handleSettings = () => {
@@ -193,7 +187,9 @@ const PlaygroundSidebar = () => {
           </Tooltip>
         ))}
       </nav>
-    </aside>
+
+      <ShareModal open={isShareModalOpen} onClose={() => setShareModalOpen(false)} />
+    </aside >
   );
 };
 
