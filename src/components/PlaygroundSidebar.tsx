@@ -1,7 +1,7 @@
 import React from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiDownload } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
@@ -21,6 +21,7 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible,
     setAIChatOpen,
     generateShareableLink,
+    exportTemplate,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -31,6 +32,7 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible: state.setProblemPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
+    exportTemplate: state.exportTemplate,
   }));
 
   const handleShare = async () => {
@@ -133,6 +135,11 @@ const PlaygroundSidebar = () => {
   }
 
   const navBottom: NavBottomItem[] = [
+    { 
+      title: "Export", 
+      icon: FiDownload,
+      onClick: () => void exportTemplate()
+    },
     { 
       title: "Share", 
       icon: FiShare2,

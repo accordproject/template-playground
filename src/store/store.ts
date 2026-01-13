@@ -9,6 +9,7 @@ import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
+import { createArchive, downloadBlob } from '../utils/archive/archive';
 import { AIConfig, ChatState } from '../types/components/AIAssistant.types';
 
 interface AppState {
@@ -39,6 +40,7 @@ interface AppState {
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
   generateShareableLink: () => string;
+  exportTemplate: () => Promise<void>;
   loadFromLink: (compressedData: string) => Promise<void>;
   toggleDarkMode: () => void;
   setAIConfigOpen: (visible: boolean) => void;
@@ -302,6 +304,20 @@ const useAppStore = create<AppState>()(
           agreementHtml: state.agreementHtml,
         });
         return `${window.location.origin}/#data=${compressedData}`;
+      },
+      exportTemplate: async () => {
+        const { sampleName, modelCto, templateMarkdown, data } = get();
+        try {
+          const blob = await createArchive(sampleName, modelCto, templateMarkdown, data);
+          const filename = `${sampleName.toLowerCase().replace(/\s+/g, '-')}.cta`;
+          downloadBlob(blob, filename);
+        } catch (error) {
+          console.error('Export failed:', error);
+          set(() => ({
+            error: 'Failed to export template: ' + (error instanceof Error ? error.message : 'Unknown error'),
+            isProblemPanelVisible: true,
+          }));
+        }
       },
       loadFromLink: async (compressedData: string) => {
         try {
