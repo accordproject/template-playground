@@ -411,7 +411,7 @@ function Navbar() {
           onMouseLeave={() => setHovered(null)}
         >
           <Dropdown overlay={socialsMenu} trigger={["click"]}>
-            <Button className="bg-transparent border-none text-white h-16 flex items-center">
+            <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
               <GlobalOutlined className="text-xl" />
               {screens.md && <span className="ml-1.5">Socials</span>}
               <CaretDownFilled className="text-xs ml-1.5" />
