@@ -17,10 +17,10 @@ const renderNavbar = () => {
 };
 
 describe("Navbar", () => {
-  it("renders logo and title on small screens", () => {
+  it("renders logo and title", () => {
     renderNavbar();
 
-    const logoImage = screen.getByRole("img", { name: /Template Playground/i });
+    const logoImage = screen.getByRole("img", { name: /Accord Project/i });
     expect(logoImage).toBeInTheDocument();
 
     const title = screen.getByText(/Template Playground/i);
