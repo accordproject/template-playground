@@ -1,7 +1,9 @@
 .app-layout {
   @apply flex flex-row;
 }
-
+.app-layout .ant-layout-content {
+  margin-left: 64px;
+}
 .app-content-loading {
   @apply flex justify-center items-center min-h-[calc(100vh-64px)];
 }

@@ -11,10 +11,6 @@ body {
   padding: 0;
 }
 
-#root{
-  overflow-y:hidden;
-}
-
 html[data-theme="dark"] {
     --bg-color: #121212;
     --text-color: #ffffff;
