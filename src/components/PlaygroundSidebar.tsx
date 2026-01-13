@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings, FiDownload } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiDownload, FiUpload } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
@@ -22,6 +22,7 @@ const PlaygroundSidebar = () => {
     setAIChatOpen,
     generateShareableLink,
     exportTemplate,
+    importTemplate,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -33,7 +34,22 @@ const PlaygroundSidebar = () => {
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     exportTemplate: state.exportTemplate,
+    importTemplate: state.importTemplate,
   }));
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await importTemplate(file);
+      e.target.value = ''; // Reset input
+    }
+  };
 
   const handleShare = async () => {
     try {
@@ -141,6 +157,11 @@ const PlaygroundSidebar = () => {
       onClick: () => void exportTemplate()
     },
     { 
+      title: "Import", 
+      icon: FiUpload,
+      onClick: handleImportClick
+    },
+    { 
       title: "Share", 
       icon: FiShare2,
       onClick: () => void handleShare()
@@ -200,6 +221,13 @@ const PlaygroundSidebar = () => {
           </Tooltip>
         ))}
       </nav>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".cta,.zip"
+        onChange={(e) => void handleFileChange(e)}
+        style={{ display: 'none' }}
+      />
     </aside>
   );
 };

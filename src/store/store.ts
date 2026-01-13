@@ -9,7 +9,7 @@ import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
-import { createArchive, downloadBlob } from '../utils/archive/archive';
+import { createArchive, extractArchive, downloadBlob } from '../utils/archive/archive';
 import { AIConfig, ChatState } from '../types/components/AIAssistant.types';
 
 interface AppState {
@@ -41,6 +41,7 @@ interface AppState {
   loadSample: (name: string) => Promise<void>;
   generateShareableLink: () => string;
   exportTemplate: () => Promise<void>;
+  importTemplate: (file: File) => Promise<void>;
   loadFromLink: (compressedData: string) => Promise<void>;
   toggleDarkMode: () => void;
   setAIConfigOpen: (visible: boolean) => void;
@@ -315,6 +316,28 @@ const useAppStore = create<AppState>()(
           console.error('Export failed:', error);
           set(() => ({
             error: 'Failed to export template: ' + (error instanceof Error ? error.message : 'Unknown error'),
+            isProblemPanelVisible: true,
+          }));
+        }
+      },
+      importTemplate: async (file: File) => {
+        try {
+          const { name, model, template, data } = await extractArchive(file);
+          set(() => ({
+            sampleName: name,
+            templateMarkdown: template,
+            editorValue: template,
+            modelCto: model,
+            editorModelCto: model,
+            data: data,
+            editorAgreementData: data,
+            error: undefined,
+          }));
+          await get().rebuild();
+        } catch (error) {
+          console.error('Import failed:', error);
+          set(() => ({
+            error: 'Failed to import template: ' + (error instanceof Error ? error.message : 'Unknown error'),
             isProblemPanelVisible: true,
           }));
         }
