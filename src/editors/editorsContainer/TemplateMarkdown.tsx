@@ -17,7 +17,7 @@ function TemplateMarkdown() {
     if (value !== undefined) {
       updateEditorActivity('markdown');
       setValue(value); // Update editor state and sync
-      setTemplateMarkdown(value); 
+      void setTemplateMarkdown(value); 
     }
   };
 

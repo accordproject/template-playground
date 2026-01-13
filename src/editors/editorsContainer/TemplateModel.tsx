@@ -17,7 +17,7 @@ function TemplateModel() {
     if (value !== undefined) {
       updateEditorActivity('concerto');
       setValue(value); // Update editor state and sync
-      setModelCto(value); 
+      void setModelCto(value); 
     }
   };
 
