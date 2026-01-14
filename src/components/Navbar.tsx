@@ -329,7 +329,7 @@ function Navbar() {
             onMouseLeave={() => setHovered(null)}
           >
             <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button className="bg-transparent border-none text-white h-16 flex items-center">
+              <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
                 Help
                 <CaretDownFilled className="text-xs ml-1.5" />
               </Button>
