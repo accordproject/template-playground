@@ -127,7 +127,7 @@ const getInitialPanelState = () => {
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem('ui-panels');
-      if (saved) return { ...defaults, ...JSON.parse(saved) };
+      if (saved) return { ...defaults, ...(JSON.parse(saved) as Partial<AppState>) };
     } catch (e) { /* ignore */ }
   }
   return defaults;
