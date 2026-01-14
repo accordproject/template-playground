@@ -17,7 +17,7 @@ import {
   CopyOutlined,
   CheckOutlined,
 } from "@ant-design/icons";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
@@ -67,6 +67,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const copyToClipboard = (code: string) => {
     void navigator.clipboard.writeText(code);
     setCopied(code);
+    void message.success("Copied to clipboard!");
     setTimeout(() => setCopied(null), 2000);
   };
 
