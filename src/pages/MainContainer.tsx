@@ -88,7 +88,7 @@ const MainContainer = () => {
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
 
   // Create a key that changes when collapse state changes to force panel re-layout
-  const panelKey = `${isModelCollapsed}-${isTemplateCollapsed}-${isDataCollapsed}`;
+  const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
   return (
     <div className="main-container" style={{ backgroundColor }}>
@@ -209,7 +209,7 @@ const MainContainer = () => {
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`}>
                   <span>Preview</span>
                   <Button
-                    onClick={handleDownloadPdf}
+                    onClick={() => void handleDownloadPdf()}
                     loading={isDownloading}
                     style={{ marginLeft: "10px" }}
                   >

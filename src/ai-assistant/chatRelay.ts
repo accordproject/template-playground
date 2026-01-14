@@ -93,7 +93,7 @@ export const sendMessage = async (
   userInput: string, 
   promptPreset: string | null, 
   editorsContent: editorsContent,
-  addToChat: boolean = true,
+  addToChat = true,
   editorType?: 'markdown' | 'concerto' | 'json',
   onChunk?: (chunk: string) => void,
   onError?: (error: Error) => void,
