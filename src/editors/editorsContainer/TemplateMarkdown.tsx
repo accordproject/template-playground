@@ -11,7 +11,7 @@ function TemplateMarkdown() {
   const editorValue = useAppStore((state) => state.editorValue);
   const setEditorValue = useAppStore((state) => state.setEditorValue);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-  const { setCommands } = useMarkdownEditorContext();
+  const { setCommands, setHasSelection } = useMarkdownEditorContext();
 
   const { value, setValue } = useUndoRedo(
     editorValue,
@@ -25,8 +25,9 @@ function TemplateMarkdown() {
     return () => {
       // Clear commands when unmounting
       setCommands(undefined);
+      setHasSelection(false);
     };
-  }, [setCommands]);
+  }, [setCommands, setHasSelection]);
 
   const handleChange = (val: string | undefined) => {
     if (val !== undefined) {
@@ -40,6 +41,15 @@ function TemplateMarkdown() {
     editorRef.current = editor;
     const commands = createMarkdownCommands(editorRef);
     setCommands(commands);
+    
+    // Track selection changes
+    editor.onDidChangeCursorSelection(() => {
+      const selection = editor.getSelection();
+      if (selection) {
+        const hasText = !selection.isEmpty();
+        setHasSelection(hasText);
+      }
+    });
   };
 
   return (

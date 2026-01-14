@@ -15,6 +15,8 @@ export interface MarkdownEditorCommands {
 interface MarkdownEditorContextType {
   commands: MarkdownEditorCommands | undefined;
   setCommands: (commands: MarkdownEditorCommands | undefined) => void;
+  hasSelection: boolean;
+  setHasSelection: (hasSelection: boolean) => void;
 }
 
 const MarkdownEditorContext = createContext<MarkdownEditorContextType | undefined>(
@@ -25,9 +27,10 @@ export const MarkdownEditorProvider = ({ children }: { children: ReactNode }) =>
   const [commands, setCommands] = useState<MarkdownEditorCommands | undefined>(
     undefined
   );
+  const [hasSelection, setHasSelection] = useState(false);
 
   return (
-    <MarkdownEditorContext.Provider value={{ commands, setCommands }}>
+    <MarkdownEditorContext.Provider value={{ commands, setCommands, hasSelection, setHasSelection }}>
       {children}
     </MarkdownEditorContext.Provider>
   );
