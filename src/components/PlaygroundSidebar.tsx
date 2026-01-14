@@ -163,7 +163,7 @@ const PlaygroundSidebar = () => {
                 {component}
               </div>
             ) : Icon ? (
-              <Icon size={24} />
+              <Icon size={20} />
             ) : null}
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
@@ -181,7 +181,7 @@ const PlaygroundSidebar = () => {
             onClick={onClick}
             className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
-            <Icon size={22} />
+            <Icon size={18} />
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
           </Tooltip>
