@@ -4,8 +4,8 @@ import useAppStore from '../store/store';
 import { editorsContent } from '../types/components/AIAssistant.types';
 import { getLastActivity } from './activityTracker';
 
-let lastRequestTime: number = 0;
-let isProcessing: boolean = false;
+let lastRequestTime = 0;
+let isProcessing = false;
 
 export const registerAutocompletion = (
   language: 'concerto' | 'markdown' | 'json',
@@ -52,7 +52,8 @@ export const registerAutocompletion = (
           isProcessing = false;
         }
       },
-      freeInlineCompletions: (_completions) => {
+      freeInlineCompletions: () => {
+        // No cleanup needed
       },
     });
     return provider;
