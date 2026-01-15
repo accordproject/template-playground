@@ -233,7 +233,7 @@ function Navbar() {
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`sticky top-0 z-50 bg-[#1b2540] h-16 grid grid-cols-[1fr_auto_1fr] items-center ${screens.lg ? "px-10" : "px-4"
+    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 grid grid-cols-[1fr_auto_1fr] items-center ${screens.lg ? "px-10" : "px-4"
       }`}>
       {/* Left Section: Logo & Help */}
       <div className="flex items-center justify-start gap-2 sm:gap-4 z-20">
