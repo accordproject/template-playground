@@ -76,27 +76,35 @@ export interface DecompressedData {
 
 const rebuildDeBounce = debounce(rebuild, 500);
 
-async function rebuild(template: string, model: string, dataString: string) {
+async function rebuild(template: string, model: string, dataString: string): Promise<string> {
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
   const engine = new TemplateMarkInterpreter(modelManager, {});
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
     { content: template },
     modelManager,
     "contract",
     { verbose: false }
-  );
+  ) as object;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data = JSON.parse(dataString);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
   const ciceroMark = await engine.generate(templateMarkDom, data);
-  return await transform(
-    ciceroMark.toJSON(),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  const ciceroMarkJson = ciceroMark.toJSON() as unknown;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  const result = await transform(
+    ciceroMarkJson,
     "ciceromark_parsed",
     ["html"],
     {},
     { verbose: false }
-  );
+  ) as string;
+  return result;
 }
 
 const getInitialTheme = () => {
@@ -123,7 +131,7 @@ const getInitialPanelState = () => {
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem('ui-panels');
-      if (saved) return { ...defaults, ...JSON.parse(saved) };
+      if (saved) return { ...defaults, ...(JSON.parse(saved) as Partial<AppState>) };
     } catch (e) { /* ignore */ }
   }
   return defaults;
@@ -233,19 +241,25 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); 
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
-        }
+          set(() => ({ agreementHtml: result, error: undefined }));
+        } catch (error: unknown) {
+          set(() => ({
+          error: formatError(error),
+          isProblemPanelVisible: true,
+        }));
+      }
       },
       setTemplateMarkdown: async (template: string) => {
         set(() => ({ templateMarkdown: template }));
         const { modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); 
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
+          set(() => ({ agreementHtml: result, error: undefined }));
+        } catch (error: unknown) {
+          set(() => ({
+          error: formatError(error),
+          isProblemPanelVisible: true,
+          }));
         }
       },
       setEditorValue: (value: string) => {
@@ -256,9 +270,12 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({ agreementHtml: result, error: undefined })); 
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
+          set(() => ({ agreementHtml: result, error: undefined }));
+        } catch (error: unknown) {
+          set(() => ({
+          error: formatError(error),
+          isProblemPanelVisible: true,
+          }));
         }
       },
       setEditorModelCto: (value: string) => {
@@ -272,10 +289,14 @@ const useAppStore = create<AppState>()(
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined })); 
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
+          set(() => ({ agreementHtml: result, error: undefined }));
+        } catch (error: unknown) {
+          set(() => ({
+          error: formatError(error),
+          isProblemPanelVisible: true,
+        }));
         }
+
       },
       setEditorAgreementData: (value: string) => {
         set(() => ({ editorAgreementData: value }));
@@ -368,15 +389,15 @@ const useAppStore = create<AppState>()(
 
 export default useAppStore;
 
-function formatError(error: any): string {
+function formatError(error: unknown): string {
   console.error(error);
   if (typeof error === "string") return error;
   if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
-  if (error.code) {
-    const sub = error.errors ? formatError(error.errors) : "";
-    const msg = error.renderedMessage || "";
-    return `Error: ${error.code} ${sub} ${msg}`;
+  if (error && typeof error === "object" && "code" in error) {
+    const errorObj = error as { code?: unknown; errors?: unknown; renderedMessage?: unknown };
+    const sub = errorObj.errors ? formatError(errorObj.errors) : "";
+    const msg = String(errorObj.renderedMessage ?? "");
+    return `Error: ${String(errorObj.code ?? "")} ${sub} ${msg}`;
   }
-  return error.toString();
+  return String(error);
 }
-
