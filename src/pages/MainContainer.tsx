@@ -66,6 +66,7 @@ const MainContainer = () => {
     isTemplateCollapsed,
     isDataCollapsed,
     toggleModelCollapse,
+    toggleTemplateCollapse,
     toggleDataCollapse,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
@@ -76,6 +77,7 @@ const MainContainer = () => {
     isTemplateCollapsed: state.isTemplateCollapsed,
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
+    toggleTemplateCollapse: state.toggleTemplateCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
   }));
 
@@ -99,7 +101,7 @@ const MainContainer = () => {
             <Panel defaultSize={62.5} minSize={30}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
                 <PanelGroup key={panelKey} direction="vertical" className="main-container-editors-panel-group">
-                  <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
+                  <Panel minSize={6} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-concerto-model">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         {/* Left side */}
@@ -132,13 +134,33 @@ const MainContainer = () => {
                       )}
                     </div>
                   </Panel>
+
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={20}>
+                  <Panel minSize={6}>
                     <MarkdownEditorProvider>
                       <div className="main-container-editor-section tour-template-mark">
                         <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                          <span>TemplateMark</span>
+                          <div className="main-container-editor-header-left">
+                            <button
+                              className="collapse-button"
+                              onClick={toggleTemplateCollapse}
+                              style={{
+                                color: textColor,
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px',
+                                marginRight: '4px'
+                              }}
+                              title={isTemplateCollapsed ? "Expand" : "Collapse"}
+                            >
+                              {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
+                            </button>
+                            <span>TemplateMark</span>
+                          </div>
                           <TemplateMarkdownToolbar />
                         </div>
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
@@ -150,7 +172,7 @@ const MainContainer = () => {
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
+                  <Panel minSize={6} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-json-data">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         <div className="main-container-editor-header-left">
