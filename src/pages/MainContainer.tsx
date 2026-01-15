@@ -7,6 +7,8 @@ import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
 import { useState, useRef } from "react";
+import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
+import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button } from "antd";
@@ -51,7 +53,7 @@ const MainContainer = () => {
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
-      jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+      void jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
     }
   };
 
@@ -64,7 +66,6 @@ const MainContainer = () => {
     isTemplateCollapsed,
     isDataCollapsed,
     toggleModelCollapse,
-    toggleTemplateCollapse,
     toggleDataCollapse,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
@@ -75,7 +76,6 @@ const MainContainer = () => {
     isTemplateCollapsed: state.isTemplateCollapsed,
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
-    toggleTemplateCollapse: state.toggleTemplateCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
   }));
 
@@ -134,36 +134,18 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
-                    <div className="main-container-editor-section tour-template-mark">
-                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        <div className="main-container-editor-header-left">
-                          <button
-                            className="collapse-button"
-                            onClick={toggleTemplateCollapse}
-                            style={{
-                              color: textColor,
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '4px',
-                              marginRight: '4px'
-                            }}
-                            title={isTemplateCollapsed ? "Expand" : "Collapse"}
-                          >
-                            {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
-                          </button>
+                  <Panel minSize={20}>
+                    <MarkdownEditorProvider>
+                      <div className="main-container-editor-section tour-template-mark">
+                        <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                           <span>TemplateMark</span>
+                          <TemplateMarkdownToolbar />
                         </div>
-                      </div>
-                      {!isTemplateCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
                           <TemplateMarkdown />
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    </MarkdownEditorProvider>
                   </Panel>
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
