@@ -543,7 +543,7 @@ export const AIChatPanel = () => {
                           {message.attachments.map(att => (
                             <div
                               key={att.id}
-                              className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs flex items-center gap-1.5 border border-gray-300 dark:border-gray-600"
+                              className="bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded text-xs flex items-center gap-1.5 border border-gray-200 dark:border-gray-600"
                             >
                               <span className="text-sm">{getFileIcon(att.fileType)}</span>
                               <span className="max-w-[120px] truncate text-gray-800 dark:text-gray-200">{att.fileName}</span>
