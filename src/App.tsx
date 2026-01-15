@@ -115,6 +115,7 @@ const App = () => {
           style={{
             backgroundColor,
             height: "calc(100vh - 64px)",
+            marginTop: "64px",
             overflow: "hidden",
           }}
         >
@@ -124,7 +125,7 @@ const App = () => {
               element={
                 <>
                   <PlaygroundSidebar />
-                  <Content>
+                  <Content style={{ marginLeft: "64px" }}>
                     {loading ? (
                       <div className="app-content-loading">
                         <Spinner />
