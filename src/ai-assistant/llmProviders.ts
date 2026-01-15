@@ -5,6 +5,159 @@ import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
 import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
 
+// File attachment capabilities configuration
+export interface FileTypeCapability {
+  supportedTypes: string[];
+  formats: string[];
+  maxSize: string;
+  maxSizeBytes: number;
+  supportsImages: boolean;
+  supportsPDFs: boolean;
+  description: string;
+}
+
+export const fileTypeCapabilities: Record<string, FileTypeCapability> = {
+  'default': {
+    supportedTypes: ['text'],
+    formats: ['.txt', '.md', '.json'],
+    maxSize: '5MB',
+    maxSizeBytes: 5 * 1024 * 1024,
+    supportsImages: false,
+    supportsPDFs: false,
+    description: 'Text files only'
+  },
+  'gpt-4o': {
+    supportedTypes: ['text', 'image'],
+    formats: ['.txt', '.md', '.json', '.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    maxSize: '20MB',
+    maxSizeBytes: 20 * 1024 * 1024,
+    supportsImages: true,
+    supportsPDFs: false,
+    description: 'Text and image files'
+  },
+  'gpt-4-turbo': {
+    supportedTypes: ['text', 'image'],
+    formats: ['.txt', '.md', '.json', '.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    maxSize: '20MB',
+    maxSizeBytes: 20 * 1024 * 1024,
+    supportsImages: true,
+    supportsPDFs: false,
+    description: 'Text and image files'
+  },
+  'gpt-4-vision': {
+    supportedTypes: ['text', 'image'],
+    formats: ['.txt', '.md', '.json', '.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    maxSize: '20MB',
+    maxSizeBytes: 20 * 1024 * 1024,
+    supportsImages: true,
+    supportsPDFs: false,
+    description: 'Text and image files'
+  },
+  'gpt-4': {
+    supportedTypes: ['text'],
+    formats: ['.txt', '.md', '.json'],
+    maxSize: '10MB',
+    maxSizeBytes: 10 * 1024 * 1024,
+    supportsImages: false,
+    supportsPDFs: false,
+    description: 'Text files only'
+  },
+  'gpt-3.5': {
+    supportedTypes: ['text'],
+    formats: ['.txt', '.md', '.json'],
+    maxSize: '10MB',
+    maxSizeBytes: 10 * 1024 * 1024,
+    supportsImages: false,
+    supportsPDFs: false,
+    description: 'Text files only'
+  },
+  'claude-3': {
+    supportedTypes: ['text', 'image', 'pdf'],
+    formats: ['.txt', '.md', '.json', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf'],
+    maxSize: '10MB',
+    maxSizeBytes: 10 * 1024 * 1024,
+    supportsImages: true,
+    supportsPDFs: true,
+    description: 'Text, image, and PDF files'
+  },
+  'claude-opus': {
+    supportedTypes: ['text', 'image', 'pdf'],
+    formats: ['.txt', '.md', '.json', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf'],
+    maxSize: '10MB',
+    maxSizeBytes: 10 * 1024 * 1024,
+    supportsImages: true,
+    supportsPDFs: true,
+    description: 'Text, image, and PDF files'
+  },
+  'claude-sonnet': {
+    supportedTypes: ['text', 'image', 'pdf'],
+    formats: ['.txt', '.md', '.json', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf'],
+    maxSize: '10MB',
+    maxSizeBytes: 10 * 1024 * 1024,
+    supportsImages: true,
+    supportsPDFs: true,
+    description: 'Text, image, and PDF files'
+  },
+  'gemini': {
+    supportedTypes: ['text', 'image'],
+    formats: ['.txt', '.md', '.json', '.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    maxSize: '10MB',
+    maxSizeBytes: 10 * 1024 * 1024,
+    supportsImages: true,
+    supportsPDFs: false,
+    description: 'Text and image files (no PDFs)'
+  },
+  'mistral': {
+    supportedTypes: ['text'],
+    formats: ['.txt', '.md', '.json'],
+    maxSize: '10MB',
+    maxSizeBytes: 10 * 1024 * 1024,
+    supportsImages: false,
+    supportsPDFs: false,
+    description: 'Text files only'
+  },
+  'pixtral': {
+    supportedTypes: ['text', 'image'],
+    formats: ['.txt', '.md', '.json', '.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    maxSize: '10MB',
+    maxSizeBytes: 10 * 1024 * 1024,
+    supportsImages: true,
+    supportsPDFs: false,
+    description: 'Text and image files'
+  }
+};
+
+// Get file type capabilities for a specific model
+export const getFileTypeCapabilities = (modelName: string): FileTypeCapability => {
+  const modelLower = modelName.toLowerCase();
+  
+  // Check for exact or partial matches
+  for (const [key, capability] of Object.entries(fileTypeCapabilities)) {
+    if (modelLower.includes(key)) {
+      return capability;
+    }
+  }
+  
+  // Return default if no match found
+  return fileTypeCapabilities['default'];
+};
+
+// Helper function to get compatible models for a file
+export const getCompatibleModelsForFile = (fileExtension: string): string[] => {
+  const compatible: string[] = [];
+  
+  for (const [modelKey, capability] of Object.entries(fileTypeCapabilities)) {
+    if (modelKey === 'default') continue;
+    
+    const ext = fileExtension.toLowerCase();
+    if (capability.formats.some(format => format.toLowerCase() === ext)) {
+      compatible.push(modelKey);
+    }
+  }
+  
+  return compatible;
+};
+
 export abstract class LLMProvider {
   protected config: AIConfig;
 
@@ -179,8 +332,9 @@ export class AnthropicProvider extends LLMProvider {
             // Handle attachments for user messages
             if (msg.role === 'user' && msg.attachments && msg.attachments.length > 0) {
               const imageAttachments = msg.attachments.filter(att => att.fileType === 'image');
+              const pdfAttachments = msg.attachments.filter(att => att.mimeType === 'application/pdf');
               
-              if (imageAttachments.length > 0) {
+              if (imageAttachments.length > 0 || pdfAttachments.length > 0) {
                 // Anthropic multimodal format
                 const content: Array<{ type: string; text?: string; source?: { type: string; media_type: string; data: string } }> = [
                   { type: 'text', text: msg.content }
@@ -198,9 +352,21 @@ export class AnthropicProvider extends LLMProvider {
                   } as never);
                 });
                 
+                // Add PDFs as document blocks
+                pdfAttachments.forEach(pdf => {
+                  content.push({
+                    type: 'document' as const,
+                    source: {
+                      type: 'base64',
+                      media_type: 'application/pdf',
+                      data: pdf.base64Content
+                    }
+                  } as never);
+                });
+                
                 // Add text attachments
                 const textContent = this.formatAttachments(
-                  msg.attachments.filter(att => att.fileType !== 'image')
+                  msg.attachments.filter(att => att.fileType !== 'image' && att.mimeType !== 'application/pdf')
                 );
                 if (textContent) {
                   content[0].text += textContent;
@@ -286,8 +452,11 @@ export class GoogleProvider extends LLMProvider {
         config: generationConfig
       });
 
+      const lastMessage = geminiMessages.slice(-1)[0];
       const stream = await chat.sendMessageStream({
-        message: geminiMessages.slice(-1)[0].parts[0].text || '',
+        message: lastMessage.parts.length === 1 && lastMessage.parts[0].text
+          ? lastMessage.parts[0].text
+          : lastMessage.parts,
       });
       for await (const chunk of stream) {
         if (chunk.text) {
@@ -369,7 +538,40 @@ export class MistralProvider extends LLMProvider {
   ): Promise<void> {
     try {
       const formattedMessages = messages.map(msg => {
-        // Add attachment text for Mistral (no native vision support for most models)
+        // Handle attachments for user messages
+        if (msg.role === 'user' && msg.attachments && msg.attachments.length > 0) {
+          const imageAttachments = msg.attachments.filter(att => att.fileType === 'image');
+          
+          // If we have images and model is Pixtral, use multimodal format
+          if (imageAttachments.length > 0 && this.config.model.toLowerCase().includes('pixtral')) {
+            const content: Array<{ type: string; text?: string; image_url?: string }> = [
+              { type: 'text', text: msg.content }
+            ];
+            
+            // Add images
+            imageAttachments.forEach(img => {
+              content.push({
+                type: 'image_url',
+                image_url: `data:${img.mimeType};base64,${img.base64Content}`
+              });
+            });
+            
+            // Add text attachments
+            const textContent = this.formatAttachments(
+              msg.attachments.filter(att => att.fileType !== 'image')
+            );
+            if (textContent) {
+              content[0].text += textContent;
+            }
+            
+            return {
+              role: msg.role,
+              content: content as never
+            };
+          }
+        }
+        
+        // Default text format
         let content = msg.content;
         if (msg.attachments) {
           content += this.formatAttachments(msg.attachments);

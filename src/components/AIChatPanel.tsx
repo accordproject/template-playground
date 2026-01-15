@@ -5,6 +5,7 @@ import useAppStore from "../store/store";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
 import { Attachment } from "../types/components/AIAssistant.types";
 import { v4 as uuidv4 } from 'uuid';
+import { getFileTypeCapabilities, getCompatibleModelsForFile } from "../ai-assistant/llmProviders";
 
 export const AIChatPanel = () => {
   const [promptPreset, setPromptPreset] = useState<string | null>(null);
@@ -67,6 +68,12 @@ export const AIChatPanel = () => {
       inlineCode: isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
     };
   }, [backgroundColor]);
+  
+  // Memoize current model capabilities
+  const currentModelCapabilities = useMemo(() => {
+    if (!aiConfig) return getFileTypeCapabilities('default');
+    return getFileTypeCapabilities(aiConfig.model);
+  }, [aiConfig]);
   
   const [includeTemplateMarkContent, setIncludeTemplateMarkContent] = useState<boolean>(
     localStorage.getItem('aiIncludeTemplateMark') === 'true'
@@ -150,7 +157,6 @@ export const AIChatPanel = () => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const maxSize = 10 * 1024 * 1024; // 10MB
     const maxFiles = 5;
     
     if (attachments.length + files.length > maxFiles) {
@@ -158,23 +164,79 @@ export const AIChatPanel = () => {
       return;
     }
 
-    const allowedTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-      'text/plain', 'text/markdown', 'application/json', 'application/pdf'
-    ];
+    // Get current model capabilities
+    const currentModel = aiConfig?.model || 'default';
+    const capabilities = getFileTypeCapabilities(currentModel);
 
     const newAttachments: Attachment[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+      const fileExtension = `.${file.name.split('.').pop()?.toLowerCase() || ''}`;
       
-      if (file.size > maxSize) {
-        message.error(`File ${file.name} exceeds 10MB limit`);
+      // Check file size
+      if (file.size > capabilities.maxSizeBytes) {
+        message.error(`File ${file.name} exceeds ${capabilities.maxSize} limit for ${currentModel}`);
         continue;
       }
 
-      if (!allowedTypes.includes(file.type)) {
-        message.error(`File type ${file.type} not supported`);
+      // Check if file format is supported
+      if (!capabilities.formats.includes(fileExtension)) {
+        // Get compatible models for this file type
+        const compatibleModels = getCompatibleModelsForFile(fileExtension);
+        
+        message.error({
+          content: (
+            <div>
+              <strong>{currentModel}</strong> doesn't support <strong>{fileExtension}</strong> files.
+              <br />
+              <span className="text-xs">✓ Current model supports: {capabilities.formats.join(', ')}</span>
+              {compatibleModels.length > 0 && (
+                <>
+                  <br />
+                  <span className="text-xs">💡 Try switching to: {compatibleModels.slice(0, 3).join(', ')}</span>
+                </>
+              )}
+            </div>
+          ),
+          duration: 6
+        });
+        continue;
+      }
+
+      // Additional validation for PDFs
+      if (fileExtension === '.pdf' && !capabilities.supportsPDFs) {
+        const compatibleModels = getCompatibleModelsForFile('.pdf');
+        message.error({
+          content: (
+            <div>
+              <strong>{currentModel}</strong> doesn't support PDFs.
+              <br />
+              <span className="text-xs">✓ Current model supports: {capabilities.formats.join(', ')}</span>
+              <br />
+              <span className="text-xs">💡 Try: {compatibleModels.filter(m => m.includes('claude')).slice(0, 3).join(', ')}</span>
+            </div>
+          ),
+          duration: 6
+        });
+        continue;
+      }
+
+      // Additional validation for images
+      if (file.type.startsWith('image/') && !capabilities.supportsImages) {
+        const compatibleModels = getCompatibleModelsForFile(fileExtension);
+        message.error({
+          content: (
+            <div>
+              <strong>{currentModel}</strong> doesn't support images.
+              <br />
+              <span className="text-xs">✓ Current model supports: {capabilities.formats.join(', ')}</span>
+              <br />
+              <span className="text-xs">💡 Try: {compatibleModels.slice(0, 3).join(', ')}</span>
+            </div>
+          ),
+          duration: 6
+        });
         continue;
       }
 
@@ -241,24 +303,39 @@ export const AIChatPanel = () => {
       return { supportsVision: true, warning: null };
     }
 
+    const capabilities = currentModelCapabilities;
+    
     const hasImages = attachments.some(att => att.fileType === 'image');
-    if (!hasImages) {
-      return { supportsVision: true, warning: null };
-    }
+    const hasPDFs = attachments.some(att => att.mimeType === 'application/pdf');
+    
+    // Check for unsupported file types
+    const unsupportedFiles = attachments.filter(att => {
+      const ext = `.${att.fileName.split('.').pop()?.toLowerCase() || ''}`;
+      return !capabilities.formats.includes(ext);
+    });
 
-    const visionModels = [
-      'gpt-4-vision', 'gpt-4o', 'gpt-4-turbo',
-      'claude-3', 'claude-opus', 'claude-sonnet',
-      'gemini-pro-vision', 'gemini-1.5'
-    ];
-
-    const modelLower = aiConfig.model.toLowerCase();
-    const supportsVision = visionModels.some(vm => modelLower.includes(vm));
-
-    if (!supportsVision && hasImages) {
+    if (unsupportedFiles.length > 0) {
+      const fileNames = unsupportedFiles.map(f => f.fileName).join(', ');
       return {
         supportsVision: false,
-        warning: '⚠️ Current model may not support images. Text will be extracted where possible.'
+        warning: `⚠️ ${aiConfig?.model || 'Model'} doesn't support: ${fileNames}`
+      };
+    }
+
+    // Check for images when model doesn't support them
+    if (hasImages && !capabilities.supportsImages) {
+      const compatibleModels = getCompatibleModelsForFile('.jpg');
+      return {
+        supportsVision: false,
+        warning: `⚠️ ${aiConfig?.model || 'Model'} doesn't support images. Try: ${compatibleModels.slice(0, 2).join(', ')}`
+      };
+    }
+
+    // Check for PDFs when model doesn't support them
+    if (hasPDFs && !capabilities.supportsPDFs) {
+      return {
+        supportsVision: false,
+        warning: `⚠️ ${aiConfig?.model || 'Model'} doesn't support PDFs. Claude models support PDFs.`
       };
     }
 
@@ -459,6 +536,23 @@ export const AIChatPanel = () => {
                       <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
                           {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
+                      
+                      {/* Show attachments for user messages */}
+                      {message.role === 'user' && message.attachments && message.attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                          {message.attachments.map(att => (
+                            <div
+                              key={att.id}
+                              className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs flex items-center gap-1.5 border border-gray-300 dark:border-gray-600"
+                            >
+                              <span className="text-sm">{getFileIcon(att.fileType)}</span>
+                              <span className="max-w-[120px] truncate text-gray-800 dark:text-gray-200">{att.fileName}</span>
+                              <span className="text-gray-500 dark:text-gray-400 text-[10px]">({formatFileSize(att.size)})</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
                       {message.content && renderMessageContent(
                         (message.role === 'user') 
                           ? (aiConfig?.showFullPrompt ? (
@@ -617,12 +711,12 @@ export const AIChatPanel = () => {
               <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 py-1.5">
                 {/* Left side controls */}
                 <div className="flex items-center gap-1">
-                  {/* Attachment button */}
+                  {/* Attachment button with tooltip */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={chatState.isLoading || attachments.length >= 5}
                     className={`p-2 rounded transition-colors ${theme.controlButton} disabled:opacity-40 disabled:cursor-not-allowed`}
-                    title="Attach files"
+                    title={`Attach files (${currentModelCapabilities.description})\nMax: ${currentModelCapabilities.maxSize}\nFormats: ${currentModelCapabilities.formats.join(', ')}`}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -731,10 +825,10 @@ export const AIChatPanel = () => {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp,text/plain,text/markdown,application/json,application/pdf"
                 multiple
                 onChange={handleFileSelect}
                 className="hidden"
+                title={`Supported formats for ${aiConfig?.model || 'current model'}: ${currentModelCapabilities.formats.join(', ')}`}
               />
             </div>
         </div>
