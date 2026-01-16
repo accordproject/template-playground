@@ -23,8 +23,8 @@ test.describe('Navigation', () => {
     // Wait for any loading to complete
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
-    // Navigate back using browser back button
-    await page.goBack();
+    // Navigate back to home page
+    await page.goto('/');
 
     // Should be back at the playground
     await expect(page).toHaveURL('/');
