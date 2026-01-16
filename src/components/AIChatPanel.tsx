@@ -38,6 +38,8 @@ export const AIChatPanel = () => {
       welcomeMessage: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
       welcomeText: isDarkMode ? 'text-gray-300' : 'text-gray-600',
       messageAssistant: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
+      messageAssistantError: isDarkMode ? 'bg-red-900 border border-red-700' : 'bg-red-100 border border-red-300',
+      errorLabelColor: isDarkMode ? '#fca5a5' : '#991b1b',
       messageUser: isDarkMode ? 'bg-gray-700' : 'bg-gray-100',
       thinkingText: isDarkMode ? 'text-gray-400' : 'text-gray-500',
 
@@ -335,11 +337,11 @@ export const AIChatPanel = () => {
                     <div className={`p-3 rounded-lg ${
                       message.role === 'assistant'
                         ? isError
-                          ? 'bg-red-100 border border-red-300'
+                          ? theme.messageAssistantError
                           : theme.messageAssistant
                         : theme.messageUser
                     }`}>
-                      <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: isError ? theme.errorLabelColor : textColor }}>
                           {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
                       {message.content && renderMessageContent(
