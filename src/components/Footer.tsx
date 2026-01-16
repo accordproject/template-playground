@@ -35,7 +35,7 @@ const CustomFooter: React.FC = () => {
             <Link href="https://www.accordproject.org" target="_blank">
               <Image
                 src="/logo.png"
-                alt="Template Playground"
+                alt="Accord Project"
                 preview={false}
                 style={{ height: "36px", maxWidth: "100%" }}
               />

@@ -32,7 +32,7 @@ exports[`Footer > matches the snapshot 1`] = `
                 class="ant-image css-dev-only-do-not-override-17a39f8"
               >
                 <img
-                  alt="Template Playground"
+                  alt="Accord Project"
                   class="ant-image-img css-dev-only-do-not-override-17a39f8"
                   src="/logo.png"
                   style="height: 36px; max-width: 100%;"
