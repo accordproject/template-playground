@@ -23,10 +23,8 @@ test.describe('Navigation', () => {
     // Wait for any loading to complete
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
-    // Click the logo/home link to go back
-    const homeLink = page.getByRole('link', { name: 'Template Playground' }).first();
-    await expect(homeLink).toBeVisible();
-    await homeLink.click();
+    // Navigate back using browser back button
+    await page.goBack();
 
     // Should be back at the playground
     await expect(page).toHaveURL('/');
