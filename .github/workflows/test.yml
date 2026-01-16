@@ -35,5 +35,12 @@ jobs:
       - name: NPM Install
         run: npm ci
 
-      - name: Unit Tests
-        run: npm run test
+      - name: Unit Tests with Coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
