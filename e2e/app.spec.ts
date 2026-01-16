@@ -8,7 +8,7 @@ test.describe('App Loading', () => {
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Navbar should be visible with logo
-    await expect(page.getByRole('img', { name: 'Template Playground' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Accord Project' })).toBeVisible();
 
     // Sidebar should be visible with navigation buttons
     await expect(page.getByRole('button', { name: 'Editor' })).toBeVisible();
