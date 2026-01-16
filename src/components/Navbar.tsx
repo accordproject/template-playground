@@ -300,25 +300,16 @@ function Navbar() {
     <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${
       screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
     }`}>
-      <div
-        className={`cursor-pointer ${menuItemClasses("home", false)}`}
-        onMouseEnter={() => setHovered("home")}
-        onMouseLeave={() => setHovered(null)}
-      >
-        <Link
-          to="/"
-          rel="noopener noreferrer"
-          className="flex items-center"
-        >
-          <Image
-            src={screens.lg ? "/logo.png" : "/accord_logo.png"}
-            alt="Template Playground"
-            className={`h-6.5 ${screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"}`}
-          />
-          <span className={`text-white ${screens.lg ? "block" : "hidden"}`}>
-            Template Playground
-          </span>
-        </Link>
+      <div className="flex items-center gap-3">
+        <Image
+          src={screens.lg ? "/logo.png" : "/accord_logo.png"}
+          alt="Accord Project"
+          className={`h-6.5 ${screens.lg ? "max-w-[184.17px]" : "max-w-[36.67px]"}`}
+        />
+        <span className={`text-white/90 select-none font-semibold tracking-wide text-sm leading-none -mt-0.5 ${screens.lg ? "flex items-center gap-3" : "hidden"}`}>
+          <span className="text-white/60">·</span>
+          <span>Template Playground</span>
+        </span>
       </div>
       
       {screens.md ? (
