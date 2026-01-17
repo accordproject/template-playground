@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Modal } from "antd";
+import { Modal, Tooltip } from "antd";
 import AgreementHtml from "../AgreementHtml";
 import { MdFullscreen } from "react-icons/md";
 import useAppStore from "../store/store";
 
 const FullScreenModal: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
+  const [tooltipOpen, setTooltipOpen] = useState<boolean>(false);
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
 
@@ -34,13 +35,29 @@ const FullScreenModal: React.FC = () => {
     };
   }, [textColor, backgroundColor]);
 
+  const handleOpen = () => {
+    setTooltipOpen(false);
+    setOpen(true);
+  };
+
   return (
     <>
-      <MdFullscreen
-        size={24}
-        style={{ cursor: "pointer" }}
-        onClick={() => setOpen(true)}
-      />
+      <Tooltip
+        title="Fullscreen"
+        placement="right"
+        open={open ? false : tooltipOpen}
+        onOpenChange={(visible) => {
+          if (!open) {
+            setTooltipOpen(visible);
+          }
+        }}
+      >
+        <MdFullscreen
+          size={24}
+          style={{ cursor: "pointer" }}
+          onClick={handleOpen}
+        />
+      </Tooltip>
       <Modal
         title="Output"
         centered
