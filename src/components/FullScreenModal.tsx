@@ -20,7 +20,7 @@ const FullScreenModal: React.FC = () => {
         background-color: ${backgroundColor} !important;
         color: ${textColor} !important;
       }
-      .ant-modal-title{
+      .ant-modal-title {
         color: ${textColor} !important;
       }
       .ant-modal-body {

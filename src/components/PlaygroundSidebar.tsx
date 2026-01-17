@@ -5,7 +5,7 @@ import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
-import { message } from "antd";
+import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
 import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
@@ -154,11 +154,10 @@ const PlaygroundSidebar = () => {
     <aside className="playground-sidebar h-[calc(100vh-64px)]">
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
+          <Tooltip key={title} title={title} placement="right">
           <div
-            key={title}
             role="button"
             aria-label={title}
-            title={title}
             tabIndex={0}
             onClick={onClick}
             className={`group playground-sidebar-nav-item ${active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
@@ -169,27 +168,28 @@ const PlaygroundSidebar = () => {
                 {component}
               </div>
             ) : Icon ? (
-              <Icon size={24} />
+              <Icon size={20} />
             ) : null}
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
+          </Tooltip>
         ))}
       </nav>
 
       <nav className="playground-sidebar-nav-bottom">
         {navBottom.map(({ title, icon: Icon, onClick }) => (
+          <Tooltip key={title} title={title} placement="right">
           <div
-            key={title}
             role="button"
             aria-label={title}
-            title={title}
             tabIndex={0}
             onClick={onClick}
             className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
-            <Icon size={22} />
+            <Icon size={18} />
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
+          </Tooltip>
         ))}
       </nav>
     </aside>

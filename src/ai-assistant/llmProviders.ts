@@ -84,6 +84,13 @@ export class OpenRouterProvider extends OpenAICompatibleProvider {
   }
 }
 
+export class OllamaProvider extends OpenAICompatibleProvider {
+  constructor(config: AIConfig) {
+    const modifiedConfig = { ...config, apiKey: config.apiKey || 'ollama' };
+    super(modifiedConfig, 'http://localhost:11434/v1');
+  }
+}
+
 export class AnthropicProvider extends LLMProvider {
   async streamChat(
     messages: Message[],
@@ -117,11 +124,20 @@ export class AnthropicProvider extends LLMProvider {
         max_tokens: this.config.maxTokens ?? 100000,
       }
 
-      await client.messages.stream(
-        params
-      ).on('text', (textDelta) => {
+      const stream = client.messages.stream(params);
+      stream.on('text', (textDelta) => {
         console.log(textDelta)
         onChunk(textDelta);
+      });
+
+      // Wait for stream to complete
+      await new Promise<void>((resolve, reject) => {
+        stream.on('end', () => {
+          resolve();
+        });
+        stream.on('error', (error) => {
+          reject(error);
+        });
       });
 
       onComplete();
@@ -144,7 +160,6 @@ export class GoogleProvider extends LLMProvider {
   ): Promise<void> {
     try {
       const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
-      console.log("messages are", messages)
       const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
       const generationConfig: GenerateContentConfig = {};
@@ -154,7 +169,6 @@ export class GoogleProvider extends LLMProvider {
       if (systemInstruction) {
         generationConfig.systemInstruction = systemInstruction;
       }
-      console.log(geminiMessages.slice(0,-1));
       const chat = genAI.chats.create({
         model: this.config.model,
         history: geminiMessages.slice(0,-1),
@@ -245,6 +259,8 @@ export function getLLMProvider(config: AIConfig): LLMProvider {
       return new MistralProvider(config);
     case 'openrouter':
       return new OpenRouterProvider(config);
+    case 'ollama':  
+      return new OllamaProvider(config);
     case 'openai-compatible':
       if (!config.customEndpoint) {
         throw new Error('Custom API endpoint is required for OpenAI Compatible API');
