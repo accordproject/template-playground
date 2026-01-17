@@ -155,12 +155,11 @@ const PlaygroundSidebar = () => {
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={title} placement="right">
-          <div
-            role="button"
+          <button
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
-            className={`group playground-sidebar-nav-item ${
+            className={`group border-none bg-transparent playground-sidebar-nav-item ${
               active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
             } tour-${title.toLowerCase().replace(' ', '-')}`}
           >
@@ -172,7 +171,7 @@ const PlaygroundSidebar = () => {
               <Icon size={20} />
             ) : null}
             <span className="playground-sidebar-nav-item-title">{title}</span>
-          </div>
+          </button>
           </Tooltip>
         ))}
       </nav>
@@ -180,16 +179,15 @@ const PlaygroundSidebar = () => {
       <nav className="playground-sidebar-nav-bottom">
         {navBottom.map(({ title, icon: Icon, onClick }) => (
           <Tooltip key={title} title={title} placement="right">
-          <div
-            role="button"
+          <button
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
-            className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
+            className={`group border-none bg-transparent playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             <Icon size={18} />
             <span className="playground-sidebar-nav-item-title">{title}</span>
-          </div>
+          </button>
           </Tooltip>
         ))}
       </nav>
