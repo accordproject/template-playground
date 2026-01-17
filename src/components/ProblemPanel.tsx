@@ -13,10 +13,11 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
-  const { error, backgroundColor, textColor } = useAppStore((state) => ({ 
+  const { error, backgroundColor, textColor, setProblemPanelVisible } = useAppStore((state) => ({ 
     error: state.error,
     backgroundColor: state.backgroundColor,
-    textColor: state.textColor
+    textColor: state.textColor,
+    setProblemPanelVisible: state.setProblemPanelVisible
   }));
   
   const parseError = (errorMessage: string) => {
@@ -84,6 +85,14 @@ const ProblemPanel: React.FC = () => {
     <div className="problem-panel-container" style={{ backgroundColor }}>
       <div className={`problem-panel-header ${backgroundColor === '#ffffff' ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
         <span className="problem-panel-title">Problems</span>
+        <button
+          className="problem-panel-close-button"
+          onClick={() => setProblemPanelVisible(false)}
+          aria-label="Close problems panel"
+          title="Close"
+        >
+          ×
+        </button>
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
         {problems.length === 0 ? (
