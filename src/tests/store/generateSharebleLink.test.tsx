@@ -8,8 +8,13 @@ describe("useAppStore", () => {
   it("should generate a shareable link", async () => {
     const initialState: DecompressedData = {
       templateMarkdown: "Sample Template",
-      modelCto: "Sample Model",
-      data: '{"key": "value"}',
+      modelCto: `namespace test@1.0.0
+
+@template
+concept SampleModel {
+  o String key
+}`,
+      data: '{"$class": "test@1.0.0.SampleModel", "key": "value"}',
       agreementHtml: "<p>Sample Agreement</p>",
     };
 
