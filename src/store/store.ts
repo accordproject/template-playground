@@ -215,6 +215,7 @@ const useAppStore = create<AppState>()(
       loadSample: async (name: string) => {
         const sample = SAMPLES.find((s) => s.NAME === name);
         if (sample) {
+          const dataString = JSON.stringify(sample.DATA, null, 2);
           set(() => ({
             sampleName: sample.NAME,
             agreementHtml: undefined,
@@ -223,10 +224,19 @@ const useAppStore = create<AppState>()(
             editorValue: sample.TEMPLATE,
             modelCto: sample.MODEL,
             editorModelCto: sample.MODEL,
-            data: JSON.stringify(sample.DATA, null, 2),
-            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+            data: dataString,
+            editorAgreementData: dataString,
           }));
-          await get().rebuild();
+
+          try {
+            const result = await rebuild(sample.TEMPLATE, sample.MODEL, dataString);
+            set(() => ({ agreementHtml: result, error: undefined }));
+          } catch (error: unknown) {
+            set(() => ({
+              error: formatError(error),
+              isProblemPanelVisible: true,
+            }));
+          }
         }
       },
       rebuild: async () => {
