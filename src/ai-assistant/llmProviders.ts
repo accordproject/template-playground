@@ -160,7 +160,6 @@ export class GoogleProvider extends LLMProvider {
   ): Promise<void> {
     try {
       const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
-      console.log("messages are", messages)
       const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
       const generationConfig: GenerateContentConfig = {};
@@ -170,7 +169,6 @@ export class GoogleProvider extends LLMProvider {
       if (systemInstruction) {
         generationConfig.systemInstruction = systemInstruction;
       }
-      console.log(geminiMessages.slice(0,-1));
       const chat = genAI.chats.create({
         model: this.config.model,
         history: geminiMessages.slice(0,-1),
