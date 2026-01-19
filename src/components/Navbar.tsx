@@ -297,7 +297,7 @@ function Navbar() {
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`sticky top-0 z-50 bg-[#1b2540] h-16 flex items-center ${
+    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${
       screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
     }`}>
       <div
@@ -329,7 +329,7 @@ function Navbar() {
             onMouseLeave={() => setHovered(null)}
           >
             <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button className="bg-transparent border-none text-white h-16 flex items-center">
+              <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
                 Help
                 <CaretDownFilled className="text-xs ml-1.5" />
               </Button>
