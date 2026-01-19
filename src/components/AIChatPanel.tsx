@@ -159,15 +159,18 @@ export const AIChatPanel = () => {
   };
 
   const renderMessageContent = (content: string) => {
-    if (!content || !content.includes('```')) {
-      console.log("content is", content);
+    // Detect error marker
+    const isError = content.startsWith('[ERROR]');
+    const displayContent = isError ? content.replace(/^\[ERROR\]\s*/, '') : content;
+    
+    if (!displayContent || !displayContent.includes('```')) {
       return (
-        <div className="text-sm prose prose-sm break-all max-w-none" style={{ color: textColor }}>
+        <div className={`text-sm prose prose-sm break-all max-w-none ${isError ? 'text-red-700' : ''}`} style={isError ? {} : { color: textColor }}>
           <ReactMarkdown
             components={{
-              code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className || ''}`}>{children}</code>,
+              code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className ?? ''}`}>{children}</code>,
           }}>
-            {content}
+            {displayContent}
           </ReactMarkdown>
         </div>
       );
@@ -176,7 +179,7 @@ export const AIChatPanel = () => {
     const parts = [];
     let key = 0;
     
-    const segments = content.split('```');
+    const segments = displayContent.split('```');
     
     if (segments[0]) {
       parts.push(
@@ -316,24 +319,27 @@ export const AIChatPanel = () => {
               </div>
             ) : (
               chatState.messages.map((message, index) => {
-                if (message.role === "system" || message.content === "") return null;
+                if (message.role === "system" || !message.content.trim()) return null;
+                // Detect error marker
+                const isError = message.content.startsWith('[ERROR]');
                 return (
                   <div
                     key={message.id}
                     className="w-full"
                     ref={
                       ((index === chatState.messages.length - 1) || (index === chatState.messages.length - 2))  
-                      
                       ? latestMessageRef 
                       : null
                     }
                   >
-                    <div className={`${
+                    <div className={`p-3 rounded-lg ${
                       message.role === 'assistant'
-                        ? theme.messageAssistant
+                        ? isError
+                          ? 'bg-red-100 border border-red-300'
+                          : theme.messageAssistant
                         : theme.messageUser
-                    } p-3 rounded-lg`}>
-                      <p className="text-xs font-semibold mb-1" style={{ color: textColor }}>
+                    }`}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
                           {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
                       {message.content && renderMessageContent(
@@ -343,7 +349,6 @@ export const AIChatPanel = () => {
                           ) : message.content)
                           : message.content
                       )}
-                      
                       {message.role === 'assistant' && 
                           message.id === chatState.messages[chatState.messages.length - 1].id && 
                           chatState.isLoading && (

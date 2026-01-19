@@ -17,7 +17,7 @@ import {
   CopyOutlined,
   CheckOutlined,
 } from "@ant-design/icons";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
@@ -45,7 +45,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
       }
     };
 
-    loadContent();
+    void loadContent();
   }, [file]);
 
   const currentIndex = steps.findIndex((step) =>
@@ -65,8 +65,9 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   };
 
   const copyToClipboard = (code: string) => {
-    navigator.clipboard.writeText(code);
+    void navigator.clipboard.writeText(code);
     setCopied(code);
+    void message.success("Copied to clipboard!");
     setTimeout(() => setCopied(null), 2000);
   };
 
@@ -100,14 +101,15 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
           components={{
             pre: ({ children }) => {
-              const codeElement = React.Children.toArray(children)[0] as React.ReactElement;
+              const codeElement = React.Children.toArray(children)[0] as React.ReactElement | undefined;
               if (!codeElement || typeof codeElement !== "object") return <pre>{children}</pre>;
 
-              const codeText = codeElement.props.children || "";
+              const codeElementProps = codeElement.props as { children?: unknown } | undefined;
+              const codeText = (typeof codeElementProps?.children === 'string' ? codeElementProps.children : String(codeElementProps?.children ?? "")) ?? "";
               return (
                 <CodeBlockContainer>
                   <pre>{children}</pre>
-                  <CopyButton onClick={() => copyToClipboard(codeText)}>
+                  <CopyButton onClick={() => copyToClipboard(String(codeText))}>
                     {copied === codeText ? <CheckOutlined /> : <CopyOutlined />}
                   </CopyButton>
                 </CodeBlockContainer>
