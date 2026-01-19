@@ -13,3 +13,18 @@
 .app-spinner-container {
   @apply flex-1 flex justify-center items-center;
 }
+
+.error-line-highlight {
+  background-color: rgba(255, 200, 0, 0.3) !important;
+  animation: error-line-fade 2s ease-out forwards;
+}
+
+@keyframes error-line-fade {
+  0% {
+    background-color: rgba(255, 200, 0, 0.4);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
