@@ -75,11 +75,11 @@
 }
 
 .main-container-preview-text {
-  @apply text-gray-500 h-full;
+  @apply text-gray-500;
 }
 
 .main-container-agreement {
-  @apply flex-1 h-full;
+  @apply flex-1;
 }
 
 .collapse-button {
