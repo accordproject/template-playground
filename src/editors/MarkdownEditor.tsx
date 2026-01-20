@@ -13,9 +13,11 @@ const MonacoEditor = lazy(() =>
 export default function MarkdownEditor({
   value,
   onChange,
+  onEditorReady,
 }: {
   value: string;
   onChange?: (value: string | undefined) => void;
+  onEditorReady?: (editor: editor.IStandaloneCodeEditor) => void;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
   const { backgroundColor, textColor, aiConfig } = useAppStore((state) => ({
@@ -76,13 +78,17 @@ export default function MarkdownEditor({
     tabCompletion: "off",
   }), [aiConfig?.enableInlineSuggestions]);
 
-  const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
-    editor.onDidChangeCursorSelection(() => {
-      handleSelection(editor);
+  const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
+    editorInstance.onDidChangeCursorSelection(() => {
+      handleSelection(editorInstance);
     });
 
     if (monaco) {
       registerAutocompletion('markdown', monaco);
+    }
+
+    if (onEditorReady) {
+      onEditorReady(editorInstance);
     }
   };
 
