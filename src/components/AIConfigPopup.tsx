@@ -2,6 +2,53 @@ import { useState, useEffect, useMemo } from 'react';
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 
+const PROVIDER_MODEL_OPTIONS: Record<string, string[]> = {
+  openai: [
+    'gpt-4.1',
+    'gpt-4.1-mini',
+    'gpt-4o',
+    'gpt-4o-mini',
+    'o3-mini',
+    'o1',
+  ],
+  anthropic: [
+    'claude-3.7-sonnet',
+    'claude-3.7-opus',
+    'claude-3.5-sonnet',
+    'claude-3.5-haiku',
+  ],
+  google: [
+    'gemini-2.0-pro-exp-02-05',
+    'gemini-2.0-flash-exp',
+    'gemini-1.5-pro',
+    'gemini-1.5-flash',
+  ],
+  mistral: [
+    'mistral-large-latest',
+    'mistral-medium-latest',
+    'mistral-small-latest',
+    'codestral-latest',
+    'ministral-3b-latest',
+  ],
+  openrouter: [
+    'openai/gpt-4.1',
+    'openai/gpt-4o',
+    'anthropic/claude-3.7-sonnet',
+    'meta-llama/llama-3.3-70b-instruct',
+    'google/gemini-2.0-pro-exp-02-05',
+    'qwen/qwen-2.5-72b-instruct',
+    'mistralai/mistral-large-latest',
+  ],
+  ollama: [
+    'llama3',
+    'llama3.2',
+    'phi3',
+    'qwen2.5:7b',
+    'qwen2.5:14b',
+    'tinyllama',
+  ],
+};
+
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const { backgroundColor } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
@@ -47,6 +94,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
 
   const [provider, setProvider] = useState<string>('');
   const [model, setModel] = useState<string>('');
+  const [modelMode, setModelMode] = useState<'preset' | 'manual'>('preset');
   const [apiKey, setApiKey] = useState<string>('');
   const [customEndpoint, setCustomEndpoint] = useState<string>('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
@@ -69,7 +117,11 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
       
       if (savedProvider) setProvider(savedProvider);
-      if (savedModel) setModel(savedModel);
+      if (savedModel) {
+        setModel(savedModel);
+        const presets = savedProvider ? PROVIDER_MODEL_OPTIONS[savedProvider] || [] : [];
+        setModelMode(presets.includes(savedModel) ? 'preset' : 'manual');
+      }
       if (savedApiKey) setApiKey(savedApiKey);
       if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
       if (savedMaxTokens) setMaxTokens(savedMaxTokens);
@@ -127,6 +179,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       // Reset all state variables to default
       setProvider('');
       setModel('');
+      setModelMode('preset');
       setApiKey('');
       setCustomEndpoint('');
       setMaxTokens('');
@@ -174,7 +227,15 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             </label>
             <select
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => {
+                const nextProvider = e.target.value;
+                setProvider(nextProvider);
+                setModel('');
+                setModelMode('preset');
+                if (nextProvider !== 'openai-compatible') {
+                  setCustomEndpoint('');
+                }
+              }}
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
             >
               <option value="">Select a provider</option>
@@ -208,30 +269,77 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
 
           <div>
             <label className={`block text-sm font-medium ${theme.label} mb-1`}>
-              Model Name
+              Model
             </label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="Enter model name"
-              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-            />
+            {provider && (PROVIDER_MODEL_OPTIONS[provider] || []).length > 0 ? (
+              modelMode === 'preset' ? (
+                <select
+                  value={model}
+                  onChange={(e) => {
+                    if (e.target.value === '__manual__') {
+                      setModelMode('manual');
+                      setModel('');
+                    } else {
+                      setModel(e.target.value);
+                    }
+                  }}
+                  className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
+                >
+                  <option value="">Select a model</option>
+                  {(PROVIDER_MODEL_OPTIONS[provider] || []).map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                  <option value="__manual__">Manual entry…</option>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="Enter custom model name"
+                  className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+                  onBlur={() => {
+                    // If user cleared manual input, fall back to preset mode for clarity
+                    if (!model) {
+                      setModelMode('preset');
+                    }
+                  }}
+                />
+              )
+            ) : (
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Enter model name"
+                className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+              />
+            )}
+            {!provider && (
+              <div className={`mt-1 text-xs ${theme.helpText}`}>
+                Select a provider to see suggested models, or type a custom one.
+              </div>
+            )}
+            {provider && (PROVIDER_MODEL_OPTIONS[provider] || []).length === 0 && (
+              <div className={`mt-1 text-xs ${theme.helpText}`}>
+                No presets available for this provider. Enter a custom model name.
+              </div>
+            )}
+
             {provider && (
               <div className={`mt-1 text-xs ${theme.helpText}`}>
-                {provider === 'openai' && 'Example: gpt-5, gpt-5-mini'}
-                {provider === 'anthropic' && 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929'}
-                {provider === 'google' && 'Example: gemini-3-pro, gemini-2.5-flash'}
-                {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
-                {provider === 'openrouter' && 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct'}
-                {/* ADD THIS BLOCK FOR OLLAMA */}
+                {provider === 'openai' && 'Examples: gpt-4.1, gpt-4.1-mini, gpt-4o, gpt-4o-mini, o3-mini, o1'}
+                {provider === 'anthropic' && 'Examples: claude-3.7-sonnet, claude-3.7-opus, claude-3.5-sonnet, claude-3.5-haiku'}
+                {provider === 'google' && 'Examples: gemini-2.0-pro-exp-02-05, gemini-2.0-flash-exp, gemini-1.5-pro, gemini-1.5-flash'}
+                {provider === 'mistral' && 'Examples: mistral-large-latest, mistral-medium-latest, mistral-small-latest, codestral-latest, ministral-3b-latest'}
+                {provider === 'openrouter' && 'Examples: openai/gpt-4.1, openai/gpt-4o, anthropic/claude-3.7-sonnet, meta-llama/llama-3.3-70b-instruct, google/gemini-2.0-pro-exp-02-05, qwen/qwen-2.5-72b-instruct'}
                 {provider === 'ollama' && (
                   <span className="text-orange-500 font-bold">
                     ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
-                    <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
+                    <br/>Examples: llama3, qwen2.5:0.5b, tinyllama
                   </span>
                 )}
-                
+                {provider === 'openai-compatible' && 'Enter the model name supported by your custom endpoint'}
               </div>
             )}
           </div>
