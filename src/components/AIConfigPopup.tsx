@@ -105,7 +105,6 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
     onSave(); 
     onClose();
   };
-   const isDarkMode = backgroundColor !== '#ffffff';
 
 const handleReset = () => {
   Modal.confirm({
