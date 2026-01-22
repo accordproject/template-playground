@@ -169,7 +169,7 @@ function Navbar() {
   const location = useLocation();
 
   const props = useSpring({
-    loop: true,
+    loop: false,
     from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
     to: [
       { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
