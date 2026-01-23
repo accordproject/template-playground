@@ -1,7 +1,7 @@
 import React from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiRefreshCcw } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
@@ -21,6 +21,7 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible,
     setAIChatOpen,
     generateShareableLink,
+    resetToDefault,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -31,6 +32,7 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible: state.setProblemPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
+    resetToDefault: state.resetToDefault,
   }));
 
   const handleShare = async () => {
@@ -46,6 +48,16 @@ const PlaygroundSidebar = () => {
 
   const handleSettings = () => {
     void message.info('Settings feature coming soon!');
+  };
+
+  const handleReset = async () => {
+    try {
+      await resetToDefault();
+      void message.success('Reset to default playground!');
+    } catch (err) {
+      console.error('Error resetting:', err);
+      void message.error('Failed to reset');
+    }
   };
 
   const handleStartTour = async () => {
@@ -137,6 +149,11 @@ const PlaygroundSidebar = () => {
       title: "Share", 
       icon: FiShare2,
       onClick: () => void handleShare()
+    },
+    { 
+      title: "Reset", 
+      icon: FiRefreshCcw,
+      onClick: () => void handleReset()
     },
     { 
       title: "Start Tour", 

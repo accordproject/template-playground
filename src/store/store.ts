@@ -63,6 +63,7 @@ interface AppState {
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
+  resetToDefault: () => Promise<void>;
 }
 
 export interface DecompressedData {
@@ -422,6 +423,14 @@ const useAppStore = create<AppState>()(
       },
       startTour: () => {
         console.log('Starting tour...');
+      },
+      resetToDefault: async () => {
+        // Clear saved editor state from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(EDITOR_STATE_KEY);
+        }
+        // Load the default playground sample
+        await get().loadSample(playground.NAME);
       },
       }
     })
