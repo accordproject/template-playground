@@ -245,13 +245,13 @@ const useAppStore = create<AppState>()(
         } else {
           const savedState = getInitialEditorState();
           if(savedState){
-            set(() => ({
-              templateMarkdown: savedState.templateMarkdown,
-              editorValue: savedState.editorValue,
-              modelCto: savedState.modelCto,
-              editorModelCto: savedState.editorModelCto,
-              data: savedState.data,
-              editorAgreementData: savedState.editorAgreementData,
+            set((prev) => ({
+              templateMarkdown: savedState.templateMarkdown ?? prev.templateMarkdown,
+              editorValue: savedState.editorValue ?? prev.editorValue,
+              modelCto: savedState.modelCto ?? prev.modelCto,
+              editorModelCto: savedState.editorModelCto ?? prev.editorModelCto,
+              data: savedState.data ?? prev.data,
+              editorAgreementData: savedState.editorAgreementData ?? prev.editorAgreementData,
             }));
           }
           await get().rebuild();
