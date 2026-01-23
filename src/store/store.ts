@@ -162,7 +162,23 @@ const saveEditorState = (state: Partial<AppState>) => {
       data: state.data,
       editorAgreementData: state.editorAgreementData,
     }
-    localStorage.setItem(EDITOR_STATE_KEY, JSON.stringify(editorData));
+    try {
+      localStorage.setItem(EDITOR_STATE_KEY, JSON.stringify(editorData));
+    } catch (e) {
+      // Handle quota exceeded error
+      if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+        console.warn('localStorage quota exceeded, clearing editor state and retrying');
+        localStorage.removeItem(EDITOR_STATE_KEY);
+        // Try one more time after clearing
+        try {
+          localStorage.setItem(EDITOR_STATE_KEY, JSON.stringify(editorData));
+        } catch (retryError) {
+          console.error('Failed to save editor state even after clearing:', retryError);
+        }
+      } else {
+        console.error('Error saving editor state:', e);
+      }
+    }
   }  
 };
 
