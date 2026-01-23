@@ -5,7 +5,7 @@ import { FiTerminal, FiShare2, FiSettings, FiRefreshCcw } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
-import { message, Tooltip } from "antd";
+import { message, Modal, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
 import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
@@ -50,14 +50,23 @@ const PlaygroundSidebar = () => {
     void message.info('Settings feature coming soon!');
   };
 
-  const handleReset = async () => {
-    try {
-      await resetToDefault();
-      void message.success('Reset to default playground!');
-    } catch (err) {
-      console.error('Error resetting:', err);
-      void message.error('Failed to reset');
-    }
+  const handleReset = () => {
+    Modal.confirm({
+      title: 'Reset to Default?',
+      content: 'This will clear all your current work and reload the default playground sample. This action cannot be undone.',
+      okText: 'Reset',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await resetToDefault();
+          void message.success('Reset to default playground!');
+        } catch (err) {
+          console.error('Error resetting:', err);
+          void message.error('Failed to reset');
+        }
+      },
+    });
   };
 
   const handleStartTour = async () => {
