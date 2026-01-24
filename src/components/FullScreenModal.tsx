@@ -6,8 +6,8 @@ import useAppStore from "../store/store";
 
 const FullScreenModal: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
-  const textColor = useAppStore((state) => state.textColor);
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const textColor = useAppStore(state => state.textColor);
+  const backgroundColor = useAppStore(state => state.backgroundColor);
 
   useEffect(() => {
     const style = document.createElement("style");

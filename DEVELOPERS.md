@@ -1,6 +1,7 @@
 # Concerto Development Guide
 
 ## ❗ Accord Project Development Guide ❗
+
 We'd love for you to help develop improvements to Concerto technology! Please refer to the [Accord Project Development guidelines][apdev] we'd like you to follow.
 
 ## Template Playground Specific Information

@@ -55,21 +55,21 @@ Sincerely,
 **Human Resources**  
 {{companyName}}`;
 const DATA = {
-  "$class": "org.accordproject.employment@1.0.0.EmploymentOffer",
-  "candidateName": "Ishan Gupta",
-  "companyName": "Tech Innovators Inc.",
-  "roleTitle": "Junior AI Engineer",
-  "annualSalary": {
-    "$class": "org.accordproject.employment@1.0.0.MonetaryAmount",
-    "doubleValue": 85000,
-    "currencyCode": "USD"
+  $class: "org.accordproject.employment@1.0.0.EmploymentOffer",
+  candidateName: "Ishan Gupta",
+  companyName: "Tech Innovators Inc.",
+  roleTitle: "Junior AI Engineer",
+  annualSalary: {
+    $class: "org.accordproject.employment@1.0.0.MonetaryAmount",
+    doubleValue: 85000,
+    currencyCode: "USD",
   },
-  "startDate": "2025-02-01T09:00:00.000Z",
-  "probation": {
-    "$class": "org.accordproject.employment@1.0.0.Probation",
-    "months": 3
-  }
+  startDate: "2025-02-01T09:00:00.000Z",
+  probation: {
+    $class: "org.accordproject.employment@1.0.0.Probation",
+    months: 3,
+  },
 };
-const NAME = 'Employment Offer Letter ';
+const NAME = "Employment Offer Letter ";
 
 export { NAME, MODEL, DATA, TEMPLATE };

@@ -2,15 +2,14 @@ name: Build and Publish
 
 on:
   push:
-    branches: 
+    branches:
       - main
-      
+
 permissions:
-  id-token: write   # This is required for requesting the JWT
-  contents: read    # This is required for actions/checkout
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
 
 jobs:
-
   publish:
     name: Deploy playground
     runs-on: ubuntu-latest
@@ -28,7 +27,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: NPM Install
         if: github.ref == 'refs/heads/main'
@@ -38,10 +37,10 @@ jobs:
         run: SERVER_ROOT=https://playground.accordproject.org && NODE_OPTIONS=--max_old_space_size=8192 npm run build
         if: github.ref == 'refs/heads/main'
 
-      - name: Set S3 
+      - name: Set S3
         if: github.ref == 'refs/heads/main'
         run: |
-            echo "AWS_S3_BUCKET=${{secrets.AWS_S3_BUCKET}}" >> $GITHUB_ENV
+          echo "AWS_S3_BUCKET=${{secrets.AWS_S3_BUCKET}}" >> $GITHUB_ENV
 
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
@@ -56,7 +55,7 @@ jobs:
             --follow-symlinks \
             --delete
         env:
-          AWS_REGION: 'us-east-1'
+          AWS_REGION: "us-east-1"
 
       - name: Invalidate CloudFront
         run: |
@@ -64,4 +63,4 @@ jobs:
             --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
         env:
-          AWS_REGION: 'us-east-1'
+          AWS_REGION: "us-east-1"

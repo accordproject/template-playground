@@ -1,3 +1,3 @@
 export interface LearnContentProps {
-    file: string;
+  file: string;
 }

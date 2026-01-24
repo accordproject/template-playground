@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
-import useAppStore from '../store/store';
-import '../styles/components/ProblemPanel.css';
+import React, { useMemo } from "react";
+import useAppStore from "../store/store";
+import "../styles/components/ProblemPanel.css";
 
 export interface ProblemItem {
   id: string;
-  type: 'error' | 'warning' | 'info';
+  type: "error" | "warning" | "info";
   message: string;
   source?: string;
   line?: number;
@@ -13,40 +13,50 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
-  const { error, backgroundColor, textColor } = useAppStore((state) => ({ 
+  const { error, backgroundColor, textColor } = useAppStore(state => ({
     error: state.error,
     backgroundColor: state.backgroundColor,
-    textColor: state.textColor
+    textColor: state.textColor,
   }));
-  
+
   const parseError = (errorMessage: string) => {
-    const errors: Omit<ProblemItem, 'id' | 'timestamp'>[] = [];
-    
-    const errorParts = errorMessage.split(/\n(?=Error:|TypeError:|SyntaxError:|ReferenceError:)/);
-    
-    errorParts.forEach((part) => {
+    const errors: Omit<ProblemItem, "id" | "timestamp">[] = [];
+
+    const errorParts = errorMessage.split(
+      /\n(?=Error:|TypeError:|SyntaxError:|ReferenceError:)/,
+    );
+
+    errorParts.forEach(part => {
       if (!part.trim()) return;
-      
+
       const lineMatch = part.match(/[Ll]ine (\d+)/);
       const columnMatch = part.match(/[Cc]olumn? (\d+)/);
-      
-      let type: 'error' | 'warning' | 'info' = 'error';
-      let source = 'Template Compilation';
-      
-      if (part.includes('Warning') || part.includes('warning')) {
-        type = 'warning';
-      } else if (part.includes('Info') || part.includes('info')) {
-        type = 'info';
+
+      let type: "error" | "warning" | "info" = "error";
+      let source = "Template Compilation";
+
+      if (part.includes("Warning") || part.includes("warning")) {
+        type = "warning";
+      } else if (part.includes("Info") || part.includes("info")) {
+        type = "info";
       }
-      
-      if (part.includes('model') || part.includes('Model') || part.includes('CTO')) {
-        source = 'Concerto Model';
-      } else if (part.includes('template') || part.includes('Template') || part.includes('mark')) {
-        source = 'TemplateMark';
-      } else if (part.includes('data') || part.includes('JSON')) {
-        source = 'JSON Data';
+
+      if (
+        part.includes("model") ||
+        part.includes("Model") ||
+        part.includes("CTO")
+      ) {
+        source = "Concerto Model";
+      } else if (
+        part.includes("template") ||
+        part.includes("Template") ||
+        part.includes("mark")
+      ) {
+        source = "TemplateMark";
+      } else if (part.includes("data") || part.includes("JSON")) {
+        source = "JSON Data";
       }
-      
+
       errors.push({
         type,
         message: part.trim(),
@@ -55,34 +65,35 @@ const ProblemPanel: React.FC = () => {
         column: columnMatch ? parseInt(columnMatch[1]) : undefined,
       });
     });
-    
+
     return errors;
   };
-  
+
   const problems = useMemo((): ProblemItem[] => {
     if (!error) return [];
-    
+
     const parsedErrors = parseError(error);
     return parsedErrors.map((parsedError, index) => ({
       id: `error-${Date.now()}-${index}`,
       timestamp: new Date(),
-      ...parsedError
+      ...parsedError,
     }));
   }, [error]);
-  
 
   const formatTimestamp = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
+    return timestamp.toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
   };
 
   return (
     <div className="problem-panel-container" style={{ backgroundColor }}>
-      <div className={`problem-panel-header ${backgroundColor === '#ffffff' ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
+      <div
+        className={`problem-panel-header ${backgroundColor === "#ffffff" ? "problem-panel-header-light" : "problem-panel-header-dark"}`}
+      >
         <span className="problem-panel-title">Problems</span>
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
@@ -90,20 +101,29 @@ const ProblemPanel: React.FC = () => {
           <div className="problem-panel-empty-state">
             <div className="problem-panel-empty-state-content">
               <div className="problem-panel-empty-state-icon">✨</div>
-              <div className="problem-panel-empty-state-text" style={{ color: textColor }}>No problems detected</div>
+              <div
+                className="problem-panel-empty-state-text"
+                style={{ color: textColor }}
+              >
+                No problems detected
+              </div>
             </div>
           </div>
         ) : (
           <div className="problem-panel-problems-list">
-            {problems.map((problem) => (
+            {problems.map(problem => (
               <div
                 key={problem.id}
                 className={`problem-panel-problem-item ${
-                  backgroundColor === '#ffffff' ? 'problem-panel-problem-item-light' : 'problem-panel-problem-item-dark'
+                  backgroundColor === "#ffffff"
+                    ? "problem-panel-problem-item-light"
+                    : "problem-panel-problem-item-dark"
                 } ${
-                  problem.type === 'error' ? 'problem-panel-problem-item-error' :
-                  problem.type === 'warning' ? 'problem-panel-problem-item-warning' :
-                  'problem-panel-problem-item-info'
+                  problem.type === "error"
+                    ? "problem-panel-problem-item-error"
+                    : problem.type === "warning"
+                      ? "problem-panel-problem-item-warning"
+                      : "problem-panel-problem-item-info"
                 }`}
               >
                 <div className="problem-panel-problem-content">
@@ -114,25 +134,37 @@ const ProblemPanel: React.FC = () => {
                           {problem.type.toUpperCase()}
                         </span>
                         {problem.source && (
-                          <span className="problem-panel-problem-source" style={{ color: textColor }}>
+                          <span
+                            className="problem-panel-problem-source"
+                            style={{ color: textColor }}
+                          >
                             {problem.source}
                           </span>
                         )}
                         {(problem.line || problem.column) && (
-                          <span className="problem-panel-problem-location" style={{ color: textColor }}>
+                          <span
+                            className="problem-panel-problem-location"
+                            style={{ color: textColor }}
+                          >
                             {problem.line && `Line ${problem.line}`}
-                            {problem.line && problem.column && ':'}
+                            {problem.line && problem.column && ":"}
                             {problem.column && `Col ${problem.column}`}
                           </span>
                         )}
                       </div>
-                      <span className="problem-panel-problem-timestamp" style={{ color: textColor }}>
+                      <span
+                        className="problem-panel-problem-timestamp"
+                        style={{ color: textColor }}
+                      >
                         {formatTimestamp(problem.timestamp)}
                       </span>
                     </div>
-                    
+
                     <div className="problem-panel-problem-message-container">
-                      <p className="problem-panel-problem-message" style={{ color: textColor }}>
+                      <p
+                        className="problem-panel-problem-message"
+                        style={{ color: textColor }}
+                      >
                         {problem.message}
                       </p>
                     </div>
@@ -147,4 +179,4 @@ const ProblemPanel: React.FC = () => {
   );
 };
 
-export default ProblemPanel; 
+export default ProblemPanel;

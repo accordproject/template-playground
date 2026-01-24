@@ -4,7 +4,7 @@ import { editor as MonacoEditorNS, IRange, Selection } from "monaco-editor";
  * Gets the editor instance, model, and selection, returning null if any are unavailable
  */
 export function getEditorState(
-  editorInstance: MonacoEditorNS.IStandaloneCodeEditor | null
+  editorInstance: MonacoEditorNS.IStandaloneCodeEditor | null,
 ): {
   editor: MonacoEditorNS.IStandaloneCodeEditor;
   model: MonacoEditorNS.ITextModel;
@@ -24,7 +24,7 @@ export function getEditorState(
  */
 export function createLineEditRange(
   lineNumber: number,
-  lineLength: number
+  lineLength: number,
 ): IRange {
   return {
     startLineNumber: lineNumber,
@@ -52,7 +52,7 @@ export function parseLine(lineText: string): {
  */
 export function detectPrefix(
   content: string,
-  prefixes: string[]
+  prefixes: string[],
 ): { matched?: string; stripped: string } {
   const trimmed = content.trimStart();
   const leadingSpaces = content.length - trimmed.length;
@@ -78,9 +78,9 @@ export function detectPrefix(
 export function allLinesHavePrefix(
   lines: string[],
   prefix: string,
-  allPrefixes: string[]
+  allPrefixes: string[],
 ): boolean {
-  return lines.every((lineText) => {
+  return lines.every(lineText => {
     const { content } = parseLine(lineText);
     const detected = detectPrefix(content, allPrefixes);
     return detected.matched === prefix.trim();
@@ -93,7 +93,7 @@ export function allLinesHavePrefix(
 export function createLineEdit(
   lineNumber: number,
   lineText: string,
-  newText: string
+  newText: string,
 ): MonacoEditorNS.IIdentifiedSingleEditOperation {
   return {
     range: createLineEditRange(lineNumber, lineText.length),
@@ -108,7 +108,7 @@ export function createLineEdit(
 export function applyLinePrefixToggle(
   editorInstance: MonacoEditorNS.IStandaloneCodeEditor,
   prefix: string,
-  alternatives: string[] = []
+  alternatives: string[] = [],
 ): void {
   const state = getEditorState(editorInstance);
   if (!state) return;
@@ -123,7 +123,7 @@ export function applyLinePrefixToggle(
     lines.push(model.getLineContent(line));
   }
 
-  const allPrefixes = [prefix, ...alternatives].map((p) => p.trim());
+  const allPrefixes = [prefix, ...alternatives].map(p => p.trim());
   const shouldToggleOff = allLinesHavePrefix(lines, prefix, allPrefixes);
 
   const edits: MonacoEditorNS.IIdentifiedSingleEditOperation[] = [];
@@ -147,8 +147,8 @@ export function applyLinePrefixToggle(
       const baseContent = isUnorderedListToggle
         ? content.replace(/^\d+\.\s+/, "")
         : detected.matched !== undefined
-        ? detected.stripped
-        : content;
+          ? detected.stripped
+          : content;
       newText = `${leadingWhitespace}${prefix} ${baseContent}`;
     }
 
@@ -166,7 +166,7 @@ export function applyLinePrefixToggle(
  */
 export function applyOrderedListToggle(
   editorInstance: MonacoEditorNS.IStandaloneCodeEditor,
-  alternatives: string[] = []
+  alternatives: string[] = [],
 ): void {
   const state = getEditorState(editorInstance);
   if (!state) return;
@@ -181,12 +181,12 @@ export function applyOrderedListToggle(
   }
 
   const orderedRegex = /^(\s*)(\d+)\.\s+(.*)$/;
-  const alternativeRegexes = alternatives.map((alt) => {
+  const alternativeRegexes = alternatives.map(alt => {
     const escaped = alt.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return new RegExp(`^(\\s*)${escaped}\\s+(.*)$`);
   });
 
-  const allAreOrdered = lines.every((lineText) => orderedRegex.test(lineText));
+  const allAreOrdered = lines.every(lineText => orderedRegex.test(lineText));
   const edits: MonacoEditorNS.IIdentifiedSingleEditOperation[] = [];
 
   for (let i = 0; i < lines.length; i += 1) {
@@ -244,7 +244,7 @@ export function applyWrappedEdit(
   editorInstance: MonacoEditorNS.IStandaloneCodeEditor,
   before: string,
   after?: string,
-  options?: { allowInnerToggle?: boolean }
+  options?: { allowInnerToggle?: boolean },
 ): void {
   const state = getEditorState(editorInstance);
   if (!state) return;
@@ -267,7 +267,7 @@ export function applyWrappedEdit(
       // Strip markers
       textToInsert = selectedText.slice(
         before.length,
-        selectedText.length - suffix.length
+        selectedText.length - suffix.length,
       );
     } else if (
       allowInnerToggle &&
@@ -324,7 +324,7 @@ export function applyWrappedEdit(
 export function insertMarkdownLinkOrImage(
   editorInstance: MonacoEditorNS.IStandaloneCodeEditor,
   selectedText: string,
-  isImage: boolean
+  isImage: boolean,
 ): void {
   const state = getEditorState(editorInstance);
   if (!state) return;
@@ -344,7 +344,7 @@ export function insertMarkdownLinkOrImage(
         text: textToInsert,
         forceMoveMarkers: true,
       },
-    ]
+    ],
   );
 
   // Place cursor inside the URL parentheses
@@ -356,8 +356,8 @@ export function insertMarkdownLinkOrImage(
         selection.startLineNumber,
         cursorColumn,
         selection.startLineNumber,
-        cursorColumn
-      )
+        cursorColumn,
+      ),
     );
   }
 

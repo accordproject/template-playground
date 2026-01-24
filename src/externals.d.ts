@@ -11,6 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare module '@accordproject/markdown-common'
-declare module '@accordproject/markdown-template'
-declare module '@accordproject/markdown-transform'
+declare module "@accordproject/markdown-common";
+declare module "@accordproject/markdown-template";
+declare module "@accordproject/markdown-transform";

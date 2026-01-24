@@ -1,6 +1,6 @@
 export interface Message {
-  id: string,
-  role: 'system' | 'user' | 'assistant';
+  id: string;
+  role: "system" | "user" | "assistant";
   content: string;
   timestamp: Date;
 }
@@ -32,14 +32,14 @@ export interface AIConfigPopupProps {
 }
 
 export interface editorsContent {
-  editorTemplateMark: string,
-  editorModelCto: string,
-  editorAgreementData: string,
+  editorTemplateMark: string;
+  editorModelCto: string;
+  editorAgreementData: string;
 }
 
 export interface CodeSelectionMenuProps {
   selectedText: string;
   position: { x: number; y: number };
   onClose: () => void;
-  editorType: 'markdown' | 'concerto' | 'json';
+  editorType: "markdown" | "concerto" | "json";
 }

@@ -4,21 +4,27 @@ import useUndoRedo from "../../components/useUndoRedo";
 import { updateEditorActivity } from "../../ai-assistant/activityTracker";
 import * as monaco from "monaco-editor";
 
-function AgreementData({ editorRef }: { editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null> }) {
-  const editorAgreementData = useAppStore((state) => state.editorAgreementData);
-  const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
-  const setData = useAppStore((state) => state.setData);
+function AgreementData({
+  editorRef,
+}: {
+  editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
+}) {
+  const editorAgreementData = useAppStore(state => state.editorAgreementData);
+  const setEditorAgreementData = useAppStore(
+    state => state.setEditorAgreementData,
+  );
+  const setData = useAppStore(state => state.setData);
   const { value, setValue } = useUndoRedo(
     editorAgreementData,
     setEditorAgreementData,
-    setData // Sync to main state and rebuild
+    setData, // Sync to main state and rebuild
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
-      updateEditorActivity('json');
+      updateEditorActivity("json");
       setValue(value); // Update editor state and sync
-      void setData(value); 
+      void setData(value);
     }
   };
 

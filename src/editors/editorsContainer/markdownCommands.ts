@@ -11,7 +11,7 @@ import { MarkdownEditorCommands } from "../../contexts/MarkdownEditorContext";
  * Creates markdown editor commands bound to a specific editor instance
  */
 export function createMarkdownCommands(
-  editorRef: React.RefObject<MonacoEditorNS.IStandaloneCodeEditor | null>
+  editorRef: React.RefObject<MonacoEditorNS.IStandaloneCodeEditor | null>,
 ): MarkdownEditorCommands {
   return {
     toggleBold: () => {
@@ -75,4 +75,3 @@ export function createMarkdownCommands(
     },
   };
 }
-

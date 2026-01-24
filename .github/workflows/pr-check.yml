@@ -2,7 +2,7 @@ name: PR Check
 
 on:
   pull_request:
-    branches: 
+    branches:
       - main
 
 concurrency:
@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: NPM Install
         run: npm ci

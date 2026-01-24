@@ -25,14 +25,14 @@ const TEMPLATE = `
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.Customer",
-    "address" : {
-        "line1" : "1 Main Street",
-        "city" : "Boson",
-        "state" : "MA",
-        "country" : "USA"
-    }
+  $class: "hello@1.0.0.Customer",
+  address: {
+    line1: "1 Main Street",
+    city: "Boson",
+    state: "MA",
+    country: "USA",
+  },
 };
 
-const NAME = 'Clause';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Clause";
+export { NAME, MODEL, DATA, TEMPLATE };

@@ -11,9 +11,9 @@ const TEMPLATE = `> The one, the only...
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.HelloWorld",
-    "name": "John Doe"
+  $class: "hello@1.0.0.HelloWorld",
+  name: "John Doe",
 };
 
-const NAME = 'Hello World';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Hello World";
+export { NAME, MODEL, DATA, TEMPLATE };

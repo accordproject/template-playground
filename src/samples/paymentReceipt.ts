@@ -51,20 +51,20 @@ Thank you for your payment.
 `;
 
 const DATA = {
-  "$class": "payment@1.0.0.PaymentReceipt",
-  "payer": {
-    "name": "Alice Smith",
-    "email": "alice@example.com"
+  $class: "payment@1.0.0.PaymentReceipt",
+  payer: {
+    name: "Alice Smith",
+    email: "alice@example.com",
   },
-  "payee": {
-    "name": "Bob's Services LLC",
-    "email": "billing@bobsservices.com"
+  payee: {
+    name: "Bob's Services LLC",
+    email: "billing@bobsservices.com",
   },
-  "amount": 250.00,
-  "currency": "USD",
-  "vatPercent": 10,
-  "date": "2024-04-01T10:00:00Z"
+  amount: 250.0,
+  currency: "USD",
+  vatPercent: 10,
+  date: "2024-04-01T10:00:00Z",
 };
 
-const NAME = 'Payment Receipt';
+const NAME = "Payment Receipt";
 export { NAME, MODEL, DATA, TEMPLATE };
