@@ -4,8 +4,8 @@ export const ToggleDarkModeContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem; 
-  
+  padding: 1rem;
+
   /* Prevent clicks on the outer container */
   pointer-events: none;
 

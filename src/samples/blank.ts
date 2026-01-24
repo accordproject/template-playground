@@ -13,9 +13,9 @@ You can add your content here.
 `;
 
 const DATA = {
-    "$class": "hello@1.0.0.NewTemplate",
-    "exampleField": "Your value here"
+  $class: "hello@1.0.0.NewTemplate",
+  exampleField: "Your value here",
 };
 
-const NAME = 'New (Blank)';
+const NAME = "New (Blank)";
 export { NAME, MODEL, DATA, TEMPLATE };

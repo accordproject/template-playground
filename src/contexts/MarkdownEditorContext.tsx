@@ -17,13 +17,17 @@ interface MarkdownEditorContextType {
   setCommands: (commands: MarkdownEditorCommands | undefined) => void;
 }
 
-const MarkdownEditorContext = createContext<MarkdownEditorContextType | undefined>(
-  undefined
-);
+const MarkdownEditorContext = createContext<
+  MarkdownEditorContextType | undefined
+>(undefined);
 
-export const MarkdownEditorProvider = ({ children }: { children: ReactNode }) => {
+export const MarkdownEditorProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const [commands, setCommands] = useState<MarkdownEditorCommands | undefined>(
-    undefined
+    undefined,
   );
 
   return (
@@ -37,9 +41,8 @@ export const useMarkdownEditorContext = () => {
   const context = useContext(MarkdownEditorContext);
   if (context === undefined) {
     throw new Error(
-      "useMarkdownEditorContext must be used within a MarkdownEditorProvider"
+      "useMarkdownEditorContext must be used within a MarkdownEditorProvider",
     );
   }
   return context;
 };
-

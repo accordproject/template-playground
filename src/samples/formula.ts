@@ -13,9 +13,9 @@ Your name has {{% return name.length %}} characters.
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.HelloWorld",
-    "name": "John Doe"
+  $class: "hello@1.0.0.HelloWorld",
+  name: "John Doe",
 };
 
-const NAME = 'Formula';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = "Formula";
+export { NAME, MODEL, DATA, TEMPLATE };

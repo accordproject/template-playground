@@ -1,9 +1,9 @@
-import OpenAI from 'openai';
-import { AIConfig, Message } from '../types/components/AIAssistant.types';
-import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
-import { Mistral } from '@mistralai/mistralai';
-import Anthropic from '@anthropic-ai/sdk';
-import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
+import OpenAI from "openai";
+import { AIConfig, Message } from "../types/components/AIAssistant.types";
+import { GoogleGenAI, GenerateContentConfig } from "@google/genai";
+import { Mistral } from "@mistralai/mistralai";
+import Anthropic from "@anthropic-ai/sdk";
+import { ChatCompletionStreamRequest } from "@mistralai/mistralai/models/components/chatcompletionstreamrequest";
 
 export abstract class LLMProvider {
   protected config: AIConfig;
@@ -16,7 +16,7 @@ export abstract class LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
   ): Promise<void>;
 }
 
@@ -32,18 +32,18 @@ export class OpenAICompatibleProvider extends LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
   ): Promise<void> {
     try {
       const formattedMessages = messages.map(msg => ({
         role: msg.role,
-        content: msg.content
+        content: msg.content,
       }));
 
       const openai = new OpenAI({
         apiKey: this.config.apiKey,
         baseURL: this.apiEndpoint,
-        dangerouslyAllowBrowser: true
+        dangerouslyAllowBrowser: true,
       });
 
       const options: OpenAI.Chat.ChatCompletionCreateParamsStreaming = {
@@ -51,7 +51,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
         messages: formattedMessages,
         stream: true,
       };
-      
+
       if (this.config.maxTokens) {
         options.max_tokens = this.config.maxTokens;
       }
@@ -59,12 +59,12 @@ export class OpenAICompatibleProvider extends LLMProvider {
       const stream = await openai.chat.completions.create(options);
 
       for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || '';
+        const content = chunk.choices[0]?.delta?.content || "";
         if (content) {
           onChunk(content);
         }
       }
-      
+
       onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));
@@ -74,20 +74,20 @@ export class OpenAICompatibleProvider extends LLMProvider {
 
 export class OpenAIProvider extends OpenAICompatibleProvider {
   constructor(config: AIConfig) {
-    super(config, 'https://api.openai.com/v1');
+    super(config, "https://api.openai.com/v1");
   }
 }
 
 export class OpenRouterProvider extends OpenAICompatibleProvider {
   constructor(config: AIConfig) {
-    super(config, 'https://openrouter.ai/api/v1');
+    super(config, "https://openrouter.ai/api/v1");
   }
 }
 
 export class OllamaProvider extends OpenAICompatibleProvider {
   constructor(config: AIConfig) {
-    const modifiedConfig = { ...config, apiKey: config.apiKey || 'ollama' };
-    super(modifiedConfig, 'http://localhost:11434/v1');
+    const modifiedConfig = { ...config, apiKey: config.apiKey || "ollama" };
+    super(modifiedConfig, "http://localhost:11434/v1");
   }
 }
 
@@ -96,53 +96,51 @@ export class AnthropicProvider extends LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
   ): Promise<void> {
     try {
       const client = new Anthropic({
         apiKey: this.config.apiKey,
-        dangerouslyAllowBrowser: true
+        dangerouslyAllowBrowser: true,
       });
 
-      const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
+      const systemInstruction = messages.slice(-2, -1)[0]?.content || "";
       const formattedMessages: Anthropic.MessageParam[] = [];
-      messages.forEach(
-        (msg) => {
-          if (msg.role === 'user' || msg.role === 'assistant') {
-            formattedMessages.push({
-              role: msg.role,
-              content: msg.content,
-            });
-          }
+      messages.forEach(msg => {
+        if (msg.role === "user" || msg.role === "assistant") {
+          formattedMessages.push({
+            role: msg.role,
+            content: msg.content,
+          });
         }
-      );
+      });
 
       const params: Anthropic.MessageStreamParams = {
         model: this.config.model,
         system: systemInstruction,
         messages: formattedMessages,
         max_tokens: this.config.maxTokens ?? 100000,
-      }
+      };
 
       const stream = client.messages.stream(params);
-      stream.on('text', (textDelta) => {
-        console.log(textDelta)
+      stream.on("text", textDelta => {
+        console.log(textDelta);
         onChunk(textDelta);
       });
 
       // Wait for stream to complete
       await new Promise<void>((resolve, reject) => {
-        stream.on('end', () => {
+        stream.on("end", () => {
           resolve();
         });
-        stream.on('error', (error) => {
+        stream.on("error", error => {
           reject(error);
         });
       });
 
       onComplete();
     } catch (error) {
-      onError(error instanceof Error ? error : new Error('Unknown error'));
+      onError(error instanceof Error ? error : new Error("Unknown error"));
     }
   }
 }
@@ -156,11 +154,11 @@ export class GoogleProvider extends LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
   ): Promise<void> {
     try {
-      const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
-      const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
+      const genAI = new GoogleGenAI({ apiKey: this.config.apiKey });
+      const systemInstruction = messages.slice(-2, -1)[0]?.content || "";
       const geminiMessages = this.convertToGeminiFormat(messages);
       const generationConfig: GenerateContentConfig = {};
       if (this.config.maxTokens) {
@@ -171,8 +169,8 @@ export class GoogleProvider extends LLMProvider {
       }
       const chat = genAI.chats.create({
         model: this.config.model,
-        history: geminiMessages.slice(0,-1),
-        config: generationConfig
+        history: geminiMessages.slice(0, -1),
+        config: generationConfig,
       });
 
       const stream = await chat.sendMessageStream({
@@ -192,17 +190,17 @@ export class GoogleProvider extends LLMProvider {
 
   private convertToGeminiFormat(messages: Message[]) {
     const geminiMessages = [];
-    
+
     for (const message of messages) {
-      const role = message.role === 'assistant' ? 'model' : message.role;
+      const role = message.role === "assistant" ? "model" : message.role;
       if (role !== "system") {
         geminiMessages.push({
           role: role,
-          parts: [{ text: message.content }]
+          parts: [{ text: message.content }],
         });
       }
     }
-    
+
     return geminiMessages;
   }
 }
@@ -212,15 +210,15 @@ export class MistralProvider extends LLMProvider {
     messages: Message[],
     onChunk: (chunk: string) => void,
     onError: (error: Error) => void,
-    onComplete: () => void
+    onComplete: () => void,
   ): Promise<void> {
     try {
       const formattedMessages = messages.map(msg => ({
         role: msg.role,
-        content: msg.content
+        content: msg.content,
       }));
 
-      const mistral = new Mistral({apiKey: this.config.apiKey});
+      const mistral = new Mistral({ apiKey: this.config.apiKey });
 
       const options: ChatCompletionStreamRequest = {
         model: this.config.model,
@@ -234,12 +232,12 @@ export class MistralProvider extends LLMProvider {
       const stream = await mistral.chat.stream(options);
 
       for await (const chunk of stream) {
-        const content = chunk.data.choices[0]?.delta?.content || '';
+        const content = chunk.data.choices[0]?.delta?.content || "";
         if (content) {
-          onChunk((content as string));
+          onChunk(content as string);
         }
       }
-      
+
       onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));
@@ -249,21 +247,23 @@ export class MistralProvider extends LLMProvider {
 
 export function getLLMProvider(config: AIConfig): LLMProvider {
   switch (config.provider) {
-    case 'openai':
+    case "openai":
       return new OpenAIProvider(config);
-    case 'anthropic':
+    case "anthropic":
       return new AnthropicProvider(config);
-    case 'google':
+    case "google":
       return new GoogleProvider(config);
-    case 'mistral':
+    case "mistral":
       return new MistralProvider(config);
-    case 'openrouter':
+    case "openrouter":
       return new OpenRouterProvider(config);
-    case 'ollama':  
+    case "ollama":
       return new OllamaProvider(config);
-    case 'openai-compatible':
+    case "openai-compatible":
       if (!config.customEndpoint) {
-        throw new Error('Custom API endpoint is required for OpenAI Compatible API');
+        throw new Error(
+          "Custom API endpoint is required for OpenAI Compatible API",
+        );
       }
       return new OpenAICompatibleProvider(config, config.customEndpoint);
     default:

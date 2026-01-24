@@ -12,7 +12,7 @@ const renderNavbar = () => {
   render(
     <MemoryRouter>
       <Navbar />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };
 

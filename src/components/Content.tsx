@@ -48,8 +48,8 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     void loadContent();
   }, [file]);
 
-  const currentIndex = steps.findIndex((step) =>
-    step.link.includes(file.split(".")[0])
+  const currentIndex = steps.findIndex(step =>
+    step.link.includes(file.split(".")[0]),
   );
 
   const handlePrevious = () => {
@@ -101,11 +101,19 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
           components={{
             pre: ({ children }) => {
-              const codeElement = React.Children.toArray(children)[0] as React.ReactElement | undefined;
-              if (!codeElement || typeof codeElement !== "object") return <pre>{children}</pre>;
+              const codeElement = React.Children.toArray(children)[0] as
+                | React.ReactElement
+                | undefined;
+              if (!codeElement || typeof codeElement !== "object")
+                return <pre>{children}</pre>;
 
-              const codeElementProps = codeElement.props as { children?: unknown } | undefined;
-              const codeText = (typeof codeElementProps?.children === 'string' ? codeElementProps.children : String(codeElementProps?.children ?? "")) ?? "";
+              const codeElementProps = codeElement.props as
+                | { children?: unknown }
+                | undefined;
+              const codeText =
+                (typeof codeElementProps?.children === "string"
+                  ? codeElementProps.children
+                  : String(codeElementProps?.children ?? "")) ?? "";
               return (
                 <CodeBlockContainer>
                   <pre>{children}</pre>

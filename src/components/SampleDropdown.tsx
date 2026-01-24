@@ -12,22 +12,22 @@ function SampleDropdown({
 }): JSX.Element {
   const { samples, loadSample } = useStoreWithEqualityFn(
     useAppStore,
-    (state) => ({
+    state => ({
       samples: state.samples,
       loadSample: state.loadSample as (key: string) => Promise<void>,
     }),
-    shallow
+    shallow,
   );
 
   const [selectedSample, setSelectedSample] = useState<string | null>(null);
 
   const items: MenuProps["items"] = useMemo(
     () =>
-      samples?.map((s) => ({
+      samples?.map(s => ({
         label: s.NAME,
         key: s.NAME,
       })) || [],
-    [samples]
+    [samples],
   );
 
   const handleMenuClick = useCallback(
@@ -45,13 +45,15 @@ function SampleDropdown({
         }
       }
     },
-    [loadSample, setLoading]
+    [loadSample, setLoading],
   );
-  
-  
+
   return (
     <Space>
-      <Dropdown menu={{ items, onClick: (e) => void handleMenuClick(e) }} trigger={["click"]}>
+      <Dropdown
+        menu={{ items, onClick: e => void handleMenuClick(e) }}
+        trigger={["click"]}
+      >
         <div className="samples-element">
           <Button aria-label="Load sample dropdown">
             {selectedSample ? selectedSample : "Load Sample"} <DownOutlined />

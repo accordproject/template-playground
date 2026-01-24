@@ -17,18 +17,16 @@ const { Content } = Layout;
 
 const App = () => {
   const navigate = useNavigate();
-  const init = useAppStore((state) => state.init);
-  const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIConfigOpen, setAIConfigOpen } =
-    useAppStore((state) => ({
-      isAIConfigOpen: state.isAIConfigOpen,
-      setAIConfigOpen: state.setAIConfigOpen,
-    }));
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const textColor = useAppStore((state) => state.textColor);
+  const init = useAppStore(state => state.init);
+  const loadFromLink = useAppStore(state => state.loadFromLink);
+  const { isAIConfigOpen, setAIConfigOpen } = useAppStore(state => ({
+    isAIConfigOpen: state.isAIConfigOpen,
+    setAIConfigOpen: state.setAIConfigOpen,
+  }));
+  const backgroundColor = useAppStore(state => state.backgroundColor);
+  const textColor = useAppStore(state => state.textColor);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-
 
   const handleConfigSave = () => {
     loadConfigFromLocalStorage();
@@ -145,9 +143,18 @@ const App = () => {
             />
             <Route path="/learn" element={<LearnNow />}>
               <Route path="intro" element={<LearnContent file="intro.md" />} />
-              <Route path="module1" element={<LearnContent file="module1.md" />} />
-              <Route path="module2" element={<LearnContent file="module2.md" />} />
-              <Route path="module3" element={<LearnContent file="module3.md" />} />
+              <Route
+                path="module1"
+                element={<LearnContent file="module1.md" />}
+              />
+              <Route
+                path="module2"
+                element={<LearnContent file="module2.md" />}
+              />
+              <Route
+                path="module3"
+                element={<LearnContent file="module3.md" />}
+              />
             </Route>
           </Routes>
         </Layout>
@@ -159,9 +166,11 @@ const App = () => {
 const Spinner = () => (
   <div className="app-spinner-container">
     <Spin
-      indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
+      indicator={
+        <LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />
+      }
     />
   </div>
 );
- 
+
 export default App;

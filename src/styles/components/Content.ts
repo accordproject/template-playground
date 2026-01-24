@@ -10,7 +10,12 @@ export const ContentContainer = styled.div`
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     margin-top: 1em;
     margin-bottom: 0.5em;
     color: var(--text-color);
@@ -30,7 +35,8 @@ export const ContentContainer = styled.div`
     }
   }
 
-  ul, ol {
+  ul,
+  ol {
     margin: 1em 0;
     li {
       margin-bottom: 0.5em;

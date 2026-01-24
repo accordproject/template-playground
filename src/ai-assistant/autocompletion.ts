@@ -1,64 +1,73 @@
-import * as monaco from 'monaco-editor';
-import { sendMessage } from './chatRelay';
-import useAppStore from '../store/store';
-import { editorsContent } from '../types/components/AIAssistant.types';
-import { getLastActivity } from './activityTracker';
+import * as monaco from "monaco-editor";
+import { sendMessage } from "./chatRelay";
+import useAppStore from "../store/store";
+import { editorsContent } from "../types/components/AIAssistant.types";
+import { getLastActivity } from "./activityTracker";
 
 let lastRequestTime = 0;
 let isProcessing = false;
 
 export const registerAutocompletion = (
-  language: 'concerto' | 'markdown' | 'json',
-  monacoInstance: typeof monaco
+  language: "concerto" | "markdown" | "json",
+  monacoInstance: typeof monaco,
 ) => {
   try {
-    const provider = monacoInstance.languages.registerInlineCompletionsProvider(language, {
-      provideInlineCompletions: async (model, position, _context, token) => {
-        if (token.isCancellationRequested) {
-          return { items: [] };
-        }
+    const provider = monacoInstance.languages.registerInlineCompletionsProvider(
+      language,
+      {
+        provideInlineCompletions: async (model, position, _context, token) => {
+          if (token.isCancellationRequested) {
+            return { items: [] };
+          }
 
-        const { aiConfig } = useAppStore.getState();
-        const enableInlineSuggestions = aiConfig?.enableInlineSuggestions !== false;
-        if (!enableInlineSuggestions) {
-          return { items: [] };
-        }
+          const { aiConfig } = useAppStore.getState();
+          const enableInlineSuggestions =
+            aiConfig?.enableInlineSuggestions !== false;
+          if (!enableInlineSuggestions) {
+            return { items: [] };
+          }
 
-        const initialTime = Date.now();
+          const initialTime = Date.now();
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const lastActivity = getLastActivity(language);
-        if (lastActivity > initialTime) {
-          return { items: [] };
-        }
+          const lastActivity = getLastActivity(language);
+          if (lastActivity > initialTime) {
+            return { items: [] };
+          }
 
-        if (token.isCancellationRequested) {
-          return { items: [] };
-        }
+          if (token.isCancellationRequested) {
+            return { items: [] };
+          }
 
-        const currentTime = Date.now();
-        if (isProcessing || (currentTime - lastRequestTime < 2000)) {
-          return { items: [] };
-        }
+          const currentTime = Date.now();
+          if (isProcessing || currentTime - lastRequestTime < 2000) {
+            return { items: [] };
+          }
 
-        isProcessing = true;
-        lastRequestTime = currentTime;
+          isProcessing = true;
+          lastRequestTime = currentTime;
 
-        try {
-          const result = await getInlineCompletions(model, position, language, monacoInstance);
-          return result;
-        } finally {
-          isProcessing = false;
-        }
+          try {
+            const result = await getInlineCompletions(
+              model,
+              position,
+              language,
+              monacoInstance,
+            );
+            return result;
+          } finally {
+            isProcessing = false;
+          }
+        },
+        freeInlineCompletions: () => {
+          // No cleanup needed
+        },
       },
-      freeInlineCompletions: () => {
-        // No cleanup needed
-      },
-    });
+    );
     return provider;
   } catch (error) {
-    console.error('Error registering completion provider:', error);
+    console.error("Error registering completion provider:", error);
     return null;
   }
 };
@@ -66,8 +75,8 @@ export const registerAutocompletion = (
 const getInlineCompletions = async (
   model: monaco.editor.ITextModel,
   position: monaco.Position,
-  language: 'concerto' | 'markdown' | 'json',
-  monacoInstance: typeof monaco
+  language: "concerto" | "markdown" | "json",
+  monacoInstance: typeof monaco,
 ): Promise<{ items: monaco.languages.InlineCompletion[] }> => {
   const { aiConfig } = useAppStore.getState();
 
@@ -81,7 +90,7 @@ const getInlineCompletions = async (
 
   if (!textBeforeCursor.trim() || textBeforeCursor.length < 2) {
     return {
-      items: []
+      items: [],
     };
   }
 
@@ -91,7 +100,7 @@ const getInlineCompletions = async (
 
   for (let i = startLine; i <= endLine; i++) {
     if (i === position.lineNumber) {
-      const fullCurrentLine = textBeforeCursor + '<CURSOR>' + textAfterCursor;
+      const fullCurrentLine = textBeforeCursor + "<CURSOR>" + textAfterCursor;
       contextLines.push(fullCurrentLine);
     } else if (i < position.lineNumber) {
       contextLines.push(model.getLineContent(i));
@@ -100,7 +109,7 @@ const getInlineCompletions = async (
     }
   }
 
-  const contextText = contextLines.join('\n');
+  const contextText = contextLines.join("\n");
 
   const editorsContent: editorsContent = {
     editorTemplateMark: useAppStore.getState().editorValue,
@@ -110,26 +119,26 @@ const getInlineCompletions = async (
   const prompt = `Current context:\n${contextText}`;
 
   try {
-    let completion = '';
+    let completion = "";
 
     await sendMessage(
       prompt,
-      'inlineSuggestion',
+      "inlineSuggestion",
       editorsContent,
       false,
       language,
-      (chunk) => {
+      chunk => {
         completion += chunk;
       },
-      (error) => {
-        console.error('Autocompletion error:', error);
-      }
+      error => {
+        console.error("Autocompletion error:", error);
+      },
     );
 
     completion = completion.trim();
 
-    completion = completion.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
-    completion = completion.replace(/^`/, '').replace(/`$/, '');
+    completion = completion.replace(/^```[\s\S]*?\n/, "").replace(/\n```$/, "");
+    completion = completion.replace(/^`/, "").replace(/`$/, "");
 
     if (!completion || completion.length < 2) {
       return { items: [] };
@@ -141,7 +150,7 @@ const getInlineCompletions = async (
         position.lineNumber,
         position.column,
         position.lineNumber,
-        position.column
+        position.column,
       ),
       filterText: textBeforeCursor,
     };
@@ -150,7 +159,7 @@ const getInlineCompletions = async (
       items: [inlineCompletion],
     };
   } catch (error) {
-    console.error('Error getting AI completion:', error);
+    console.error("Error getting AI completion:", error);
     return { items: [] };
   }
 };

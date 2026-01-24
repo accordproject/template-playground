@@ -137,16 +137,32 @@ const CustomFooter: React.FC = () => {
 
         <Col>
           <Space>
-            <Link href="https://github.com/accordproject" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://github.com/accordproject"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               <GithubOutlined style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://twitter.com/AccordHQ" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://twitter.com/AccordHQ"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               <XOutlined style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               <DiscordFilled style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://www.linkedin.com/company/accordproject/" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link
+              href="https://www.linkedin.com/company/accordproject/"
+              target="_blank"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               <LinkedinFilled style={{ fontSize: "17px" }} />
             </Link>
           </Space>

@@ -5,7 +5,7 @@ import useAppStore from "../store/store";
 
 const UseShare = () => {
   const generateShareableLink = useAppStore(
-    (state) => state.generateShareableLink
+    state => state.generateShareableLink,
   );
   const [copied, setCopied] = useState(false);
 

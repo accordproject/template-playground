@@ -7,7 +7,7 @@ import { steps } from "../constants/learningSteps/steps";
 const LearnNow: React.FC = () => {
   return (
     <LearnNowContainer>
-        <LearningPathwaySidebar steps={steps} />
+      <LearningPathwaySidebar steps={steps} />
       <ContentContainer>
         <Outlet />
       </ContentContainer>

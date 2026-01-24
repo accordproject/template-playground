@@ -5,9 +5,8 @@ import { useCodeSelection } from "../components/CodeSelectionMenu";
 import type { editor } from "monaco-editor";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
-
 const MonacoEditor = lazy(() =>
-  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
+  import("@monaco-editor/react").then(mod => ({ default: mod.Editor })),
 );
 
 export default function MarkdownEditor({
@@ -20,7 +19,7 @@ export default function MarkdownEditor({
   onEditorReady?: (editor: editor.IStandaloneCodeEditor) => void;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
-  const { backgroundColor, textColor, aiConfig } = useAppStore((state) => ({
+  const { backgroundColor, textColor, aiConfig } = useAppStore(state => ({
     backgroundColor: state.backgroundColor,
     textColor: state.textColor,
     aiConfig: state.aiConfig,
@@ -29,7 +28,7 @@ export default function MarkdownEditor({
 
   const themeName = useMemo(
     () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
+    [backgroundColor],
   );
 
   useEffect(() => {
@@ -43,7 +42,7 @@ export default function MarkdownEditor({
             "editor.background": backgroundColor,
             "editor.foreground": textColor,
             "editor.lineHighlightBorder": "#EDE8DC",
-            "editorGhostText.foreground": "#9c9a9a"
+            "editorGhostText.foreground": "#9c9a9a",
           },
         });
       };
@@ -55,36 +54,41 @@ export default function MarkdownEditor({
     }
   }, [monaco, backgroundColor, textColor, themeName]);
 
-  const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
-    minimap: { enabled: false },
-    wordWrap: "on" as const,
-    automaticLayout: true,
-    scrollBeyondLastLine: false,
-    inlineSuggest: {
-      enabled: aiConfig?.enableInlineSuggestions !== false,
-      mode: "prefix",
-      suppressSuggestions: false,
-      fontFamily: "inherit",
-      keepOnBlur: true,
-    },
-    suggest: {
-      preview: true,
-      showInlineDetails: true,
-    },
-    quickSuggestions: false,
-    suggestOnTriggerCharacters: false,
-    acceptSuggestionOnCommitCharacter: false,
-    acceptSuggestionOnEnter: "off",
-    tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions]);
+  const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(
+    () => ({
+      minimap: { enabled: false },
+      wordWrap: "on" as const,
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
+      inlineSuggest: {
+        enabled: aiConfig?.enableInlineSuggestions !== false,
+        mode: "prefix",
+        suppressSuggestions: false,
+        fontFamily: "inherit",
+        keepOnBlur: true,
+      },
+      suggest: {
+        preview: true,
+        showInlineDetails: true,
+      },
+      quickSuggestions: false,
+      suggestOnTriggerCharacters: false,
+      acceptSuggestionOnCommitCharacter: false,
+      acceptSuggestionOnEnter: "off",
+      tabCompletion: "off",
+    }),
+    [aiConfig?.enableInlineSuggestions],
+  );
 
-  const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
+  const handleEditorDidMount = (
+    editorInstance: editor.IStandaloneCodeEditor,
+  ) => {
     editorInstance.onDidChangeCursorSelection(() => {
       handleSelection(editorInstance);
     });
 
     if (monaco) {
-      registerAutocompletion('markdown', monaco);
+      registerAutocompletion("markdown", monaco);
     }
 
     if (onEditorReady) {
@@ -96,7 +100,7 @@ export default function MarkdownEditor({
     (val: string | undefined) => {
       if (onChange) onChange(val);
     },
-    [onChange]
+    [onChange],
   );
 
   return (

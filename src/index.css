@@ -12,23 +12,23 @@ body {
 }
 
 html[data-theme="dark"] {
-    --bg-color: #121212;
-    --text-color: #ffffff;
-    --border-color: #444444;
-    --active-bg-color: #333333;
-    --active-text-color: #ffffff; 
-    --hover-bg-color: #444444;
-    --hover-text-color: #ffffff;
-    background-color: #121212;
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --border-color: #444444;
+  --active-bg-color: #333333;
+  --active-text-color: #ffffff;
+  --hover-bg-color: #444444;
+  --hover-text-color: #ffffff;
+  background-color: #121212;
 }
 
 html[data-theme="light"] {
-    --bg-color: #ffffff;
-    --text-color: #121212;
-    --border-color: #ddd;
-    --active-bg-color: #e0e0e0;
-    --active-text-color: #1b2540; 
-    --hover-bg-color: #e0e0e0;
-    --hover-text-color: #050c40;
-    background-color: #ffffff;
+  --bg-color: #ffffff;
+  --text-color: #121212;
+  --border-color: #ddd;
+  --active-bg-color: #e0e0e0;
+  --active-text-color: #1b2540;
+  --hover-bg-color: #e0e0e0;
+  --hover-text-color: #050c40;
+  background-color: #ffffff;
 }

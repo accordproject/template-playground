@@ -3,21 +3,23 @@ import { extractErrorMessage } from "../../../utils/helpers/errorUtils";
 describe("extractErrorMessage", () => {
   describe("Google AI API errors", () => {
     it("should extract message from Google standard error format", () => {
-      const error = new Error(JSON.stringify({
-        error: {
-          code: 400,
-          message: "API key not valid. Please pass a valid API key.",
-          status: "INVALID_ARGUMENT",
-          details: [
-            {
-              "@type": "type.googleapis.com/google.rpc.ErrorInfo",
-              "reason": "API_KEY_INVALID",
-              "domain": "googleapis.com",
-              "metadata": { "service": "generativelanguage.googleapis.com" }
-            }
-          ]
-        }
-      }));
+      const error = new Error(
+        JSON.stringify({
+          error: {
+            code: 400,
+            message: "API key not valid. Please pass a valid API key.",
+            status: "INVALID_ARGUMENT",
+            details: [
+              {
+                "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                reason: "API_KEY_INVALID",
+                domain: "googleapis.com",
+                metadata: { service: "generativelanguage.googleapis.com" },
+              },
+            ],
+          },
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("API key not valid. Please pass a valid API key.");
@@ -28,15 +30,17 @@ describe("extractErrorMessage", () => {
         error: {
           code: 400,
           message: "API key not valid. Please pass a valid API key.",
-          status: "INVALID_ARGUMENT"
-        }
+          status: "INVALID_ARGUMENT",
+        },
       });
 
-      const error = new Error(JSON.stringify({
-        error: {
-          message: innerError
-        }
-      }));
+      const error = new Error(
+        JSON.stringify({
+          error: {
+            message: innerError,
+          },
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("API key not valid. Please pass a valid API key.");
@@ -46,7 +50,7 @@ describe("extractErrorMessage", () => {
   describe("Anthropic errors", () => {
     it("should extract message from Anthropic error with prefix", () => {
       const error = new Error(
-        'AuthenticationError: 401 {"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"},"request_id":"req_011CWyZGnibYfGyNj4fHAaSv"}'
+        'AuthenticationError: 401 {"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"},"request_id":"req_011CWyZGnibYfGyNj4fHAaSv"}',
       );
 
       const result = extractErrorMessage(error);
@@ -54,13 +58,15 @@ describe("extractErrorMessage", () => {
     });
 
     it("should extract message from Anthropic pure JSON error", () => {
-      const error = new Error(JSON.stringify({
-        type: "error",
-        error: {
-          type: "authentication_error",
-          message: "invalid x-api-key"
-        }
-      }));
+      const error = new Error(
+        JSON.stringify({
+          type: "error",
+          error: {
+            type: "authentication_error",
+            message: "invalid x-api-key",
+          },
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("invalid x-api-key");
@@ -70,7 +76,7 @@ describe("extractErrorMessage", () => {
   describe("Mistral errors", () => {
     it("should extract message from Mistral error with prefix", () => {
       const error = new Error(
-        'API error occurred: Status 401 Content-Type application/json; charset=utf-8 Body {"detail":"Unauthorized"}'
+        'API error occurred: Status 401 Content-Type application/json; charset=utf-8 Body {"detail":"Unauthorized"}',
       );
 
       const result = extractErrorMessage(error);
@@ -78,18 +84,22 @@ describe("extractErrorMessage", () => {
     });
 
     it("should extract message from Mistral pure JSON error", () => {
-      const error = new Error(JSON.stringify({
-        detail: "Unauthorized"
-      }));
+      const error = new Error(
+        JSON.stringify({
+          detail: "Unauthorized",
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("Unauthorized");
     });
 
     it("should handle Mistral rate limit error", () => {
-      const error = new Error(JSON.stringify({
-        detail: "Rate limit exceeded"
-      }));
+      const error = new Error(
+        JSON.stringify({
+          detail: "Rate limit exceeded",
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("Rate limit exceeded");
@@ -98,23 +108,27 @@ describe("extractErrorMessage", () => {
 
   describe("OpenAI/OpenRouter errors", () => {
     it("should extract message from OpenAI standard error format", () => {
-      const error = new Error(JSON.stringify({
-        error: {
-          message: "Incorrect API key provided",
-          type: "invalid_request_error",
-          param: null,
-          code: "invalid_api_key"
-        }
-      }));
+      const error = new Error(
+        JSON.stringify({
+          error: {
+            message: "Incorrect API key provided",
+            type: "invalid_request_error",
+            param: null,
+            code: "invalid_api_key",
+          },
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("Incorrect API key provided");
     });
 
     it("should extract message from simple message format", () => {
-      const error = new Error(JSON.stringify({
-        message: "Model not found"
-      }));
+      const error = new Error(
+        JSON.stringify({
+          message: "Model not found",
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("Model not found");
@@ -159,33 +173,39 @@ describe("extractErrorMessage", () => {
 
   describe("Edge cases", () => {
     it("should handle error with error as string", () => {
-      const error = new Error(JSON.stringify({
-        error: "Simple error string"
-      }));
+      const error = new Error(
+        JSON.stringify({
+          error: "Simple error string",
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("Simple error string");
     });
 
     it("should handle complex nested structures", () => {
-      const error = new Error(JSON.stringify({
-        error: {
-          code: 500,
-          message: "Internal server error",
-          details: {
-            nested: "information"
-          }
-        }
-      }));
+      const error = new Error(
+        JSON.stringify({
+          error: {
+            code: 500,
+            message: "Internal server error",
+            details: {
+              nested: "information",
+            },
+          },
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("Internal server error");
     });
 
     it("should handle empty error message object", () => {
-      const error = new Error(JSON.stringify({
-        error: {}
-      }));
+      const error = new Error(
+        JSON.stringify({
+          error: {},
+        }),
+      );
 
       const result = extractErrorMessage(error);
       // When error object is empty, it returns the full JSON string
@@ -193,12 +213,14 @@ describe("extractErrorMessage", () => {
     });
 
     it("should prefer error.message over message", () => {
-      const error = new Error(JSON.stringify({
-        error: {
-          message: "Error from error.message"
-        },
-        message: "Error from message"
-      }));
+      const error = new Error(
+        JSON.stringify({
+          error: {
+            message: "Error from error.message",
+          },
+          message: "Error from message",
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("Error from error.message");
@@ -221,28 +243,30 @@ describe("extractErrorMessage", () => {
   describe("Real-world tested scenarios", () => {
     it("should handle the exact Google error from testing", () => {
       // This is the actual error format observed from Google AI
-      const error = new Error(JSON.stringify({
-        error: {
-          code: 400,
-          message: "API key not valid. Please pass a valid API key.",
-          status: "INVALID_ARGUMENT",
-          details: [
-            {
-              "@type": "type.googleapis.com/google.rpc.ErrorInfo",
-              "reason": "API_KEY_INVALID",
-              "domain": "googleapis.com",
-              "metadata": {
-                "service": "generativelanguage.googleapis.com"
-              }
-            },
-            {
-              "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
-              "locale": "en-US",
-              "message": "API key not valid. Please pass a valid API key."
-            }
-          ]
-        }
-      }));
+      const error = new Error(
+        JSON.stringify({
+          error: {
+            code: 400,
+            message: "API key not valid. Please pass a valid API key.",
+            status: "INVALID_ARGUMENT",
+            details: [
+              {
+                "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                reason: "API_KEY_INVALID",
+                domain: "googleapis.com",
+                metadata: {
+                  service: "generativelanguage.googleapis.com",
+                },
+              },
+              {
+                "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+                locale: "en-US",
+                message: "API key not valid. Please pass a valid API key.",
+              },
+            ],
+          },
+        }),
+      );
 
       const result = extractErrorMessage(error);
       expect(result).toBe("API key not valid. Please pass a valid API key.");
@@ -251,7 +275,7 @@ describe("extractErrorMessage", () => {
     it("should handle the exact Anthropic error from testing", () => {
       // This is the actual error format observed from Anthropic
       const error = new Error(
-        'AuthenticationError: 401 {"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"},"request_id":"req_011CWyZGnibYfGyNj4fHAaSv"}'
+        'AuthenticationError: 401 {"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"},"request_id":"req_011CWyZGnibYfGyNj4fHAaSv"}',
       );
 
       const result = extractErrorMessage(error);
@@ -261,7 +285,7 @@ describe("extractErrorMessage", () => {
     it("should handle the exact Mistral error from testing", () => {
       // This is the actual error format observed from Mistral
       const error = new Error(
-        'API error occurred: Status 401 Content-Type application/json; charset=utf-8 Body {"detail":"Unauthorized"}'
+        'API error occurred: Status 401 Content-Type application/json; charset=utf-8 Body {"detail":"Unauthorized"}',
       );
 
       const result = extractErrorMessage(error);

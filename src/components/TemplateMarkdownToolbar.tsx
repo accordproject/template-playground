@@ -1,5 +1,12 @@
 import { LuHeading1, LuHeading2, LuHeading3 } from "react-icons/lu";
-import { FaBold, FaItalic, FaLink, FaImage, FaListUl, FaListOl } from "react-icons/fa";
+import {
+  FaBold,
+  FaItalic,
+  FaLink,
+  FaImage,
+  FaListUl,
+  FaListOl,
+} from "react-icons/fa";
 import { useMarkdownEditorContext } from "../contexts/MarkdownEditorContext";
 
 export const TemplateMarkdownToolbar = () => {
@@ -82,5 +89,3 @@ export const TemplateMarkdownToolbar = () => {
     </div>
   );
 };
-
-
