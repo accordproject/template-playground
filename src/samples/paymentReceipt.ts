@@ -1,3 +1,5 @@
+import { getCurrencyFormatLogic } from "../utils/formatting";
+
 const MODEL = `namespace payment@1.0.0
 
 concept Party {
@@ -40,9 +42,9 @@ const TEMPLATE = `
 
 ### 💳 Payment Summary
 
-- Amount: {{amount as "0,0.00"}} {{currency}}  
-- VAT ({{vatPercent}}%): {{% return (amount * vatPercent / 100).toFixed(2) %}} {{currency}}  
-- Total Paid: **{{% return (amount + (amount * vatPercent / 100)).toFixed(2) %}} {{currency}}**  
+- Amount: ${getCurrencyFormatLogic('amount', 'currency')}  
+- VAT ({{vatPercent}}%): ${getCurrencyFormatLogic('(amount * vatPercent / 100)', 'currency')}  
+- Total Paid: **${getCurrencyFormatLogic('(amount + (amount * vatPercent / 100))', 'currency')}**  
 - Payment Date: {{date as "D MMMM YYYY"}}  
 
 ---

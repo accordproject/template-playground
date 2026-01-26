@@ -1,4 +1,5 @@
 import { defineConfig as defineViteConfig, mergeConfig } from "vite";
+import path from "path";
 import { defineConfig as defineVitestConfig, configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import nodePolyfills from "vite-plugin-node-stdlib-browser";
@@ -12,6 +13,11 @@ const viteConfig = defineViteConfig({
   optimizeDeps: {
     include: ["immer"],
     needsInterop: ['@accordproject/template-engine'],
+  },
+  resolve: {
+    alias: {
+      dayjs: path.resolve(process.cwd(), 'node_modules/dayjs'),
+    },
   },
 });
 

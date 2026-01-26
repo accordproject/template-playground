@@ -13,32 +13,33 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
-  const { error, backgroundColor, textColor } = useAppStore((state) => ({ 
+  const { error, warnings, backgroundColor, textColor } = useAppStore((state) => ({
     error: state.error,
+    warnings: state.warnings,
     backgroundColor: state.backgroundColor,
     textColor: state.textColor
   }));
-  
+
   const parseError = (errorMessage: string) => {
     const errors: Omit<ProblemItem, 'id' | 'timestamp'>[] = [];
-    
+
     const errorParts = errorMessage.split(/\n(?=Error:|TypeError:|SyntaxError:|ReferenceError:)/);
-    
+
     errorParts.forEach((part) => {
       if (!part.trim()) return;
-      
+
       const lineMatch = part.match(/[Ll]ine (\d+)/);
       const columnMatch = part.match(/[Cc]olumn? (\d+)/);
-      
+
       let type: 'error' | 'warning' | 'info' = 'error';
       let source = 'Template Compilation';
-      
+
       if (part.includes('Warning') || part.includes('warning')) {
         type = 'warning';
       } else if (part.includes('Info') || part.includes('info')) {
         type = 'info';
       }
-      
+
       if (part.includes('model') || part.includes('Model') || part.includes('CTO')) {
         source = 'Concerto Model';
       } else if (part.includes('template') || part.includes('Template') || part.includes('mark')) {
@@ -46,7 +47,7 @@ const ProblemPanel: React.FC = () => {
       } else if (part.includes('data') || part.includes('JSON')) {
         source = 'JSON Data';
       }
-      
+
       errors.push({
         type,
         message: part.trim(),
@@ -55,28 +56,47 @@ const ProblemPanel: React.FC = () => {
         column: columnMatch ? parseInt(columnMatch[1]) : undefined,
       });
     });
-    
+
     return errors;
   };
-  
+
   const problems = useMemo((): ProblemItem[] => {
-    if (!error) return [];
-    
-    const parsedErrors = parseError(error);
-    return parsedErrors.map((parsedError, index) => ({
-      id: `error-${Date.now()}-${index}`,
-      timestamp: new Date(),
-      ...parsedError
-    }));
-  }, [error]);
-  
+    const items: ProblemItem[] = [];
+
+    // Add errors
+    if (error) {
+      const parsedErrors = parseError(error);
+      parsedErrors.forEach((parsedError, index) => {
+        items.push({
+          id: `error-${Date.now()}-${index}`,
+          timestamp: new Date(),
+          ...parsedError
+        });
+      });
+    }
+
+    if (warnings && warnings.length > 0) {
+      warnings.forEach((warning, index) => {
+        items.push({
+          id: `warning-${Date.now()}-${index}`,
+          type: 'warning',
+          message: warning,
+          source: 'Validation',
+          timestamp: new Date()
+        });
+      });
+    }
+
+    return items;
+  }, [error, warnings]);
+
 
   const formatTimestamp = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
+    return timestamp.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
     });
   };
 
@@ -98,13 +118,11 @@ const ProblemPanel: React.FC = () => {
             {problems.map((problem) => (
               <div
                 key={problem.id}
-                className={`problem-panel-problem-item ${
-                  backgroundColor === '#ffffff' ? 'problem-panel-problem-item-light' : 'problem-panel-problem-item-dark'
-                } ${
-                  problem.type === 'error' ? 'problem-panel-problem-item-error' :
-                  problem.type === 'warning' ? 'problem-panel-problem-item-warning' :
-                  'problem-panel-problem-item-info'
-                }`}
+                className={`problem-panel-problem-item ${backgroundColor === '#ffffff' ? 'problem-panel-problem-item-light' : 'problem-panel-problem-item-dark'
+                  } ${problem.type === 'error' ? 'problem-panel-problem-item-error' :
+                    problem.type === 'warning' ? 'problem-panel-problem-item-warning' :
+                      'problem-panel-problem-item-info'
+                  }`}
               >
                 <div className="problem-panel-problem-content">
                   <div className="problem-panel-problem-details">
@@ -130,7 +148,7 @@ const ProblemPanel: React.FC = () => {
                         {formatTimestamp(problem.timestamp)}
                       </span>
                     </div>
-                    
+
                     <div className="problem-panel-problem-message-container">
                       <p className="problem-panel-problem-message" style={{ color: textColor }}>
                         {problem.message}

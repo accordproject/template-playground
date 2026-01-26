@@ -93,3 +93,51 @@
 .collapse-button:active {
   @apply opacity-50;
 }
+
+/* Clause Expansion Toggle Styles */
+
+/* When clause expansion is ON (clause-expanded class) */
+.clause-expanded blockquote {
+  border-left: 3px solid #19c6c7;
+  padding-left: 12px;
+  margin-left: 0;
+  position: relative;
+}
+
+/* Style the injected clause label */
+.clause-label {
+  display: block;
+  /* Ensure it takes full width inside the paragraph */
+  font-size: 0.75rem;
+  color: #19c6c7;
+  font-weight: 600;
+  margin-bottom: 0;
+  /* Paragraph will handle spacing */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* When clause expansion is OFF (clause-collapsed class) */
+.clause-collapsed blockquote {
+  border-left: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+/* Ensure label is hidden if it somehow exists in collapsed mode (defensive) */
+.clause-collapsed .clause-label {
+  display: none;
+}
+
+/* Variable Highlighting Styles */
+.variable-value {
+  border-bottom: 2px solid #19c6c7;
+  /* Blue/Teal underline */
+  cursor: help;
+  transition: background-color 0.2s;
+}
+
+.variable-value:hover {
+  background-color: rgba(25, 198, 199, 0.1);
+}

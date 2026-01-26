@@ -1,3 +1,5 @@
+import { getCurrencyFormatLogic } from "../utils/formatting";
+
 /**
  * Employment Offer Letter sample
  * This sample demonstrates how multiple Accord Project components
@@ -42,7 +44,7 @@ We are pleased to offer you the position of **{{roleTitle}}** at **{{companyName
 Your employment with {{companyName}} will commence on {{startDate as "DD MMMM YYYY"}}.
 
 {{#clause annualSalary}}
-Your annual gross salary will be **{{doubleValue as "0,0"}} {{currencyCode}}**, payable in accordance with company policies.
+Your annual gross salary will be **${getCurrencyFormatLogic('annualSalary.doubleValue', 'annualSalary.currencyCode')}**, payable in accordance with company policies.
 {{/clause}}
 
 {{#clause probation condition="return probation !== undefined"}}

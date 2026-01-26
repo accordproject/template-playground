@@ -10,6 +10,12 @@ import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState } from '../types/components/AIAssistant.types';
+import { ExecutionSettings, DEFAULT_EXECUTION_SETTINGS } from '../types/components/Settings.types';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
+import 'dayjs/locale/de';
+import 'dayjs/locale/es';
+import 'dayjs/locale/it';
 
 interface AppState {
   templateMarkdown: string;
@@ -20,6 +26,7 @@ interface AppState {
   editorAgreementData: string;
   agreementHtml: string;
   error: string | undefined;
+  warnings: string[];
   samples: Array<Sample>;
   sampleName: string;
   isAIConfigOpen: boolean;
@@ -61,6 +68,11 @@ interface AppState {
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
+  // Settings Panel
+  isSettingsPanelOpen: boolean;
+  executionSettings: ExecutionSettings;
+  setSettingsPanelOpen: (visible: boolean) => void;
+  updateExecutionSettings: (settings: Partial<ExecutionSettings>) => void;
 }
 
 export interface DecompressedData {
@@ -70,10 +82,45 @@ export interface DecompressedData {
   agreementHtml: string;
 }
 
+/**
+ * Result of a template rebuild operation
+ */
+interface RebuildResult {
+  html: string;
+  warnings: string[];
+}
+
 const rebuildDeBounce = debounce(rebuild, 500);
 
-async function rebuild(template: string, model: string, dataString: string): Promise<string> {
-  const modelManager = new ModelManager({ strict: true });
+/**
+ * Rebuilds the template with the given data and validation mode.
+ * In strict mode, validation errors are thrown.
+ * In lenient mode, certain validation errors are converted to warnings.
+ */
+async function rebuild(
+  template: string, 
+  model: string, 
+  dataString: string,
+  validationMode: 'strict' | 'lenient' = 'strict',
+  locale: string = 'en-US',
+  clauseExpansion: boolean = false
+): Promise<RebuildResult> {
+  // Set global dayjs locale to ensure formatting respects the setting
+  // The locale string might need to be trimmed to the language code for dayjs (e.g. 'en-US' -> 'en')
+  // but dayjs handles 'en-US' by falling back to 'en' usually.
+  // For 'fr', 'de', 'es', 'it', we imported the specific locales.
+  // Note: 'en' is built-in.
+  if (locale.startsWith('fr')) dayjs.locale('fr');
+  else if (locale.startsWith('de')) dayjs.locale('de');
+  else if (locale.startsWith('es')) dayjs.locale('es');
+  else if (locale.startsWith('it')) dayjs.locale('it');
+  else dayjs.locale('en');
+
+  const warnings: string[] = [];
+  
+  // ModelManager strict option controls versioned namespace imports, not data validation
+  // But we align it with validationMode to be safe
+  const modelManager = new ModelManager({ strict: validationMode === 'strict' });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
   const engine = new TemplateMarkInterpreter(modelManager, {});
@@ -86,21 +133,80 @@ async function rebuild(template: string, model: string, dataString: string): Pro
     "contract",
     { verbose: false }
   ) as object;
+  
+  // Parse data string to JSON
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const data = JSON.parse(dataString);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
-  const ciceroMark = await engine.generate(templateMarkDom, data);
+  let data: unknown;
+  try {
+    data = JSON.parse(dataString);
+  } catch (parseError) {
+    if (validationMode === 'lenient') {
+      warnings.push(`JSON parse warning: ${String(parseError)}`);
+      data = {};
+    } else {
+      throw parseError;
+    }
+  }
+  
+  // In lenient mode, we wrap the generation in a try-catch to convert errors to warnings
+  let ciceroMark;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
+    ciceroMark = await engine.generate(templateMarkDom, data as any, { locale });
+  } catch (genError) {
+    if (validationMode === 'lenient') {
+      // Check if it's a validation-related error that we can recover from
+      const errorMessage = String(genError);
+      if (errorMessage.includes('Unknown field') || 
+          errorMessage.includes('Missing required field') ||
+          errorMessage.includes('unknown property') ||
+          errorMessage.includes('unexpected property') ||
+          errorMessage.includes('Unexpected properties') ||
+          errorMessage.includes('not valid') ||
+          errorMessage.includes('Instance') ||
+          errorMessage.includes('Additional property') ||
+          errorMessage.includes('Value')) {
+        warnings.push(`Validation warning: ${errorMessage}`);
+        // Return empty HTML with warnings in lenient mode
+        return { html: '<p><em>Template could not be fully rendered due to validation issues. See warnings.</em></p>', warnings };
+      }
+    }
+    throw genError;
+  }
+  
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-  const ciceroMarkJson = ciceroMark.toJSON() as unknown;
+  const ciceroMarkJson = ciceroMark.toJSON() as any;
+
+
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  const result = await transform(
+  let html = await transform(
     ciceroMarkJson,
     "ciceromark_parsed",
     ["html"],
     {},
     { verbose: false }
   ) as string;
-  return result;
+
+  if (clauseExpansion) {
+    // Post-process HTML to inject clause labels
+    // CiceroMark clauses render as blockquotes. We look for identifying attributes.
+    // If the transformer outputs 'name' or 'data-name' or similar, we can use it.
+    // We'll assume standard CiceroMark HTML output which usually includes the clause name.
+    
+    // Regex to find blockquotes and check for name attribute
+    // Example: <blockquote name="payer">
+    html = html.replace(/<blockquote([^>]*)>/g, (match, attributes) => {
+      const nameMatch = attributes.match(/name=["']([^"']+)["']/) || attributes.match(/data-clause=["']([^"']+)["']/);
+      if (nameMatch) {
+        const clauseName = nameMatch[1];
+        return `<blockquote${attributes}><div class="clause-label">▾ Clause: ${clauseName}</div>`;
+      }
+      return match;
+    });
+  }
+
+  return { html, warnings };
 }
 
 const getInitialTheme = () => {
@@ -146,6 +252,20 @@ const savePanelState = (state: Partial<AppState>) => {
   }
 };
 
+/* --- Helper to safely load execution settings --- */
+const getInitialExecutionSettings = (): ExecutionSettings => {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('executionSettings');
+      if (saved) {
+        return { ...DEFAULT_EXECUTION_SETTINGS, ...(JSON.parse(saved) as Partial<ExecutionSettings>) };
+      }
+    } catch (e) { /* ignore */ }
+  }
+  return DEFAULT_EXECUTION_SETTINGS;
+};
+
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
@@ -166,6 +286,7 @@ const useAppStore = create<AppState>()(
       isAIConfigOpen: false,
       isAIChatOpen: initialPanels.isAIChatOpen, 
       error: undefined,
+      warnings: [],
       samples: SAMPLES,
       chatState: {
         messages: [],
@@ -230,27 +351,51 @@ const useAppStore = create<AppState>()(
         }
       },
       rebuild: async () => {
-        const { templateMarkdown, modelCto, data } = get();
+        const { templateMarkdown, modelCto, data, executionSettings } = get();
         try {
-          const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined }));
+          const result = await rebuildDeBounce(
+            templateMarkdown, 
+            modelCto, 
+            data, 
+            executionSettings.validationMode,
+            executionSettings.locale,
+            executionSettings.clauseExpansion
+          );
+          set(() => ({ 
+            agreementHtml: result.html, 
+            warnings: result.warnings,
+            error: undefined 
+          }));
         } catch (error: unknown) {
           set(() => ({
           error: formatError(error),
           isProblemPanelVisible: true,
+          warnings: [],
         }));
       }
       },
       setTemplateMarkdown: async (template: string) => {
         set(() => ({ templateMarkdown: template }));
-        const { modelCto, data } = get();
+        const { modelCto, data, executionSettings } = get();
         try {
-          const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined }));
+          const result = await rebuildDeBounce(
+            template, 
+            modelCto, 
+            data,
+            executionSettings.validationMode,
+            executionSettings.locale,
+            executionSettings.clauseExpansion
+          );
+          set(() => ({ 
+            agreementHtml: result.html, 
+            warnings: result.warnings,
+            error: undefined 
+          }));
         } catch (error: unknown) {
           set(() => ({
           error: formatError(error),
           isProblemPanelVisible: true,
+          warnings: [],
           }));
         }
       },
@@ -259,14 +404,26 @@ const useAppStore = create<AppState>()(
       },
       setModelCto: async (model: string) => {
         set(() => ({ modelCto: model }));
-        const { templateMarkdown, data } = get();
+        const { templateMarkdown, data, executionSettings } = get();
         try {
-          const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({ agreementHtml: result, error: undefined }));
+          const result = await rebuildDeBounce(
+            templateMarkdown, 
+            model, 
+            data,
+            executionSettings.validationMode,
+            executionSettings.locale,
+            executionSettings.clauseExpansion
+          );
+          set(() => ({ 
+            agreementHtml: result.html, 
+            warnings: result.warnings,
+            error: undefined 
+          }));
         } catch (error: unknown) {
           set(() => ({
           error: formatError(error),
           isProblemPanelVisible: true,
+          warnings: [],
           }));
         }
       },
@@ -279,13 +436,21 @@ const useAppStore = create<AppState>()(
           const result = await rebuildDeBounce(
             get().templateMarkdown,
             get().modelCto,
-            data
+            data,
+            get().executionSettings.validationMode,
+            get().executionSettings.locale,
+            get().executionSettings.clauseExpansion
           );
-          set(() => ({ agreementHtml: result, error: undefined }));
+          set(() => ({ 
+            agreementHtml: result.html, 
+            warnings: result.warnings,
+            error: undefined 
+          }));
         } catch (error: unknown) {
           set(() => ({
           error: formatError(error),
           isProblemPanelVisible: true,
+          warnings: [],
         }));
         }
 
@@ -372,6 +537,34 @@ const useAppStore = create<AppState>()(
       },
       startTour: () => {
         console.log('Starting tour...');
+      },
+      // Settings Panel
+      isSettingsPanelOpen: false,
+      executionSettings: getInitialExecutionSettings(),
+      setSettingsPanelOpen: (visible: boolean) => {
+        set({ isSettingsPanelOpen: visible });
+      },
+      updateExecutionSettings: (settings: Partial<ExecutionSettings>) => {
+        const oldSettings = get().executionSettings;
+        set((state) => ({
+          executionSettings: { ...state.executionSettings, ...settings }
+        }));
+        
+        // Save to localStorage for persistence
+        const currentSettings = get().executionSettings;
+        const updatedSettings = { ...currentSettings, ...settings };
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('executionSettings', JSON.stringify(updatedSettings));
+        }
+
+        // Trigger rebuild if validation mode or locale changed
+        if (
+          (settings.validationMode && settings.validationMode !== oldSettings.validationMode) ||
+          (settings.locale && settings.locale !== oldSettings.locale) ||
+          (settings.clauseExpansion !== undefined && settings.clauseExpansion !== oldSettings.clauseExpansion)
+        ) {
+          void get().rebuild();
+        }
       },
       }
     })

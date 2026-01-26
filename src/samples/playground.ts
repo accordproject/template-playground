@@ -1,3 +1,5 @@
+import { getCurrencyFormatLogic } from "../utils/formatting";
+
 const MODEL = `namespace hello@1.0.0
 import org.accordproject.money@0.3.0.{MonetaryAmount} from https://models.accordproject.org/money@0.3.0.cto
 
@@ -42,17 +44,15 @@ const TEMPLATE = `> A general sample that uses a range of features
  {{/clause}}
 
 - You are *{{age}}* years old
-- Your monthly salary is {{salary as "0,0.00 CCC"}}
+- Your monthly salary is ${getCurrencyFormatLogic('salary.doubleValue', 'salary.currencyCode')}
 - Your favorite colours are {{#join favoriteColors}}
 
 {{#clause order}}
 ## Orders
 Your last order was placed {{createdAt as "D MMMM YYYY"}} ({{% return now.diff(order.createdAt, 'day')%}} days ago).
 
-{{#ulist orderLines}}
-- {{quantity}}x _{{sku}}_ @ £{{price as "0,0.00"}}
-{{/ulist}}
-Order total: {{% return '£' + order.orderLines.map(ol => ol.price * ol.quantity).reduce((sum, cur) => sum + cur).toFixed(2);%}}
+{{% return order.orderLines.map(ol => '- ' + ol.quantity + 'x _' + ol.sku + '_ @ ' + new Intl.NumberFormat(options.locale, { style: 'currency', currency: 'USD', currencyDisplay: 'code' } as any).format(ol.price)).join('\\n') %}}
+Order total: **{{% return new Intl.NumberFormat(options.locale, { style: 'currency', currency: 'USD', currencyDisplay: 'code' } as any).format(order.orderLines.map(ol => ol.price * ol.quantity).reduce((sum, cur) => sum + cur)) %}}**
 {{/clause}}
 
 Thank you.

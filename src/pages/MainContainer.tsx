@@ -67,6 +67,7 @@ const MainContainer = () => {
     isDataCollapsed,
     toggleModelCollapse,
     toggleDataCollapse,
+    executionSettings,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
     isEditorsVisible: state.isEditorsVisible,
@@ -77,6 +78,7 @@ const MainContainer = () => {
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
+    executionSettings: state.executionSettings,
   }));
 
   const [, setLoading] = useState(true);
@@ -220,7 +222,7 @@ const MainContainer = () => {
                   <div className="main-container-preview-text">
                     <div
                       ref={downloadRef}
-                      className="main-container-agreement"
+                      className={`main-container-agreement ${executionSettings.clauseExpansion ? 'clause-expanded' : 'clause-collapsed'}`}
                       dangerouslySetInnerHTML={{ __html: agreementHtml }}
                       style={{
                         color: textColor,
