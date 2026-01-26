@@ -12,6 +12,7 @@ import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
 import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
+import NotFound from "./pages/NotFound";
 
 const { Content } = Layout;
 
@@ -110,7 +111,7 @@ const App = () => {
       <Layout style={{ height: "100vh" }}>
         <Navbar />
         <Layout
-          className="app-layout"
+          className="app-layout grid"
           style={{
             backgroundColor,
             height: "calc(100vh - 64px)",
@@ -149,6 +150,9 @@ const App = () => {
               <Route path="module2" element={<LearnContent file="module2.md" />} />
               <Route path="module3" element={<LearnContent file="module3.md" />} />
             </Route>
+
+             <Route path="*" element={<NotFound />} />
+            
           </Routes>
         </Layout>
       </Layout>
