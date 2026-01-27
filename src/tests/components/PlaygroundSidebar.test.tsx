@@ -50,7 +50,7 @@ describe("PlaygroundSidebar", () => {
         expect(screen.getByRole("button", { name: /Settings/i })).toBeInTheDocument();
     });
 
-    it("wraps navigation items with Tooltip component", async () => {
+    it("wraps navigation items with Tooltip component", () => {
         renderSidebar();
         const editorButton = screen.getByRole("button", { name: /Editor/i });
         expect(editorButton).toBeInTheDocument();
