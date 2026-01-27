@@ -38,9 +38,23 @@ jobs:
       - name: Unit Tests with Coverage
         run: npm run test:coverage
 
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
         with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 30
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel: true
+
+  notify:
+    needs:
+      - build
+
+    name: Code Coverage
+    if: ${{ success() }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
