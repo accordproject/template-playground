@@ -33,9 +33,6 @@ test.describe('App Loading', () => {
     // Preview header should be visible
     await expect(page.getByText('Preview').first()).toBeVisible();
 
-    // Download PDF button should be present
-    await expect(page.getByRole('button', { name: 'Download PDF' })).toBeVisible();
-
     // Preview content area should have rendered HTML
     const previewContent = page.locator('.main-container-agreement');
     await expect(previewContent).toBeVisible();
@@ -64,5 +61,29 @@ test.describe('Dark Mode', () => {
       document.documentElement.getAttribute('data-theme')
     );
     expect(newTheme).not.toBe(initialTheme);
+  });
+});
+
+test.describe('Output Modal', () => {
+  test('should display Download PDF button in Output modal', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
+
+    // Click fullscreen icon to open Output modal
+    const fullscreenIcon = page.locator('[data-icon="fullscreen"]').or(page.locator('svg').filter({ hasText: /fullscreen/i })).first();
+    
+    // If fullscreen icon exists, click it
+    if (await fullscreenIcon.isVisible()) {
+      await fullscreenIcon.click();
+      
+      // Wait for modal to appear
+      await expect(page.getByRole('dialog')).toBeVisible();
+      
+      // Download PDF button should be present in modal
+      await expect(page.getByRole('button', { name: 'Download PDF' })).toBeVisible();
+      
+      // Close modal
+      await page.keyboard.press('Escape');
+    }
   });
 });
