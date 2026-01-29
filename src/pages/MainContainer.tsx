@@ -94,7 +94,7 @@ const MainContainer = () => {
     <div className="main-container" style={{ backgroundColor }}>
       <PanelGroup direction="horizontal" className="main-container-panel-group"
         style={{ position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)" }}>
-        {isEditorsVisible && (
+        {isPreviewVisible && (
           <>
             <Panel defaultSize={62.5} minSize={30}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
@@ -202,7 +202,7 @@ const MainContainer = () => {
             <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
           </>
         )}
-        {isPreviewVisible && (
+        {isEditorsVisible && (
           <>
             <Panel defaultSize={37.5} minSize={20}>
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor }}>
