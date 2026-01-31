@@ -7,10 +7,6 @@ import {
     createLineEdit,
 } from "../../utils/markdownEditorUtils";
 
-// ============================================
-// Tests for Pure Functions
-// ============================================
-
 describe("markdownEditorUtils - Pure Functions", () => {
     describe("parseLine", () => {
         it("should extract leading whitespace and content from a line with spaces", () => {
@@ -222,10 +218,6 @@ describe("markdownEditorUtils - Pure Functions", () => {
     });
 });
 
-// ============================================
-// Tests for createLineEdit Function
-// ============================================
-
 describe("markdownEditorUtils - createLineEdit", () => {
     it("should create an edit operation for a line", () => {
         const result = createLineEdit(3, "old text", "new text");
@@ -234,7 +226,7 @@ describe("markdownEditorUtils - createLineEdit", () => {
                 startLineNumber: 3,
                 startColumn: 1,
                 endLineNumber: 3,
-                endColumn: 9, // "old text".length + 1
+                endColumn: 9,
             },
             text: "new text",
             forceMoveMarkers: true,
@@ -290,17 +282,13 @@ describe("markdownEditorUtils - createLineEdit", () => {
                 startLineNumber: 1,
                 startColumn: 1,
                 endLineNumber: 1,
-                endColumn: 9, // "Hello 世界".length + 1
+                endColumn: 9,
             },
             text: "Goodbye 世界",
             forceMoveMarkers: true,
         });
     });
 });
-
-// ============================================
-// Edge Cases and Integration Tests
-// ============================================
 
 describe("markdownEditorUtils - Edge Cases", () => {
     describe("parseLine edge cases", () => {
@@ -312,7 +300,6 @@ describe("markdownEditorUtils - Edge Cases", () => {
         });
 
         it("should handle unicode whitespace", () => {
-            // Regular ASCII spaces
             const result = parseLine("  regular spaces");
             expect(result.leadingWhitespace).toBe("  ");
         });
@@ -365,7 +352,6 @@ describe("markdownEditorUtils - Edge Cases", () => {
         it("should handle lines with only the prefix", () => {
             const lines = ["-", "- ", "- item"];
             const result = allLinesHavePrefix(lines, "-", ["-"]);
-            // First line is just "-" which matches prefix with empty stripped
             expect(result).toBe(true);
         });
     });
@@ -388,10 +374,6 @@ describe("markdownEditorUtils - Edge Cases", () => {
         });
     });
 });
-
-// ============================================
-// Comprehensive Integration Tests
-// ============================================
 
 describe("markdownEditorUtils - Function Integration", () => {
     describe("parseLine and detectPrefix work together", () => {
