@@ -29,6 +29,16 @@ const MainContainer = () => {
 
     try {
       setIsDownloading(true);
+      
+      // --- FIX START: Store original styles ---
+      const originalBg = element.style.backgroundColor;
+      const originalColor = element.style.color;
+      
+      // Force White Background / Black Text for PDF
+      element.style.backgroundColor = '#ffffff';
+      element.style.color = '#000000';
+      // --- FIX END ---
+
       const options = {
         margin: 10,
         filename: 'agreement.pdf',
@@ -43,6 +53,12 @@ const MainContainer = () => {
       } as const;
 
       await html2pdf().set(options).from(element).save();
+      
+      // --- FIX START: Restore original styles ---
+      element.style.backgroundColor = originalBg;
+      element.style.color = originalColor;
+      // --- FIX END ---
+
     } catch (error) {
       console.error("PDF generation failed:", error);
       alert("Failed to generate PDF. Please check the console.");
