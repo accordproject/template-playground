@@ -3,6 +3,7 @@ import AgreementData from "../editors/editorsContainer/AgreementData";
 import TemplateModel from "../editors/editorsContainer/TemplateModel";
 import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
@@ -77,7 +78,7 @@ const MainContainer = () => {
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
-  }));
+  }), shallow);
 
   const [, setLoading] = useState(true);
 

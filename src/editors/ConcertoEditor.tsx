@@ -2,6 +2,7 @@ import { useMonaco } from "@monaco-editor/react";
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
@@ -125,7 +126,7 @@ export default function ConcertoEditor({
     error: state.error,
     backgroundColor: state.backgroundColor,
     aiConfig: state.aiConfig
-  }));
+  }), shallow);
   const ctoErr = error?.startsWith("c:") ? error : undefined;
 
   const themeName = useMemo(
