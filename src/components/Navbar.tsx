@@ -9,9 +9,11 @@ import {
   BookOutlined,
   CaretDownFilled,
   MenuOutlined,
+  MacCommandOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
 import ToggleDarkMode from "./ToggleDarkMode";
+import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 
 
 interface DropdownProps {
@@ -43,7 +45,7 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
   };
 
   return (
-    <div 
+    <div
       className={`relative ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -53,8 +55,8 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
       </div>
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-10" 
+          <div
+            className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
@@ -72,16 +74,16 @@ const Menu = ({ children, className = "" }: { children: React.ReactNode; classNa
   </div>
 );
 
-const MenuItem = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const MenuItem = ({
+  children,
+  onClick,
+  className = ""
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
   className?: string;
 }) => (
-  <div 
+  <div
     className={`px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`}
     onClick={onClick}
   >
@@ -89,12 +91,12 @@ const MenuItem = ({
   </div>
 );
 
-const MenuItemGroup = ({ 
-  title, 
-  children, 
-  className = "" 
-}: { 
-  title: string; 
+const MenuItemGroup = ({
+  title,
+  children,
+  className = ""
+}: {
+  title: string;
   children: React.ReactNode;
   className?: string;
 }) => (
@@ -106,16 +108,16 @@ const MenuItemGroup = ({
   </div>
 );
 
-const Button = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const Button = ({
+  children,
+  onClick,
+  className = ""
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
   className?: string;
 }) => (
-  <button 
+  <button
     className={`flex items-center ${className}`}
     onClick={onClick}
   >
@@ -123,12 +125,12 @@ const Button = ({
   </button>
 );
 
-const Image = ({ 
-  src, 
-  alt, 
-  className = "" 
-}: { 
-  src: string; 
+const Image = ({
+  src,
+  alt,
+  className = ""
+}: {
+  src: string;
   alt: string;
   className?: string;
 }) => (
@@ -165,6 +167,7 @@ function Navbar() {
   const [hovered, setHovered] = useState<
     null | "home" | "help" | "github" | "discord" | "join"
   >(null);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const screens = useBreakpoint();
   const location = useLocation();
 
@@ -268,6 +271,16 @@ function Navbar() {
             <span>Issues</span>
           </a>
         </MenuItem>
+        <MenuItem onClick={() => setIsShortcutsModalOpen(true)}>
+          <a
+            href="#"
+            onClick={(e) => e.preventDefault()}
+            className="flex items-center space-x-2"
+          >
+            <MacCommandOutlined />
+            <span>Keyboard Shortcuts</span>
+          </a>
+        </MenuItem>
       </MenuItemGroup>
       <MenuItemGroup title="Documentation">
         <MenuItem>
@@ -290,137 +303,135 @@ function Navbar() {
     const paddingClasses = screens.md ? "px-5" : "px-0";
     const bgClasses = hovered === key ? "bg-white bg-opacity-10" : "bg-transparent";
     const borderClasses = screens.md && !isLast ? "border-r border-white border-opacity-10" : "";
-    
+
     return `${baseClasses} ${paddingClasses} ${bgClasses} ${borderClasses}`;
   };
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${
-      screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
-    }`}>
-      <div
-        className={`cursor-pointer ${menuItemClasses("home", false)}`}
-        onMouseEnter={() => setHovered("home")}
-        onMouseLeave={() => setHovered(null)}
-      >
-        <Link
-          to="/"
-          rel="noopener noreferrer"
-          className="flex items-center"
+    <>
+      <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
+        }`}>
+        <div
+          className={`cursor-pointer ${menuItemClasses("home", false)}`}
+          onMouseEnter={() => setHovered("home")}
+          onMouseLeave={() => setHovered(null)}
         >
-          <Image
-            src={screens.lg ? "/logo.png" : "/accord_logo.png"}
-            alt="Template Playground"
-            className={`h-6.5 ${screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"}`}
-          />
-          <span className={`text-white ${screens.lg ? "block" : "hidden"}`}>
-            Template Playground
-          </span>
-        </Link>
-      </div>
-      
-      {screens.md ? (
-        <>
-          <div
-            className={`${menuItemClasses("help", false)} cursor-pointer`}
-            onMouseEnter={() => setHovered("help")}
-            onMouseLeave={() => setHovered(null)}
+          <Link
+            to="/"
+            rel="noopener noreferrer"
+            className="flex items-center"
           >
-            <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
-                Help
-                <CaretDownFilled className="text-xs ml-1.5" />
+            <Image
+              src={screens.lg ? "/logo.png" : "/accord_logo.png"}
+              alt="Template Playground"
+              className={`h-6.5 ${screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"}`}
+            />
+            <span className={`text-white ${screens.lg ? "block" : "hidden"}`}>
+              Template Playground
+            </span>
+          </Link>
+        </div>
+
+        {screens.md ? (
+          <>
+            <div
+              className={`${menuItemClasses("help", false)} cursor-pointer`}
+              onMouseEnter={() => setHovered("help")}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <Dropdown overlay={helpMenu} trigger={["click"]}>
+                <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
+                  Help
+                  <CaretDownFilled className="text-xs ml-1.5" />
+                </Button>
+              </Dropdown>
+            </div>
+          </>
+        ) : (
+          <div className="ml-1.5">
+            <Dropdown overlay={mobileMenu} trigger={["click"]}>
+              <Button className="bg-transparent border-none text-white h-16 flex items-center">
+                <MenuOutlined className="text-xl text-white" />
               </Button>
             </Dropdown>
           </div>
-        </>
-      ) : (
-        <div className="ml-1.5">
-          <Dropdown overlay={mobileMenu} trigger={["click"]}>
-            <Button className="bg-transparent border-none text-white h-16 flex items-center">
-              <MenuOutlined className="text-xl text-white" />
-            </Button>
-          </Dropdown>
-        </div>
-      )}
-      
-      <div className={`flex ml-auto items-center h-16 ${
-        screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
-      }`}>
-        <div className={screens.md ? "ml-0" : "ml-auto"}>
-          <ToggleDarkMode />
-        </div>
-        
-        {!isLearnPage && (
+        )}
+
+        <div className={`flex ml-auto items-center h-16 ${screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
+          }`}>
+          <div className={screens.md ? "ml-0" : "ml-auto"}>
+            <ToggleDarkMode />
+          </div>
+
+          {!isLearnPage && (
+            <div
+              className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
+                }`}
+              onMouseEnter={() => setHovered("join")}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <Link to="/learn/intro" className="learnNow-button">
+                <animated.button
+                  style={props}
+                  className="px-[22px] py-[10px] bg-[#19c6c7] text-[#050c40] border-none rounded-md cursor-pointer"
+                >
+                  Learn
+                </animated.button>
+              </Link>
+            </div>
+          )}
+
           <div
-            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${
-              hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
-            }`}
-            onMouseEnter={() => setHovered("join")}
+            className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+              : "px-2.5 pl-1.5 pr-1.5"
+              } ${hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
+              }`}
+            onMouseEnter={() => setHovered("discord")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Link to="/learn/intro" className="learnNow-button">
-              <animated.button
-                style={props}
-                className="px-[22px] py-[10px] bg-[#19c6c7] text-[#050c40] border-none rounded-md cursor-pointer"
-              >
-                Learn
-              </animated.button>
-            </Link>
+            <a
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-white"
+            >
+              <FaDiscord className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"
+                }`} />
+              <span className={screens.md ? "inline" : "hidden"}>Discord</span>
+            </a>
           </div>
-        )}
-        
-        <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
+
+          <div
+            className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
               : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
-          onMouseEnter={() => setHovered("discord")}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <a
-            href="https://discord.com/invite/Zm99SKhhtA"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center text-white"
+              } ${hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
+              }`}
+            onMouseEnter={() => setHovered("github")}
+            onMouseLeave={() => setHovered(null)}
           >
-            <FaDiscord className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Discord</span>
-          </a>
-        </div>
-        
-        <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
-              : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
-          onMouseEnter={() => setHovered("github")}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <a
-            href="https://github.com/accordproject/template-playground"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center text-white"
-          >
-            <GithubOutlined className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Github</span>
-          </a>
+            <a
+              href="https://github.com/accordproject/template-playground"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-white"
+            >
+              <GithubOutlined className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"
+                }`} />
+              <span className={screens.md ? "inline" : "hidden"}>Github</span>
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
+      />
+    </>
   );
 }
 
