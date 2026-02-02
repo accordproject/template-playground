@@ -285,11 +285,12 @@ const PlaygroundSidebar = () => {
             <span className="text-sm">Editor Theme</span>
             <Select
               value={editorTheme}
+              getPopupContainer={(triggerNode) => triggerNode.parentElement!}
               onChange={(value) => {setEditorTheme(value);
                 if (value === "Dark" && !isDarkMode) {toggleDarkMode();}
                 if (value === "Light" && isDarkMode) {toggleDarkMode();}
               }}
-              className="w-full"
+              className="w-full top-0"
               options={[
                 { value: "Light", label: "Light" },
                 { value: "Dark", label: "Dark" },
