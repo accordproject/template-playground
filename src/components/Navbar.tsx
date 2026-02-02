@@ -156,7 +156,7 @@ const useBreakpoint = () => {
     checkSize();
     window.addEventListener('resize', checkSize);
     return () => window.removeEventListener('resize', checkSize);
-  },[] );
+  },[]);
 
   return screenSize;
 };
