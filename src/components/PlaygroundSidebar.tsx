@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useRef, useState, useEffect } from "react";
 import { IoCodeSlash, IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
 import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
@@ -22,12 +22,13 @@ const PlaygroundSidebar = () => {
     generateShareableLink,
     backgroundColor,
     toggleDarkMode,
-    templateMarkdown,
-    modelCto,
-    data,
-    setTemplateMarkdown,
-    setModelCto,
-    setData,
+    editorValue,
+    editorModelCto,
+    editorAgreementData,
+    setEditorValue,
+    setEditorModelCto,
+    setEditorAgreementData,
+
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -40,44 +41,89 @@ const PlaygroundSidebar = () => {
     generateShareableLink: state.generateShareableLink,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
-    templateMarkdown: state.templateMarkdown,
-    modelCto: state.modelCto,
-    data: state.data,
-    setTemplateMarkdown: state.setTemplateMarkdown,
-    setModelCto: state.setModelCto,
-    setData: state.setData,
+    editorValue: state.editorValue,
+    editorModelCto: state.editorModelCto,
+    editorAgreementData: state.editorAgreementData,
+    setEditorValue: state.setEditorValue,
+    setEditorModelCto: state.setEditorModelCto,
+    setEditorAgreementData: state.setEditorAgreementData,
   }));
 
   const [isSettingOpen, setSettingOpen] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
   const [editorTheme, setEditorTheme] = useState("Light");
+  const settingsRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      settingsRef.current &&
+      !settingsRef.current.contains(event.target as Node)
+    ) {
+      setSettingOpen(false);
+    }
+  };
+
+  if (isSettingOpen) {
+    document.addEventListener("mousedown", handleClickOutside);
+  }
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, [isSettingOpen]);
+
 
   const isDarkMode = backgroundColor === "#121212";
+  const hasRestoredRef = useRef(false);
+
+  
   useEffect(() => {
     if (!autoSave) return;
+    if (!hasRestoredRef.current) return;
 
     const payload = {
-      templateMarkdown,
-      modelCto,
-      data,
+      editorValue,
+      editorModelCto,
+      editorAgreementData,
     };
 
     localStorage.setItem("playground-data", JSON.stringify(payload));
-  }, [templateMarkdown, modelCto, data, autoSave]);
+  }, [editorValue, editorModelCto, editorAgreementData, autoSave]);
+
 
   useEffect(() => {
     const saved = localStorage.getItem("playground-data");
-    if (!saved) return;
+    if (!saved) {
+      hasRestoredRef.current = true;
+      return;
+    }
 
     try {
       const parsed = JSON.parse(saved);
-      if (parsed.templateMarkdown) setTemplateMarkdown(parsed.templateMarkdown);
-      if (parsed.modelCto) setModelCto(parsed.modelCto);
-      if (parsed.data) setData(parsed.data);
+
+      if (parsed.editorValue) {
+        setEditorValue(parsed.editorValue);
+        useAppStore.getState().setTemplateMarkdown(parsed.editorValue);
+      }
+
+      if (parsed.editorModelCto) {
+        setEditorModelCto(parsed.editorModelCto);
+        useAppStore.getState().setModelCto(parsed.editorModelCto);
+      }
+
+      if (parsed.editorAgreementData) {
+        setEditorAgreementData(parsed.editorAgreementData);
+        useAppStore.getState().setData(parsed.editorAgreementData);
+      }
+
     } catch (e) {
       console.error("Failed to restore autosave data", e);
-    }
-  }, [setTemplateMarkdown, setModelCto, setData]);
+  }   finally {
+        hasRestoredRef.current = true; 
+      }
+}, []);
+
 
   const handleShare = async () => {
     try {
@@ -214,7 +260,7 @@ const PlaygroundSidebar = () => {
       </nav>
 
       {isSettingOpen && (
-        <div className="absolute bottom-16 left-16 w-64 bg-[#001040] text-white rounded-xl shadow-lg z-50 border border-[#00617c]">
+        <div  ref={settingsRef} className="absolute bottom-16 left-16 w-64 bg-[#001040] text-white rounded-xl shadow-lg z-50 border border-[#00617c]">
           <h3 className="text-sm font-semibold mb-3 bg-[#013072] p-2 text-center rounded-t-xl">
             Settings
           </h3>
