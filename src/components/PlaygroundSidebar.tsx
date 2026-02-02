@@ -1,4 +1,4 @@
-import React, {useRef, useState, useEffect } from "react";
+import {useRef, useState, useEffect } from "react";
 import { IoCodeSlash, IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
 import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
