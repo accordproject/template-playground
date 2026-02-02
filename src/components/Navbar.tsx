@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -143,7 +143,7 @@ const useBreakpoint = () => {
     xl: false,
   });
 
-  useState(() => {
+  useEffect(() => {
     const checkSize = () => {
       setScreenSize({
         sm: window.innerWidth >= 640,
@@ -156,7 +156,7 @@ const useBreakpoint = () => {
     checkSize();
     window.addEventListener('resize', checkSize);
     return () => window.removeEventListener('resize', checkSize);
-  });
+  },[] );
 
   return screenSize;
 };
