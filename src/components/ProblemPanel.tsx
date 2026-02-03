@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import useAppStore from '../store/store';
 import '../styles/components/ProblemPanel.css';
+import { useTranslation } from 'react-i18next';
 
 export interface ProblemItem {
   id: string;
@@ -13,7 +14,8 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
-  const { error, backgroundColor, textColor } = useAppStore((state) => ({ 
+  const { t } = useTranslation();
+  const { error, backgroundColor, textColor } = useAppStore((state) => ({
     error: state.error,
     backgroundColor: state.backgroundColor,
     textColor: state.textColor
@@ -31,8 +33,8 @@ const ProblemPanel: React.FC = () => {
       const columnMatch = part.match(/[Cc]olumn? (\d+)/);
       
       let type: 'error' | 'warning' | 'info' = 'error';
-      let source = 'Template Compilation';
-      
+      let source = 'compilation';
+
       if (part.includes('Warning') || part.includes('warning')) {
         type = 'warning';
       } else if (part.includes('Info') || part.includes('info')) {
@@ -40,11 +42,11 @@ const ProblemPanel: React.FC = () => {
       }
       
       if (part.includes('model') || part.includes('Model') || part.includes('CTO')) {
-        source = 'Concerto Model';
+        source = 'concerto';
       } else if (part.includes('template') || part.includes('Template') || part.includes('mark')) {
-        source = 'TemplateMark';
+        source = 'template';
       } else if (part.includes('data') || part.includes('JSON')) {
-        source = 'JSON Data';
+        source = 'data';
       }
       
       errors.push({
@@ -80,17 +82,22 @@ const ProblemPanel: React.FC = () => {
     });
   };
 
+  const getSourceLabel = (sourceKey?: string) => {
+    if (!sourceKey) return '';
+    return t(`problems.source.${sourceKey}`, { defaultValue: sourceKey });
+  };
+
   return (
     <div className="problem-panel-container" style={{ backgroundColor }}>
       <div className={`problem-panel-header ${backgroundColor === '#ffffff' ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
-        <span className="problem-panel-title">Problems</span>
+        <span className="problem-panel-title">{t('problems.title')}</span>
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
         {problems.length === 0 ? (
           <div className="problem-panel-empty-state">
             <div className="problem-panel-empty-state-content">
               <div className="problem-panel-empty-state-icon">✨</div>
-              <div className="problem-panel-empty-state-text" style={{ color: textColor }}>No problems detected</div>
+              <div className="problem-panel-empty-state-text" style={{ color: textColor }}>{t('problems.noProblems')}</div>
             </div>
           </div>
         ) : (
@@ -115,7 +122,7 @@ const ProblemPanel: React.FC = () => {
                         </span>
                         {problem.source && (
                           <span className="problem-panel-problem-source" style={{ color: textColor }}>
-                            {problem.source}
+                            {getSourceLabel(problem.source)}
                           </span>
                         )}
                         {(problem.line || problem.column) && (
