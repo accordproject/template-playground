@@ -79,7 +79,6 @@ const MainContainer = () => {
     toggleDataCollapse: state.toggleDataCollapse,
   }));
 
-  const [, setLoading] = useState(true);
 
   // Calculate dynamic panel sizes based on collapse states
   const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
@@ -122,7 +121,6 @@ const MainContainer = () => {
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>Concerto Model</span>
-                          <SampleDropdown setLoading={setLoading} />
                         </div>
                       </div>
                       {!isModelCollapsed && (
