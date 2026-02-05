@@ -72,27 +72,35 @@ export interface DecompressedData {
 
 const rebuildDeBounce = debounce(rebuild, 500);
 
-async function rebuild(template: string, model: string, dataString: string) {
+async function rebuild(template: string, model: string, dataString: string): Promise<string> {
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
   const engine = new TemplateMarkInterpreter(modelManager, {});
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
     { content: template },
     modelManager,
     "contract",
     { verbose: false }
-  );
+  ) as object;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data = JSON.parse(dataString);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
   const ciceroMark = await engine.generate(templateMarkDom, data);
-  return await transform(
-    ciceroMark.toJSON(),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  const ciceroMarkJson = ciceroMark.toJSON() as unknown;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  const result = await transform(
+    ciceroMarkJson,
     "ciceromark_parsed",
     ["html"],
     {},
     { verbose: false }
-  );
+  ) as string;
+  return result;
 }
 
 const getInitialTheme = () => {
@@ -119,7 +127,7 @@ const getInitialPanelState = () => {
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem('ui-panels');
-      if (saved) return { ...defaults, ...JSON.parse(saved) };
+      if (saved) return { ...defaults, ...(JSON.parse(saved) as Partial<AppState>) };
     } catch (e) { /* ignore */ }
   }
   return defaults;
@@ -150,208 +158,221 @@ const useAppStore = create<AppState>()(
         sampleName: playground.NAME,
         templateMarkdown: playground.TEMPLATE,
         editorValue: playground.TEMPLATE,
-      modelCto: playground.MODEL,
-      editorModelCto: playground.MODEL,
-      data: JSON.stringify(playground.DATA, null, 2),
-      editorAgreementData: JSON.stringify(playground.DATA, null, 2),
-      agreementHtml: "",
-      isAIConfigOpen: false,
-      isAIChatOpen: initialPanels.isAIChatOpen, 
-      error: undefined,
-      samples: SAMPLES,
-      chatState: {
-        messages: [],
-        isLoading: false,
-        error: null,
-      },
-      aiConfig: null,
-      chatAbortController: null,
-      isEditorsVisible: initialPanels.isEditorsVisible, 
-      isPreviewVisible: initialPanels.isPreviewVisible, 
-      isProblemPanelVisible: initialPanels.isProblemPanelVisible, 
-      isModelCollapsed: false,
-      isTemplateCollapsed: false,
-      isDataCollapsed: false,
-      toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
-      toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
-      toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
-      setEditorsVisible: (value) => {
-        const state = get();
-        if (!value && !state.isPreviewVisible) {
-          return;
-        }
-        set({ isEditorsVisible: value });
-        savePanelState({ ...get(), isEditorsVisible: value }); // Save change
-      },
-      setPreviewVisible: (value) => {
-        const state = get();
-        if (!value && !state.isEditorsVisible) {
-          return;
-        }
-        set({ isPreviewVisible: value });
-        savePanelState({ ...get(), isPreviewVisible: value }); // Save change
-      },
-      setProblemPanelVisible: (value) => {
-        set({ isProblemPanelVisible: value });
-        savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
-      },
-      init: async () => {
-        const params = new URLSearchParams(window.location.search);
-        const compressedData = params.get("data");
-        if (compressedData) {
-          await get().loadFromLink(compressedData);
-        } else {
-          await get().rebuild();
-        }
-      },
-      loadSample: async (name: string) => {
-        const sample = SAMPLES.find((s) => s.NAME === name);
-        if (sample) {
-          set(() => ({
-            sampleName: sample.NAME,
-            agreementHtml: undefined,
-            error: undefined,
-            templateMarkdown: sample.TEMPLATE,
-            editorValue: sample.TEMPLATE,
-            modelCto: sample.MODEL,
-            editorModelCto: sample.MODEL,
-            data: JSON.stringify(sample.DATA, null, 2),
-            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
-          }));
-          await get().rebuild();
-        }
-      },
-      rebuild: async () => {
-        const { templateMarkdown, modelCto, data } = get();
-        try {
-          const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined }));
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
-        }
-      },
-      setTemplateMarkdown: async (template: string) => {
-        set(() => ({ templateMarkdown: template }));
-        const { modelCto, data } = get();
-        try {
-          const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined }));
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
-        }
-      },
-      setEditorValue: (value: string) => {
-        set(() => ({ editorValue: value }));
-      },
-      setModelCto: async (model: string) => {
-        set(() => ({ modelCto: model }));
-        const { templateMarkdown, data } = get();
-        try {
-          const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({ agreementHtml: result, error: undefined })); 
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
-        }
-      },
-      setEditorModelCto: (value: string) => {
-        set(() => ({ editorModelCto: value }));
-      },
-      setData: async (data: string) => {
-        set(() => ({ data }));
-        try {
-          const result = await rebuildDeBounce(
-            get().templateMarkdown,
-            get().modelCto,
-            data
-          );
-          set(() => ({ agreementHtml: result, error: undefined })); 
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
-        }
-      },
-      setEditorAgreementData: (value: string) => {
-        set(() => ({ editorAgreementData: value }));
-      },
-      generateShareableLink: () => {
-        const state = get();
-        const compressedData = compress({
-          templateMarkdown: state.templateMarkdown,
-          modelCto: state.modelCto,
-          data: state.data,
-          agreementHtml: state.agreementHtml,
-        });
-        return `${window.location.origin}/#data=${compressedData}`;
-      },
-      loadFromLink: async (compressedData: string) => {
-        try {
-          const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
-          if (!templateMarkdown || !modelCto || !data) {
-            throw new Error("Invalid share link data");
-          }
-          set(() => ({
-            templateMarkdown,
-            editorValue: templateMarkdown,
-            modelCto,
-            editorModelCto: modelCto,
-            data,
-            editorAgreementData: data,
-            agreementHtml,
-            error: undefined,
-          }));
-          await get().rebuild();
-        } catch (error) {
-          set(() => ({
-            error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),
-            isProblemPanelVisible: true,
-          }));
-        }
-      },
-      toggleDarkMode: () => {
-        set((state) => {
-          const isDark = state.backgroundColor === '#121212';
-          const newTheme = {
-            backgroundColor: isDark ? '#ffffff' : '#121212',
-            textColor: isDark ? '#121212' : '#ffffff',
-          };
-           
-          if (typeof window !== 'undefined') {
-            const themeValue = isDark ? 'light' : 'dark';
-            localStorage.setItem('theme', themeValue);
-            try {
-              document.documentElement.setAttribute('data-theme', themeValue);
-            } catch (e) {
-              // ignore
-            }
-          }
-           
-          return newTheme;
-        });
-      },
-      setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
-      setAIChatOpen: (isOpen: boolean) => {
-        set(() => ({ isAIChatOpen: isOpen }));
-        savePanelState({ ...get(), isAIChatOpen: isOpen }); // Save change
-      },
-      setChatState: (state) => set({ chatState: state }),
-      updateChatState: (partial) => set((state) => ({ 
-        chatState: { ...state.chatState, ...partial } 
-      })),
-      setAIConfig: (config) => set({ aiConfig: config }),
-      setChatAbortController: (controller) => set({ chatAbortController: controller }),
-      resetChat: () => {
-        const { chatAbortController } = get();
-        if (chatAbortController) {
-          chatAbortController.abort();
-        }
-        get().setChatState({
+        modelCto: playground.MODEL,
+        editorModelCto: playground.MODEL,
+        data: JSON.stringify(playground.DATA, null, 2),
+        editorAgreementData: JSON.stringify(playground.DATA, null, 2),
+        agreementHtml: "",
+        isAIConfigOpen: false,
+        isAIChatOpen: initialPanels.isAIChatOpen,
+        error: undefined,
+        samples: SAMPLES,
+        chatState: {
           messages: [],
           isLoading: false,
           error: null,
-        });
-      },
-      startTour: () => {
-        console.log('Starting tour...');
-      },
+        },
+        aiConfig: null,
+        chatAbortController: null,
+        isEditorsVisible: initialPanels.isEditorsVisible,
+        isPreviewVisible: initialPanels.isPreviewVisible,
+        isProblemPanelVisible: initialPanels.isProblemPanelVisible,
+        isModelCollapsed: false,
+        isTemplateCollapsed: false,
+        isDataCollapsed: false,
+        toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
+        toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
+        toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
+        setEditorsVisible: (value) => {
+          const state = get();
+          if (!value && !state.isPreviewVisible) {
+            return;
+          }
+          set({ isEditorsVisible: value });
+          savePanelState({ ...get(), isEditorsVisible: value }); // Save change
+        },
+        setPreviewVisible: (value) => {
+          const state = get();
+          if (!value && !state.isEditorsVisible) {
+            return;
+          }
+          set({ isPreviewVisible: value });
+          savePanelState({ ...get(), isPreviewVisible: value }); // Save change
+        },
+        setProblemPanelVisible: (value) => {
+          set({ isProblemPanelVisible: value });
+          savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
+        },
+        init: async () => {
+          const params = new URLSearchParams(window.location.search);
+          const compressedData = params.get("data");
+          if (compressedData) {
+            await get().loadFromLink(compressedData);
+          } else {
+            await get().rebuild();
+          }
+        },
+        loadSample: async (name: string) => {
+          const sample = SAMPLES.find((s) => s.NAME === name);
+          if (sample) {
+            set(() => ({
+              sampleName: sample.NAME,
+              agreementHtml: undefined,
+              error: undefined,
+              templateMarkdown: sample.TEMPLATE,
+              editorValue: sample.TEMPLATE,
+              modelCto: sample.MODEL,
+              editorModelCto: sample.MODEL,
+              data: JSON.stringify(sample.DATA, null, 2),
+              editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+            }));
+            await get().rebuild();
+          }
+        },
+        rebuild: async () => {
+          const { templateMarkdown, modelCto, data } = get();
+          try {
+            const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
+            set(() => ({ agreementHtml: result, error: undefined }));
+          } catch (error: unknown) {
+            set(() => ({
+              error: formatError(error),
+              isProblemPanelVisible: true,
+            }));
+          }
+        },
+        setTemplateMarkdown: async (template: string) => {
+          set(() => ({ templateMarkdown: template }));
+          const { modelCto, data } = get();
+          try {
+            const result = await rebuildDeBounce(template, modelCto, data);
+            set(() => ({ agreementHtml: result, error: undefined }));
+          } catch (error: unknown) {
+            set(() => ({
+              error: formatError(error),
+              isProblemPanelVisible: true,
+            }));
+          }
+        },
+        setEditorValue: (value: string) => {
+          set(() => ({ editorValue: value }));
+        },
+        setModelCto: async (model: string) => {
+          set(() => ({ modelCto: model }));
+          const { templateMarkdown, data } = get();
+          try {
+            const result = await rebuildDeBounce(templateMarkdown, model, data);
+            set(() => ({ agreementHtml: result, error: undefined }));
+          } catch (error: unknown) {
+            set(() => ({
+              error: formatError(error),
+              isProblemPanelVisible: true,
+            }));
+          }
+        },
+        setEditorModelCto: (value: string) => {
+          set(() => ({ editorModelCto: value }));
+        },
+        setData: async (data: string) => {
+          set(() => ({ data }));
+          try {
+            const result = await rebuildDeBounce(
+              get().templateMarkdown,
+              get().modelCto,
+              data
+            );
+            set(() => ({ agreementHtml: result, error: undefined }));
+          } catch (error: unknown) {
+            set(() => ({
+              error: formatError(error),
+              isProblemPanelVisible: true,
+            }));
+          }
+
+        },
+        setEditorAgreementData: (value: string) => {
+          set(() => ({ editorAgreementData: value }));
+        },
+        generateShareableLink: () => {
+          const state = get();
+          const compressedData = compress({
+            templateMarkdown: state.templateMarkdown,
+            modelCto: state.modelCto,
+            data: state.data,
+            agreementHtml: state.agreementHtml,
+          });
+          return `${window.location.origin}/#data=${compressedData}`;
+        },
+        loadFromLink: async (compressedData: string) => {
+          try {
+            const { templateMarkdown, modelCto, data, agreementHtml } = decompress(compressedData);
+            if (!templateMarkdown || !modelCto || !data) {
+              throw new Error("Invalid share link data");
+            }
+            set(() => ({
+              templateMarkdown,
+              editorValue: templateMarkdown,
+              modelCto,
+              editorModelCto: modelCto,
+              data,
+              editorAgreementData: data,
+              agreementHtml,
+              error: undefined,
+            }));
+            await get().rebuild();
+          } catch (error) {
+            set(() => ({
+              error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),
+              isProblemPanelVisible: true,
+            }));
+          }
+        },
+        toggleDarkMode: () => {
+          set((state) => {
+            const isDark = state.backgroundColor === '#121212';
+            const newTheme = {
+              backgroundColor: isDark ? '#ffffff' : '#121212',
+              textColor: isDark ? '#121212' : '#ffffff',
+            };
+
+            if (typeof window !== 'undefined') {
+              const themeValue = isDark ? 'light' : 'dark';
+              localStorage.setItem('theme', themeValue);
+              try {
+                document.documentElement.setAttribute('data-theme', themeValue);
+              } catch (e) {
+                // ignore
+              }
+            }
+
+            return newTheme;
+          });
+        },
+        setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
+        setAIChatOpen: (isOpen: boolean) => {
+          set(() => ({ isAIChatOpen: isOpen }));
+          savePanelState({ ...get(), isAIChatOpen: isOpen }); // Save change
+        },
+        setChatState: (state) => set({ chatState: state }),
+        updateChatState: (partial) => set((state) => ({
+          chatState: { ...state.chatState, ...partial }
+        })),
+        setAIConfig: (config) => set({ aiConfig: config }),
+        setChatAbortController: (controller) => set({ chatAbortController: controller }),
+        resetChat: () => {
+          const { chatAbortController } = get();
+          if (chatAbortController) {
+            chatAbortController.abort();
+          }
+          get().setChatState({
+            messages: [],
+            isLoading: false,
+            error: null,
+          });
+        },
+        startTour: () => {
+          console.log('Starting tour...');
+        },
       }
     })
   )
@@ -360,15 +381,15 @@ const useAppStore = create<AppState>()(
 
 export default useAppStore;
 
-function formatError(error: any): string {
+function formatError(error: unknown): string {
   console.error(error);
   if (typeof error === "string") return error;
   if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
-  if (error.code) {
-    const sub = error.errors ? formatError(error.errors) : "";
-    const msg = error.renderedMessage || "";
-    return `Error: ${error.code} ${sub} ${msg}`;
+  if (error && typeof error === "object" && "code" in error) {
+    const errorObj = error as { code?: unknown; errors?: unknown; renderedMessage?: unknown };
+    const sub = errorObj.errors ? formatError(errorObj.errors) : "";
+    const msg = String(errorObj.renderedMessage ?? "");
+    return `Error: ${String(errorObj.code ?? "")} ${sub} ${msg}`;
   }
-  return error.toString();
+  return String(error);
 }
-

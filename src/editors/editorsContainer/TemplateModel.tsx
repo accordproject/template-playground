@@ -6,17 +6,17 @@ import { updateEditorActivity } from "../../ai-assistant/activityTracker";
 function TemplateModel() {
   const editorModelCto = useAppStore((state) => state.editorModelCto);
   const setEditorModelCto = useAppStore((state) => state.setEditorModelCto);
-  const rebuild = useAppStore((state) => state.rebuild);
-  const { value, setValue} = useUndoRedo(
+  const setModelCto = useAppStore((state) => state.setModelCto);
+  const { value, setValue } = useUndoRedo(
     editorModelCto,
     setEditorModelCto
   );
- 
+
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       updateEditorActivity('concerto');
-      setValue(value);
-      void rebuild();
+      setValue(value); // Update editor state and sync
+      void setModelCto(value);
     }
   };
 

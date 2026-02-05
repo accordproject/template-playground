@@ -3,6 +3,7 @@ import { AIConfig, Message, editorsContent } from '../types/components/AIAssista
 import { prepareSystemPrompt } from "./prompts";
 import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
+import { extractErrorMessage } from '../utils/helpers/errorUtils';
 
 export const loadConfigFromLocalStorage = () => {
   const setAIConfig = useAppStore.getState().setAIConfig;
@@ -93,7 +94,7 @@ export const sendMessage = async (
   userInput: string, 
   promptPreset: string | null, 
   editorsContent: editorsContent,
-  addToChat: boolean = true,
+  addToChat = true,
   editorType?: 'markdown' | 'concerto' | 'json',
   onChunk?: (chunk: string) => void,
   onError?: (error: Error) => void,
@@ -122,7 +123,19 @@ export const sendMessage = async (
     if (onError) {
       onError(error);
     } else if (addToChat) {
-      updateChatState({ error: error.message });
+      const errorMessage: Message = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: `[ERROR] ${error.message}`,
+        timestamp: new Date(),
+      };
+      
+      const updatedChatState = {
+        messages: [...chatState.messages, errorMessage],
+        isLoading: false,
+        error: null
+      };
+      setChatState(updatedChatState);
     }
     return;
   }
@@ -214,12 +227,26 @@ export const sendMessage = async (
           },
           (error) => {
             if (!signal.aborted) {
+              
               if (onError) {
                 onError(error);
               } else if (addToChat) {
-                updateChatState({
+                // Add error message to chat
+                const { chatState, setChatState } = useAppStore.getState();
+                const updatedMessages = [...chatState.messages];
+                const simpleErrorMessage = extractErrorMessage(error);
+                const errorMessage = `[ERROR] ${simpleErrorMessage}`;
+                
+                updatedMessages[updatedMessages.length - 1] = {
+                  ...updatedMessages[updatedMessages.length - 1],
+                  content: errorMessage,
+                };
+                
+                setChatState({
+                  ...chatState,
+                  messages: updatedMessages,
                   isLoading: false,
-                  error: error.message,
+                  error: null,
                 });
               }
             }
@@ -246,14 +273,26 @@ export const sendMessage = async (
     }
   } catch (error) {
     if (!newAbortController || !newAbortController.signal.aborted) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      
+      const simpleErrorMessage = extractErrorMessage(error);
+
       if (onError) {
-        onError(error instanceof Error ? error : new Error(errorMessage));
+        onError(error instanceof Error ? error : new Error(simpleErrorMessage));
       } else if (addToChat) {
-        updateChatState({
+        // Add error message to chat
+        const { chatState, setChatState } = useAppStore.getState();
+        const updatedMessages = [...chatState.messages];
+        const formattedError = `[ERROR] ${simpleErrorMessage}`;
+        
+        updatedMessages[updatedMessages.length - 1] = {
+          ...updatedMessages[updatedMessages.length - 1],
+          content: formattedError,
+        };
+        
+        setChatState({
+          ...chatState,
+          messages: updatedMessages,
           isLoading: false,
-          error: errorMessage,
+          error: null,
         });
       }
     }

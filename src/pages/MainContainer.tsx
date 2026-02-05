@@ -7,11 +7,13 @@ import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
 import { useState, useRef } from "react";
+import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
+import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button } from "antd";
 import * as monaco from "monaco-editor";
-import { MdFormatAlignLeft } from "react-icons/md";
+import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -51,7 +53,7 @@ const MainContainer = () => {
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
-      jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+      void jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
     }
   };
 
@@ -64,7 +66,6 @@ const MainContainer = () => {
     isTemplateCollapsed,
     isDataCollapsed,
     toggleModelCollapse,
-    toggleTemplateCollapse,
     toggleDataCollapse,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
@@ -75,7 +76,6 @@ const MainContainer = () => {
     isTemplateCollapsed: state.isTemplateCollapsed,
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
-    toggleTemplateCollapse: state.toggleTemplateCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
   }));
 
@@ -86,9 +86,9 @@ const MainContainer = () => {
   const expandedCount = 3 - collapsedCount;
   const collapsedSize = 5;
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
-  
+
   // Create a key that changes when collapse state changes to force panel re-layout
-  const panelKey = `${isModelCollapsed}-${isTemplateCollapsed}-${isDataCollapsed}`;
+  const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
   return (
     <div className="main-container" style={{ backgroundColor }}>
@@ -107,18 +107,19 @@ const MainContainer = () => {
                           <button
                             className="collapse-button"
                             onClick={toggleModelCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
+                            style={{
+                              color: textColor,
+                              background: 'transparent',
+                              border: 'none',
                               cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '4px',
+                              marginRight: '4px'
                             }}
                             title={isModelCollapsed ? "Expand" : "Collapse"}
                           >
-                            {isModelCollapsed ? '▶' : '▼'}
+                            {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>Concerto Model</span>
                           <SampleDropdown setLoading={setLoading} />
@@ -133,35 +134,18 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
-                    <div className="main-container-editor-section tour-template-mark">
-                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        <div className="main-container-editor-header-left">
-                          <button
-                            className="collapse-button"
-                            onClick={toggleTemplateCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
-                              cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
-                            }}
-                            title={isTemplateCollapsed ? "Expand" : "Collapse"}
-                          >
-                            {isTemplateCollapsed ? '▶' : '▼'}
-                          </button>
+                  <Panel minSize={20}>
+                    <MarkdownEditorProvider>
+                      <div className="main-container-editor-section tour-template-mark">
+                        <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                           <span>TemplateMark</span>
+                          <TemplateMarkdownToolbar />
                         </div>
-                      </div>
-                      {!isTemplateCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
                           <TemplateMarkdown />
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    </MarkdownEditorProvider>
                   </Panel>
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
@@ -173,18 +157,19 @@ const MainContainer = () => {
                           <button
                             className="collapse-button"
                             onClick={toggleDataCollapse}
-                            style={{ 
-                              color: textColor, 
-                              background: 'transparent', 
-                              border: 'none', 
+                            style={{
+                              color: textColor,
+                              background: 'transparent',
+                              border: 'none',
                               cursor: 'pointer',
-                              fontSize: '16px',
-                              padding: '4px 8px',
-                              marginRight: '8px'
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '4px',
+                              marginRight: '4px'
                             }}
                             title={isDataCollapsed ? "Expand" : "Collapse"}
                           >
-                            {isDataCollapsed ? '▶' : '▼'}
+                            {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>JSON Data</span>
                         </div>
@@ -223,12 +208,12 @@ const MainContainer = () => {
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`}>
                   <span>Preview</span>
-                  <Button 
-                    onClick={handleDownloadPdf}
-                    loading={isDownloading} 
+                  <Button
+                    onClick={() => void handleDownloadPdf()}
+                    loading={isDownloading}
                     style={{ marginLeft: "10px" }}
                   >
-                   Download PDF
+                    Download PDF
                   </Button>
                 </div>
                 <div className="main-container-preview-content" style={{ backgroundColor }}>
