@@ -8,13 +8,13 @@ export const AIChatPanel = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInput, setUserInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const editorsContent = useAppStore((state) => ({
     editorTemplateMark: state.editorValue,
     editorModelCto: state.editorModelCto,
     editorAgreementData: state.editorAgreementData,
   }));
-  
+
   const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
     chatState: state.chatState,
     resetChat: state.resetChat,
@@ -25,16 +25,15 @@ export const AIChatPanel = () => {
     textColor: state.textColor,
     backgroundColor: state.backgroundColor
   }));
-  
+
   const latestMessageRef = useRef<HTMLDivElement>(null);
 
   const isDarkMode = useMemo(() => backgroundColor !== '#ffffff', [backgroundColor]);
 
   const theme = useMemo(() => {
     return {
-      header: `h-10 -ml-4 -mr-4 -mt-1 p-2 border-gray-200 text-sm font-medium flex justify-between items-center ${
-        isDarkMode ? 'bg-gray-700 text-white' : 'bg-slate-100 text-gray-700'
-      }`,
+      header: `h-10 -ml-4 -mr-4 -mt-1 p-2 border-gray-200 text-sm font-medium flex justify-between items-center ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-slate-100 text-gray-700'
+        }`,
 
       welcomeMessage: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
       welcomeText: isDarkMode ? 'text-gray-300' : 'text-gray-600',
@@ -72,7 +71,7 @@ export const AIChatPanel = () => {
       inlineCode: isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
     };
   }, [backgroundColor]);
-  
+
   const [includeTemplateMarkContent, setIncludeTemplateMarkContent] = useState<boolean>(
     localStorage.getItem('aiIncludeTemplateMark') === 'true'
   );
@@ -82,69 +81,69 @@ export const AIChatPanel = () => {
   const [includeDataContent, setIncludeDataContent] = useState<boolean>(
     localStorage.getItem('aiIncludeData') === 'true'
   );
-  
+
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
-    
+
     if (!aiConfig) {
       setAIConfigOpen(true);
       return;
     }
-    
+
     const prompt = userInput;
-    
+
     setUserInput("");
     setIsDropdownOpen(false);
-    
+
     if (textareaRef.current) {
       textareaRef.current.scrollTop = 0;
     }
-    
+
     await sendMessage(prompt, promptPreset, editorsContent);
   };
-  
+
   const handleTemplateMarkToggle = (checked: boolean) => {
     setIncludeTemplateMarkContent(checked);
     localStorage.setItem('aiIncludeTemplateMark', checked.toString());
-    
+
     if (aiConfig) {
       const updatedConfig = {
         ...aiConfig,
         includeTemplateMarkContent: checked
       };
-      
+
       setAIConfig(updatedConfig);
     }
   };
-  
+
   const handleConcertoModelToggle = (checked: boolean) => {
     setIncludeConcertoModelContent(checked);
     localStorage.setItem('aiIncludeConcertoModel', checked.toString());
-    
+
     if (aiConfig) {
       const updatedConfig = {
         ...aiConfig,
         includeConcertoModelContent: checked
       };
-      
+
       setAIConfig(updatedConfig);
     }
   };
-  
+
   const handleDataToggle = (checked: boolean) => {
     setIncludeDataContent(checked);
     localStorage.setItem('aiIncludeData', checked.toString());
-    
+
     if (aiConfig) {
       const updatedConfig = {
         ...aiConfig,
         includeDataContent: checked
       };
-      
+
       setAIConfig(updatedConfig);
     }
   };
-  
+
   const handleStopMessage = () => {
     stopMessage();
   };
@@ -160,15 +159,18 @@ export const AIChatPanel = () => {
   };
 
   const renderMessageContent = (content: string) => {
-    if (!content || !content.includes('```')) {
-      console.log("content is", content);
+    // Detect error marker
+    const isError = content.startsWith('[ERROR]');
+    const displayContent = isError ? content.replace(/^\[ERROR\]\s*/, '') : content;
+
+    if (!displayContent || !displayContent.includes('```')) {
       return (
-        <div className={`text-sm prose prose-sm break-all max-w-none ${isDarkMode ? 'prose-invert' : ''}`} style={{ color: textColor }}>
+        <div className={`text-sm prose prose-sm break-all max-w-none ${isDarkMode ? 'prose-invert' : ''} ${isError ? 'text-red-700' : ''}`} style={isError ? {} : { color: textColor }}>
           <ReactMarkdown
             components={{
               code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className ?? ''}`}>{children}</code>,
-          }}>
-            {content}
+            }}>
+            {displayContent}
           </ReactMarkdown>
         </div>
       );
@@ -176,9 +178,9 @@ export const AIChatPanel = () => {
 
     const parts = [];
     let key = 0;
-    
-    const segments = content.split('```');
-    
+
+    const segments = displayContent.split('```');
+
     if (segments[0]) {
       parts.push(
         <div className={`text-sm prose prose-sm max-w-none ${isDarkMode ? 'prose-invert' : ''}`} key={key++} style={{ color: textColor }}>
@@ -188,16 +190,16 @@ export const AIChatPanel = () => {
         </div>
       );
     }
-    
+
     for (let i = 1; i < segments.length; i++) {
       if (i % 2 === 1 && segments[i]) {
         const firstLineBreak = segments[i].indexOf('\n');
         let code = segments[i];
-        
+
         if (firstLineBreak > -1) {
           code = segments[i].substring(firstLineBreak + 1);
         }
-        
+
         parts.push(
           <div key={key++} className="relative mt-2 mb-2">
             <pre className="bg-gray-800 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">
@@ -215,18 +217,18 @@ export const AIChatPanel = () => {
         );
       }
     }
-    
+
     return parts;
   };
 
   useEffect(() => {
     if (chatState.messages.length > 0 && latestMessageRef.current) {
       const messageContainer = latestMessageRef.current.closest('.overflow-y-auto');
-      
+
       if (messageContainer) {
         setTimeout(() => {
           const messageTop = latestMessageRef.current!.offsetTop;
-          
+
           messageContainer.scrollTop = messageTop - 50;
         }, 100);
       }
@@ -317,280 +319,280 @@ export const AIChatPanel = () => {
               </div>
             ) : (
               chatState.messages.map((message, index) => {
-                if (message.role === "system" || message.content === "") return null;
+                if (message.role === "system" || !message.content.trim()) return null;
+                // Detect error marker
+                const isError = message.content.startsWith('[ERROR]');
                 return (
                   <div
                     key={message.id}
                     className="w-full"
                     ref={
-                      ((index === chatState.messages.length - 1) || (index === chatState.messages.length - 2))  
-                      
-                      ? latestMessageRef 
-                      : null
+                      ((index === chatState.messages.length - 1) || (index === chatState.messages.length - 2))
+                        ? latestMessageRef
+                        : null
                     }
                   >
-                    <div className={`${
-                      message.role === 'assistant'
-                        ? theme.messageAssistant
+                    <div className={`p-3 rounded-lg ${message.role === 'assistant'
+                        ? isError
+                          ? 'bg-red-100 border border-red-300'
+                          : theme.messageAssistant
                         : theme.messageUser
-                    } p-3 rounded-lg`}>
-                      <p className="text-xs font-semibold mb-1" style={{ color: textColor }}>
-                          {message.role === 'assistant' ? 'Assistant' : 'You'}
+                      }`}>
+                      <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
+                        {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
                       {message.content && renderMessageContent(
-                        (message.role === 'user') 
+                        (message.role === 'user')
                           ? (aiConfig?.showFullPrompt ? (
-                            `**System message:** ${chatState.messages[index-1].content}\n**User message:** ${message.content}`
+                            `**System message:** ${chatState.messages[index - 1].content}\n**User message:** ${message.content}`
                           ) : message.content)
                           : message.content
                       )}
-                      
-                      {message.role === 'assistant' && 
-                          message.id === chatState.messages[chatState.messages.length - 1].id && 
-                          chatState.isLoading && (
+                      {message.role === 'assistant' &&
+                        message.id === chatState.messages[chatState.messages.length - 1].id &&
+                        chatState.isLoading && (
                           <p className={`text-sm mt-2 italic ${theme.thinkingText}`}>Thinking...</p>
                         )
                       }
                     </div>
                   </div>
-                )})
-              )}
+                )
+              })
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-2">
-            {promptPreset && (
+          {promptPreset && (
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-600 bg-opacity-95 text-white rounded-lg self-start">
-                <span className="text-sm font-medium">
-                  {
-                    promptPreset === "textToTemplate" ? "Text to TemplateMark" : "Create Concerto Model"
-                  }
-                </span>
-                <button
+              <span className="text-sm font-medium">
+                {
+                  promptPreset === "textToTemplate" ? "Text to TemplateMark" : "Create Concerto Model"
+                }
+              </span>
+              <button
                 onClick={() => setPromptPreset(null)}
                 className="text-indigo-200 hover:text-white transition-colors"
-                >
+              >
                 <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-4 h-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4"
                 >
-                    <path
+                  <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     d="M6 18L18 6M6 6l12 12"
-                    />
+                  />
                 </svg>
-                </button>
-            </div>
-            )}
-            
-            {/* Context selection row */}
-            <div className="flex items-center justify-start px-2 gap-2">
-              <span className="text-xs text-gray-600 mr-1" style={{color: textColor}}>Context:</span>
-              {/* TemplateMark Button */}
-              <div
-                onClick={() => handleTemplateMarkToggle(!includeTemplateMarkContent)}
-                className={
-                  `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
-                  ${includeTemplateMarkContent
-                    ? theme.contextButtons.templateMark.active
-                    : theme.contextButtons.templateMark.inactive}`
-                }
-              >
-                <span>TemplateMark</span>
-                {includeTemplateMarkContent && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleTemplateMarkToggle(false);
-                    }}
-                    className={`ml-1 focus:outline-none ${theme.contextButtons.templateMark.cross}`}
-                    tabIndex={-1}
-                    type="button"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-3 h-3"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-              {/* Concerto Button */}
-              <div
-                onClick={() => handleConcertoModelToggle(!includeConcertoModelContent)}
-                className={
-                  `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
-                  ${includeConcertoModelContent
-                    ? theme.contextButtons.concerto.active
-                    : theme.contextButtons.concerto.inactive}`
-                }
-              >
-                <span>Concerto</span>
-                {includeConcertoModelContent && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleConcertoModelToggle(false);
-                    }}
-                    className={`ml-1 focus:outline-none ${theme.contextButtons.concerto.cross}`}
-                    tabIndex={-1}
-                    type="button"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-3 h-3"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-              {/* Data Button */}
-              <div
-                onClick={() => handleDataToggle(!includeDataContent)}
-                className={
-                  `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
-                  ${includeDataContent
-                    ? theme.contextButtons.data.active
-                    : theme.contextButtons.data.inactive}`
-                }
-              >
-                <span>Data</span>
-                {includeDataContent && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleDataToggle(false);
-                    }}
-                    className={`ml-1 focus:outline-none ${theme.contextButtons.data.cross}`}
-                    tabIndex={-1}
-                    type="button"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-3 h-3"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            <div className={`flex gap-2 p-2 rounded-lg border ${theme.inputContainer}`}>
-              <textarea
-                  ref={textareaRef}
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={
-                    promptPreset === "textToTemplate"
-                      ? "Enter simple plain text of an agreement"
-                      : promptPreset === "createConcertoModel"
-                      ? "Describe the type of agreement for the Concerto Model"
-                      : chatState.isLoading 
-                        ? "Press 'Stop' to send another message..."
-                        : "Type your message..."
-                  }
-                  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-[42px] overflow-y-hidden ${
-                    chatState.isLoading ? theme.textarea.loading : theme.textarea.base
-                  }`}
-                  rows={1}
-              />
-              <div className="relative">
-                  <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={`h-full px-3 rounded-lg flex items-center justify-center ${theme.dropdownButton} ${
-                    chatState.isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  title="Select Prompt Mode"
-                  disabled={chatState.isLoading}
-              >
-                  <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                  >
-                      <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.5 15.75l7.5-7.5 7.5 7.5"
-                      />
-                  </svg>
-                  </button>
-                  {isDropdownOpen && !chatState.isLoading && (
-                  <div className={`absolute bottom-full mb-1 right-0 w-48 rounded-lg shadow-lg border py-1 ${theme.dropdownMenu}`}>
-                      <button
-                      onClick={() => {
-                          setPromptPreset("textToTemplate");
-                          setIsDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm ${theme.dropdownItem}`}
-                      >
-                      Text to TemplateMark
-                      </button>
-                      <button
-                      onClick={() => {
-                          setPromptPreset("createConcertoModel");
-                          setIsDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm ${theme.dropdownItem}`}
-                      >
-                      Create Concerto Model
-                      </button>
-                  </div>
-                  )}
-              </div>
-              
-              {chatState.isLoading ? (
-                <button 
-                  onClick={handleStopMessage}
-                  className="bg-red-500 text-white px-2 py-2 rounded-lg hover:bg-red-600 flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    strokeWidth={1.5} 
-                    stroke="currentColor" 
-                    className="w-4 h-4 mr-1"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
-                  </svg>
-                  <span>Stop</span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => void handleSendMessage()}
-                  disabled={!userInput.trim()}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                  Send
               </button>
+            </div>
+          )}
+
+          {/* Context selection row */}
+          <div className="flex items-center justify-start px-2 gap-2">
+            <span className="text-xs text-gray-600 mr-1" style={{ color: textColor }}>Context:</span>
+            {/* TemplateMark Button */}
+            <div
+              onClick={() => handleTemplateMarkToggle(!includeTemplateMarkContent)}
+              className={
+                `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
+                  ${includeTemplateMarkContent
+                  ? theme.contextButtons.templateMark.active
+                  : theme.contextButtons.templateMark.inactive}`
+              }
+            >
+              <span>TemplateMark</span>
+              {includeTemplateMarkContent && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleTemplateMarkToggle(false);
+                  }}
+                  className={`ml-1 focus:outline-none ${theme.contextButtons.templateMark.cross}`}
+                  tabIndex={-1}
+                  type="button"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-3 h-3"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               )}
             </div>
+            {/* Concerto Button */}
+            <div
+              onClick={() => handleConcertoModelToggle(!includeConcertoModelContent)}
+              className={
+                `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
+                  ${includeConcertoModelContent
+                  ? theme.contextButtons.concerto.active
+                  : theme.contextButtons.concerto.inactive}`
+              }
+            >
+              <span>Concerto</span>
+              {includeConcertoModelContent && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleConcertoModelToggle(false);
+                  }}
+                  className={`ml-1 focus:outline-none ${theme.contextButtons.concerto.cross}`}
+                  tabIndex={-1}
+                  type="button"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-3 h-3"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {/* Data Button */}
+            <div
+              onClick={() => handleDataToggle(!includeDataContent)}
+              className={
+                `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
+                  ${includeDataContent
+                  ? theme.contextButtons.data.active
+                  : theme.contextButtons.data.inactive}`
+              }
+            >
+              <span>Data</span>
+              {includeDataContent && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleDataToggle(false);
+                  }}
+                  className={`ml-1 focus:outline-none ${theme.contextButtons.data.cross}`}
+                  tabIndex={-1}
+                  type="button"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-3 h-3"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className={`flex gap-2 p-2 rounded-lg border ${theme.inputContainer}`}>
+            <textarea
+              ref={textareaRef}
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                promptPreset === "textToTemplate"
+                  ? "Enter simple plain text of an agreement"
+                  : promptPreset === "createConcertoModel"
+                    ? "Describe the type of agreement for the Concerto Model"
+                    : chatState.isLoading
+                      ? "Press 'Stop' to send another message..."
+                      : "Type your message..."
+              }
+              className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-[42px] overflow-y-hidden ${chatState.isLoading ? theme.textarea.loading : theme.textarea.base
+                }`}
+              rows={1}
+            />
+            <div className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`h-full px-3 rounded-lg flex items-center justify-center ${theme.dropdownButton} ${chatState.isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                title="Select Prompt Mode"
+                disabled={chatState.isLoading}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 15.75l7.5-7.5 7.5 7.5"
+                  />
+                </svg>
+              </button>
+              {isDropdownOpen && !chatState.isLoading && (
+                <div className={`absolute bottom-full mb-1 right-0 w-48 rounded-lg shadow-lg border py-1 ${theme.dropdownMenu}`}>
+                  <button
+                    onClick={() => {
+                      setPromptPreset("textToTemplate");
+                      setIsDropdownOpen(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left text-sm ${theme.dropdownItem}`}
+                  >
+                    Text to TemplateMark
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPromptPreset("createConcertoModel");
+                      setIsDropdownOpen(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left text-sm ${theme.dropdownItem}`}
+                  >
+                    Create Concerto Model
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {chatState.isLoading ? (
+              <button
+                onClick={handleStopMessage}
+                className="bg-red-500 text-white px-2 py-2 rounded-lg hover:bg-red-600 flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4 mr-1"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
+                </svg>
+                <span>Stop</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => void handleSendMessage()}
+                disabled={!userInput.trim()}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Send
+              </button>
+            )}
+          </div>
         </div>
-    </div>
+      </div>
     </div>
   );
 }
