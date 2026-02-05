@@ -60,8 +60,8 @@ test.describe('Share Functionality', () => {
       `URL should contain a "data" parameter in hash. Received URL: "${shareableLink}"`
     ).toBeTruthy();
 
-    // Navigate to the shareable link using the hash
-    await page.goto(`/#data=${dataParam}`);
+    // Navigate directly to the shared URL
+    await page.goto(shareableLink);
 
     // Wait for app to load
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
