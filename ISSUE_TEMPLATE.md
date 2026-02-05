@@ -27,7 +27,7 @@
 
 <!-- please include any links to issues here -->
 
-## Context
+## Impact
 <!--- How has this bug affected you? What were you trying to accomplish? -->
 
 ## Your Environment
