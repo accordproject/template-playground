@@ -1,5 +1,15 @@
 import { test, expect } from '@playwright/test';
 
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    await page.screenshot({
+      path: `screenshots/${testInfo.title.replace(/\s+/g, '_')}.png`,
+      fullPage: true,
+    });
+  }
+});
+
+
 test.describe('App Loading', () => {
   test('should load the app and display main components', async ({ page }) => {
     await page.goto('/');
