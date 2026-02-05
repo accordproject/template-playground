@@ -20,7 +20,13 @@
 }
 
 .playground-sidebar-toggle-btn {
-  @apply w-10 h-10 rounded-full bg-gray-700 text-cyan-400 hover:bg-gray-600 hover:text-white cursor-pointer transition-colors flex items-center justify-center;
+  @apply w-10 h-10 rounded-full text-cyan-400 hover:bg-gray-600 hover:text-white cursor-pointer transition-colors flex items-center justify-center;
+  background: #374151;
+  box-shadow: none;
+  border: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .playground-sidebar-toggle-btn svg {
