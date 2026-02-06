@@ -1,99 +1,59 @@
-const MODEL = `namespace hello@1.0.0
-import org.accordproject.money@0.3.0.{MonetaryAmount} from https://models.accordproject.org/money@0.3.0.cto
+const MODEL = `namespace org.accordproject.demo@1.0.0
 
-concept Address {
-    o String line1
-    o String city
-    o String state
-    o String country
-}
-
-concept OrderLine {
-    o String sku
-    o Integer quantity
-    o Double price
-}
-
-concept Order {
-    o DateTime createdAt
-    o OrderLine[] orderLines
+concept Repository {
+  o String name
+  o String language
 }
 
 @template
-concept TemplateData {
-    o String name
-    o Address address
-    o Integer age optional
-    o MonetaryAmount salary
-    o String[] favoriteColors
-    o Order order
+concept ProjectData {
+  o String projectName
+  o String websiteUrl
+  o String foundation
+  o String version
+  o String[] coreTech
+  o Repository[] repositories
 }`;
 
-const TEMPLATE = `> A general sample that uses a range of features
-### Welcome {{name}}!
+const TEMPLATE = `> Playground default sample using real Accord Project metadata
 
-![AP Logo](https://avatars.githubusercontent.com/u/29445438?s=64)
+## Project: {{projectName}}
 
-{{#clause address}}  
-#### Address
-> {{line1}},  
- {{city}}, {{state}},  
- {{country}}  
- {{/clause}}
+**Organization:** {{foundation}}  
+**Website:** {{websiteUrl}}  
+**Version:** {{version}}
 
-- You are *{{age}}* years old
-- Your monthly salary is {{salary as "0,0.00 CCC"}}
-- Your favorite colours are {{#join favoriteColors}}
+### Tech Stack
+{{#join coreTech ", "}}
 
-{{#clause order}}
-## Orders
-Your last order was placed {{createdAt as "D MMMM YYYY"}} ({{% return now.diff(order.createdAt, 'day')%}} days ago).
-
-{{#ulist orderLines}}
-- {{quantity}}x _{{sku}}_ @ £{{price as "0,0.00"}}
+### Core Repositories
+{{#ulist repositories}}
+- {{name}} ({{language}})
 {{/ulist}}
-Order total: {{% return '£' + order.orderLines.map(ol => ol.price * ol.quantity).reduce((sum, cur) => sum + cur).toFixed(2);%}}
-{{/clause}}
 
-Thank you.
-`;
+_Rendered via Accord Project Template Engine_`;
 
 const DATA = {
-    "$class" : "hello@1.0.0.TemplateData",
-    "name": "John Doe",
-    "address" : {
-        "line1" : "1 Main Street",
-        "city" : "Boson",
-        "state" : "MA",
-        "country" : "USA"
+  "$class": "org.accordproject.demo@1.0.0.ProjectData",
+  "projectName": "Accord Project",
+  "websiteUrl": "https://accordproject.org",
+  "foundation": "The Linux Foundation",
+  "version": "1.0.0",
+  "coreTech": ["Concerto", "Cicero", "Ergo", "React"],
+  "repositories": [
+    {
+      "$class": "org.accordproject.demo@1.0.0.Repository",
+      "name": "cicero",
+      "language": "TypeScript"
     },
-    "age" : 42,
-    "salary": {
-        "$class": "org.accordproject.money@0.3.0.MonetaryAmount",
-        "doubleValue": 1500,
-        "currencyCode": "EUR"
-    },
-    "favoriteColors" : ['red', 'green', 'blue'],
-    "order" : {
-        "createdAt" : "2023-05-01",
-        "$class" : "hello@1.0.0.Order",
-        "orderLines":
-        [
-        {
-            "$class" : "hello@1.0.0.OrderLine",
-            "sku" : "ABC-123",
-            "quantity" : 3,
-            "price" : 29.99
-        },
-        {
-            "$class" : "hello@1.0.0.OrderLine",
-            "sku" : "DEF-456",
-            "quantity" : 5,
-            "price" : 19.99
-        }
-    ]
+    {
+      "$class": "org.accordproject.demo@1.0.0.Repository",
+      "name": "concerto",
+      "language": "JavaScript"
     }
+  ]
 };
 
-const NAME = 'Customer Order';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = 'Accord Project Fact Sheet';
+
+export { NAME, MODEL, DATA, TEMPLATE };
