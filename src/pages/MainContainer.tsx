@@ -177,6 +177,7 @@ const MainContainer = () => {
                           onClick={handleJsonFormat}
                           className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
                           disabled={!jsonEditorRef.current || isDataCollapsed}
+                          title="Format JSON"
                         >
                           <MdFormatAlignLeft size={16} />
                         </button>
