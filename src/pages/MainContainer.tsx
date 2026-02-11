@@ -12,7 +12,7 @@ import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
-import { Button } from "antd";
+import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 
@@ -46,7 +46,7 @@ const MainContainer = () => {
       await html2pdf().set(options).from(element).save();
     } catch (error) {
       console.error("PDF generation failed:", error);
-      alert("Failed to generate PDF. Please check the console.");
+      void message.error("Failed to generate PDF. Please check the console.");
     } finally {
       setIsDownloading(false);
     }
@@ -178,6 +178,7 @@ const MainContainer = () => {
                           onClick={handleJsonFormat}
                           className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
                           disabled={!jsonEditorRef.current || isDataCollapsed}
+                          title="Format JSON"
                         >
                           <MdFormatAlignLeft size={16} />
                         </button>
