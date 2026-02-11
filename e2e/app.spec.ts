@@ -8,7 +8,7 @@ test.describe('App Loading', () => {
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Navbar should be visible with logo
-    await expect(page.getByRole('img', { name: 'Template Playground' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Accord Project' })).toBeVisible();
 
     // Sidebar should be visible with navigation buttons
     await expect(page.getByRole('button', { name: 'Editor' })).toBeVisible();
@@ -48,7 +48,7 @@ test.describe('Dark Mode', () => {
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Get initial theme
-    const initialTheme = await page.evaluate(() => 
+    const initialTheme = await page.evaluate(() =>
       document.documentElement.getAttribute('data-theme')
     );
 
@@ -60,7 +60,7 @@ test.describe('Dark Mode', () => {
     await darkModeToggle.click();
 
     // Theme should change
-    const newTheme = await page.evaluate(() => 
+    const newTheme = await page.evaluate(() =>
       document.documentElement.getAttribute('data-theme')
     );
     expect(newTheme).not.toBe(initialTheme);
