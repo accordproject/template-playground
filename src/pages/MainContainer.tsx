@@ -11,7 +11,7 @@ import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
-import { Button } from "antd";
+import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 
@@ -45,7 +45,7 @@ const MainContainer = () => {
       await html2pdf().set(options).from(element).save();
     } catch (error) {
       console.error("PDF generation failed:", error);
-      alert("Failed to generate PDF. Please check the console.");
+      void message.error("Failed to generate PDF. Please check the console.");
     } finally {
       setIsDownloading(false);
     }
