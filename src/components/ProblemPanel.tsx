@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import useAppStore from '../store/store';
+import { useMonaco } from "@monaco-editor/react";
 import '../styles/components/ProblemPanel.css';
 
 export interface ProblemItem {
@@ -18,7 +19,11 @@ const ProblemPanel: React.FC = () => {
     backgroundColor: state.backgroundColor,
     textColor: state.textColor
   }));
+
+  const monaco = useMonaco();
+  const [editorProblems, setEditorProblems] = useState<ProblemItem[]>([]);
   
+  // --- 1. EXISTING LOGIC: Parse Store Errors (Compiler) ---
   const parseError = (errorMessage: string) => {
     const errors: Omit<ProblemItem, 'id' | 'timestamp'>[] = [];
     
@@ -59,17 +64,58 @@ const ProblemPanel: React.FC = () => {
     return errors;
   };
   
-  const problems = useMemo((): ProblemItem[] => {
+  const storeProblems = useMemo((): ProblemItem[] => {
     if (!error) return [];
     
     const parsedErrors = parseError(error);
     return parsedErrors.map((parsedError, index) => ({
-      id: `error-${Date.now()}-${index}`,
+      id: `store-error-${Date.now()}-${index}`,
       timestamp: new Date(),
       ...parsedError
     }));
   }, [error]);
-  
+
+  // --- 2. NEW LOGIC: Listen to Monaco Editor Markers (Squigglies) ---
+  useEffect(() => {
+    if (monaco) {
+      const updateMarkers = () => {
+        // Get all markers from all models
+        const markers = monaco.editor.getModelMarkers({});
+        
+        const newProblems: ProblemItem[] = markers.map((marker, index) => {
+          // Map Monaco Severity (1,2,4,8) to our types
+          let type: 'error' | 'warning' | 'info' = 'info';
+          if (marker.severity === monaco.MarkerSeverity.Error) type = 'error';
+          else if (marker.severity === monaco.MarkerSeverity.Warning) type = 'warning';
+          
+          return {
+            id: `monaco-marker-${Date.now()}-${index}`,
+            type,
+            message: marker.message,
+            source: 'Editor Validation', // Or usage of marker.source if available
+            line: marker.startLineNumber,
+            column: marker.startColumn,
+            timestamp: new Date()
+          };
+        });
+
+        setEditorProblems(newProblems);
+      };
+
+      // Listen for marker changes (this triggers when we set markers in MarkdownEditor)
+      const disposable = monaco.editor.onDidChangeMarkers(updateMarkers);
+      
+      // Run once immediately to catch existing markers
+      updateMarkers();
+
+      return () => {
+        disposable.dispose();
+      };
+    }
+  }, [monaco]);
+
+  // --- 3. MERGE THEM: Combine Store Errors + Editor Warnings ---
+  const problems = [...storeProblems, ...editorProblems];
 
   const formatTimestamp = (timestamp: Date) => {
     return timestamp.toLocaleTimeString('en-US', { 
@@ -84,6 +130,7 @@ const ProblemPanel: React.FC = () => {
     <div className="problem-panel-container" style={{ backgroundColor }}>
       <div className={`problem-panel-header ${backgroundColor === '#ffffff' ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
         <span className="problem-panel-title">Problems</span>
+        {problems.length > 0 && <span className="problem-count-badge">{problems.length}</span>}
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
         {problems.length === 0 ? (
@@ -147,4 +194,4 @@ const ProblemPanel: React.FC = () => {
   );
 };
 
-export default ProblemPanel; 
+export default ProblemPanel;
