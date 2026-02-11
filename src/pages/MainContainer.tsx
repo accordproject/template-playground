@@ -14,6 +14,7 @@ import html2pdf from "html2pdf.js";
 import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
+import { VscDiff } from "react-icons/vsc";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -124,6 +125,28 @@ const MainContainer = () => {
                           <span>Concerto Model</span>
                           <SampleDropdown setLoading={setLoading} />
                         </div>
+                        <button
+                          type="button"
+                          className={`border-none bg-transparent hover:bg-slate-200 ${useAppStore.getState().isDiffViewEnabled ? 'text-blue-600 bg-blue-50' : ''}`}
+                          onClick={useAppStore.getState().toggleDiffView}
+                          title={useAppStore.getState().isDiffViewEnabled ? "Exit Diff View" : "Compare with Original"}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            border: 'none',
+                            background: 'transparent'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <VscDiff size={16} />
+                            <span className="text-xs font-medium">Diff</span>
+                          </div>
+                        </button>
                       </div>
                       {!isModelCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>

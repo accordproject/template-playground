@@ -1,13 +1,26 @@
 import ConcertoEditor from "../ConcertoEditor";
+import DiffViewer from "../DiffEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
 import { updateEditorActivity } from "../../ai-assistant/activityTracker";
 
 function TemplateModel() {
-  const editorModelCto = useAppStore((state) => state.editorModelCto);
-  const setEditorModelCto = useAppStore((state) => state.setEditorModelCto);
-  const setModelCto = useAppStore((state) => state.setModelCto);
-  const { value, setValue} = useUndoRedo(
+  const {
+    editorModelCto,
+    setEditorModelCto,
+    setModelCto,
+    isDiffViewEnabled,
+    originalModel,
+    backgroundColor
+  } = useAppStore((state) => ({
+    editorModelCto: state.editorModelCto,
+    setEditorModelCto: state.setEditorModelCto,
+    setModelCto: state.setModelCto,
+    isDiffViewEnabled: state.isDiffViewEnabled,
+    originalModel: state.originalModel,
+    backgroundColor: state.backgroundColor,
+  }));
+  const { value, setValue } = useUndoRedo(
     editorModelCto,
     setEditorModelCto,
     setModelCto // Sync to main state and rebuild
@@ -22,7 +35,18 @@ function TemplateModel() {
   };
 
   return (
-    <ConcertoEditor value={value} onChange={handleChange} />
+    <>
+      {isDiffViewEnabled ? (
+        <DiffViewer
+          original={originalModel}
+          modified={value}
+          language="concerto"
+          theme={backgroundColor ? "darkTheme" : "lightTheme"}
+        />
+      ) : (
+        <ConcertoEditor value={value} onChange={handleChange} />
+      )}
+    </>
   );
 }
 
