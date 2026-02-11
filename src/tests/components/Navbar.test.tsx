@@ -8,6 +8,29 @@ vi.mock("../../components/ToggleDarkMode", () => ({
   default: () => <div data-testid="toggle-dark-mode">Dark Mode Toggle</div>,
 }));
 
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'navbar.title': 'Template Playground',
+        'navbar.actions.github': 'Github',
+        'navbar.help': 'Help',
+        'navbar.links.about': 'About',
+        'navbar.links.community': 'Community',
+        'navbar.links.issues': 'Issues',
+        'navbar.links.documentation': 'Documentation',
+        'navbar.actions.learn': 'Learn',
+        'navbar.actions.discord': 'Discord'
+      };
+      return translations[key] || key;
+    },
+    i18n: {
+      changeLanguage: () => new Promise(() => { }),
+      language: 'en',
+    },
+  }),
+}));
+
 const renderNavbar = () => {
   render(
     <MemoryRouter>

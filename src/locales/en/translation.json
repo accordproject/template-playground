@@ -1,0 +1,36 @@
+{
+    "navbar": {
+        "title": "Template Playground",
+        "help": "Help",
+        "links": {
+            "about": "About",
+            "community": "Community",
+            "issues": "Issues",
+            "documentation": "Documentation",
+            "home": "Home"
+        },
+        "actions": {
+            "learn": "Learn",
+            "discord": "Discord",
+            "github": "Github"
+        }
+    },
+    "main": {
+        "concertoModel": "Concerto Model",
+        "templateMark": "TemplateMark",
+        "typeName": "Contract",
+        "jsonData": "JSON Data",
+        "preview": "Preview",
+        "downloadPdf": "Download PDF"
+    },
+    "problems": {
+        "title": "Problems",
+        "noProblems": "No problems detected",
+        "source": {
+            "concerto": "Concerto Model",
+            "template": "TemplateMark",
+            "data": "JSON Data",
+            "compilation": "Template Compilation"
+        }
+    }
+}

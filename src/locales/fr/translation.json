@@ -1,0 +1,36 @@
+{
+    "navbar": {
+        "title": "Template Playground",
+        "help": "Aide",
+        "links": {
+            "about": "À propos",
+            "community": "Communauté",
+            "issues": "Problèmes",
+            "documentation": "Documentation",
+            "home": "Accueil"
+        },
+        "actions": {
+            "learn": "Apprendre",
+            "discord": "Discord",
+            "github": "Github"
+        }
+    },
+    "main": {
+        "concertoModel": "Modèle Concerto",
+        "templateMark": "Marque de modèle",
+        "typeName": "Contrat",
+        "jsonData": "Données JSON",
+        "preview": "Aperçu",
+        "downloadPdf": "Télécharger PDF"
+    },
+    "problems": {
+        "title": "Problèmes",
+        "noProblems": "Aucun problème détecté",
+        "source": {
+            "concerto": "Modèle Concerto",
+            "template": "Marque de modèle",
+            "data": "Données JSON",
+            "compilation": "Compilation de modèle"
+        }
+    }
+}

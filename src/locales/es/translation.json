@@ -1,0 +1,36 @@
+{
+    "navbar": {
+        "title": "Template Playground",
+        "help": "Ayuda",
+        "links": {
+            "about": "Acerca de",
+            "community": "Comunidad",
+            "issues": "Problemas",
+            "documentation": "Documentación",
+            "home": "Inicio"
+        },
+        "actions": {
+            "learn": "Aprender",
+            "discord": "Discord",
+            "github": "Github"
+        }
+    },
+    "main": {
+        "concertoModel": "Modelo Concerto",
+        "templateMark": "Marca de plantilla",
+        "typeName": "Contrato",
+        "jsonData": "Datos JSON",
+        "preview": "Vista previa",
+        "downloadPdf": "Descargar PDF"
+    },
+    "problems": {
+        "title": "Problemas",
+        "noProblems": "No se detectaron problemas",
+        "source": {
+            "concerto": "Modelo Concerto",
+            "template": "Marca de plantilla",
+            "data": "Datos JSON",
+            "compilation": "Compilación de plantilla"
+        }
+    }
+}

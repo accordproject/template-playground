@@ -14,8 +14,10 @@ import html2pdf from "html2pdf.js";
 import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
+import { useTranslation } from "react-i18next";
 
 const MainContainer = () => {
+  const { t } = useTranslation();
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
   const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -121,7 +123,7 @@ const MainContainer = () => {
                           >
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
-                          <span>Concerto Model</span>
+                          <span>{t('main.concertoModel')}</span>
                           <SampleDropdown setLoading={setLoading} />
                         </div>
                       </div>
@@ -138,7 +140,7 @@ const MainContainer = () => {
                     <MarkdownEditorProvider>
                       <div className="main-container-editor-section tour-template-mark">
                         <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                          <span>TemplateMark</span>
+                          <span>{t('main.templateMark')}</span>
                           <TemplateMarkdownToolbar />
                         </div>
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
@@ -171,7 +173,7 @@ const MainContainer = () => {
                           >
                             {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
-                          <span>JSON Data</span>
+                          <span>{t('main.jsonData')}</span>
                         </div>
                         <button
                           onClick={handleJsonFormat}
@@ -208,13 +210,13 @@ const MainContainer = () => {
             <Panel defaultSize={37.5} minSize={20}>
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`}>
-                  <span>Preview</span>
+                  <span>{t('main.preview')}</span>
                   <Button
                     onClick={() => void handleDownloadPdf()}
                     loading={isDownloading}
                     style={{ marginLeft: "10px" }}
                   >
-                    Download PDF
+                    {t('main.downloadPdf')}
                   </Button>
                 </div>
                 <div className="main-container-preview-content" style={{ backgroundColor }}>

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   GithubOutlined,
   QuestionOutlined,
@@ -9,6 +10,7 @@ import {
   BookOutlined,
   CaretDownFilled,
   MenuOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
 import ToggleDarkMode from "./ToggleDarkMode";
@@ -16,7 +18,7 @@ import ToggleDarkMode from "./ToggleDarkMode";
 
 interface DropdownProps {
   children: React.ReactNode;
-  overlay: React.ReactNode;
+  overlay: React.ReactNode | ((close: () => void) => React.ReactNode);
   trigger: string[];
   className?: string;
 }
@@ -58,7 +60,7 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
-            {overlay}
+            {typeof overlay === 'function' ? overlay(() => setIsOpen(false)) : overlay}
           </div>
         </>
       )}
@@ -137,13 +139,13 @@ const Image = ({
 
 const useBreakpoint = () => {
   const [screenSize, setScreenSize] = useState({
-    sm: false,
-    md: false,
-    lg: false,
-    xl: false,
+    sm: window.innerWidth >= 640,
+    md: window.innerWidth >= 768,
+    lg: window.innerWidth >= 1024,
+    xl: window.innerWidth >= 1280,
   });
 
-  useState(() => {
+  useEffect(() => {
     const checkSize = () => {
       setScreenSize({
         sm: window.innerWidth >= 640,
@@ -153,20 +155,24 @@ const useBreakpoint = () => {
       });
     };
 
-    checkSize();
     window.addEventListener('resize', checkSize);
     return () => window.removeEventListener('resize', checkSize);
-  });
+  }, []);
 
   return screenSize;
 };
 
 function Navbar() {
+  const { t, i18n } = useTranslation();
   const [hovered, setHovered] = useState<
-    null | "home" | "help" | "github" | "discord" | "join"
+    null | "home" | "help" | "github" | "discord" | "join" | "language"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
+
+  const changeLanguage = (lng: string) => {
+    void i18n.changeLanguage(lng);
+  };
 
   const props = useSpring({
     loop: true,
@@ -178,14 +184,40 @@ function Navbar() {
     config: { duration: 1000 },
   });
 
-  const mobileMenu = (
+  const languageMenu = (close: () => void) => (
     <Menu>
-      <MenuItem>
+      <MenuItem onClick={() => { changeLanguage('en'); close(); }}>
+        <span>English</span>
+      </MenuItem>
+      <MenuItem onClick={() => { changeLanguage('fr'); close(); }}>
+        <span>Français</span>
+      </MenuItem>
+      <MenuItem onClick={() => { changeLanguage('es'); close(); }}>
+        <span>Español</span>
+      </MenuItem>
+    </Menu>
+  );
+
+  const mobileMenu = (close: () => void) => (
+    <Menu>
+      <MenuItem onClick={close}>
         <Link to="/" className="flex items-center space-x-2">
-          <span>Template Playground</span>
+          <span>{t('navbar.title')}</span>
         </Link>
       </MenuItem>
       <MenuItem>
+        <div className="flex items-center space-x-2 w-full">
+          <GlobalOutlined />
+          <div className="flex space-x-2">
+            <span onClick={() => { changeLanguage('en'); close(); }} className={i18n.language === 'en' ? 'font-bold' : 'cursor-pointer'}>EN</span>
+            <span>|</span>
+            <span onClick={() => { changeLanguage('fr'); close(); }} className={i18n.language === 'fr' ? 'font-bold' : 'cursor-pointer'}>FR</span>
+            <span>|</span>
+            <span onClick={() => { changeLanguage('es'); close(); }} className={i18n.language === 'es' ? 'font-bold' : 'cursor-pointer'}>ES</span>
+          </div>
+        </div>
+      </MenuItem>
+      <MenuItem onClick={close}>
         <a
           href="https://github.com/accordproject/template-playground/blob/main/README.md"
           target="_blank"
@@ -193,10 +225,10 @@ function Navbar() {
           className="flex items-center space-x-2"
         >
           <QuestionOutlined />
-          <span>About</span>
+          <span>{t('navbar.links.about')}</span>
         </a>
       </MenuItem>
-      <MenuItem>
+      <MenuItem onClick={close}>
         <a
           href="https://discord.com/invite/Zm99SKhhtA"
           target="_blank"
@@ -204,10 +236,10 @@ function Navbar() {
           className="flex items-center space-x-2"
         >
           <UserOutlined />
-          <span>Community</span>
+          <span>{t('navbar.links.community')}</span>
         </a>
       </MenuItem>
-      <MenuItem>
+      <MenuItem onClick={close}>
         <a
           href="https://github.com/accordproject/template-playground/issues"
           target="_blank"
@@ -215,10 +247,10 @@ function Navbar() {
           className="flex items-center space-x-2"
         >
           <InfoOutlined />
-          <span>Issues</span>
+          <span>{t('navbar.links.issues')}</span>
         </a>
       </MenuItem>
-      <MenuItem>
+      <MenuItem onClick={close}>
         <a
           href="https://github.com/accordproject/template-engine/blob/main/README.md"
           target="_blank"
@@ -226,16 +258,16 @@ function Navbar() {
           className="flex items-center space-x-2"
         >
           <BookOutlined />
-          <span>Documentation</span>
+          <span>{t('navbar.links.documentation')}</span>
         </a>
       </MenuItem>
     </Menu>
   );
 
-  const helpMenu = (
+  const helpMenu = (close: () => void) => (
     <Menu>
       <MenuItemGroup title="Info">
-        <MenuItem>
+        <MenuItem onClick={close}>
           <a
             href="https://github.com/accordproject/template-playground/blob/main/README.md"
             target="_blank"
@@ -243,10 +275,10 @@ function Navbar() {
             className="flex items-center space-x-2"
           >
             <QuestionOutlined />
-            <span>About</span>
+            <span>{t('navbar.links.about')}</span>
           </a>
         </MenuItem>
-        <MenuItem>
+        <MenuItem onClick={close}>
           <a
             href="https://discord.com/invite/Zm99SKhhtA"
             target="_blank"
@@ -254,10 +286,10 @@ function Navbar() {
             className="flex items-center space-x-2"
           >
             <UserOutlined />
-            <span>Community</span>
+            <span>{t('navbar.links.community')}</span>
           </a>
         </MenuItem>
-        <MenuItem>
+        <MenuItem onClick={close}>
           <a
             href="https://github.com/accordproject/template-playground/issues"
             target="_blank"
@@ -265,12 +297,12 @@ function Navbar() {
             className="flex items-center space-x-2"
           >
             <InfoOutlined />
-            <span>Issues</span>
+            <span>{t('navbar.links.issues')}</span>
           </a>
         </MenuItem>
       </MenuItemGroup>
       <MenuItemGroup title="Documentation">
-        <MenuItem>
+        <MenuItem onClick={close}>
           <a
             href="https://github.com/accordproject/template-engine/blob/main/README.md"
             target="_blank"
@@ -278,7 +310,7 @@ function Navbar() {
             className="flex items-center space-x-2"
           >
             <BookOutlined />
-            <span>Documentation</span>
+            <span>{t('navbar.links.documentation')}</span>
           </a>
         </MenuItem>
       </MenuItemGroup>
@@ -316,7 +348,7 @@ function Navbar() {
             className={`h-6.5 ${screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"}`}
           />
           <span className={`text-white ${screens.lg ? "block" : "hidden"}`}>
-            Template Playground
+            {t('navbar.title')}
           </span>
         </Link>
       </div>
@@ -330,7 +362,7 @@ function Navbar() {
           >
             <Dropdown overlay={helpMenu} trigger={["click"]}>
               <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
-                Help
+                {t('navbar.help')}
                 <CaretDownFilled className="text-xs ml-1.5" />
               </Button>
             </Dropdown>
@@ -345,10 +377,25 @@ function Navbar() {
           </Dropdown>
         </div>
       )}
-      
-      <div className={`flex ml-auto items-center h-16 ${
-        screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
-      }`}>
+      <div className={`flex ml-auto items-center h-16 ${screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
+        }`}>
+        <div className={screens.md ? "ml-0" : "ml-auto"}>
+          {screens.md && (
+            <div
+              className={`${menuItemClasses("language", false)} cursor-pointer`}
+              onMouseEnter={() => setHovered("language")}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <Dropdown overlay={languageMenu} trigger={["click", "hover"]}>
+                <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer uppercase">
+                  <GlobalOutlined className="mr-2" />
+                  {i18n.language?.split('-')[0] || 'en'}
+                </Button>
+              </Dropdown>
+            </div>
+          )}
+        </div>
+
         <div className={screens.md ? "ml-0" : "ml-auto"}>
           <ToggleDarkMode />
         </div>
@@ -366,7 +413,7 @@ function Navbar() {
                 style={props}
                 className="px-[22px] py-[10px] bg-[#19c6c7] text-[#050c40] border-none rounded-md cursor-pointer"
               >
-                Learn
+                {t('navbar.actions.learn')}
               </animated.button>
             </Link>
           </div>
@@ -389,10 +436,9 @@ function Navbar() {
             rel="noopener noreferrer"
             className="flex items-center text-white"
           >
-            <FaDiscord className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Discord</span>
+            <FaDiscord className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"
+              }`} />
+            <span className={screens.md ? "inline" : "hidden"}>{t('navbar.actions.discord')}</span>
           </a>
         </div>
         
@@ -413,10 +459,9 @@ function Navbar() {
             rel="noopener noreferrer"
             className="flex items-center text-white"
           >
-            <GithubOutlined className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Github</span>
+            <GithubOutlined className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"
+              }`} />
+            <span className={screens.md ? "inline" : "hidden"}>{t('navbar.actions.github')}</span>
           </a>
         </div>
       </div>
