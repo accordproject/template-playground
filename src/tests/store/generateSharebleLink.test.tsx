@@ -5,7 +5,7 @@ import { vi } from "vitest";
 vi.mock("../../utils/compression/compression");
 
 describe("useAppStore", () => {
-  it("should generate a shareable link", async () => {
+  it("should generate a shareable link", () => {
     const initialState: DecompressedData = {
       templateMarkdown: "Sample Template",
       modelCto: "Sample Model",
@@ -17,14 +17,15 @@ describe("useAppStore", () => {
     const compressedData = "compressed-string";
     vi.mocked(compress).mockReturnValue(compressedData);
 
-    const store = useAppStore.getState();
+    // Set state directly to avoid triggering expensive rebuild operations
+    useAppStore.setState({
+      templateMarkdown: initialState.templateMarkdown,
+      modelCto: initialState.modelCto,
+      data: initialState.data,
+      agreementHtml: initialState.agreementHtml,
+    });
 
-    await store.setTemplateMarkdown(initialState.templateMarkdown);
-    await store.setModelCto(initialState.modelCto);
-    await store.setData(initialState.data);
-    store.agreementHtml = initialState.agreementHtml;
-
-    const shareableLink = store.generateShareableLink();
+    const shareableLink = useAppStore.getState().generateShareableLink();
 
     expect(shareableLink).toContain(`data=${compressedData}`);
   });
