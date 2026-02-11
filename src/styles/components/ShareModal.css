@@ -1,0 +1,15 @@
+.share-modal .ant-modal-content {
+    @apply rounded-xl overflow-hidden shadow-2xl;
+}
+
+.share-modal .ant-modal-header {
+    @apply mb-4 pb-0 border-b-0;
+}
+
+.share-modal .ant-modal-title {
+    @apply font-bold text-gray-800;
+}
+
+.share-modal .ant-btn {
+    @apply shadow-sm;
+}
