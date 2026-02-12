@@ -53,15 +53,19 @@ const PlaygroundSidebar = () => {
   const [autoSave, setAutoSave] = useState(true);
   const [editorTheme, setEditorTheme] = useState("Light");
   const settingsRef = useRef<HTMLDivElement | null>(null);
+  const settingsButtonRef = useRef<HTMLDivElement | null>(null);
+
 
   useEffect(() => {
   const handleClickOutside = (event: MouseEvent) => {
     if (
       settingsRef.current &&
-      !settingsRef.current.contains(event.target as Node)
-    ) {
-      setSettingOpen(false);
-    }
+      !settingsRef.current.contains(event.target as Node) &&
+      settingsButtonRef.current &&
+      !settingsButtonRef.current.contains(event.target as Node)
+) {
+  setSettingOpen(false);
+}
   };
 
   if (isSettingOpen) {
@@ -246,6 +250,7 @@ const PlaygroundSidebar = () => {
         {navBottom.map(({ title, icon: Icon, onClick }) => (
           <Tooltip key={title} title={title} placement="right">
             <div
+              ref={title === "Settings" ? settingsButtonRef : null}
               role="button"
               aria-label={title}
               tabIndex={0}
