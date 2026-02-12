@@ -30,6 +30,8 @@
     "@monaco-editor/react": "^4.6.0",
     "@types/styled-components": "^5.1.34",
     "antd": "^5.7.2",
+    "baseline-browser-mapping": "^2.9.19",
+    "caniuse-lite": "^1.0.30001767",
     "core-js": "^3.37.1",
     "highlight.js": "^11.10.0",
     "html2pdf.js": "^0.12.1",
