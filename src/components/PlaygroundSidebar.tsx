@@ -225,7 +225,7 @@ const PlaygroundSidebar = () => {
 
   return (
     <aside className="playground-sidebar  top-0">
-      <nav className="playground-sidebar-nav">
+      <nav className="playground-sidebar-nav mt-12">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={title} placement="right">
             <div
