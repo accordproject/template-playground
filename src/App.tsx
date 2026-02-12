@@ -11,6 +11,7 @@ import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
+import SettingsPanel from "./components/SettingsPanel";
 import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
 
 const { Content } = Layout;
@@ -19,10 +20,12 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIConfigOpen, setAIConfigOpen } =
+  const { isAIConfigOpen, setAIConfigOpen, isSettingsPanelOpen, setSettingsPanelOpen } =
     useAppStore((state) => ({
       isAIConfigOpen: state.isAIConfigOpen,
       setAIConfigOpen: state.setAIConfigOpen,
+      isSettingsPanelOpen: state.isSettingsPanelOpen,
+      setSettingsPanelOpen: state.setSettingsPanelOpen,
     }));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -140,6 +143,10 @@ const App = () => {
                     onClose={() => setAIConfigOpen(false)}
                     onSave={handleConfigSave}
                   />
+                  <SettingsPanel
+                    isOpen={isSettingsPanelOpen}
+                    onClose={() => setSettingsPanelOpen(false)}
+                  />
                 </>
               }
             />
@@ -163,5 +170,5 @@ const Spinner = () => (
     />
   </div>
 );
- 
+
 export default App;
