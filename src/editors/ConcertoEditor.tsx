@@ -1,9 +1,10 @@
 import { useMonaco } from "@monaco-editor/react";
-import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, MutableRefObject } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
+import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -113,11 +114,13 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
 interface ConcertoEditorProps {
   value: string;
   onChange?: (value: string | undefined) => void;
+  editorRef?: MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }
 
 export default function ConcertoEditor({
   value,
   onChange,
+  editorRef,
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
@@ -160,10 +163,20 @@ export default function ConcertoEditor({
   }), [aiConfig?.enableInlineSuggestions]);
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    if (editorRef) {
+      editorRef.current = editor;
+    }
+    registerEditor('concerto', editor);
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
   };
+
+  useEffect(() => {
+    return () => {
+      unregisterEditor('concerto');
+    };
+  }, []);
 
   const handleChange = useCallback(
     (val: string | undefined) => {

@@ -1,9 +1,10 @@
-import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
+import { lazy, Suspense, useMemo, useCallback, useEffect, MutableRefObject } from "react";
 import useAppStore from "../store/store";
 import { useMonaco } from "@monaco-editor/react";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import type { editor } from "monaco-editor";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
+import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
 
 
 const MonacoEditor = lazy(() =>
@@ -14,10 +15,12 @@ export default function MarkdownEditor({
   value,
   onChange,
   onEditorReady,
+  editorRef,
 }: {
   value: string;
   onChange?: (value: string | undefined) => void;
   onEditorReady?: (editor: editor.IStandaloneCodeEditor) => void;
+  editorRef?: MutableRefObject<editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
   const { backgroundColor, textColor, aiConfig } = useAppStore((state) => ({
@@ -79,6 +82,10 @@ export default function MarkdownEditor({
   }), [aiConfig?.enableInlineSuggestions]);
 
   const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
+    if (editorRef) {
+      editorRef.current = editorInstance;
+    }
+    registerEditor('template', editorInstance);
     editorInstance.onDidChangeCursorSelection(() => {
       handleSelection(editorInstance);
     });
@@ -91,6 +98,12 @@ export default function MarkdownEditor({
       onEditorReady(editorInstance);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      unregisterEditor('template');
+    };
+  }, []);
 
   const handleChange = useCallback(
     (val: string | undefined) => {
