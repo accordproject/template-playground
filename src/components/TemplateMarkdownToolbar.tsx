@@ -3,7 +3,7 @@ import { FaBold, FaItalic, FaLink, FaImage, FaListUl, FaListOl } from "react-ico
 import { useMarkdownEditorContext } from "../contexts/MarkdownEditorContext";
 
 export const TemplateMarkdownToolbar = () => {
-  const { commands: markdownEditorCommands } = useMarkdownEditorContext();
+  const { commands: markdownEditorCommands, hasSelection } = useMarkdownEditorContext();
 
   return (
     <div className="markdown-toolbar">
@@ -33,17 +33,19 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="markdown-toolbar-button border-none bg-transparent hover:bg-slate-200"
+        className="markdown-toolbar-button border-none bg-transparent hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed"
         onClick={() => markdownEditorCommands?.toggleBold?.()}
         title="Bold"
+        disabled={!hasSelection}
       >
         <FaBold />
       </button>
       <button
         type="button"
-        className="border-none bg-transparent hover:bg-slate-200"
+        className="border-none bg-transparent hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed"
         onClick={() => markdownEditorCommands?.toggleItalic?.()}
         title="Italic"
+        disabled={!hasSelection}
       >
         <FaItalic />
       </button>
