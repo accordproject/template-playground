@@ -72,6 +72,11 @@ interface AppState {
   saveCurrentAsSample: (input: CreateSampleInput) => Promise<CustomSample>;
   deleteCustomSample: (id: string) => void;
   getCustomSampleById: (id: string) => CustomSample | undefined;
+  // Main branch additions
+  showLineNumbers: boolean;
+  setShowLineNumbers: (value: boolean) => void;
+  isSettingsOpen: boolean;
+  setSettingsOpen: (value: boolean) => void;
 }
 
 export interface DecompressedData {
@@ -157,6 +162,16 @@ const savePanelState = (state: Partial<AppState>) => {
   }
 };
 
+const getInitialLineNumbers = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('showLineNumbers');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+  }
+  return true; // Default to showing line numbers
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
@@ -191,9 +206,23 @@ const useAppStore = create<AppState>()(
         isModelCollapsed: false,
         isTemplateCollapsed: false,
         isDataCollapsed: false,
+        // Main branch initial values
+        showLineNumbers: getInitialLineNumbers(),
+        isSettingsOpen: false,
+
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
         toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
+
+        // Main branch setters
+        setShowLineNumbers: (value: boolean) => {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('showLineNumbers', String(value));
+          }
+          set({ showLineNumbers: value });
+        },
+        setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
+
         setEditorsVisible: (value) => {
           const state = get();
           if (!value && !state.isPreviewVisible) {
