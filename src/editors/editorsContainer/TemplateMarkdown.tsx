@@ -2,7 +2,6 @@ import { useRef, useEffect } from "react";
 import { editor as MonacoEditorNS } from "monaco-editor";
 import MarkdownEditor from "../MarkdownEditor";
 import useAppStore from "../../store/store";
-import useUndoRedo from "../../components/useUndoRedo";
 import { updateEditorActivity } from "../../ai-assistant/activityTracker";
 import { useMarkdownEditorContext } from "../../contexts/MarkdownEditorContext";
 import { createMarkdownCommands } from "./markdownCommands";
@@ -12,12 +11,6 @@ function TemplateMarkdown() {
   const setEditorValue = useAppStore((state) => state.setEditorValue);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
   const { setCommands } = useMarkdownEditorContext();
-
-  const { value, setValue } = useUndoRedo(
-    editorValue,
-    setEditorValue,
-    setTemplateMarkdown // Sync to main state and rebuild
-  );
 
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
 
@@ -31,8 +24,8 @@ function TemplateMarkdown() {
   const handleChange = (val: string | undefined) => {
     if (val !== undefined) {
       updateEditorActivity("markdown");
-      setValue(val); // Update editor state and sync
-      setTemplateMarkdown(val);
+      setEditorValue(val); // Update editor state
+      void setTemplateMarkdown(val); // Sync to main state and rebuild
     }
   };
 
@@ -44,7 +37,7 @@ function TemplateMarkdown() {
 
   return (
     <MarkdownEditor
-      value={value}
+      value={editorValue}
       onChange={handleChange}
       onEditorReady={handleEditorReady}
     />
