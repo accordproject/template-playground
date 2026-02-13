@@ -76,6 +76,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
         editorsContent,
         false,
         editorType,
+        undefined,
         (chunk) => {
           if (!newAbortController.signal.aborted) {
             setExplanation(prev => prev + chunk);
@@ -83,7 +84,8 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
         },
         (error) => {
           if (!newAbortController.signal.aborted) {
-            setExplanation(`Error: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            setExplanation(`Error: ${errorMessage}`);
             setIsExplaining(false);
           }
         },
