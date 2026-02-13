@@ -13,7 +13,7 @@ import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button } from "antd";
 import * as monaco from "monaco-editor";
-import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
+import { MdFormatAlignLeft, MdChevronRight, MdExpandMore, MdContentCopy, MdCheck } from "react-icons/md";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -57,6 +57,26 @@ const MainContainer = () => {
     }
   };
 
+  // State to track if copy was successful
+  const [isCopied, setIsCopied] = useState(false);
+
+  // Function to handle copying
+  const handleCopyJson = async () => {
+    if (jsonEditorRef.current) {
+      try {
+        // Get the current text from the Monaco Editor instance
+        const value = jsonEditorRef.current.getValue();
+        await navigator.clipboard.writeText(value);
+        
+        // Show checkmark for 2 seconds
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy', err);
+      }
+    }
+  };
+
   const {
     isAIChatOpen,
     isEditorsVisible,
@@ -67,6 +87,7 @@ const MainContainer = () => {
     isDataCollapsed,
     toggleModelCollapse,
     toggleDataCollapse,
+    toggleTemplateCollapse, // Ensure this exists in your store, otherwise remove it
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
     isEditorsVisible: state.isEditorsVisible,
@@ -77,6 +98,7 @@ const MainContainer = () => {
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
+    toggleTemplateCollapse: state.toggleTemplateCollapse, // Added for completeness if needed
   }));
 
   const [, setLoading] = useState(true);
@@ -99,10 +121,11 @@ const MainContainer = () => {
             <Panel defaultSize={62.5} minSize={30}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
                 <PanelGroup key={panelKey} direction="vertical" className="main-container-editors-panel-group">
+                  
+                  {/* CONCERTO MODEL PANEL */}
                   <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-concerto-model">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        {/* Left side */}
                         <div className="main-container-editor-header-left">
                           <button
                             className="collapse-button"
@@ -134,6 +157,7 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
+                  {/* MARKDOWN PANEL */}
                   <Panel minSize={20}>
                     <MarkdownEditorProvider>
                       <div className="main-container-editor-section tour-template-mark">
@@ -150,6 +174,7 @@ const MainContainer = () => {
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
+                  {/* JSON DATA PANEL (THIS IS WHERE WE ADDED THE BUTTONS) */}
                   <Panel minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-json-data">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
@@ -173,13 +198,33 @@ const MainContainer = () => {
                           </button>
                           <span>JSON Data</span>
                         </div>
-                        <button
-                          onClick={handleJsonFormat}
-                          className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
-                          disabled={!jsonEditorRef.current || isDataCollapsed}
-                        >
-                          <MdFormatAlignLeft size={16} />
-                        </button>
+                        
+                        {/* --- BUTTON GROUP START --- */}
+                        <div className="flex items-center shadow-md rounded">
+                          <button
+                            onClick={handleJsonFormat}
+                            className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded-l border-r-0"
+                            disabled={!jsonEditorRef.current || isDataCollapsed}
+                            title="Format JSON"
+                          >
+                            <MdFormatAlignLeft size={16} />
+                          </button>
+                          
+                          <button
+                            onClick={handleCopyJson}
+                            className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded-r"
+                            disabled={!jsonEditorRef.current || isDataCollapsed}
+                            title="Copy JSON to Clipboard"
+                          >
+                            {isCopied ? (
+                              <MdCheck size={16} color="green" /> 
+                            ) : (
+                              <MdContentCopy size={16} />
+                            )}
+                          </button>
+                        </div>
+                        {/* --- BUTTON GROUP END --- */}
+
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
@@ -188,6 +233,8 @@ const MainContainer = () => {
                       )}
                     </div>
                   </Panel>
+                  
+                  {/* PROBLEM PANEL */}
                   {isProblemPanelVisible && (
                     <>
                       <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
@@ -202,6 +249,8 @@ const MainContainer = () => {
             <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
           </>
         )}
+        
+        {/* PREVIEW PANEL */}
         {isPreviewVisible && (
           <>
             <Panel defaultSize={37.5} minSize={20}>
@@ -235,6 +284,8 @@ const MainContainer = () => {
             <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
           </>
         )}
+        
+        {/* AI CHAT PANEL */}
         {isAIChatOpen && (
           <>
             <Panel defaultSize={30} minSize={20}>
