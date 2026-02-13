@@ -10,15 +10,14 @@ function AgreementData({ editorRef }: { editorRef?: React.MutableRefObject<monac
   const setData = useAppStore((state) => state.setData);
   const { value, setValue } = useUndoRedo(
     editorAgreementData,
-    setEditorAgreementData,
-    setData // Sync to main state and rebuild
+    setEditorAgreementData
   );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
       updateEditorActivity('json');
       setValue(value); // Update editor state and sync
-      void setData(value); 
+      void setData(value);
     }
   };
 

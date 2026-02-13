@@ -15,8 +15,7 @@ function TemplateMarkdown() {
 
   const { value, setValue } = useUndoRedo(
     editorValue,
-    setEditorValue,
-    setTemplateMarkdown // Sync to main state and rebuild
+    setEditorValue
   );
 
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
