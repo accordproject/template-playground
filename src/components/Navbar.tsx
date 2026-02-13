@@ -4,11 +4,11 @@ import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
   QuestionOutlined,
-  UserOutlined,
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
   MenuOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
 
@@ -56,7 +56,7 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
             className="fixed inset-0 z-10" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="absolute top-full right-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
             {overlay}
           </div>
         </>
@@ -162,7 +162,7 @@ const useBreakpoint = () => {
 
 function Navbar() {
   const [hovered, setHovered] = useState<
-    null | "home" | "help" | "github" | "discord" | "join"
+    null | "home" | "help" | "socials" | "join"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
@@ -195,17 +195,30 @@ function Navbar() {
           <span>About</span>
         </a>
       </MenuItem>
-      <MenuItem>
-        <a
-          href="https://discord.com/invite/Zm99SKhhtA"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2"
-        >
-          <UserOutlined />
-          <span>Community</span>
-        </a>
-      </MenuItem>
+      <MenuItemGroup title="Socials">
+        <MenuItem>
+          <a
+            href="https://discord.com/invite/Zm99SKhhtA"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-2"
+          >
+            <FaDiscord />
+            <span>Discord</span>
+          </a>
+        </MenuItem>
+        <MenuItem>
+          <a
+            href="https://github.com/accordproject/template-playground"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-2"
+          >
+            <GithubOutlined />
+            <span>GitHub</span>
+          </a>
+        </MenuItem>
+      </MenuItemGroup>
       <MenuItem>
         <a
           href="https://github.com/accordproject/template-playground/issues"
@@ -231,6 +244,33 @@ function Navbar() {
     </Menu>
   );
 
+  const socialsMenu = (
+    <Menu>
+      <MenuItem>
+        <a
+          href="https://discord.com/invite/Zm99SKhhtA"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 no-underline"
+        >
+          <FaDiscord />
+          <span>Discord</span>
+        </a>
+      </MenuItem>
+      <MenuItem>
+        <a
+          href="https://github.com/accordproject/template-playground"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 no-underline"
+        >
+          <GithubOutlined />
+          <span>GitHub</span>
+        </a>
+      </MenuItem>
+    </Menu>
+  );
+
   const helpMenu = (
     <Menu>
       <MenuItemGroup title="Info">
@@ -243,17 +283,6 @@ function Navbar() {
           >
             <QuestionOutlined />
             <span>About</span>
-          </a>
-        </MenuItem>
-        <MenuItem>
-          <a
-            href="https://discord.com/invite/Zm99SKhhtA"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <UserOutlined />
-            <span>Community</span>
           </a>
         </MenuItem>
         <MenuItem>
@@ -369,51 +398,21 @@ function Navbar() {
         )}
         
         <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
+          className={`${
             screens.md 
               ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
               : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
-          onMouseEnter={() => setHovered("discord")}
+          } ${menuItemClasses("socials", false)} cursor-pointer`}
+          onMouseEnter={() => setHovered("socials")}
           onMouseLeave={() => setHovered(null)}
         >
-          <a
-            href="https://discord.com/invite/Zm99SKhhtA"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center text-white"
-          >
-            <FaDiscord className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Discord</span>
-          </a>
-        </div>
-        
-        <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
-              : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
-          onMouseEnter={() => setHovered("github")}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <a
-            href="https://github.com/accordproject/template-playground"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center text-white"
-          >
-            <GithubOutlined className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Github</span>
-          </a>
+          <Dropdown overlay={socialsMenu} trigger={["click"]}>
+            <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
+              <GlobalOutlined className="text-xl" />
+              {screens.md && <span className="ml-1.5">Socials</span>}
+              <CaretDownFilled className="text-xs ml-1.5" />
+            </Button>
+          </Dropdown>
         </div>
       </div>
     </div>
