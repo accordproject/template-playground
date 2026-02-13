@@ -34,6 +34,25 @@ const FullScreenModal: React.FC = () => {
     };
   }, [textColor, backgroundColor]);
 
+  // Hide all tooltips when modal opens to prevent overlay
+  useEffect(() => {
+    if (open) {
+      // Hide tooltips by setting their visibility to hidden
+      const tooltips = document.querySelectorAll('.ant-tooltip');
+      tooltips.forEach((tooltip) => {
+        (tooltip as HTMLElement).style.display = 'none';
+      });
+
+      return () => {
+        // Restore tooltips when modal closes
+        const tooltips = document.querySelectorAll('.ant-tooltip');
+        tooltips.forEach((tooltip) => {
+          (tooltip as HTMLElement).style.display = '';
+        });
+      };
+    }
+  }, [open]);
+
   return (
     <>
       <MdFullscreen
@@ -48,6 +67,7 @@ const FullScreenModal: React.FC = () => {
         onOk={() => setOpen(false)}
         onCancel={() => setOpen(false)}
         width={1000}
+        zIndex={1000}
       >
         <AgreementHtml loading={false} isModal={true} />
       </Modal>
