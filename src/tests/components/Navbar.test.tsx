@@ -8,6 +8,10 @@ vi.mock("../../components/ToggleDarkMode", () => ({
   default: () => <div data-testid="toggle-dark-mode">Dark Mode Toggle</div>,
 }));
 
+vi.mock("../../components/KeyboardShortcutsModal", () => ({
+  default: () => null,
+}));
+
 const renderNavbar = () => {
   render(
     <MemoryRouter>
