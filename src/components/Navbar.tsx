@@ -11,7 +11,6 @@ import {
   MenuOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
-import ToggleDarkMode from "./ToggleDarkMode";
 
 
 interface DropdownProps {
@@ -321,9 +320,6 @@ function Navbar() {
       <div className={`flex ml-auto items-center h-16 ${
         screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
       }`}>
-        <div className={screens.md ? "ml-0" : "ml-auto"}>
-          <ToggleDarkMode />
-        </div>
         
         {!isLearnPage && (
           <div
