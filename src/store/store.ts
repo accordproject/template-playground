@@ -64,6 +64,10 @@ interface AppState {
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
+  showLineNumbers: boolean;
+  setShowLineNumbers: (value: boolean) => void;
+  isSettingsOpen: boolean;
+  setSettingsOpen: (value: boolean) => void;
 }
 
 export interface DecompressedData {
@@ -130,7 +134,7 @@ const getInitialPanelState = () => {
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem('ui-panels');
-      if (saved) return { ...defaults, ...JSON.parse(saved) };
+      if (saved) return { ...defaults, ...(JSON.parse(saved) as Partial<AppState>) };
     } catch (e) { /* ignore */ }
   }
   return defaults;
@@ -147,6 +151,16 @@ const savePanelState = (state: Partial<AppState>) => {
     };
     localStorage.setItem('ui-panels', JSON.stringify(panels));
   }
+};
+
+const getInitialLineNumbers = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('showLineNumbers');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+  }
+  return true; // Default to showing line numbers
 };
 
 const useAppStore = create<AppState>()(
@@ -183,9 +197,18 @@ const useAppStore = create<AppState>()(
       isModelCollapsed: false,
       isTemplateCollapsed: false,
       isDataCollapsed: false,
+      showLineNumbers: getInitialLineNumbers(),
+      isSettingsOpen: false,
       toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
       toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
       toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
+      setShowLineNumbers: (value: boolean) => {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('showLineNumbers', String(value));
+        }
+        set({ showLineNumbers: value });
+      },
+      setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
       setEditorsVisible: (value) => {
         const state = get();
         if (!value && !state.isPreviewVisible) {

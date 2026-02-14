@@ -7,9 +7,11 @@ import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
 import { useState, useRef } from "react";
+import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
+import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
-import { Button } from "antd";
+import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 
@@ -43,7 +45,7 @@ const MainContainer = () => {
       await html2pdf().set(options).from(element).save();
     } catch (error) {
       console.error("PDF generation failed:", error);
-      alert("Failed to generate PDF. Please check the console.");
+      void message.error("Failed to generate PDF. Please check the console.");
     } finally {
       setIsDownloading(false);
     }
@@ -51,7 +53,7 @@ const MainContainer = () => {
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
-      jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+      void jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
     }
   };
 
@@ -64,7 +66,6 @@ const MainContainer = () => {
     isTemplateCollapsed,
     isDataCollapsed,
     toggleModelCollapse,
-    toggleTemplateCollapse,
     toggleDataCollapse,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
@@ -75,7 +76,6 @@ const MainContainer = () => {
     isTemplateCollapsed: state.isTemplateCollapsed,
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
-    toggleTemplateCollapse: state.toggleTemplateCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
   }));
 
@@ -86,7 +86,16 @@ const MainContainer = () => {
   const expandedCount = 3 - collapsedCount;
   const collapsedSize = 5;
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
-
+  
+  // Create distinct preview background for better visual separation
+  const previewBackgroundColor = backgroundColor === '#ffffff' 
+    ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
+    : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
+  
+  const previewHeaderColor = backgroundColor === '#ffffff'
+    ? '#dbeafe'  // Slightly darker blue for header in light mode
+    : '#0f172a';  // Even darker shade for header in dark mode
+  
   // Create a key that changes when collapse state changes to force panel re-layout
   const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
@@ -134,36 +143,18 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
-                    <div className="main-container-editor-section tour-template-mark">
-                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        <div className="main-container-editor-header-left">
-                          <button
-                            className="collapse-button"
-                            onClick={toggleTemplateCollapse}
-                            style={{
-                              color: textColor,
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '4px',
-                              marginRight: '4px'
-                            }}
-                            title={isTemplateCollapsed ? "Expand" : "Collapse"}
-                          >
-                            {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
-                          </button>
+                  <Panel minSize={20}>
+                    <MarkdownEditorProvider>
+                      <div className="main-container-editor-section tour-template-mark">
+                        <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                           <span>TemplateMark</span>
+                          <TemplateMarkdownToolbar />
                         </div>
-                      </div>
-                      {!isTemplateCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
                           <TemplateMarkdown />
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    </MarkdownEditorProvider>
                   </Panel>
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
@@ -195,6 +186,7 @@ const MainContainer = () => {
                           onClick={handleJsonFormat}
                           className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
                           disabled={!jsonEditorRef.current || isDataCollapsed}
+                          title="Format JSON"
                         >
                           <MdFormatAlignLeft size={16} />
                         </button>
@@ -223,8 +215,8 @@ const MainContainer = () => {
         {isPreviewVisible && (
           <>
             <Panel defaultSize={37.5} minSize={20}>
-              <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor }}>
-                <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`}>
+              <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
+                <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
                   <Button
                     onClick={() => void handleDownloadPdf()}
@@ -234,7 +226,7 @@ const MainContainer = () => {
                     Download PDF
                   </Button>
                 </div>
-                <div className="main-container-preview-content" style={{ backgroundColor }}>
+                <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor }}>
                   <div className="main-container-preview-text">
                     <div
                       ref={downloadRef}
@@ -242,7 +234,7 @@ const MainContainer = () => {
                       dangerouslySetInnerHTML={{ __html: agreementHtml }}
                       style={{
                         color: textColor,
-                        backgroundColor: backgroundColor,
+                        backgroundColor: previewBackgroundColor,
                         padding: "20px"
                       }}
                     />

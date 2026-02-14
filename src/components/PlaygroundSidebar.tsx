@@ -7,6 +7,7 @@ import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
+import SettingsModal from "./SettingsModal";
 import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
@@ -23,6 +24,7 @@ const PlaygroundSidebar = () => {
     generateShareableLink,
     exportTemplate,
     importTemplate,
+    setSettingsOpen,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -35,6 +37,7 @@ const PlaygroundSidebar = () => {
     generateShareableLink: state.generateShareableLink,
     exportTemplate: state.exportTemplate,
     importTemplate: state.importTemplate,
+    setSettingsOpen: state.setSettingsOpen,
   }));
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +66,7 @@ const PlaygroundSidebar = () => {
   };
 
   const handleSettings = () => {
-    void message.info('Settings feature coming soon!');
+    setSettingsOpen(true);
   };
 
   const handleStartTour = async () => {
@@ -178,8 +181,8 @@ const PlaygroundSidebar = () => {
     },
   ];
 
-  return (
-    <aside className="playground-sidebar">
+  return [
+    <aside key="sidebar" className="playground-sidebar">
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={title} placement="right">
@@ -197,7 +200,7 @@ const PlaygroundSidebar = () => {
                 {component}
               </div>
             ) : Icon ? (
-              <Icon size={24} />
+              <Icon size={20} />
             ) : null}
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
@@ -215,7 +218,7 @@ const PlaygroundSidebar = () => {
             onClick={onClick}
             className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
-            <Icon size={22} />
+            <Icon size={18} />
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
           </Tooltip>
@@ -228,8 +231,9 @@ const PlaygroundSidebar = () => {
         onChange={(e) => void handleFileChange(e)}
         style={{ display: 'none' }}
       />
-    </aside>
-  );
+    </aside>,
+    <SettingsModal key="settings-modal" />
+  ];
 };
 
 export default PlaygroundSidebar;
