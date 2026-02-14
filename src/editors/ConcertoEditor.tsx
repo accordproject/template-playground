@@ -121,10 +121,11 @@ export default function ConcertoEditor({
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
-  const { error, backgroundColor, aiConfig } = useAppStore((state) => ({
+  const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     error: state.error,
     backgroundColor: state.backgroundColor,
-    aiConfig: state.aiConfig
+    aiConfig: state.aiConfig,
+    showLineNumbers: state.showLineNumbers,
   }));
   const ctoErr = error?.startsWith("c:") ? error : undefined;
 
@@ -138,6 +139,7 @@ export default function ConcertoEditor({
     wordWrap: "on",
     automaticLayout: true,
     scrollBeyondLastLine: false,
+    lineNumbers: showLineNumbers ? 'on' : 'off',
     autoClosingBrackets: "languageDefined",
     autoSurround: "languageDefined",
     bracketPairColorization: { enabled: true },
@@ -157,7 +159,7 @@ export default function ConcertoEditor({
     acceptSuggestionOnCommitCharacter: false,
     acceptSuggestionOnEnter: "off",
     tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions]);
+  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editor.onDidChangeCursorSelection(() => {
