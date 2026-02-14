@@ -1,99 +1,84 @@
-const MODEL = `namespace hello@1.0.0
-import org.accordproject.money@0.3.0.{MonetaryAmount} from https://models.accordproject.org/money@0.3.0.cto
+const MODEL = `namespace org.accordproject.service@1.0.0
 
-concept Address {
-    o String line1
-    o String city
-    o String state
-    o String country
-}
-
-concept OrderLine {
-    o String sku
+concept ServiceItem {
+    o String description
+    o Double rate
     o Integer quantity
-    o Double price
-}
-
-concept Order {
-    o DateTime createdAt
-    o OrderLine[] orderLines
 }
 
 @template
-concept TemplateData {
-    o String name
-    o Address address
-    o Integer age optional
-    o MonetaryAmount salary
-    o String[] favoriteColors
-    o Order order
+concept ServiceAgreement {
+    o String clientName
+    o String clientAddress
+    o String providerName
+    o String providerAddress
+    o DateTime effectiveDate
+    o ServiceItem[] services
+    o Integer paymentTerms
 }`;
 
-const TEMPLATE = `> A general sample that uses a range of features
-### Welcome {{name}}!
+const TEMPLATE = `# SERVICE AGREEMENT
 
-![AP Logo](https://avatars.githubusercontent.com/u/29445438?s=64)
+This Service Agreement is made and entered into as of {{effectiveDate as "D MMMM YYYY"}} by and between {{clientName}}, located at {{clientAddress}} (Client), and {{providerName}}, located at {{providerAddress}} (SProvider).
 
-{{#clause address}}  
-#### Address
-> {{line1}},  
- {{city}}, {{state}},  
- {{country}}  
- {{/clause}}
+## 1. Services
 
-- You are *{{age}}* years old
-- Your monthly salary is {{salary as "0,0.00 CCC"}}
-- Your favorite colours are {{#join favoriteColors}}
+Provider shall perform the following services for Client:
 
-{{#clause order}}
-## Orders
-Your last order was placed {{createdAt as "D MMMM YYYY"}} ({{% return now.diff(order.createdAt, 'day')%}} days ago).
-
-{{#ulist orderLines}}
-- {{quantity}}x _{{sku}}_ @ £{{price as "0,0.00"}}
+{{#ulist services}}
+- {{description}} at {{rate as "0.00"}} per unit × {{quantity}}
 {{/ulist}}
-Order total: {{% return '£' + order.orderLines.map(ol => ol.price * ol.quantity).reduce((sum, cur) => sum + cur).toFixed(2);%}}
-{{/clause}}
 
-Thank you.
+## 2. Compensation
+
+In consideration for the services provided, Client shall pay Provider the total amount calculated below:
+
+**Total Service Value:** {{%
+return '$' + services
+  .map(s => s.rate * s.quantity)
+  .reduce((sum, cur) => sum + cur, 0)
+  .toFixed(2);
+%}}
+
+Payment is due within {{paymentTerms}} days of invoice.
+
+## 3. Execution
+
+IN WITNESS WHEREOF, the parties hereto have executed this Agreement as of the date first written above.
+
+---
+
+### Client:  
+{{clientName}}
+
+### Provider:  
+{{providerName}}
 `;
 
 const DATA = {
-    "$class" : "hello@1.0.0.TemplateData",
-    "name": "John Doe",
-    "address" : {
-        "line1" : "1 Main Street",
-        "city" : "Boson",
-        "state" : "MA",
-        "country" : "USA"
+  "$class": "org.accordproject.service@1.0.0.ServiceAgreement",
+  "effectiveDate": "2026-02-01T00:00:00Z",
+  "paymentTerms": 30,
+  "clientName": "Acme Corp",
+  "clientAddress": "123 Business Road, London, UK",
+  "providerName": "DevConsult Ltd",
+  "providerAddress": "456 Tech Street, Berlin, Germany",
+  "services": [
+    {
+      "$class": "org.accordproject.service@1.0.0.ServiceItem",
+      "description": "Backend Development",
+      "rate": 80,
+      "quantity": 40
     },
-    "age" : 42,
-    "salary": {
-        "$class": "org.accordproject.money@0.3.0.MonetaryAmount",
-        "doubleValue": 1500,
-        "currencyCode": "EUR"
-    },
-    "favoriteColors" : ['red', 'green', 'blue'],
-    "order" : {
-        "createdAt" : "2023-05-01",
-        "$class" : "hello@1.0.0.Order",
-        "orderLines":
-        [
-        {
-            "$class" : "hello@1.0.0.OrderLine",
-            "sku" : "ABC-123",
-            "quantity" : 3,
-            "price" : 29.99
-        },
-        {
-            "$class" : "hello@1.0.0.OrderLine",
-            "sku" : "DEF-456",
-            "quantity" : 5,
-            "price" : 19.99
-        }
-    ]
+    {
+      "$class": "org.accordproject.service@1.0.0.ServiceItem",
+      "description": "Code Review",
+      "rate": 60,
+      "quantity": 10
     }
+  ]
 };
 
-const NAME = 'Customer Order';
-export {NAME, MODEL,DATA,TEMPLATE};
+const NAME = 'Service Agreement';
+
+export { NAME, MODEL, DATA, TEMPLATE };
