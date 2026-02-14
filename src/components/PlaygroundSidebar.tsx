@@ -7,6 +7,7 @@ import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
 import { message, Modal, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
+import SettingsModal from "./SettingsModal";
 import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
@@ -22,6 +23,7 @@ const PlaygroundSidebar = () => {
     setAIChatOpen,
     generateShareableLink,
     resetToDefault,
+    setSettingsOpen,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -33,6 +35,7 @@ const PlaygroundSidebar = () => {
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     resetToDefault: state.resetToDefault,
+    setSettingsOpen: state.setSettingsOpen,
   }));
 
   const handleShare = async () => {
@@ -47,7 +50,7 @@ const PlaygroundSidebar = () => {
   };
 
   const handleSettings = () => {
-    void message.info('Settings feature coming soon!');
+    setSettingsOpen(true);
   };
 
   const handleReset = () => {
@@ -176,8 +179,8 @@ const PlaygroundSidebar = () => {
     },
   ];
 
-  return (
-    <aside className="playground-sidebar">
+  return [
+    <aside key="sidebar" className="playground-sidebar">
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={title} placement="right">
@@ -219,8 +222,9 @@ const PlaygroundSidebar = () => {
           </Tooltip>
         ))}
       </nav>
-    </aside>
-  );
+    </aside>,
+    <SettingsModal key="settings-modal" />
+  ];
 };
 
 export default PlaygroundSidebar;
