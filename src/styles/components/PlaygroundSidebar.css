@@ -1,14 +1,19 @@
 /* PlaygroundSidebar Component Styles */
 .playground-sidebar {
-  @apply w-16 h-full bg-[#1B2540] text-white flex flex-col justify-between items-center py-6 shadow-md;
+  @apply w-16 bg-[#1B2540] text-white flex flex-col justify-between items-center py-4 shadow-md;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  bottom: 0;
+  z-index: 40;
 }
 
 .playground-sidebar-nav {
-  @apply flex flex-col gap-6;
+  @apply flex flex-col gap-4;
 }
 
 .playground-sidebar-nav-item {
-  @apply p-[10px] flex flex-col items-center justify-center cursor-pointer transition-colors;
+  @apply p-[8px] flex flex-col items-center justify-center cursor-pointer transition-colors;
 }
 
 .playground-sidebar-nav-item-active {
@@ -28,9 +33,37 @@
 }
 
 .playground-sidebar-nav-bottom {
-  @apply flex flex-col gap-6;
+  @apply flex flex-col gap-4;
 }
 
 .playground-sidebar-nav-bottom-item {
-  @apply p-[10px] flex flex-col items-center justify-center text-white hover:text-cyan-400 cursor-pointer transition-colors;
+  @apply p-[8px] flex flex-col items-center justify-center text-white hover:text-cyan-400 cursor-pointer transition-colors;
+}
+
+/* Responsive styles for smaller screens */
+@media (max-height: 500px) {
+  .playground-sidebar {
+    @apply py-1;
+  }
+  
+  .playground-sidebar-nav,
+  .playground-sidebar-nav-bottom {
+    @apply gap-1;
+  }
+  
+  .playground-sidebar-nav-item,
+  .playground-sidebar-nav-bottom-item {
+    @apply p-1;
+  }
+}
+
+@media (max-width: 768px) {
+  .playground-sidebar {
+    @apply w-12;
+  }
+  
+  .playground-sidebar-nav-item,
+  .playground-sidebar-nav-bottom-item {
+    @apply p-1;
+  }
 }
