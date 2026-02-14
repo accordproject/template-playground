@@ -3,9 +3,13 @@ import { render, screen } from '@testing-library/react';
 import SettingsModal from '../../components/SettingsModal';
 
 // Mock the store - use inline functions to avoid hoisting issues
-vi.mock('../../store/store', () => {
+// Mock the store - use inline functions to avoid hoisting issues
+vi.mock('../../store/store', async () => {
+  const actual = await vi.importActual('../../store/store');
+  type AppState = import('../../store/store').AppState;
   return {
-    default: vi.fn((selector) => selector({
+    ...actual,
+    default: vi.fn((selector: (state: AppState) => unknown) => selector({
       isSettingsOpen: true,
       setSettingsOpen: vi.fn(),
       showLineNumbers: true,
@@ -13,7 +17,7 @@ vi.mock('../../store/store', () => {
       textColor: '#121212',
       backgroundColor: '#ffffff',
       toggleDarkMode: vi.fn(),
-    })),
+    } as unknown as AppState)),
   };
 });
 

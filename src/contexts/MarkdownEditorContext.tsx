@@ -1,16 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-export interface MarkdownEditorCommands {
-  toggleBold: () => void;
-  toggleItalic: () => void;
-  insertLink: () => void;
-  toggleHeading1: () => void;
-  toggleHeading2: () => void;
-  toggleHeading3: () => void;
-  toggleUnorderedList: () => void;
-  toggleOrderedList: () => void;
-  insertImage: () => void;
-}
+import { MarkdownEditorCommands } from "../types/MarkdownEditor.types";
 
 interface MarkdownEditorContextType {
   commands: MarkdownEditorCommands | undefined;
@@ -33,6 +23,7 @@ export const MarkdownEditorProvider = ({ children }: { children: ReactNode }) =>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useMarkdownEditorContext = () => {
   const context = useContext(MarkdownEditorContext);
   if (context === undefined) {

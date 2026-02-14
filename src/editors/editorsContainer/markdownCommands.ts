@@ -5,7 +5,7 @@ import {
   applyWrappedEdit,
   insertMarkdownLinkOrImage,
 } from "../../utils/markdownEditorUtils";
-import { MarkdownEditorCommands } from "../../contexts/MarkdownEditorContext";
+import { MarkdownEditorCommands } from "../../types/MarkdownEditor.types";
 
 /**
  * Creates markdown editor commands bound to a specific editor instance
