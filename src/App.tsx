@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
 import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
+import { shallow } from "zustand/shallow";
 import LearnContent from "./components/Content";
 import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
@@ -23,7 +24,7 @@ const App = () => {
     useAppStore((state) => ({
       isAIConfigOpen: state.isAIConfigOpen,
       setAIConfigOpen: state.setAIConfigOpen,
-    }));
+    }), shallow);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);

@@ -5,6 +5,7 @@ import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
 import SettingsModal from "./SettingsModal";
@@ -34,7 +35,7 @@ const PlaygroundSidebar = () => {
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
-  }));
+  }), shallow);
 
   const handleShare = async () => {
     try {
@@ -163,6 +164,12 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+                e.preventDefault();
+                onClick();
+              }
+            }}
             className={`group playground-sidebar-nav-item ${
               active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
             } tour-${title.toLowerCase().replace(' ', '-')}`}
@@ -188,6 +195,12 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+                e.preventDefault();
+                onClick();
+              }
+            }}
             className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             <Icon size={18} />
