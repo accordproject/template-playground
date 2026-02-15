@@ -11,6 +11,8 @@ import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState } from '../types/components/AIAssistant.types';
 
+const EDITOR_STATE_KEY = 'editor-state';
+
 interface AppState {
   templateMarkdown: string;
   editorValue: string;
@@ -61,6 +63,7 @@ interface AppState {
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
+  resetToDefault: () => Promise<void>;
   showLineNumbers: boolean;
   setShowLineNumbers: (value: boolean) => void;
   isSettingsOpen: boolean;
@@ -136,6 +139,54 @@ const getInitialPanelState = () => {
   }
   return defaults;
 };
+
+/* --- Helper to safely load editor state --- */
+const getInitialEditorState = () => {
+  if(typeof window !== 'undefined'){
+    try{
+      const saved = localStorage.getItem(EDITOR_STATE_KEY);
+      if(saved){
+        return JSON.parse(saved);
+      }
+    } catch(e){
+      /* ignore */ 
+    }
+  }
+  return null;
+};
+
+/* --- Helper to safely save editor state --- */
+const saveEditorState = (state: Partial<AppState>) => {
+  if(typeof window !== 'undefined'){
+    const editorData = {
+      editorValue: state.editorValue,
+      templateMarkdown: state.templateMarkdown,
+      editorModelCto: state.editorModelCto,
+      modelCto: state.modelCto,
+      data: state.data,
+      editorAgreementData: state.editorAgreementData,
+    }
+    try {
+      localStorage.setItem(EDITOR_STATE_KEY, JSON.stringify(editorData));
+    } catch (e) {
+      // Handle quota exceeded error
+      if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+        console.warn('localStorage quota exceeded, clearing editor state and retrying');
+        localStorage.removeItem(EDITOR_STATE_KEY);
+        // Try one more time after clearing
+        try {
+          localStorage.setItem(EDITOR_STATE_KEY, JSON.stringify(editorData));
+        } catch (retryError) {
+          console.error('Failed to save editor state even after clearing:', retryError);
+        }
+      } else {
+        console.error('Error saving editor state:', e);
+      }
+    }
+  }  
+};
+
+const saveEditorStateDeBounced = debounce(saveEditorState, 1000);
 
 /* --- Helper to safely save panel state --- */
 const savePanelState = (state: Partial<AppState>) => {
@@ -232,6 +283,17 @@ const useAppStore = create<AppState>()(
         if (compressedData) {
           await get().loadFromLink(compressedData);
         } else {
+          const savedState = getInitialEditorState();
+          if(savedState){
+            set((prev) => ({
+              templateMarkdown: savedState.templateMarkdown ?? prev.templateMarkdown,
+              editorValue: savedState.editorValue ?? prev.editorValue,
+              modelCto: savedState.modelCto ?? prev.modelCto,
+              editorModelCto: savedState.editorModelCto ?? prev.editorModelCto,
+              data: savedState.data ?? prev.data,
+              editorAgreementData: savedState.editorAgreementData ?? prev.editorAgreementData,
+            }));
+          }
           await get().rebuild();
         }
       },
@@ -276,9 +338,11 @@ const useAppStore = create<AppState>()(
           isProblemPanelVisible: true,
           }));
         }
+        saveEditorStateDeBounced(get());
       },
       setEditorValue: (value: string) => {
         set(() => ({ editorValue: value }));
+        saveEditorStateDeBounced(get());
       },
       setModelCto: async (model: string) => {
         set(() => ({ modelCto: model }));
@@ -292,9 +356,11 @@ const useAppStore = create<AppState>()(
           isProblemPanelVisible: true,
           }));
         }
+        saveEditorStateDeBounced(get());
       },
       setEditorModelCto: (value: string) => {
         set(() => ({ editorModelCto: value }));
+        saveEditorStateDeBounced(get());
       },
       setData: async (data: string) => {
         set(() => ({ data }));
@@ -311,10 +377,11 @@ const useAppStore = create<AppState>()(
           isProblemPanelVisible: true,
         }));
         }
-
+        saveEditorStateDeBounced(get());
       },
       setEditorAgreementData: (value: string) => {
         set(() => ({ editorAgreementData: value }));
+        saveEditorStateDeBounced(get());
       },
       generateShareableLink: () => {
         const state = get();
@@ -395,6 +462,14 @@ const useAppStore = create<AppState>()(
       },
       startTour: () => {
         console.log('Starting tour...');
+      },
+      resetToDefault: async () => {
+        // Clear saved editor state from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(EDITOR_STATE_KEY);
+        }
+        // Load the default playground sample
+        await get().loadSample(playground.NAME);
       },
       }
     })

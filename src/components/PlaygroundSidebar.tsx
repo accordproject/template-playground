@@ -1,11 +1,11 @@
 import React from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiRefreshCcw } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
-import { message, Tooltip } from "antd";
+import { message, Modal, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
 import SettingsModal from "./SettingsModal";
 import tour from "./Tour";
@@ -22,6 +22,7 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible,
     setAIChatOpen,
     generateShareableLink,
+    resetToDefault,
     setSettingsOpen,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
@@ -33,6 +34,7 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible: state.setProblemPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
+    resetToDefault: state.resetToDefault,
     setSettingsOpen: state.setSettingsOpen,
   }));
 
@@ -49,6 +51,25 @@ const PlaygroundSidebar = () => {
 
   const handleSettings = () => {
     setSettingsOpen(true);
+  };
+
+  const handleReset = () => {
+    Modal.confirm({
+      title: 'Reset to Default?',
+      content: 'This will clear all your current work and reload the default playground sample. This action cannot be undone.',
+      okText: 'Reset',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await resetToDefault();
+          void message.success('Reset to default playground!');
+        } catch (err) {
+          console.error('Error resetting:', err);
+          void message.error('Failed to reset');
+        }
+      },
+    });
   };
 
   const handleStartTour = async () => {
@@ -140,6 +161,11 @@ const PlaygroundSidebar = () => {
       title: "Share", 
       icon: FiShare2,
       onClick: () => void handleShare()
+    },
+    { 
+      title: "Reset", 
+      icon: FiRefreshCcw,
+      onClick: () => void handleReset()
     },
     { 
       title: "Start Tour", 
