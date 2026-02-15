@@ -10,6 +10,7 @@ import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState } from '../types/components/AIAssistant.types';
+import { validateBeforeRebuild } from "../utils/validators";
 
 interface AppState {
   templateMarkdown: string;
@@ -77,6 +78,10 @@ export interface DecompressedData {
 const rebuildDeBounce = debounce(rebuild, 500);
 
 async function rebuild(template: string, model: string, dataString: string): Promise<string> {
+  // Validate inputs before expensive operations
+  // This fails fast on invalid JSON or CTO syntax without running network calls
+  await validateBeforeRebuild(template, model, dataString);
+  
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
