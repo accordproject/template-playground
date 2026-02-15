@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import {Modal,message } from "antd";
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 
@@ -38,11 +39,11 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       saveButton: {
         enabled: 'bg-blue-500 text-white hover:bg-blue-600',
         disabled: isDarkMode ? 'bg-gray-600 text-gray-400' : 'bg-gray-400 text-gray-200'
-      },
-      resetButton: isDarkMode
-        ? 'border-red-600 text-red-400 hover:bg-red-900 hover:border-red-500'
-        : 'border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600'
-    };
+      },resetButton: isDarkMode
+  ? 'border-gray-600 text-gray-400 hover:bg-gray-700 hover:border-gray-500'
+  : 'border-gray-300 text-gray-500 hover:bg-gray-100 hover:border-gray-400',
+     modalText: isDarkMode ? 'text-white' : 'bg-white text-black' 
+};
   }, [backgroundColor]);
 
   const [provider, setProvider] = useState<string>('');
@@ -105,13 +106,30 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
     onClose();
   };
 
-  const handleReset = () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to reset all AI configuration? This will clear your API key and all settings.'
-    );
+const handleReset = () => {
+  Modal.confirm({
     
-    if (confirmed) {
-      // Clear all AI-related localStorage items
+   title: (
+      <span className={theme.headerText}>
+        Reset AI configuration?
+      </span>
+    ),
+
+    content: (
+      <p className={theme.modalText}>
+        This will remove your API key and all saved settings.
+      </p>
+    ),
+
+    okText: "Reset",
+    cancelText: "Cancel",
+    okButtonProps: { danger: true },
+    zIndex: 2000,
+
+      className: "ai-reset-modal",
+
+    onOk() {
+   
       localStorage.removeItem('aiProvider');
       localStorage.removeItem('aiModel');
       localStorage.removeItem('aiApiKey');
@@ -124,7 +142,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       localStorage.removeItem('aiIncludeConcertoModel');
       localStorage.removeItem('aiIncludeData');
       
-      // Reset all state variables to default
+     
       setProvider('');
       setModel('');
       setApiKey('');
@@ -134,16 +152,15 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       setEnableCodeSelectionMenu(true);
       setEnableInlineSuggestions(true);
       
-      // Notify parent and reload config
-      onSave();
+      message.success("AI configuration reset successfully");
     }
-  };
-
+  });
+};
   if (!isOpen) return null;
 
   return (
     <div className={`${theme.overlay} flex items-center justify-center z-[1050] twp`}>
-      <div className={`${theme.container} rounded-lg p-6 w-96 max-h-[90vh] overflow-y-auto`}>
+      <div className={`${theme.container} rounded-lg p-6 w-96 max-h-[90vh] overflow-y-auto `}>
         <div className="flex justify-between items-center mb-4">
           <h2 className={`text-xl font-bold ${theme.headerText}`}>AI Configuration</h2>
           <button
@@ -342,8 +359,9 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 </div>
               </div>
             )}
+            
           </div>
-
+           <div className=" bottom-0 bg-inherit pt-4 space-y-2">
            <button
             onClick={handleSave}
             disabled={!provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
@@ -361,9 +379,11 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             className={`w-full py-2 rounded-lg border-2 transition-colors ${theme.resetButton}`}
           >
             Reset Configuration
-          </button>
+          </button></div>
         </div>
+        
       </div>
+      
     </div>
   );
 };
