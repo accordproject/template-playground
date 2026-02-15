@@ -8,3 +8,5 @@ The main channel for support with Template Playground is the [Accord Project Dis
 
 [apcontribute]: https://github.com/accordproject/techdocs/blob/master/CONTRIBUTING.md
 [apdiscord]: https://discord.com/invite/Zm99SKhhtA	
+
+Last updated: Feb 15, 2026.
