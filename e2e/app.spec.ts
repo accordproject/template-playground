@@ -43,7 +43,7 @@ test.describe('App Loading', () => {
 });
 
 test.describe('Dark Mode', () => {
-  test('should toggle dark mode', async ({ page }) => {
+  test('should toggle dark mode via Settings modal', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
@@ -52,12 +52,36 @@ test.describe('Dark Mode', () => {
       document.documentElement.getAttribute('data-theme')
     );
 
-    // Find the dark mode toggle - assert it exists
-    const darkModeToggle = page.locator('[data-testid="toggle-dark-mode"]');
-    await expect(darkModeToggle, 'Dark mode toggle should be visible').toBeVisible();
+    // Open Settings modal - the gear icon button in sidebar
+    const settingsButton = page.getByRole('button', { name: 'Settings' });
+    await expect(settingsButton).toBeVisible();
+    await settingsButton.click();
 
-    // Click the toggle
+    // Wait for the Settings modal to appear
+    const settingsModal = page.getByRole('dialog');
+    await expect(settingsModal).toBeVisible({ timeout: 5000 });
+
+    // Find and click the Dark Mode toggle inside the modal
+    // The react-dark-mode-toggle library renders a button element
+    // Find the section containing "Dark Mode" text, then locate the button within it
+    const darkModeSection = settingsModal.locator('div').filter({ hasText: /^Dark Mode/ }).first();
+    const darkModeToggle = darkModeSection.locator('button').first();
+    await expect(darkModeToggle, 'Dark mode toggle should be visible in Settings modal').toBeVisible();
     await darkModeToggle.click();
+
+    // Close the modal
+    const closeButton = settingsModal.getByRole('button', { name: /close/i }).or(
+      settingsModal.locator('[aria-label="Close"]')
+    );
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    } else {
+      // Press Escape to close modal
+      await page.keyboard.press('Escape');
+    }
+
+    // Wait for modal to close
+    await expect(settingsModal).toBeHidden({ timeout: 3000 });
 
     // Theme should change
     const newTheme = await page.evaluate(() =>

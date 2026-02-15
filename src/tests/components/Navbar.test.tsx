@@ -2,11 +2,6 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Navbar from "../../components/Navbar";
 import { MemoryRouter } from "react-router-dom";
-import { vi } from "vitest";
-
-vi.mock("../../components/ToggleDarkMode", () => ({
-  default: () => <div data-testid="toggle-dark-mode">Dark Mode Toggle</div>,
-}));
 
 const renderNavbar = () => {
   render(
@@ -44,11 +39,5 @@ describe("Navbar", () => {
     expect(homeMenuItem).not.toHaveStyle({
       backgroundColor: "rgba(255, 255, 255, 0.1)",
     });
-  });
-
-  it("renders Dark Mode Toggle button", () => {
-    renderNavbar();
-    const toggleDarkMode = screen.getByTestId("toggle-dark-mode");
-    expect(toggleDarkMode).toBeInTheDocument();
   });
 });

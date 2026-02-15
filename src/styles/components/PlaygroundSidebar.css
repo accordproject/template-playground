@@ -74,8 +74,41 @@
   @apply p-[8px] flex items-center gap-3 text-white hover:text-cyan-400 cursor-pointer transition-colors rounded-lg mx-2;
 }
 
+<<<<<<< HEAD
+
 /* Ensure icons don't shrink */
 .playground-sidebar-nav-item svg,
 .playground-sidebar-nav-bottom-item svg {
   @apply flex-shrink-0;
 }
+
+=======
+/* Responsive styles for smaller screens */
+@media (max-height: 500px) {
+  .playground-sidebar {
+    @apply py-1;
+  }
+
+  .playground-sidebar-nav,
+  .playground-sidebar-nav-bottom {
+    @apply gap-1;
+  }
+
+  .playground-sidebar-nav-item,
+  .playground-sidebar-nav-bottom-item {
+    @apply p-1;
+  }
+}
+
+@media (max-width: 768px) {
+  .playground-sidebar {
+    @apply w-12;
+  }
+
+  .playground-sidebar-nav-item,
+  .playground-sidebar-nav-bottom-item {
+    @apply p-1;
+  }
+}
+
+>>>>>>>upstream/main

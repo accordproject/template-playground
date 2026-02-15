@@ -7,6 +7,7 @@ import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
+import SettingsModal from "./SettingsModal";
 import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
@@ -23,6 +24,7 @@ const PlaygroundSidebar = () => {
     setAIChatOpen,
     setSidebarExpanded,
     generateShareableLink,
+    setSettingsOpen,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -35,6 +37,7 @@ const PlaygroundSidebar = () => {
     setAIChatOpen: state.setAIChatOpen,
     setSidebarExpanded: state.setSidebarExpanded,
     generateShareableLink: state.generateShareableLink,
+    setSettingsOpen: state.setSettingsOpen,
   }));
 
   const toggleSidebar = () => {
@@ -53,7 +56,7 @@ const PlaygroundSidebar = () => {
   };
 
   const handleSettings = () => {
-    void message.info('Settings feature coming soon!');
+    setSettingsOpen(true);
   };
 
   const handleStartTour = async () => {
@@ -158,8 +161,8 @@ const PlaygroundSidebar = () => {
     },
   ];
 
-  return (
-    <aside className={`playground-sidebar ${isSidebarExpanded ? 'playground-sidebar-expanded' : ''}`}>
+  return [
+    <aside key="sidebar" className={`playground-sidebar ${isSidebarExpanded ? 'playground-sidebar-expanded' : ''}`}>
       {/* Toggle Button */}
       <div className="playground-sidebar-toggle">
         <Tooltip title={isSidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"} placement="right">
@@ -172,7 +175,6 @@ const PlaygroundSidebar = () => {
           </button>
         </Tooltip>
       </div>
-
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={!isSidebarExpanded ? title : ''} placement="right">
@@ -217,8 +219,9 @@ const PlaygroundSidebar = () => {
           </Tooltip>
         ))}
       </nav>
-    </aside>
-  );
+    </aside>,
+    <SettingsModal key="settings-modal" />
+  ];
 };
 
 export default PlaygroundSidebar;
