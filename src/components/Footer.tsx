@@ -32,7 +32,7 @@ const CustomFooter: React.FC = () => {
       <Row justify="space-between" align="middle" gutter={[16, 16]}>
         <Col xs={24} md={12}>
           <Space direction="vertical" size="middle">
-            <Link href="https://www.accordproject.org" target="_blank">
+            <Link href="https://www.accordproject.org" target="_blank" rel="noopener noreferrer">
               <Image
                 src="/logo.png"
                 alt="Template Playground"
@@ -48,7 +48,7 @@ const CustomFooter: React.FC = () => {
                 admin@accordproject.org
               </Text>
             </Link>
-            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank">
+            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" rel="noopener noreferrer">
               <Button
                 size="large"
                 style={{
@@ -119,6 +119,7 @@ const CustomFooter: React.FC = () => {
               strong
               href="https://accordproject.org/privacy"
               target="_blank"
+              rel="noopener noreferrer"
               style={{ color: "rgba(255, 255, 255, 0.85)" }}
             >
               trademark policy
@@ -128,6 +129,7 @@ const CustomFooter: React.FC = () => {
               strong
               href="https://accordproject.org/brand-assets"
               target="_blank"
+              rel="noopener noreferrer"
               style={{ color: "rgba(255, 255, 255, 0.85)" }}
             >
               brand assets
@@ -137,16 +139,16 @@ const CustomFooter: React.FC = () => {
 
         <Col>
           <Space>
-            <Link href="https://github.com/accordproject" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link href="https://github.com/accordproject" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
               <GithubOutlined style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://twitter.com/AccordHQ" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link href="https://twitter.com/AccordHQ" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
               <XOutlined style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
               <DiscordFilled style={{ fontSize: "17px" }} />
             </Link>
-            <Link href="https://www.linkedin.com/company/accordproject/" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+            <Link href="https://www.linkedin.com/company/accordproject/" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
               <LinkedinFilled style={{ fontSize: "17px" }} />
             </Link>
           </Space>

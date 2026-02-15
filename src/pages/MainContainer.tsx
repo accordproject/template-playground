@@ -3,6 +3,7 @@ import AgreementData from "../editors/editorsContainer/AgreementData";
 import TemplateModel from "../editors/editorsContainer/TemplateModel";
 import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
 import useAppStore from "../store/store";
+import DOMPurify from 'dompurify';
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
@@ -231,7 +232,7 @@ const MainContainer = () => {
                     <div
                       ref={downloadRef}
                       className="main-container-agreement"
-                      dangerouslySetInnerHTML={{ __html: agreementHtml }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
                       style={{
                         color: textColor,
                         backgroundColor: previewBackgroundColor,

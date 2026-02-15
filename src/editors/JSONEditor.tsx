@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useCallback } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
-import { useCodeSelection } from "../components/CodeSelectionMenu";
+import { useCodeSelection } from "../hooks/useCodeSelection";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
 const MonacoEditor = lazy(() =>
