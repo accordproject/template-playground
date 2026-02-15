@@ -14,6 +14,7 @@ import html2pdf from "html2pdf.js";
 import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
+import DOMPurify from "dompurify";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -231,7 +232,7 @@ const MainContainer = () => {
                     <div
                       ref={downloadRef}
                       className="main-container-agreement"
-                      dangerouslySetInnerHTML={{ __html: agreementHtml }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
                       style={{
                         color: textColor,
                         backgroundColor: previewBackgroundColor,
