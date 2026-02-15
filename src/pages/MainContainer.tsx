@@ -10,47 +10,15 @@ import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
-import html2pdf from "html2pdf.js";
-import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 import DOMPurify from "dompurify";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
-  const downloadRef = useRef<HTMLDivElement>(null);
   const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
-
-  const handleDownloadPdf = async () => {
-    const element = downloadRef.current;
-    if (!element) return;
-
-    try {
-      setIsDownloading(true);
-      const options = {
-        margin: 10,
-        filename: 'agreement.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          logging: true,
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      } as const;
-
-      await html2pdf().set(options).from(element).save();
-    } catch (error) {
-      console.error("PDF generation failed:", error);
-      void message.error("Failed to generate PDF. Please check the console.");
-    } finally {
-      setIsDownloading(false);
-    }
-  }
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
@@ -219,18 +187,10 @@ const MainContainer = () => {
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
-                  <Button
-                    onClick={() => void handleDownloadPdf()}
-                    loading={isDownloading}
-                    style={{ marginLeft: "10px" }}
-                  >
-                    Download PDF
-                  </Button>
                 </div>
                 <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor }}>
                   <div className="main-container-preview-text">
                     <div
-                      ref={downloadRef}
                       className="main-container-agreement"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
                       style={{
