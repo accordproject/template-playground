@@ -55,14 +55,18 @@ interface AppState {
   setPreviewVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
   startTour: () => void;
+
+  // Merged Properties
   isModelCollapsed: boolean;
   isTemplateCollapsed: boolean;
   isDataCollapsed: boolean;
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
+
   isSidebarExpanded: boolean;
   setSidebarExpanded: (value: boolean) => void;
+
   showLineNumbers: boolean;
   setShowLineNumbers: (value: boolean) => void;
   isSettingsOpen: boolean;
@@ -148,6 +152,7 @@ const savePanelState = (state: Partial<AppState>) => {
       isPreviewVisible: state.isPreviewVisible,
       isProblemPanelVisible: state.isProblemPanelVisible,
       isAIChatOpen: state.isAIChatOpen,
+      isSidebarExpanded: state.isSidebarExpanded,
     };
     localStorage.setItem('ui-panels', JSON.stringify(panels));
   }
@@ -197,16 +202,16 @@ const useAppStore = create<AppState>()(
         isModelCollapsed: false,
         isTemplateCollapsed: false,
         isDataCollapsed: false,
-        isSidebarExpanded: initialPanels.isSidebarExpanded,
+
+        // Merged Initial State
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
+        isSidebarExpanded: initialPanels.isSidebarExpanded,
+
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
         toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
-        setSidebarExpanded: (value) => {
-          set({ isSidebarExpanded: value });
-          savePanelState({ ...get(), isSidebarExpanded: value });
-        },
+
         setShowLineNumbers: (value: boolean) => {
           if (typeof window !== 'undefined') {
             localStorage.setItem('showLineNumbers', String(value));
@@ -214,6 +219,11 @@ const useAppStore = create<AppState>()(
           set({ showLineNumbers: value });
         },
         setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
+        setSidebarExpanded: (value) => {
+          set({ isSidebarExpanded: value });
+          savePanelState({ ...get(), isSidebarExpanded: value });
+        },
+
         setEditorsVisible: (value) => {
           const state = get();
           if (!value && !state.isPreviewVisible) {
@@ -319,6 +329,7 @@ const useAppStore = create<AppState>()(
               isProblemPanelVisible: true,
             }));
           }
+
         },
         setEditorAgreementData: (value: string) => {
           set(() => ({ editorAgreementData: value }));
@@ -348,7 +359,6 @@ const useAppStore = create<AppState>()(
               editorAgreementData: data,
               agreementHtml,
               error: undefined,
-
             }));
             await get().rebuild();
           } catch (error) {
