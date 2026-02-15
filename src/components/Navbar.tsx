@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -197,16 +197,38 @@ function Navbar() {
   const screens = useBreakpoint();
   const location = useLocation();
 
-  const props = useSpring({
-    loop: true,
-    from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
-    to: [
-      { opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)" },
-      { opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
-    ],
-    config: { duration: 1000 },
-  });
+  const [props, api] = useSpring(() => ({
+    opacity: 0.9,
+    boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
+  }));
 
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const pulseIterations = prefersReducedMotion ? 1 : 3;
+    let animationStopped = false;
+
+    const animation = api.start({
+      from: { opacity: 0.5, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)" },
+      to: async (next) => {
+        for (let i = 0; i < pulseIterations; i += 1) {
+          if (animationStopped) {
+            return;
+          }
+
+          await next({ opacity: 1, boxShadow: "0px 0px 5px rgba(255, 255, 255, 1)", config: { duration: 500 } });
+          await next({ opacity: 0.9, boxShadow: "0px 0px 0px rgba(255, 255, 255, 0)", config: { duration: 500 } });
+        }
+      },
+      reset: true,
+    });
+
+    void animation;
+
+    return () => {
+      api.stop();
+      animationStopped = true;
+    };
+  }, [api]);
   const mobileMenu = (
     <Menu>
       <MenuItem to="/">
