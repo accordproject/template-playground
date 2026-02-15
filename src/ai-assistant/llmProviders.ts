@@ -126,7 +126,6 @@ export class AnthropicProvider extends LLMProvider {
 
       const stream = client.messages.stream(params);
       stream.on('text', (textDelta) => {
-        console.log(textDelta)
         onChunk(textDelta);
       });
 
