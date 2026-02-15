@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { CheckCircleOutlined } from '@ant-design/icons';
 import useAppStore from '../store/store';
 import '../styles/components/ProblemPanel.css';
 
@@ -87,10 +88,13 @@ const ProblemPanel: React.FC = () => {
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
         {problems.length === 0 ? (
-          <div className="problem-panel-empty-state">
-            <div className="problem-panel-empty-state-content">
-              <div className="problem-panel-empty-state-icon">✨</div>
-              <div className="problem-panel-empty-state-text" style={{ color: textColor }}>No problems detected</div>
+          <div className="problem-panel-empty-state flex flex-col items-center justify-center h-full opacity-60">
+            <CheckCircleOutlined style={{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }} />
+            <div className="problem-panel-empty-state-text text-lg font-medium" style={{ color: textColor }}>
+              No problems detected
+            </div>
+            <div className="text-sm mt-2 opacity-75" style={{ color: textColor }}>
+              Your template code is looking good!
             </div>
           </div>
         ) : (
