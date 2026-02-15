@@ -242,7 +242,7 @@ export const AIChatPanel = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setAIConfigOpen(true)}
-            className="text-gray-500 hover:text-gray-800"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             title="AI Settings"
             aria-label="AI Settings"
           >
@@ -268,7 +268,7 @@ export const AIChatPanel = () => {
           </button>
           <button
             onClick={resetChat}
-            className="text-gray-500 hover:text-gray-800"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             title="Reset Chat"
             aria-label="Reset Chat"
           >
@@ -289,7 +289,7 @@ export const AIChatPanel = () => {
           </button>
           <button
             onClick={() => setAIChatOpen(false)}
-            className="text-gray-500 hover:text-gray-800"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             title="Close"
             aria-label="Close Chat"
           >
