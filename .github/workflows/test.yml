@@ -35,5 +35,26 @@ jobs:
       - name: NPM Install
         run: npm ci
 
-      - name: Unit Tests
-        run: npm run test
+      - name: Unit Tests with Coverage
+        run: npm run test:coverage
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel: true
+
+  notify:
+    needs:
+      - build
+
+    name: Code Coverage
+    if: ${{ success() }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true

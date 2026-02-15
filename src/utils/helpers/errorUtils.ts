@@ -2,51 +2,58 @@
 export const extractErrorMessage = (error: Error | unknown): string => {
   if (!error) return 'An unknown error occurred';
   
-  let errorMessage = error instanceof Error ? error.message : String(error);
+  const errorMessage = error instanceof Error ? error.message : String(error);
   
-  // Try to extract JSON from the message (might be prefixed with error type/code)
-  let jsonMatch = errorMessage.match(/\{.*\}/s);
-  if (jsonMatch) {
-    try {
-      const parsed = JSON.parse(jsonMatch[0]);
+  // Try to extract JSON from the message using progressive approach
+  // Find the first '{' and try to parse valid JSON from there
+  const firstBrace = errorMessage.indexOf('{');
+  if (firstBrace !== -1) {
+    // Try progressively larger substrings to find valid JSON
+    for (let i = errorMessage.length; i > firstBrace; i--) {
+      const candidate = errorMessage.slice(firstBrace, i);
+      try {
+        const parsed = JSON.parse(candidate);
       
-      // Handle Google error structure: {"error":{"message":"..."}}
-      if (parsed.error) {
-        if (typeof parsed.error === 'object') {
-          // Handle nested error with message
-          if (parsed.error.message) {
-            if (typeof parsed.error.message === 'string') {
-              try {
-                const inner = JSON.parse(parsed.error.message);
-                if (inner?.error?.message) {
-                  return inner.error.message;
-                }
-              } catch {
-                return parsed.error.message;
-              }
-            }
-          }
-          // Handle error as string
+        // Handle Google error structure: {"error":{"message":"..."}}
+        if (parsed.error) {
+          // Handle error as string first
           if (typeof parsed.error === 'string') {
             return parsed.error;
           }
+          // Handle nested error with message (object case)
+          if (typeof parsed.error === 'object') {
+            if (parsed.error.message) {
+              if (typeof parsed.error.message === 'string') {
+                try {
+                  const inner = JSON.parse(parsed.error.message);
+                  if (inner?.error?.message) {
+                    return inner.error.message;
+                  }
+                  // JSON parsed but no inner.error.message, return original
+                  return parsed.error.message;
+                } catch {
+                  return parsed.error.message;
+                }
+              }
+            }
+          }
         }
-      }
       
-      // Handle Mistral error structure: {"detail":"..."}
-      if (parsed.detail) {
-        return parsed.detail;
-      }
+        // Handle Mistral error structure: {"detail":"..."}
+        if (parsed.detail && typeof parsed.detail === 'string') {
+          return parsed.detail;
+        }
       
-      // Handle direct error message
-      if (parsed.message) {
-        return parsed.message;
+        // Handle direct error message
+        if (parsed.message && typeof parsed.message === 'string') {
+          return parsed.message;
+        }
+      } catch {
+        // JSON parsing failed for this candidate, try shorter substring
+        continue;
       }
-    } catch {
-      // JSON parsing failed, continue
     }
   }
-  
   // Try to parse the entire message as JSON (for cleanly formatted JSON errors)
   try {
     const parsed = JSON.parse(errorMessage);
@@ -73,12 +80,12 @@ export const extractErrorMessage = (error: Error | unknown): string => {
     }
     
     // Handle Mistral error structure: {"detail":"..."}
-    if (parsed.detail) {
+    if (parsed.detail && typeof parsed.detail === 'string') {
       return parsed.detail;
     }
     
     // Handle direct error message
-    if (parsed.message) {
+    if (parsed.message && typeof parsed.message === 'string') {
       return parsed.message;
     }
   } catch {

@@ -1,6 +1,7 @@
 <h1 align="center">Accord Project Template Playground</h1>
 <p align="center">
   <a href="https://github.com/accordproject/models/blob/master/LICENSE"><img src="https://img.shields.io/github/license/accordproject/models" alt="GitHub license"></a>
+  <a href="https://github.com/accordproject/template-playground/actions/workflows/test.yml?query=branch%3Amain"><img src="https://img.shields.io/badge/coverage-view%20artifacts-blue" alt="Coverage: view artifacts"></a>
   <a href="https://www.accordproject.org/">
     <img src="https://img.shields.io/badge/powered%20by-accord%20project-19C6C8.svg" alt="Accord Project" />
   </a>
