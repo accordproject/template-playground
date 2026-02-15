@@ -68,6 +68,7 @@ const MainContainer = () => {
     isDataCollapsed,
     toggleModelCollapse,
     toggleDataCollapse,
+    isSidebarExpanded,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
     isEditorsVisible: state.isEditorsVisible,
@@ -78,6 +79,7 @@ const MainContainer = () => {
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
+    isSidebarExpanded: state.isSidebarExpanded,
   }));
 
   const [, setLoading] = useState(true);
@@ -103,7 +105,7 @@ const MainContainer = () => {
   return (
     <div className="main-container" style={{ backgroundColor }}>
       <PanelGroup direction="horizontal" className="main-container-panel-group"
-        style={{ position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)" }}>
+        style={{ position: "fixed", width: isSidebarExpanded ? "calc(100% - 192px)" : "calc(100% - 64px)", height: "calc(100% - 64px)", transition: "width 0.3s ease-in-out" }}>
         {isEditorsVisible && (
           <>
             <Panel defaultSize={62.5} minSize={30}>

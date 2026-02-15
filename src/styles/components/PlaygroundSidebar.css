@@ -6,14 +6,39 @@
   left: 0;
   bottom: 0;
   z-index: 40;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Expanded state */
+.playground-sidebar-expanded {
+  @apply w-48;
+}
+
+/* Toggle button container */
+.playground-sidebar-toggle {
+  @apply w-full flex justify-start px-3 mb-4 pb-3 border-b border-gray-600;
+}
+
+.playground-sidebar-toggle-btn {
+  @apply w-10 h-10 rounded-full text-cyan-400 hover:bg-gray-600 hover:text-white cursor-pointer transition-colors flex items-center justify-center;
+  background: #374151;
+  box-shadow: none;
+  border: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.playground-sidebar-toggle-btn svg {
+  stroke-width: 2.5;
 }
 
 .playground-sidebar-nav {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col gap-4 flex-1;
 }
 
 .playground-sidebar-nav-item {
-  @apply p-[8px] flex flex-col items-center justify-center cursor-pointer transition-colors;
+  @apply p-[8px] flex items-center gap-3 cursor-pointer transition-colors rounded-lg mx-2;
 }
 
 .playground-sidebar-nav-item-active {
@@ -25,11 +50,20 @@
 }
 
 .playground-sidebar-nav-item-icon-container {
-  @apply flex items-center justify-center;
+  @apply flex items-center justify-center flex-shrink-0;
 }
 
+/* Title hidden by default (collapsed state) */
 .playground-sidebar-nav-item-title {
-  @apply sr-only;
+  @apply hidden whitespace-nowrap overflow-hidden text-sm font-medium;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Title visible when expanded */
+.playground-sidebar-nav-item-title-visible {
+  @apply inline-block;
+  opacity: 1;
 }
 
 .playground-sidebar-nav-bottom {
@@ -37,7 +71,13 @@
 }
 
 .playground-sidebar-nav-bottom-item {
-  @apply p-[8px] flex flex-col items-center justify-center text-white hover:text-cyan-400 cursor-pointer transition-colors;
+  @apply p-[8px] flex items-center gap-3 text-white hover:text-cyan-400 cursor-pointer transition-colors rounded-lg mx-2;
+}
+
+/* Ensure icons don't shrink */
+.playground-sidebar-nav-item svg,
+.playground-sidebar-nav-bottom-item svg {
+  @apply flex-shrink-0;
 }
 
 /* Responsive styles for smaller screens */
@@ -45,12 +85,12 @@
   .playground-sidebar {
     @apply py-1;
   }
-  
+
   .playground-sidebar-nav,
   .playground-sidebar-nav-bottom {
     @apply gap-1;
   }
-  
+
   .playground-sidebar-nav-item,
   .playground-sidebar-nav-bottom-item {
     @apply p-1;
@@ -61,7 +101,7 @@
   .playground-sidebar {
     @apply w-12;
   }
-  
+
   .playground-sidebar-nav-item,
   .playground-sidebar-nav-bottom-item {
     @apply p-1;

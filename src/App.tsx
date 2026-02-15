@@ -19,10 +19,11 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIConfigOpen, setAIConfigOpen } =
+  const { isAIConfigOpen, setAIConfigOpen, isSidebarExpanded } =
     useAppStore((state) => ({
       isAIConfigOpen: state.isAIConfigOpen,
       setAIConfigOpen: state.setAIConfigOpen,
+      isSidebarExpanded: state.isSidebarExpanded,
     }));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -124,7 +125,7 @@ const App = () => {
               element={
                 <>
                   <PlaygroundSidebar />
-                  <Content style={{ marginLeft: "64px" }}>
+                  <Content style={{ marginLeft: isSidebarExpanded ? "192px" : "64px", transition: "margin-left 0.3s ease-in-out" }}>
                     {loading ? (
                       <div className="app-content-loading">
                         <Spinner />
@@ -163,5 +164,5 @@ const Spinner = () => (
     />
   </div>
 );
- 
+
 export default App;

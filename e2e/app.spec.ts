@@ -30,8 +30,8 @@ test.describe('App Loading', () => {
     await page.goto('/');
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
-    // Preview header should be visible
-    await expect(page.getByText('Preview').first()).toBeVisible();
+    // Preview header should be visible (in the main content, not sidebar)
+    await expect(page.locator('.main-container-preview-header').getByText('Preview')).toBeVisible();
 
     // Download PDF button should be present
     await expect(page.getByRole('button', { name: 'Download PDF' })).toBeVisible();
@@ -48,7 +48,7 @@ test.describe('Dark Mode', () => {
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Get initial theme
-    const initialTheme = await page.evaluate(() => 
+    const initialTheme = await page.evaluate(() =>
       document.documentElement.getAttribute('data-theme')
     );
 
@@ -84,7 +84,7 @@ test.describe('Dark Mode', () => {
     await expect(settingsModal).toBeHidden({ timeout: 3000 });
 
     // Theme should change
-    const newTheme = await page.evaluate(() => 
+    const newTheme = await page.evaluate(() =>
       document.documentElement.getAttribute('data-theme')
     );
     expect(newTheme).not.toBe(initialTheme);
