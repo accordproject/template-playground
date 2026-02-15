@@ -28,6 +28,7 @@
     "@google/genai": "^1.8.0",
     "@mistralai/mistralai": "^1.7.3",
     "@monaco-editor/react": "^4.6.0",
+    "@toon-format/toon": "^2.1.0",
     "@types/styled-components": "^5.1.34",
     "antd": "^5.7.2",
     "core-js": "^3.37.1",
