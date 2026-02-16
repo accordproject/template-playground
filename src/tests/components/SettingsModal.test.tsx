@@ -5,7 +5,7 @@ import SettingsModal from '../../components/SettingsModal';
 // Mock the store - use inline functions to avoid hoisting issues
 vi.mock('../../store/store', () => {
   return {
-    default: vi.fn((selector) => selector({
+    default: vi.fn((selector: (state: unknown) => unknown) => selector({
       isSettingsOpen: true,
       setSettingsOpen: vi.fn(),
       showLineNumbers: true,

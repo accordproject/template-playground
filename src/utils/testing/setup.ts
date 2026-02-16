@@ -57,6 +57,7 @@ HTMLCanvasElement.prototype.getContext = ((originalGetContext) => {
     contextId: string,
     options?: unknown
   ) {
+    /* eslint-disable @typescript-eslint/no-empty-function */
     if (contextId === '2d') {
       return {
         fillStyle: '',
@@ -86,6 +87,9 @@ HTMLCanvasElement.prototype.getContext = ((originalGetContext) => {
         canvas: this,
       } as unknown as CanvasRenderingContext2D;
     }
+    /* eslint-enable @typescript-eslint/no-empty-function */
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
     return originalGetContext.call(this, contextId as any, options);
   };
-})(HTMLCanvasElement.prototype.getContext);
+})(HTMLCanvasElement.prototype.getContext); // eslint-disable-line @typescript-eslint/unbound-method
