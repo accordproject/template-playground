@@ -224,7 +224,6 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 {provider === 'google' && 'Example: gemini-3-pro, gemini-2.5-flash'}
                 {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
                 {provider === 'openrouter' && 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct'}
-                {/* ADD THIS BLOCK FOR OLLAMA */}
                 {provider === 'ollama' && (
                   <span className="text-orange-500 font-bold">
                     ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
