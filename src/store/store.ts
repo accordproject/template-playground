@@ -65,6 +65,10 @@ interface AppState {
   toggleDiffView: () => void;
   originalTemplate: string;
   originalModel: string;
+  showLineNumbers: boolean;
+  setShowLineNumbers: (value: boolean) => void;
+  isSettingsOpen: boolean;
+  setSettingsOpen: (value: boolean) => void;
 }
 
 export interface DecompressedData {
@@ -150,6 +154,16 @@ const savePanelState = (state: Partial<AppState>) => {
   }
 };
 
+const getInitialLineNumbers = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('showLineNumbers');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+  }
+  return true; // Default to showing line numbers
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
@@ -173,6 +187,8 @@ const useAppStore = create<AppState>()(
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
         samples: SAMPLES,
+        showLineNumbers: getInitialLineNumbers(),
+        isSettingsOpen: false,
         chatState: {
           messages: [],
           isLoading: false,
@@ -191,6 +207,13 @@ const useAppStore = create<AppState>()(
         toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
         isDiffViewEnabled: false,
         toggleDiffView: () => set((state) => ({ isDiffViewEnabled: !state.isDiffViewEnabled })),
+        setShowLineNumbers: (value: boolean) => {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('showLineNumbers', String(value));
+          }
+          set({ showLineNumbers: value });
+        },
+        setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
 
         setEditorsVisible: (value) => {
           const state = get();

@@ -45,9 +45,11 @@ Your employment with {{companyName}} will commence on {{startDate as "DD MMMM YY
 Your annual gross salary will be **{{doubleValue as "0,0"}} {{currencyCode}}**, payable in accordance with company policies.
 {{/clause}}
 
-{{#clause probation condition="return probation !== undefined"}}
+{{#if probation}}
+{{#clause probation}}
 This offer includes a probation period of **{{months}} months**, during which your performance and suitability for the role will be evaluated.
 {{/clause}}
+{{/if}}
 
 We are excited about the opportunity to work with you and look forward to your contribution to the team.
 
@@ -70,6 +72,6 @@ const DATA = {
     "months": 3
   }
 };
-const NAME = 'Employment Offer Letter ';
+const NAME = 'Employment Offer Letter';
 
 export { NAME, MODEL, DATA, TEMPLATE };
