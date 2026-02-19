@@ -11,6 +11,10 @@ vi.mock('../../store/store', () => {
       setSettingsOpen: vi.fn(),
       showLineNumbers: true,
       setShowLineNumbers: vi.fn(),
+      editorFontSize: 14,
+      setEditorFontSize: vi.fn(),
+      editorWordWrap: true,
+      setEditorWordWrap: vi.fn(),
       textColor: '#121212',
       backgroundColor: '#ffffff',
       toggleDarkMode: vi.fn(),
@@ -71,6 +75,34 @@ describe('SettingsModal', () => {
     expect(toggle).toBeChecked();
   });
 
+  it('renders the Font Size setting', () => {
+    render(<SettingsModal />);
+    
+    expect(screen.getByText('Font Size')).toBeInTheDocument();
+    expect(screen.getByText('Adjust font size in code editors')).toBeInTheDocument();
+  });
+
+  it('renders the Word Wrap setting', () => {
+    render(<SettingsModal />);
+    
+    expect(screen.getByText('Word Wrap')).toBeInTheDocument();
+    expect(screen.getByText('Wrap long lines in code editors')).toBeInTheDocument();
+  });
+
+  it('renders the word wrap toggle switch', () => {
+    render(<SettingsModal />);
+    
+    const toggle = screen.getByRole('switch', { name: /toggle word wrap/i });
+    expect(toggle).toBeInTheDocument();
+  });
+
+  it('word wrap toggle is checked when editorWordWrap is true', () => {
+    render(<SettingsModal />);
+    
+    const toggle = screen.getByRole('switch', { name: /toggle word wrap/i });
+    expect(toggle).toBeChecked();
+  });
+
   it('renders divider between settings', () => {
     render(<SettingsModal />);
     
@@ -111,3 +143,4 @@ describe('SettingsModal', () => {
     expect(screen.getByText('AI Configuration Content')).toBeInTheDocument();
   });
 });
+

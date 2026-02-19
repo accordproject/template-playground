@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Modal, Switch, Collapse, Space, Divider, Typography } from 'antd';
+import { Modal, Switch, Collapse, Space, Divider, Typography, Select } from 'antd';
 import { BulbOutlined, MoonOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 import useAppStore from '../store/store';
 import AIConfigSection from './AIConfigSection';
+import { FONT_SIZE_OPTIONS } from '../constants/editorSettings';
 
 const { Text } = Typography;
 
@@ -12,6 +13,10 @@ const SettingsModal: React.FC = () => {
     setSettingsOpen, 
     showLineNumbers, 
     setShowLineNumbers,
+    editorFontSize,
+    setEditorFontSize,
+    editorWordWrap,
+    setEditorWordWrap,
     backgroundColor,
     toggleDarkMode
   } = useAppStore((state) => ({
@@ -19,6 +24,10 @@ const SettingsModal: React.FC = () => {
     setSettingsOpen: state.setSettingsOpen,
     showLineNumbers: state.showLineNumbers,
     setShowLineNumbers: state.setShowLineNumbers,
+    editorFontSize: state.editorFontSize,
+    setEditorFontSize: state.setEditorFontSize,
+    editorWordWrap: state.editorWordWrap,
+    setEditorWordWrap: state.setEditorWordWrap,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
   }));
@@ -69,6 +78,45 @@ const SettingsModal: React.FC = () => {
               checked={showLineNumbers}
               onChange={setShowLineNumbers}
               aria-label="Toggle line numbers"
+            />
+          </div>
+
+          <Divider style={{ margin: 0 }} />
+
+          {/* Font Size Dropdown */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1 }}>
+              <Text strong style={{ display: 'block' }}>Font Size</Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                Adjust font size in code editors
+              </Text>
+            </div>
+            <Select
+              value={editorFontSize}
+              onChange={setEditorFontSize}
+              style={{ width: 80 }}
+              aria-label="Editor font size"
+              options={FONT_SIZE_OPTIONS.map((size) => ({
+                value: size,
+                label: `${size}px`,
+              }))}
+            />
+          </div>
+
+          <Divider style={{ margin: 0 }} />
+
+          {/* Word Wrap Toggle */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1 }}>
+              <Text strong style={{ display: 'block' }}>Word Wrap</Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                Wrap long lines in code editors
+              </Text>
+            </div>
+            <Switch
+              checked={editorWordWrap}
+              onChange={setEditorWordWrap}
+              aria-label="Toggle word wrap"
             />
           </div>
         </Space>
