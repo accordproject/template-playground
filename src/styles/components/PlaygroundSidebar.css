@@ -20,11 +20,12 @@
 }
 
 .playground-sidebar-toggle-btn {
-  @apply w-10 h-10 rounded-full text-cyan-400 hover:bg-gray-600 hover:text-white cursor-pointer transition-colors flex items-center justify-center;
-  background: #374151;
+  @apply w-10 h-10 text-gray-400 hover:text-white cursor-pointer transition-colors flex items-center justify-center;
+  background: transparent;
   box-shadow: none;
   border: none;
   outline: none;
+  border-radius: 0;
   -webkit-appearance: none;
   appearance: none;
 }
