@@ -130,14 +130,14 @@ export const fileTypeCapabilities: Record<string, FileTypeCapability> = {
 // Get file type capabilities for a specific model
 export const getFileTypeCapabilities = (modelName: string): FileTypeCapability => {
   const modelLower = modelName.toLowerCase();
-  
+
   // Check for exact or partial matches
   for (const [key, capability] of Object.entries(fileTypeCapabilities)) {
     if (modelLower.includes(key)) {
       return capability;
     }
   }
-  
+
   // Return default if no match found
   return fileTypeCapabilities['default'];
 };
@@ -145,16 +145,16 @@ export const getFileTypeCapabilities = (modelName: string): FileTypeCapability =
 // Helper function to get compatible models for a file
 export const getCompatibleModelsForFile = (fileExtension: string): string[] => {
   const compatible: string[] = [];
-  
+
   for (const [modelKey, capability] of Object.entries(fileTypeCapabilities)) {
     if (modelKey === 'default') continue;
-    
+
     const ext = fileExtension.toLowerCase();
     if (capability.formats.some(format => format.toLowerCase() === ext)) {
       compatible.push(modelKey);
     }
   }
-  
+
   return compatible;
 };
 
@@ -174,11 +174,11 @@ export abstract class LLMProvider {
 
   protected formatAttachments(attachments?: Attachment[]): string {
     if (!attachments || attachments.length === 0) return '';
-    
+
     let attachmentText = '\n\n--- Attached Files ---\n';
     for (const att of attachments) {
       attachmentText += `\nFile: ${att.fileName} (${att.mimeType})\n`;
-      
+
       // For text files, decode and include content
       if (att.fileType === 'text' || att.mimeType === 'application/json') {
         try {
@@ -216,13 +216,13 @@ export class OpenAICompatibleProvider extends LLMProvider {
         // Handle attachments for user messages
         if (msg.role === 'user' && msg.attachments && msg.attachments.length > 0) {
           const imageAttachments = msg.attachments.filter(att => att.fileType === 'image');
-          
+
           // If we have images and model supports vision, use multimodal format
           if (imageAttachments.length > 0) {
             const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
               { type: 'text', text: msg.content }
             ];
-            
+
             // Add images
             imageAttachments.forEach(img => {
               content.push({
@@ -232,7 +232,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
                 }
               });
             });
-            
+
             // Add text attachments as text
             const textContent = this.formatAttachments(
               msg.attachments.filter(att => att.fileType !== 'image')
@@ -240,20 +240,20 @@ export class OpenAICompatibleProvider extends LLMProvider {
             if (textContent) {
               content[0].text += textContent;
             }
-            
+
             return {
               role: msg.role,
               content: content as never
             };
           }
         }
-        
+
         // Default text-only format
         let content = msg.content;
         if (msg.attachments) {
           content += this.formatAttachments(msg.attachments);
         }
-        
+
         return {
           role: msg.role,
           content: content
@@ -271,7 +271,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
         messages: formattedMessages as never,
         stream: true,
       };
-      
+
       if (this.config.maxTokens) {
         options.max_tokens = this.config.maxTokens;
       }
@@ -284,7 +284,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
           onChunk(content);
         }
       }
-      
+
       onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));
@@ -333,13 +333,13 @@ export class AnthropicProvider extends LLMProvider {
             if (msg.role === 'user' && msg.attachments && msg.attachments.length > 0) {
               const imageAttachments = msg.attachments.filter(att => att.fileType === 'image');
               const pdfAttachments = msg.attachments.filter(att => att.mimeType === 'application/pdf');
-              
+
               if (imageAttachments.length > 0 || pdfAttachments.length > 0) {
                 // Anthropic multimodal format
                 const content: Array<{ type: string; text?: string; source?: { type: string; media_type: string; data: string } }> = [
                   { type: 'text', text: msg.content }
                 ];
-                
+
                 // Add images
                 imageAttachments.forEach(img => {
                   content.push({
@@ -351,7 +351,7 @@ export class AnthropicProvider extends LLMProvider {
                     }
                   } as never);
                 });
-                
+
                 // Add PDFs as document blocks
                 pdfAttachments.forEach(pdf => {
                   content.push({
@@ -363,7 +363,7 @@ export class AnthropicProvider extends LLMProvider {
                     }
                   } as never);
                 });
-                
+
                 // Add text attachments
                 const textContent = this.formatAttachments(
                   msg.attachments.filter(att => att.fileType !== 'image' && att.mimeType !== 'application/pdf')
@@ -371,7 +371,7 @@ export class AnthropicProvider extends LLMProvider {
                 if (textContent) {
                   content[0].text += textContent;
                 }
-                
+
                 formattedMessages.push({
                   role: msg.role,
                   content: content as never,
@@ -379,13 +379,13 @@ export class AnthropicProvider extends LLMProvider {
                 return;
               }
             }
-            
+
             // Default text format
             let content = msg.content;
             if (msg.attachments) {
               content += this.formatAttachments(msg.attachments);
             }
-            
+
             formattedMessages.push({
               role: msg.role,
               content: content,
@@ -403,7 +403,6 @@ export class AnthropicProvider extends LLMProvider {
 
       const stream = client.messages.stream(params);
       stream.on('text', (textDelta) => {
-        console.log(textDelta)
         onChunk(textDelta);
       });
 
@@ -436,7 +435,7 @@ export class GoogleProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
-      const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
+      const genAI = new GoogleGenAI({ apiKey: this.config.apiKey });
       const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
       const generationConfig: GenerateContentConfig = {};
@@ -448,7 +447,7 @@ export class GoogleProvider extends LLMProvider {
       }
       const chat = genAI.chats.create({
         model: this.config.model,
-        history: geminiMessages.slice(0,-1),
+        history: geminiMessages.slice(0, -1),
         config: generationConfig
       });
 
@@ -472,20 +471,20 @@ export class GoogleProvider extends LLMProvider {
 
   private convertToGeminiFormat(messages: Message[]) {
     const geminiMessages = [];
-    
+
     for (const message of messages) {
       const role = message.role === 'assistant' ? 'model' : message.role;
       if (role !== "system") {
         // Handle attachments for user messages
         if (message.role === 'user' && message.attachments && message.attachments.length > 0) {
           const imageAttachments = message.attachments.filter(att => att.fileType === 'image');
-          
+
           if (imageAttachments.length > 0) {
             // Google multimodal format
             const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
               { text: message.content }
             ];
-            
+
             // Add images
             imageAttachments.forEach(img => {
               parts.push({
@@ -495,7 +494,7 @@ export class GoogleProvider extends LLMProvider {
                 }
               });
             });
-            
+
             // Add text attachments
             const textContent = this.formatAttachments(
               message.attachments.filter(att => att.fileType !== 'image')
@@ -503,7 +502,7 @@ export class GoogleProvider extends LLMProvider {
             if (textContent) {
               parts[0].text += textContent;
             }
-            
+
             geminiMessages.push({
               role: role,
               parts: parts
@@ -511,20 +510,20 @@ export class GoogleProvider extends LLMProvider {
             continue;
           }
         }
-        
+
         // Default text format
         let content = message.content;
         if (message.attachments) {
           content += this.formatAttachments(message.attachments);
         }
-        
+
         geminiMessages.push({
           role: role,
           parts: [{ text: content }]
         });
       }
     }
-    
+
     return geminiMessages;
   }
 }
@@ -541,13 +540,13 @@ export class MistralProvider extends LLMProvider {
         // Handle attachments for user messages
         if (msg.role === 'user' && msg.attachments && msg.attachments.length > 0) {
           const imageAttachments = msg.attachments.filter(att => att.fileType === 'image');
-          
+
           // If we have images and model is Pixtral, use multimodal format
           if (imageAttachments.length > 0 && this.config.model.toLowerCase().includes('pixtral')) {
             const content: Array<{ type: string; text?: string; image_url?: string }> = [
               { type: 'text', text: msg.content }
             ];
-            
+
             // Add images
             imageAttachments.forEach(img => {
               content.push({
@@ -555,7 +554,7 @@ export class MistralProvider extends LLMProvider {
                 image_url: `data:${img.mimeType};base64,${img.base64Content}`
               });
             });
-            
+
             // Add text attachments
             const textContent = this.formatAttachments(
               msg.attachments.filter(att => att.fileType !== 'image')
@@ -563,27 +562,27 @@ export class MistralProvider extends LLMProvider {
             if (textContent) {
               content[0].text += textContent;
             }
-            
+
             return {
               role: msg.role,
               content: content as never
             };
           }
         }
-        
+
         // Default text format
         let content = msg.content;
         if (msg.attachments) {
           content += this.formatAttachments(msg.attachments);
         }
-        
+
         return {
           role: msg.role,
           content: content
         };
       });
 
-      const mistral = new Mistral({apiKey: this.config.apiKey});
+      const mistral = new Mistral({ apiKey: this.config.apiKey });
 
       const options: ChatCompletionStreamRequest = {
         model: this.config.model,
@@ -602,7 +601,7 @@ export class MistralProvider extends LLMProvider {
           onChunk((content as string));
         }
       }
-      
+
       onComplete();
     } catch (error) {
       onError(error instanceof Error ? error : new Error(String(error)));
@@ -622,7 +621,7 @@ export function getLLMProvider(config: AIConfig): LLMProvider {
       return new MistralProvider(config);
     case 'openrouter':
       return new OpenRouterProvider(config);
-    case 'ollama':  
+    case 'ollama':
       return new OllamaProvider(config);
     case 'openai-compatible':
       if (!config.customEndpoint) {
@@ -641,7 +640,7 @@ export interface ModelCapabilities {
 
 export function getModelCapabilities(_provider: string, model: string): ModelCapabilities {
   const modelLower = model.toLowerCase();
-  
+
   // Vision-capable models
   const visionModels = [
     'gpt-4o', 'gpt-4-turbo', 'gpt-4-vision',
@@ -649,12 +648,12 @@ export function getModelCapabilities(_provider: string, model: string): ModelCap
     'gemini-pro-vision', 'gemini-1.5', 'gemini-2.0',
     'pixtral'
   ];
-  
+
   const supportsVision = visionModels.some(vm => modelLower.includes(vm));
-  
+
   // Most models support text documents
   const supportsDocuments = true;
-  
+
   return {
     supportsVision,
     supportsDocuments
