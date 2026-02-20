@@ -33,4 +33,4 @@ jobs:
         run: npm ci
 
       - name: NPM Build
-        run: SERVER_ROOT=https://playground.accordproject.org && NODE_OPTIONS=--max_old_space_size=8192 npm run build
+        run: SERVER_ROOT=https://playground.accordproject.org NODE_OPTIONS=--max_old_space_size=8192 npm run build
