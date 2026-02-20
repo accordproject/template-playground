@@ -104,7 +104,7 @@ export class AnthropicProvider extends LLMProvider {
         dangerouslyAllowBrowser: true
       });
 
-      const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
+      const systemInstruction = messages.findLast(m => m.role === 'system')?.content || '';
       const formattedMessages: Anthropic.MessageParam[] = [];
       messages.forEach(
         (msg) => {
@@ -159,7 +159,7 @@ export class GoogleProvider extends LLMProvider {
   ): Promise<void> {
     try {
       const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
-      const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
+      const systemInstruction = messages.findLast(m => m.role === 'system')?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
       const generationConfig: GenerateContentConfig = {};
       if (this.config.maxTokens) {
