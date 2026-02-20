@@ -216,7 +216,7 @@ function Navbar() {
         <QuestionOutlined />
         <span>About</span>
       </MenuItem>
-      <MenuItemGroup title="Socials">
+      <MenuItemGroup title="Community">
         <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
           <FaDiscord />
           <span>Discord</span>
@@ -354,8 +354,8 @@ function Navbar() {
 
         <div
           className={`${screens.md
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
-              : "px-2.5 pl-1.5 pr-1.5"
+            ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+            : "px-2.5 pl-1.5 pr-1.5"
             } ${menuItemClasses("socials", false)} cursor-pointer`}
           onMouseEnter={() => setHovered("socials")}
           onMouseLeave={() => setHovered(null)}
@@ -363,7 +363,7 @@ function Navbar() {
           <Dropdown overlay={socialsMenu} trigger={["click"]}>
             <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
               <GlobalOutlined className="text-xl" />
-              {screens.md && <span className="ml-1.5">Socials</span>}
+              {screens.md && <span className="ml-1.5">Community</span>}
               <CaretDownFilled className="text-xs ml-1.5" />
             </Button>
           </Dropdown>
