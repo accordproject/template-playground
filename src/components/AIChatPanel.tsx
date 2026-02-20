@@ -335,10 +335,10 @@ export const AIChatPanel = () => {
                     }
                   >
                     <div className={`p-3 rounded-lg ${message.role === 'assistant'
-                        ? isError
-                          ? 'bg-red-100 border border-red-300'
-                          : theme.messageAssistant
-                        : theme.messageUser
+                      ? isError
+                        ? 'bg-red-100 border border-red-300'
+                        : theme.messageAssistant
+                      : theme.messageUser
                       }`}>
                       <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
                         {message.role === 'assistant' ? 'Assistant' : 'You'}
@@ -346,7 +346,7 @@ export const AIChatPanel = () => {
                       {message.content && renderMessageContent(
                         (message.role === 'user')
                           ? (aiConfig?.showFullPrompt ? (
-                            `**System message:** ${chatState.messages.slice(0, index).findLast(m => m.role === 'system')?.content ?? '(none)'}\n**User message:** ${message.content}`
+                            `**System message:** ${chatState.messages.slice(0, index).reverse().find(m => m.role === 'system')?.content ?? '(none)'}\n**User message:** ${message.content}`
                           ) : message.content)
                           : message.content
                       )}
