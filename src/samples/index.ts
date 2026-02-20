@@ -13,6 +13,7 @@ import * as announcement from "./announcement";
 import * as blank from "./blank";
 import * as paymentReceipt from './paymentReceipt';
 import * as employmentOffer from "./employmentOffer";
+import * as nda from "./nda";
 
 export type Sample = {
   NAME: string;
@@ -28,6 +29,7 @@ export const SAMPLES: Array<Sample> = [
   formula,
   formulanow,
   join,
+  nda, 
   clause,
   clausecondition,
   invitation,
