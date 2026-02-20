@@ -22,10 +22,10 @@ describe("Navbar", () => {
     expect(title).toBeInTheDocument();
   });
 
-  it("renders Socials button on all screens", () => {
+  it("renders Community button on all screens", () => {
     renderNavbar();
 
-    const socialsButton = screen.getByRole("button", { name: /Socials/i });
+    const socialsButton = screen.getByRole("button", { name: /Community/i });
     expect(socialsButton).toBeInTheDocument();
   });
 
