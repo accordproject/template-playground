@@ -14,6 +14,7 @@ vi.mock("../../store/store", () => ({
         setPreviewVisible: vi.fn(),
         setProblemPanelVisible: vi.fn(),
         setAIChatOpen: vi.fn(),
+        setSettingsOpen: vi.fn(),
         generateShareableLink: vi.fn(() => "https://example.com"),
     }),
 }));
@@ -26,6 +27,11 @@ vi.mock("../../components/Tour", () => ({
 // Mock FullScreenModal
 vi.mock("../../components/FullScreenModal", () => ({
     default: () => <div data-testid="fullscreen-modal">FullScreen</div>,
+}));
+
+// Mock SettingsModal
+vi.mock("../../components/SettingsModal", () => ({
+    default: () => <div data-testid="settings-modal">Settings</div>,
 }));
 
 const renderSidebar = () => {
@@ -50,7 +56,7 @@ describe("PlaygroundSidebar", () => {
         expect(screen.getByRole("button", { name: /Settings/i })).toBeInTheDocument();
     });
 
-    it("wraps navigation items with Tooltip component", async () => {
+    it("wraps navigation items with Tooltip component", () => {
         renderSidebar();
         const editorButton = screen.getByRole("button", { name: /Editor/i });
         expect(editorButton).toBeInTheDocument();

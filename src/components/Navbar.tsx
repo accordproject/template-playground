@@ -11,7 +11,6 @@ import {
   GlobalOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
-import ToggleDarkMode from "./ToggleDarkMode";
 
 
 interface DropdownProps {
@@ -43,7 +42,7 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
   };
 
   return (
-    <div 
+    <div
       className={`relative ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -53,8 +52,8 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
       </div>
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-10" 
+          <div
+            className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute top-full right-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
@@ -72,29 +71,59 @@ const Menu = ({ children, className = "" }: { children: React.ReactNode; classNa
   </div>
 );
 
-const MenuItem = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const MenuItem = ({
+  children,
+  onClick,
+  to,
+  href,
+  className = ""
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
+  to?: string;
+  href?: string;
   className?: string;
-}) => (
-  <div 
-    className={`px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`}
-    onClick={onClick}
-  >
-    {children}
-  </div>
-);
+}) => {
+  const baseClasses = `px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`;
 
-const MenuItemGroup = ({ 
-  title, 
-  children, 
-  className = "" 
-}: { 
-  title: string; 
+  if (to) {
+    return (
+      <Link to={to} className={baseClasses} onClick={onClick}>
+        {children}
+      </Link>
+    );
+  }
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={baseClasses}
+        onClick={onClick}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <div
+      className={baseClasses}
+      onClick={onClick}
+    >
+      {children}
+    </div>
+  );
+};
+
+const MenuItemGroup = ({
+  title,
+  children,
+  className = ""
+}: {
+  title: string;
   children: React.ReactNode;
   className?: string;
 }) => (
@@ -106,16 +135,16 @@ const MenuItemGroup = ({
   </div>
 );
 
-const Button = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const Button = ({
+  children,
+  onClick,
+  className = ""
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
   className?: string;
 }) => (
-  <button 
+  <button
     className={`flex items-center ${className}`}
     onClick={onClick}
   >
@@ -123,12 +152,12 @@ const Button = ({
   </button>
 );
 
-const Image = ({ 
-  src, 
-  alt, 
-  className = "" 
-}: { 
-  src: string; 
+const Image = ({
+  src,
+  alt,
+  className = ""
+}: {
+  src: string;
   alt: string;
   className?: string;
 }) => (
@@ -180,94 +209,43 @@ function Navbar() {
 
   const mobileMenu = (
     <Menu>
-      <MenuItem>
-        <Link to="/" className="flex items-center space-x-2">
-          <span>Template Playground</span>
-        </Link>
+      <MenuItem to="/">
+        <span>Template Playground</span>
       </MenuItem>
-      <MenuItem>
-        <a
-          href="https://github.com/accordproject/template-playground/blob/main/README.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2"
-        >
-          <QuestionOutlined />
-          <span>About</span>
-        </a>
+      <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
+        <QuestionOutlined />
+        <span>About</span>
       </MenuItem>
       <MenuItemGroup title="Socials">
-        <MenuItem>
-          <a
-            href="https://discord.com/invite/Zm99SKhhtA"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <FaDiscord />
-            <span>Discord</span>
-          </a>
+        <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
+          <FaDiscord />
+          <span>Discord</span>
         </MenuItem>
-        <MenuItem>
-          <a
-            href="https://github.com/accordproject/template-playground"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <GithubOutlined />
-            <span>GitHub</span>
-          </a>
+        <MenuItem href="https://github.com/accordproject/template-playground">
+          <GithubOutlined />
+          <span>GitHub</span>
         </MenuItem>
       </MenuItemGroup>
-      <MenuItem>
-        <a
-          href="https://github.com/accordproject/template-playground/issues"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2"
-        >
-          <InfoOutlined />
-          <span>Issues</span>
-        </a>
+      <MenuItem href="https://github.com/accordproject/template-playground/issues">
+        <InfoOutlined />
+        <span>Issues</span>
       </MenuItem>
-      <MenuItem>
-        <a
-          href="https://github.com/accordproject/template-engine/blob/main/README.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2"
-        >
-          <BookOutlined />
-          <span>Documentation</span>
-        </a>
+      <MenuItem href="https://github.com/accordproject/template-engine/blob/main/README.md">
+        <BookOutlined />
+        <span>Documentation</span>
       </MenuItem>
     </Menu>
   );
 
   const socialsMenu = (
     <Menu>
-      <MenuItem>
-        <a
-          href="https://discord.com/invite/Zm99SKhhtA"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 no-underline"
-        >
-          <FaDiscord />
-          <span>Discord</span>
-        </a>
+      <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
+        <FaDiscord />
+        <span>Discord</span>
       </MenuItem>
-      <MenuItem>
-        <a
-          href="https://github.com/accordproject/template-playground"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 no-underline"
-        >
-          <GithubOutlined />
-          <span>GitHub</span>
-        </a>
+      <MenuItem href="https://github.com/accordproject/template-playground">
+        <GithubOutlined />
+        <span>GitHub</span>
       </MenuItem>
     </Menu>
   );
@@ -275,40 +253,19 @@ function Navbar() {
   const helpMenu = (
     <Menu>
       <MenuItemGroup title="Info">
-        <MenuItem>
-          <a
-            href="https://github.com/accordproject/template-playground/blob/main/README.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <QuestionOutlined />
-            <span>About</span>
-          </a>
+        <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
+          <QuestionOutlined />
+          <span>About</span>
         </MenuItem>
-        <MenuItem>
-          <a
-            href="https://github.com/accordproject/template-playground/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <InfoOutlined />
-            <span>Issues</span>
-          </a>
+        <MenuItem href="https://github.com/accordproject/template-playground/issues">
+          <InfoOutlined />
+          <span>Issues</span>
         </MenuItem>
       </MenuItemGroup>
       <MenuItemGroup title="Documentation">
-        <MenuItem>
-          <a
-            href="https://github.com/accordproject/template-engine/blob/main/README.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <BookOutlined />
-            <span>Documentation</span>
-          </a>
+        <MenuItem href="https://github.com/accordproject/template-engine/blob/main/README.md">
+          <BookOutlined />
+          <span>Documentation</span>
         </MenuItem>
       </MenuItemGroup>
     </Menu>
@@ -319,16 +276,15 @@ function Navbar() {
     const paddingClasses = screens.md ? "px-5" : "px-0";
     const bgClasses = hovered === key ? "bg-white bg-opacity-10" : "bg-transparent";
     const borderClasses = screens.md && !isLast ? "border-r border-white border-opacity-10" : "";
-    
+
     return `${baseClasses} ${paddingClasses} ${bgClasses} ${borderClasses}`;
   };
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`sticky top-0 z-50 bg-[#1b2540] h-16 flex items-center ${
-      screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
-    }`}>
+    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
+      }`}>
       <div
         className={`cursor-pointer ${menuItemClasses("home", false)}`}
         onMouseEnter={() => setHovered("home")}
@@ -349,7 +305,7 @@ function Navbar() {
           </span>
         </Link>
       </div>
-      
+
       {screens.md ? (
         <>
           <div
@@ -358,7 +314,7 @@ function Navbar() {
             onMouseLeave={() => setHovered(null)}
           >
             <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button className="bg-transparent border-none text-white h-16 flex items-center">
+              <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
                 Help
                 <CaretDownFilled className="text-xs ml-1.5" />
               </Button>
@@ -374,19 +330,14 @@ function Navbar() {
           </Dropdown>
         </div>
       )}
-      
-      <div className={`flex ml-auto items-center h-16 ${
-        screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
-      }`}>
-        <div className={screens.md ? "ml-0" : "ml-auto"}>
-          <ToggleDarkMode />
-        </div>
-        
+
+      <div className={`flex ml-auto items-center h-16 ${screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
+        }`}>
+
         {!isLearnPage && (
           <div
-            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${
-              hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
-            }`}
+            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
+              }`}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
           >
@@ -400,13 +351,12 @@ function Navbar() {
             </Link>
           </div>
         )}
-        
+
         <div
-          className={`${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
+          className={`${screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
               : "px-2.5 pl-1.5 pr-1.5"
-          } ${menuItemClasses("socials", false)} cursor-pointer`}
+            } ${menuItemClasses("socials", false)} cursor-pointer`}
           onMouseEnter={() => setHovered("socials")}
           onMouseLeave={() => setHovered(null)}
         >
