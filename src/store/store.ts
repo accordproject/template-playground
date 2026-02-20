@@ -83,7 +83,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // Validate inputs before expensive operations
   // This fails fast on invalid JSON or CTO syntax without running network calls
   await validateBeforeRebuild(template, model, dataString);
-  
+
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
@@ -347,10 +347,12 @@ const useAppStore = create<AppState>()(
               editorModelCto: modelCto,
               data,
               editorAgreementData: data,
-              agreementHtml,
+              agreementHtml: agreementHtml ?? "",
               error: undefined,
             }));
-            await get().rebuild();
+            if (!agreementHtml) {
+              await get().rebuild();
+            }
           } catch (error) {
             set(() => ({
               error: "Failed to load shared content: " + (error instanceof Error ? error.message : "Unknown error"),

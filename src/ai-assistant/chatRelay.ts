@@ -9,6 +9,8 @@ import { loadAndDecryptApiKey } from '../utils/secureKeyStorage';
 export const loadConfigFromLocalStorage = async () => {
   const { setAIConfig, setKeyProtectionLevel } = useAppStore.getState();
 
+
+
   const savedProvider = localStorage.getItem('aiProvider');
   const savedModel = localStorage.getItem('aiModel');
   const savedCustomEndpoint = localStorage.getItem('aiCustomEndpoint');
@@ -77,17 +79,16 @@ export const resetChat = () => {
 };
 
 export const stopMessage = () => {
-  const { updateChatState, chatAbortController, setChatAbortController } = useAppStore.getState();
+  const { chatAbortController, setChatAbortController, setChatState } = useAppStore.getState();
 
   if (chatAbortController) {
     chatAbortController.abort();
     setChatAbortController(null);
   }
 
-  updateChatState({ isLoading: false });
-
-  const { chatState, setChatState } = useAppStore.getState();
-  const updatedMessages = [...chatState.messages];
+  // Re-read state AFTER aborting to get the latest messages
+  const currentState = useAppStore.getState().chatState;
+  const updatedMessages = [...currentState.messages];
   const lastMessage = updatedMessages[updatedMessages.length - 1];
 
   if (lastMessage && lastMessage.role === 'assistant' && !lastMessage.content.endsWith('[Stopped]')) {
@@ -98,8 +99,9 @@ export const stopMessage = () => {
   }
 
   setChatState({
-    ...chatState,
+    ...currentState,
     messages: updatedMessages,
+    isLoading: false,
   });
 };
 
