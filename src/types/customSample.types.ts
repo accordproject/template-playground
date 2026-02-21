@@ -7,12 +7,6 @@ export interface CustomSample {
     id: string;
     // User-defined name for the sample
     name: string;
-    // Optional description of what this sample does
-    description?: string;
-    // Tags for searching and organizing samples
-    tags: string[];
-    // Category for grouping samples
-    category: string;
 
     // The TemplateMark content
     templateMarkdown: string;
@@ -28,21 +22,12 @@ export interface CustomSample {
 
     // Timestamp when the sample was last modified
     updatedAt: number;
-
-    // Whether this sample was imported from a file
-    isImported: boolean;
-
-    // Original file name if imported
-    originalFileName?: string;
 }
 
 // Storage structure for the sample library
 export interface SampleLibrary {
     // Array of custom samples
     samples: CustomSample[];
-
-    // User-defined categories
-    categories: string[];
 
     // Schema version for migration support
     version: number;
@@ -51,39 +36,10 @@ export interface SampleLibrary {
 // Input data for creating a new custom sample
 export interface CreateSampleInput {
     name: string;
-    description?: string;
-    tags?: string[];
-    category?: string;
     templateMarkdown: string;
     modelCto: string;
     data: string;
 }
-
-// Input data for updating an existing custom sample
-export interface UpdateSampleInput {
-    name?: string;
-    description?: string;
-    tags?: string[];
-    category?: string;
-    templateMarkdown?: string;
-    modelCto?: string;
-    data?: string;
-}
-
-// Validation result for sample operations
-export interface ValidationResult {
-    isValid: boolean;
-    errors: string[];
-}
-
-// Default categories for organizing samples
-export const DEFAULT_CATEGORIES = [
-    'Legal',
-    'Financial',
-    'Employment',
-    'General',
-    'Other'
-] as const;
 
 // Storage key for localStorage
 export const CUSTOM_SAMPLES_STORAGE_KEY = 'accord-custom-samples';

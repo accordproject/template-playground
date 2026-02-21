@@ -158,7 +158,7 @@ function SampleDropdown({
 
   return (
     <Space>
-      <Dropdown menu={{ items, onClick: (e) => void handleMenuClick(e) }} trigger={["click"]}>
+      <Dropdown menu={{ items, onClick: (e) => void handleMenuClick(e), style: { maxHeight: '80vh', overflowY: 'auto' } }} trigger={["click"]}>
         <div className="samples-element">
           <Button aria-label="Load sample dropdown">
             {selectedSample ? selectedSample : "Load Sample"} <DownOutlined />

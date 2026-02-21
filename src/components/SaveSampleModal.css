@@ -113,9 +113,7 @@
   color: #e74c3c;
 }
 
-.save-modal-field input[type="text"],
-.save-modal-field textarea,
-.save-modal-field select {
+.save-modal-field input[type="text"] {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--color-border, #d0d0d0);
@@ -127,33 +125,18 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.save-modal-field input[type="text"]:focus,
-.save-modal-field textarea:focus,
-.save-modal-field select:focus {
+.save-modal-field input[type="text"]:focus {
   outline: none;
   border-color: #19c6c8;
   box-shadow: 0 0 0 3px rgba(25, 198, 200, 0.1);
 }
 
-.save-modal-field input[type="text"]:disabled,
-.save-modal-field textarea:disabled,
-.save-modal-field select:disabled {
+.save-modal-field input[type="text"]:disabled {
   background-color: var(--color-bg-disabled, #f5f5f5);
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.save-modal-field textarea {
-  resize: vertical;
-  min-height: 60px;
-}
-
-.save-modal-field small {
-  display: block;
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--color-text-secondary, #666);
-}
 
 .char-count {
   display: block;
@@ -207,14 +190,7 @@
   transform: none !important;
 }
 
-.save-modal-hint {
-  padding: 0 24px 16px;
-  text-align: center;
-}
 
-.save-modal-hint small {
-  color: var(--color-text-secondary, #999);
-}
 
 /* Dark mode support */
 [data-theme="dark"] .save-modal-content {
