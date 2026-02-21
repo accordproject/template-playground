@@ -8,13 +8,9 @@ afterEach(() => {
   cleanup();
 });
 
-// Mock getComputedStyle for Ant Design components that use scroll locking
-// jsdom doesn't fully support getComputedStyle with pseudo-elements
-// rc-util's getScrollBarSize calls .match() on style properties
 const originalGetComputedStyle = window.getComputedStyle;
 window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
   if (pseudoElt) {
-    // Return a mock CSSStyleDeclaration with string properties for .match() calls
     return {
       width: '0px',
       height: '0px',
@@ -30,62 +26,89 @@ Object.defineProperty(window, "matchMedia", {
     matches: false,
     media: query,
     onchange: null,
-    addListener: () => {
-      // Mock implementation for tests
-    },
-    removeListener: () => {
-      // Mock implementation for tests
-    },
-    addEventListener: () => {
-      // Mock implementation for tests
-    },
-    removeEventListener: () => {
-      // Mock implementation for tests
-    },
-    dispatchEvent: () => {
-      return false;
-    },
+    addListener: () => { /* mock */ },
+    removeListener: () => { /* mock */ },
+    addEventListener: () => { /* mock */ },
+    removeEventListener: () => { /* mock */ },
+    dispatchEvent: () => { return false; },
   }),
 });
 
-// Mock HTMLCanvasElement.getContext for lottie-web library
-// jsdom doesn't implement canvas 2D context
-// @ts-expect-error: Mock implementation has simplified types
-HTMLCanvasElement.prototype.getContext = ((originalGetContext) => {
-  return function (
-    this: HTMLCanvasElement,
-    contextId: string,
-    options?: unknown
-  ) {
-    if (contextId === '2d') {
-      return {
-        fillStyle: '',
-        fillRect: () => {},
-        clearRect: () => {},
-        getImageData: () => ({ data: [] }),
-        putImageData: () => {},
-        createImageData: () => ({ data: [] }),
-        setTransform: () => {},
-        drawImage: () => {},
-        save: () => {},
-        restore: () => {},
-        beginPath: () => {},
-        moveTo: () => {},
-        lineTo: () => {},
-        closePath: () => {},
-        stroke: () => {},
-        fill: () => {},
-        translate: () => {},
-        scale: () => {},
-        rotate: () => {},
-        arc: () => {},
-        measureText: () => ({ width: 0 }),
-        transform: () => {},
-        rect: () => {},
-        clip: () => {},
-        canvas: this,
-      } as unknown as CanvasRenderingContext2D;
-    }
-    return originalGetContext.call(this, contextId as any, options);
-  };
-})(HTMLCanvasElement.prototype.getContext);
+interface MockCanvasContext {
+  fillStyle: string;
+  fillRect: () => void;
+  clearRect: () => void;
+  getImageData: () => { data: number[] };
+  putImageData: () => void;
+  createImageData: () => { data: number[] };
+  setTransform: () => void;
+  drawImage: () => void;
+  save: () => void;
+  restore: () => void;
+  beginPath: () => void;
+  moveTo: () => void;
+  lineTo: () => void;
+  closePath: () => void;
+  stroke: () => void;
+  fill: () => void;
+  translate: () => void;
+  scale: () => void;
+  rotate: () => void;
+  arc: () => void;
+  measureText: () => { width: number };
+  transform: () => void;
+  rect: () => void;
+  clip: () => void;
+  canvas: HTMLCanvasElement;
+}
+
+// capture original method so we can delegate for non-2d calls
+// use a loose any type to avoid lib.dom union conflicts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const originalGetContext: any = HTMLCanvasElement.prototype.getContext.bind(
+  HTMLCanvasElement.prototype
+);
+
+HTMLCanvasElement.prototype.getContext = function (
+  this: HTMLCanvasElement,
+  contextId: string,
+  options?: unknown
+) {
+  if (contextId === '2d') {
+    const mockContext: MockCanvasContext = {
+      fillStyle: '',
+      fillRect: () => { /* mock */ },
+      clearRect: () => { /* mock */ },
+      getImageData: () => ({ data: [] }),
+      putImageData: () => { /* mock */ },
+      createImageData: () => ({ data: [] }),
+      setTransform: () => { /* mock */ },
+      drawImage: () => { /* mock */ },
+      save: () => { /* mock */ },
+      restore: () => { /* mock */ },
+      beginPath: () => { /* mock */ },
+      moveTo: () => { /* mock */ },
+      lineTo: () => { /* mock */ },
+      closePath: () => { /* mock */ },
+      stroke: () => { /* mock */ },
+      fill: () => { /* mock */ },
+      translate: () => { /* mock */ },
+      scale: () => { /* mock */ },
+      rotate: () => { /* mock */ },
+      arc: () => { /* mock */ },
+      measureText: () => ({ width: 0 }),
+      transform: () => { /* mock */ },
+      rect: () => { /* mock */ },
+      clip: () => { /* mock */ },
+      canvas: this,
+    };
+    // cast through unknown since the mock only implements a subset of methods
+    return mockContext as unknown as CanvasRenderingContext2D;
+  }
+
+  // for other context types, delegate to original
+  // originalGetContext is typed as `any` above, so suppress safety checks
+  /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+  return originalGetContext.call(this, contextId, options);
+  /* eslint-enable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+};
