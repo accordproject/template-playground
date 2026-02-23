@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
+// @ts-ignore
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
@@ -58,6 +59,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
 
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  // @ts-ignore
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
 
   useEffect(() => {
@@ -282,7 +284,27 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             </div>
           )}
 
-		  
+          <div className="relative">
+			<label className={`block text-sm font-medium ${theme.label} mb-1`}>
+				API Key
+			</label>
+			<div className="flex items-center">
+				<input
+				  type={showApiKey ? "text" : "password"}
+				  value={apiKey}
+				  onChange={(e) => setApiKey(e.target.value)}
+				  placeholder="Enter API key"
+				  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+				/>
+				<button
+				  type="button"
+				  onClick={() => setShowApiKey(!showApiKey)}
+				  className="ml-2 p-2 text-gray-500 hover:text-gray-700 rounded"
+				>
+				  {showApiKey ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+				</button>
+			</div>
+		  </div>		  
 
           <div>
             <label className={`block text-sm font-medium ${theme.label} mb-1`}>
