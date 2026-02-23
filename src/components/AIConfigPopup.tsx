@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const { backgroundColor } = useAppStore((state) => ({
@@ -56,6 +57,9 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
 
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+
   useEffect(() => {
     if (isOpen) {
       const savedProvider = localStorage.getItem('aiProvider');
@@ -79,6 +83,78 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       setEnableInlineSuggestions(savedEnableInlineSuggestions);
     }
   }, [isOpen]);
+
+   useEffect(() => {
+    if (!provider) return;
+    setAvailableModels([]);
+
+    const fetchModels = async () => {
+      try {
+        switch (provider) {
+          case 'openai':
+          case 'openai-compatible':
+            if (!apiKey) return;
+            const openaiEndpoint = provider === 'openai-compatible'
+              ? customEndpoint
+              : 'https://api.openai.com/v1/models';
+            const openaiRes = await fetch(openaiEndpoint, {
+              headers: { Authorization: `Bearer ${apiKey}` },
+            });
+            const openaiData = await openaiRes.json();
+            setAvailableModels(openaiData.data?.map((m: any) => m.id) || []);
+            break;
+
+          case 'anthropic':
+            if (!apiKey) return;
+            const anthropicRes = await fetch('https://api.anthropic.com/v1/models', {
+              headers: { 'x-api-key': apiKey },
+            });
+            const anthropicData = await anthropicRes.json();
+            setAvailableModels(anthropicData.models?.map((m: any) => m.name) || []);
+            break;
+
+          case 'google':
+            if (!apiKey) return;
+            const googleRes = await fetch('https://generativelanguage.googleapis.com/v1beta2/models', {
+              headers: { Authorization: `Bearer ${apiKey}` },
+            });
+            const googleData = await googleRes.json();
+            setAvailableModels(googleData.models?.map((m: any) => m.name) || []);
+            break;
+
+          case 'mistral':
+            const mistralRes = await fetch('https://api.mistral.ai/v1/models', {
+              headers: { Authorization: `Bearer ${apiKey}` },
+            });
+            const mistralData = await mistralRes.json();
+            setAvailableModels(mistralData.models?.map((m: any) => m.name) || []);
+            break;
+
+          case 'ollama':
+            const ollamaRes = await fetch('http://localhost:11434/models');
+            const ollamaData = await ollamaRes.json();
+            setAvailableModels(ollamaData?.map((m: any) => m.name || m.id) || []);
+            break;
+
+          case 'openrouter':
+            const openrouterRes = await fetch('https://openrouter.ai/api/models', {
+              headers: { Authorization: `Bearer ${apiKey}` },
+            });
+            const openrouterData = await openrouterRes.json();
+            setAvailableModels(openrouterData.models?.map((m: any) => m.name) || []);
+            break;
+
+          default:
+            setAvailableModels([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch models:', err);
+        setAvailableModels([]);
+      }
+    };
+
+    void fetchModels();
+  }, [provider, apiKey, customEndpoint]);
 
   const handleSave = () => {
     localStorage.setItem('aiProvider', provider);
@@ -206,17 +282,24 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             </div>
           )}
 
+		  
+
           <div>
             <label className={`block text-sm font-medium ${theme.label} mb-1`}>
               Model Name
             </label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="Enter model name"
-              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-            />
+            <select
+			  value={model}
+			  onChange={(e) => setModel(e.target.value)}
+			  className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
+			>
+			<option value="">Select a model</option>
+			{availableModels.length > 0
+				? availableModels.map((m) => (
+					<option key={m} value={m}>{m}</option>
+				)) : <option disabled>No models available</option>
+			}
+			</select>
             {provider && (
               <div className={`mt-1 text-xs ${theme.helpText}`}>
                 {provider === 'openai' && 'Example: gpt-5, gpt-5-mini'}
@@ -233,19 +316,6 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 
               </div>
             )}
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium ${theme.label} mb-1`}>
-              API Key
-            </label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter API key"
-              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-            />
           </div>
 
           <div className={`border rounded-lg ${theme.advancedContainer}`}>
