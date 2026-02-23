@@ -62,6 +62,13 @@ interface AppState {
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
   showLineNumbers: boolean;
+  editorSettings: {
+  fontSize: number;
+  wordWrap: 'on' | 'off';
+};
+setEditorSettings: (
+  partial: Partial<AppState['editorSettings']>
+) => void;
   setShowLineNumbers: (value: boolean) => void;
   isSettingsOpen: boolean;
   setSettingsOpen: (value: boolean) => void;
@@ -160,11 +167,43 @@ const getInitialLineNumbers = () => {
   return true; // Default to showing line numbers
 };
 
+const getInitialEditorSettings = () => {
+  const defaults = {
+    fontSize: 14,
+    wordWrap: 'on' as 'on' | 'off',
+  };
+
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('editor-settings');
+      if (saved) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return { ...defaults, ...(JSON.parse(saved)) };
+      }
+    } catch {
+      // ignore corrupted storage
+    }
+  }
+
+  return defaults;
+};
+
+const saveEditorSettings = (settings: {
+  fontSize: number;
+  wordWrap: 'on' | 'off';
+}) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('editor-settings', JSON.stringify(settings));
+  }
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
       const initialTheme = getInitialTheme();
       const initialPanels = getInitialPanelState(); // Load saved panels
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const initialEditorSettings = getInitialEditorSettings();
 
       return {
         backgroundColor: initialTheme.backgroundColor,
@@ -195,6 +234,8 @@ const useAppStore = create<AppState>()(
       isTemplateCollapsed: false,
       isDataCollapsed: false,
       showLineNumbers: getInitialLineNumbers(),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      editorSettings: initialEditorSettings,
       isSettingsOpen: false,
       toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
       toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
@@ -205,6 +246,16 @@ const useAppStore = create<AppState>()(
         }
         set({ showLineNumbers: value });
       },
+      setEditorSettings: (partial) => {
+  set((state) => {
+    const next = {
+      ...state.editorSettings,
+      ...partial,
+    };
+    saveEditorSettings(next);
+    state.editorSettings = next;
+  });
+},
       setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
       setEditorsVisible: (value) => {
         const state = get();

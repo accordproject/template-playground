@@ -1,17 +1,21 @@
 import React from 'react';
-import { Modal, Switch } from 'antd';
+import { Modal, Switch, Select } from 'antd';
 import DarkModeToggle from 'react-dark-mode-toggle';
 import useAppStore from '../store/store';
 
+const FONT_SIZES = [12, 13, 14, 15, 16, 18, 20];
+
 const SettingsModal: React.FC = () => {
-  const { 
-    isSettingsOpen, 
-    setSettingsOpen, 
-    showLineNumbers, 
+  const {
+    isSettingsOpen,
+    setSettingsOpen,
+    showLineNumbers,
     setShowLineNumbers,
     textColor,
     backgroundColor,
-    toggleDarkMode
+    toggleDarkMode,
+    editorSettings,
+    setEditorSettings,
   } = useAppStore((state) => ({
     isSettingsOpen: state.isSettingsOpen,
     setSettingsOpen: state.setSettingsOpen,
@@ -20,6 +24,8 @@ const SettingsModal: React.FC = () => {
     textColor: state.textColor,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
+    editorSettings: state.editorSettings,
+    setEditorSettings: state.setEditorSettings,
   }));
 
   const isDarkMode = backgroundColor === '#121212';
@@ -35,7 +41,8 @@ const SettingsModal: React.FC = () => {
       style={{ maxWidth: 480 }}
     >
       <div className="space-y-6 py-4">
-        {/* Dark Mode Toggle */}
+
+        {/* Dark Mode */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
@@ -45,18 +52,12 @@ const SettingsModal: React.FC = () => {
               Toggle between light and dark theme
             </p>
           </div>
-          <div className="flex-shrink-0">
-            <DarkModeToggle
-              onChange={toggleDarkMode}
-              checked={isDarkMode}
-              size={50}
-            />
-          </div>
+          <DarkModeToggle onChange={toggleDarkMode} checked={isDarkMode} size={50} />
         </div>
 
         <hr className={isDarkMode ? 'border-gray-600' : 'border-gray-200'} />
 
-        {/* Line Numbers Toggle */}
+        {/* Line Numbers */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
@@ -66,14 +67,53 @@ const SettingsModal: React.FC = () => {
               Display line numbers in code editors
             </p>
           </div>
-          <div className="flex-shrink-0">
-            <Switch
-              checked={showLineNumbers}
-              onChange={setShowLineNumbers}
-              aria-label="Toggle line numbers"
-            />
-          </div>
+          <Switch checked={showLineNumbers} onChange={setShowLineNumbers} />
         </div>
+
+        <hr className={isDarkMode ? 'border-gray-600' : 'border-gray-200'} />
+
+        {/* Font Size */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
+              Font Size
+            </h4>
+            <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Adjust editor font size
+            </p>
+          </div>
+          <Select
+            value={editorSettings.fontSize}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            onChange={(value) => setEditorSettings({ fontSize: value })}
+            style={{ width: 110 }}
+            options={FONT_SIZES.map((size) => ({
+              label: `${size}px`,
+              value: size,
+            }))}
+          />
+        </div>
+
+        <hr className={isDarkMode ? 'border-gray-600' : 'border-gray-200'} />
+
+        {/* Word Wrap */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
+              Word Wrap
+            </h4>
+            <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Wrap long lines in editors
+            </p>
+          </div>
+          <Switch
+            checked={editorSettings.wordWrap === 'on'}
+            onChange={(checked) =>
+              setEditorSettings({ wordWrap: checked ? 'on' : 'off' })
+            }
+          />
+        </div>
+
       </div>
     </Modal>
   );
