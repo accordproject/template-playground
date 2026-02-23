@@ -105,6 +105,15 @@ const App = () => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [backgroundColor]);
 
+  //  EASTER EGG: Console message for developers (ADDED THIS)
+  useEffect(() => {
+    // This runs once when the app loads
+    console.log(
+      '%c👋 Hello, developer! Thanks for checking out the Accord Project Playground. 🚀',
+      'font-size:14px; color: #19C6C8; font-weight: bold;'
+    );
+  }, []);
+
   return (
     <AntdApp>
       <Layout style={{ height: "100vh" }}>
