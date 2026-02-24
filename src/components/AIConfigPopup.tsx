@@ -51,7 +51,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const [customEndpoint, setCustomEndpoint] = useState<string>('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
   const [maxTokens, setMaxTokens] = useState<string>('');
-  
+
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
   const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
@@ -60,20 +60,20 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
     if (isOpen) {
       const savedProvider = localStorage.getItem('aiProvider');
       const savedModel = localStorage.getItem('aiModel');
-      const savedApiKey = localStorage.getItem('aiApiKey');
+      const savedApiKey = sessionStorage.getItem('aiApiKey');
       const savedCustomEndpoint = localStorage.getItem('aiCustomEndpoint');
       const savedMaxTokens = localStorage.getItem('aiResMaxTokens');
-      
+
       const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
       const savedEnableCodeSelection = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
       const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
-      
+
       if (savedProvider) setProvider(savedProvider);
       if (savedModel) setModel(savedModel);
       if (savedApiKey) setApiKey(savedApiKey);
       if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
       if (savedMaxTokens) setMaxTokens(savedMaxTokens);
-      
+
       setShowFullPrompt(savedShowFullPrompt);
       setEnableCodeSelectionMenu(savedEnableCodeSelection);
       setEnableInlineSuggestions(savedEnableInlineSuggestions);
@@ -83,25 +83,25 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const handleSave = () => {
     localStorage.setItem('aiProvider', provider);
     localStorage.setItem('aiModel', model);
-    localStorage.setItem('aiApiKey', apiKey);
-    
+    sessionStorage.setItem('aiApiKey', apiKey);
+
     if (provider === 'openai-compatible') {
       localStorage.setItem('aiCustomEndpoint', customEndpoint);
     } else {
       localStorage.removeItem('aiCustomEndpoint');
     }
-    
+
     if (maxTokens) {
       localStorage.setItem('aiResMaxTokens', maxTokens);
     } else {
       localStorage.removeItem('aiResMaxTokens');
     }
-    
+
     localStorage.setItem('aiShowFullPrompt', showFullPrompt.toString());
     localStorage.setItem('aiEnableCodeSelectionMenu', enableCodeSelectionMenu.toString());
     localStorage.setItem('aiEnableInlineSuggestions', enableInlineSuggestions.toString());
-    
-    onSave(); 
+
+    onSave();
     onClose();
   };
 
@@ -109,12 +109,12 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
     const confirmed = window.confirm(
       'Are you sure you want to reset all AI configuration? This will clear your API key and all settings.'
     );
-    
+
     if (confirmed) {
       // Clear all AI-related localStorage items
       localStorage.removeItem('aiProvider');
       localStorage.removeItem('aiModel');
-      localStorage.removeItem('aiApiKey');
+      sessionStorage.removeItem('aiApiKey');
       localStorage.removeItem('aiCustomEndpoint');
       localStorage.removeItem('aiResMaxTokens');
       localStorage.removeItem('aiShowFullPrompt');
@@ -123,7 +123,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       localStorage.removeItem('aiIncludeTemplateMark');
       localStorage.removeItem('aiIncludeConcertoModel');
       localStorage.removeItem('aiIncludeData');
-      
+
       // Reset all state variables to default
       setProvider('');
       setModel('');
@@ -133,7 +133,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       setShowFullPrompt(false);
       setEnableCodeSelectionMenu(true);
       setEnableInlineSuggestions(true);
-      
+
       // Notify parent and reload config
       onSave();
     }
@@ -181,7 +181,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
               <option value="mistral">Mistral</option>
-              <option value="ollama">Ollama (Local)</option> 
+              <option value="ollama">Ollama (Local)</option>
               <option value="openai">OpenAI</option>
               <option value="openrouter">OpenRouter</option>
               <option value="openai-compatible">OpenAI Compatible API</option>
@@ -227,10 +227,10 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 {provider === 'ollama' && (
                   <span className="text-orange-500 font-bold">
                     ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
-                    <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
+                    <br />Example models: tinyllama, qwen2.5:0.5b, llama3
                   </span>
                 )}
-                
+
               </div>
             )}
           </div>
@@ -246,6 +246,9 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
               placeholder="Enter API key"
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
             />
+            <div className={`mt-1 text-xs ${theme.helpText}`}>
+              🔒 Your API key is stored only for this browser session and will be cleared when the tab is closed.
+            </div>
           </div>
 
           <div className={`border rounded-lg ${theme.advancedContainer}`}>
@@ -270,7 +273,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                 />
               </svg>
             </button>
-            
+
             {showAdvancedSettings && (
               <div className={`p-3 border-t space-y-4 ${theme.advancedContent}`}>
                 <div>
@@ -290,9 +293,9 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
                     Maximum number of tokens the model can generate in response
                   </div>
                 </div>
-                
+
                 <div className={`border-t my-4 ${theme.divider}`}></div>
-                
+
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -344,14 +347,13 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             )}
           </div>
 
-           <button
+          <button
             onClick={handleSave}
             disabled={!provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
-            className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${
-              !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)
+            className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${!provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)
                 ? theme.saveButton.disabled
                 : theme.saveButton.enabled
-            }`}
+              }`}
           >
             Save Configuration
           </button>
