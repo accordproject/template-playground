@@ -18,6 +18,11 @@ test.describe('Share Functionality', () => {
     const shareButton = page.getByRole('button', { name: 'Share' });
     await shareButton.click();
 
+    // Click the Copy button inside the Share Modal
+    const copyButton = page.getByRole('dialog').getByRole('button', { name: /Copy/i });
+    await expect(copyButton).toBeVisible();
+    await copyButton.click();
+
     // Should show success message
     await expect(page.getByText('Link copied to clipboard')).toBeVisible({ timeout: 5000 });
 
@@ -33,12 +38,17 @@ test.describe('Share Functionality', () => {
     const shareButton = page.getByRole('button', { name: 'Share' });
     await shareButton.click();
 
+    // Click the Copy button inside the Share Modal
+    const copyButton = page.getByRole('dialog').getByRole('button', { name: /Copy/i });
+    await expect(copyButton).toBeVisible();
+    await copyButton.click();
+
     // Wait for clipboard to be populated
     await expect(page.getByText('Link copied to clipboard')).toBeVisible({ timeout: 5000 });
 
     // Get the shareable link from clipboard
     const shareableLink = await page.evaluate(() => navigator.clipboard.readText());
-    
+
     // Validate that we got a non-empty string
     expect(shareableLink, 'Shareable link should be a non-empty string').toBeTruthy();
     expect(typeof shareableLink, 'Shareable link should be a string').toBe('string');
