@@ -384,7 +384,7 @@ function Navbar() {
             <GithubOutlined className={`text-xl text-white ${
               screens.md ? "mr-1.5" : "mr-0"
             }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Github</span>
+            <span className={screens.md ? "inline" : "hidden"}>GitHub</span>
           </a>
         </div>
       </div>
