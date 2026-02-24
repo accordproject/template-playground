@@ -22,11 +22,11 @@ describe("Navbar", () => {
     expect(title).toBeInTheDocument();
   });
 
-  it("renders Github link on all screens", () => {
+  it("renders Community button on all screens", () => {
     renderNavbar();
 
-    const githubLink = screen.getByRole("link", { name: /Github/i });
-    expect(githubLink).toBeInTheDocument();
+    const socialsButton = screen.getByRole("button", { name: /Community/i });
+    expect(socialsButton).toBeInTheDocument();
   });
 
   it("shows hover effect on menu items", () => {

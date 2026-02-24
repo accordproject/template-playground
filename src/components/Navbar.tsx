@@ -4,11 +4,11 @@ import { useLocation, Link } from "react-router-dom";
 import {
   GithubOutlined,
   QuestionOutlined,
-  UserOutlined,
   InfoOutlined,
   BookOutlined,
   CaretDownFilled,
   MenuOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
 
@@ -42,7 +42,7 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
   };
 
   return (
-    <div 
+    <div
       className={`relative ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -52,11 +52,11 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
       </div>
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-10" 
+          <div
+            className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="absolute top-full right-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
             {overlay}
           </div>
         </>
@@ -118,12 +118,12 @@ const MenuItem = ({
   );
 };
 
-const MenuItemGroup = ({ 
-  title, 
-  children, 
-  className = "" 
-}: { 
-  title: string; 
+const MenuItemGroup = ({
+  title,
+  children,
+  className = ""
+}: {
+  title: string;
   children: React.ReactNode;
   className?: string;
 }) => (
@@ -135,16 +135,16 @@ const MenuItemGroup = ({
   </div>
 );
 
-const Button = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const Button = ({
+  children,
+  onClick,
+  className = ""
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
   className?: string;
 }) => (
-  <button 
+  <button
     className={`flex items-center ${className}`}
     onClick={onClick}
   >
@@ -152,12 +152,12 @@ const Button = ({
   </button>
 );
 
-const Image = ({ 
-  src, 
-  alt, 
-  className = "" 
-}: { 
-  src: string; 
+const Image = ({
+  src,
+  alt,
+  className = ""
+}: {
+  src: string;
   alt: string;
   className?: string;
 }) => (
@@ -192,7 +192,7 @@ const useBreakpoint = () => {
 
 function Navbar() {
   const [hovered, setHovered] = useState<
-    null | "home" | "help" | "github" | "discord" | "join"
+    null | "home" | "help" | "socials" | "join"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
@@ -216,10 +216,16 @@ function Navbar() {
         <QuestionOutlined />
         <span>About</span>
       </MenuItem>
-      <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
-        <UserOutlined />
-        <span>Community</span>
-      </MenuItem>
+      <MenuItemGroup title="Community">
+        <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
+          <FaDiscord />
+          <span>Discord</span>
+        </MenuItem>
+        <MenuItem href="https://github.com/accordproject/template-playground">
+          <GithubOutlined />
+          <span>GitHub</span>
+        </MenuItem>
+      </MenuItemGroup>
       <MenuItem href="https://github.com/accordproject/template-playground/issues">
         <InfoOutlined />
         <span>Issues</span>
@@ -231,16 +237,25 @@ function Navbar() {
     </Menu>
   );
 
+  const socialsMenu = (
+    <Menu>
+      <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
+        <FaDiscord />
+        <span>Discord</span>
+      </MenuItem>
+      <MenuItem href="https://github.com/accordproject/template-playground">
+        <GithubOutlined />
+        <span>GitHub</span>
+      </MenuItem>
+    </Menu>
+  );
+
   const helpMenu = (
     <Menu>
       <MenuItemGroup title="Info">
         <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
           <QuestionOutlined />
           <span>About</span>
-        </MenuItem>
-        <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
-          <UserOutlined />
-          <span>Community</span>
         </MenuItem>
         <MenuItem href="https://github.com/accordproject/template-playground/issues">
           <InfoOutlined />
@@ -261,16 +276,15 @@ function Navbar() {
     const paddingClasses = screens.md ? "px-5" : "px-0";
     const bgClasses = hovered === key ? "bg-white bg-opacity-10" : "bg-transparent";
     const borderClasses = screens.md && !isLast ? "border-r border-white border-opacity-10" : "";
-    
+
     return `${baseClasses} ${paddingClasses} ${bgClasses} ${borderClasses}`;
   };
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${
-      screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
-    }`}>
+    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
+      }`}>
       <div
         className={`cursor-pointer ${menuItemClasses("home", false)}`}
         onMouseEnter={() => setHovered("home")}
@@ -291,7 +305,7 @@ function Navbar() {
           </span>
         </Link>
       </div>
-      
+
       {screens.md ? (
         <>
           <div
@@ -316,16 +330,14 @@ function Navbar() {
           </Dropdown>
         </div>
       )}
-      
-      <div className={`flex ml-auto items-center h-16 ${
-        screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
-      }`}>
-        
+
+      <div className={`flex ml-auto items-center h-16 ${screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
+        }`}>
+
         {!isLearnPage && (
           <div
-            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${
-              hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
-            }`}
+            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
+              }`}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
           >
@@ -339,53 +351,22 @@ function Navbar() {
             </Link>
           </div>
         )}
-        
+
         <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
-              : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
-          onMouseEnter={() => setHovered("discord")}
+          className={`${screens.md
+            ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+            : "px-2.5 pl-1.5 pr-1.5"
+            } ${menuItemClasses("socials", false)} cursor-pointer`}
+          onMouseEnter={() => setHovered("socials")}
           onMouseLeave={() => setHovered(null)}
         >
-          <a
-            href="https://discord.com/invite/Zm99SKhhtA"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center text-white"
-          >
-            <FaDiscord className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Discord</span>
-          </a>
-        </div>
-        
-        <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
-              : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
-          onMouseEnter={() => setHovered("github")}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <a
-            href="https://github.com/accordproject/template-playground"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center text-white"
-          >
-            <GithubOutlined className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Github</span>
-          </a>
+          <Dropdown overlay={socialsMenu} trigger={["click"]}>
+            <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
+              <GlobalOutlined className="text-xl" />
+              {screens.md && <span className="ml-1.5">Community</span>}
+              <CaretDownFilled className="text-xs ml-1.5" />
+            </Button>
+          </Dropdown>
         </div>
       </div>
     </div>

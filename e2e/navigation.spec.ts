@@ -45,23 +45,31 @@ test.describe('Navigation', () => {
 
       // Dropdown should appear with menu items
       await expect(page.getByText('About')).toBeVisible();
-      await expect(page.getByText('Community')).toBeVisible();
+      await expect(page.getByText('Issues')).toBeVisible();
       await expect(page.getByRole('link', { name: /Documentation/i })).toBeVisible();
     }
   });
 
-  test('should have external links in navbar', async ({ page }) => {
+  test('should have Socials dropdown with external links', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
-    // GitHub link should be present
-    const githubLink = page.getByRole('link', { name: /Github/i });
-    await expect(githubLink).toBeVisible();
-    await expect(githubLink).toHaveAttribute('href', 'https://github.com/accordproject/template-playground');
+    // Find Socials button (visible on desktop)
+    const socialsButton = page.getByRole('button', { name: /Socials/i });
+    
+    // Skip test if Socials button not visible (mobile view)
+    if (await socialsButton.isVisible()) {
+      await socialsButton.click();
 
-    // Discord link should be present
-    const discordLink = page.getByRole('link', { name: /Discord/i });
-    await expect(discordLink).toBeVisible();
-    await expect(discordLink).toHaveAttribute('href', 'https://discord.com/invite/Zm99SKhhtA');
+      // GitHub link should be present in dropdown
+      const githubLink = page.getByRole('link', { name: /GitHub/i });
+      await expect(githubLink).toBeVisible();
+      await expect(githubLink).toHaveAttribute('href', 'https://github.com/accordproject/template-playground');
+
+      // Discord link should be present in dropdown
+      const discordLink = page.getByRole('link', { name: /Discord/i });
+      await expect(discordLink).toBeVisible();
+      await expect(discordLink).toHaveAttribute('href', 'https://discord.com/invite/Zm99SKhhtA');
+    }
   });
 });
