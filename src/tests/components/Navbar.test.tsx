@@ -3,6 +3,10 @@ import "@testing-library/jest-dom";
 import Navbar from "../../components/Navbar";
 import { MemoryRouter } from "react-router-dom";
 
+vi.mock("../../components/KeyboardShortcutsModal", () => ({
+  default: () => null,
+}));
+
 const renderNavbar = () => {
   render(
     <MemoryRouter>
