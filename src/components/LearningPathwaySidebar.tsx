@@ -1,51 +1,55 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import {
-  SidebarContainer,
-  SidebarTitle,
-  SidebarList,
-  SidebarListItem,
-  SidebarLink,
-  HelperBox,
-  HelperIcon,
-  HelperText,
-  DividerLine,
-} from "../styles/components/Sidebar";
+import { useNavigate, useLocation } from "react-router-dom";
 import { BulbOutlined } from "@ant-design/icons";
+import { SidebarContainer, SidebarTitle, StepItem, TipContainer, TipIcon, TipText } from "../styles/components/LearningPathwaySidebar";
 
-interface SidebarProps {
-  steps: { title: string; link: string }[];
+interface Step {
+  title: string;
+  link: string;
 }
-const LearningPathwaySidebar: React.FC<SidebarProps> = ({ steps }) => {
+
+interface LearningPathwaySidebarProps {
+  steps: Step[];
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const LearningPathwaySidebar: React.FC<LearningPathwaySidebarProps> = ({ 
+  steps, 
+  isOpen = false, 
+  onClose 
+}) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleStepClick = (link: string) => {
+    navigate(link);
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <SidebarContainer>
+    <SidebarContainer $isOpen={isOpen}>
       <SidebarTitle>Learning Pathway</SidebarTitle>
-      <SidebarList>
-        {steps.map((step, index) => (
-          <SidebarListItem key={index}>
-            <SidebarLink
-              to={step.link}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              {step.title}
-            </SidebarLink>
-          </SidebarListItem>
-        ))}
-      </SidebarList>
-      <DividerLine />
-      <HelperBox>
-        <HelperIcon>
+      {steps.map((step, index) => (
+        <StepItem
+          key={index}
+          onClick={() => handleStepClick(step.link)}
+          $isActive={location.pathname === step.link}
+        >
+          {step.title}
+        </StepItem>
+      ))}
+      
+      <TipContainer>
+        <TipIcon>
           <BulbOutlined />
-        </HelperIcon>
-        <HelperText>
-          Welcome to the Learning Pathway! Use the sidebar to follow the guide.
-          Open the
-          <Link to="/" target="_blank" rel="noopener noreferrer">
-            Template Playground
-          </Link>{" "}
-          in another tab to experiment as you learn.
-        </HelperText>
-      </HelperBox>
+        </TipIcon>
+        <TipText>
+          Welcome to the Learning Pathway! Use the sidebar to follow the guide. Open the <span style={{ color: '#19c6c7', fontWeight: '600' }}>Template Playground</span> in another tab to experiment as you learn.
+        </TipText>
+      </TipContainer>
     </SidebarContainer>
   );
 };
