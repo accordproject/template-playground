@@ -2,8 +2,9 @@ import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
 import { updateEditorActivity } from "../../ai-assistant/activityTracker";
+import * as monaco from "monaco-editor";
 
-function AgreementData() {
+function AgreementData({ editorRef }: { editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null> }) {
   const editorAgreementData = useAppStore((state) => state.editorAgreementData);
   const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
   const setData = useAppStore((state) => state.setData);
@@ -17,12 +18,12 @@ function AgreementData() {
     if (value !== undefined) {
       updateEditorActivity('json');
       setValue(value); // Update editor state and sync
-      setData(value); 
+      void setData(value); 
     }
   };
 
   return (
-    <JSONEditor value={value} onChange={handleChange} />
+    <JSONEditor value={value} onChange={handleChange} editorRef={editorRef} />
   );
 }
 

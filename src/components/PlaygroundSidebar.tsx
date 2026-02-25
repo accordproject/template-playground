@@ -5,8 +5,9 @@ import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
-import { message } from "antd";
+import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
+import SettingsModal from "./SettingsModal";
 import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
@@ -21,6 +22,7 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible,
     setAIChatOpen,
     generateShareableLink,
+    setSettingsOpen,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
@@ -31,6 +33,7 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible: state.setProblemPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
+    setSettingsOpen: state.setSettingsOpen,
   }));
 
   const handleShare = async () => {
@@ -45,7 +48,7 @@ const PlaygroundSidebar = () => {
   };
 
   const handleSettings = () => {
-    void message.info('Settings feature coming soon!');
+    setSettingsOpen(true);
   };
 
   const handleStartTour = async () => {
@@ -150,12 +153,12 @@ const PlaygroundSidebar = () => {
     },
   ];
 
-  return (
-    <aside className="playground-sidebar">
+  return [
+    <aside key="sidebar" className="playground-sidebar">
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
+          <Tooltip key={title} title={title} placement="right">
           <div
-            key={title}
             role="button"
             aria-label={title}
             tabIndex={0}
@@ -169,30 +172,33 @@ const PlaygroundSidebar = () => {
                 {component}
               </div>
             ) : Icon ? (
-              <Icon size={24} />
+              <Icon size={20} />
             ) : null}
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
+          </Tooltip>
         ))}
       </nav>
 
       <nav className="playground-sidebar-nav-bottom">
         {navBottom.map(({ title, icon: Icon, onClick }) => (
+          <Tooltip key={title} title={title} placement="right">
           <div
-            key={title}
             role="button"
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
             className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
-            <Icon size={22} />
+            <Icon size={18} />
             <span className="playground-sidebar-nav-item-title">{title}</span>
           </div>
+          </Tooltip>
         ))}
       </nav>
-    </aside>
-  );
+    </aside>,
+    <SettingsModal key="settings-modal" />
+  ];
 };
 
 export default PlaygroundSidebar;

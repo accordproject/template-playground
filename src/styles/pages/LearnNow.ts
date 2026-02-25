@@ -3,6 +3,9 @@ import styled from "styled-components";
 export const LearnNowContainer = styled.div`
   display: flex;
   width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-color);
 `;
 
 export const SidebarContainer = styled.div`
@@ -35,4 +38,5 @@ export const ContentContainer = styled.div`
   padding: 20px;
   background-color: var(--bg-color) !important; 
   color: var(--text-color) !important;
+  overflow-y: auto;
 `;

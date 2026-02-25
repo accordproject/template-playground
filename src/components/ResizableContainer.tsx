@@ -78,6 +78,7 @@ const ResizableContainer: React.FC<ResizableContainerProps> = ({
     if (!storedAiChatWidth && hasAiChatPane) {
       localStorage.setItem('aiChatPaneWidth', aiChatWidth.toString());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -254,6 +255,7 @@ const ResizableContainer: React.FC<ResizableContainerProps> = ({
       setRightWidth(100 - leftWidth);
       localStorage.setItem('rightPaneWidth', (100 - leftWidth).toString());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasAiChatPane]);
 
   return (

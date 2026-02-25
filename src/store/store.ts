@@ -55,6 +55,16 @@ interface AppState {
   setPreviewVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
   startTour: () => void;
+  isModelCollapsed: boolean;
+  isTemplateCollapsed: boolean;
+  isDataCollapsed: boolean;
+  toggleModelCollapse: () => void;
+  toggleTemplateCollapse: () => void;
+  toggleDataCollapse: () => void;
+  showLineNumbers: boolean;
+  setShowLineNumbers: (value: boolean) => void;
+  isSettingsOpen: boolean;
+  setSettingsOpen: (value: boolean) => void;
 }
 
 export interface DecompressedData {
@@ -66,27 +76,35 @@ export interface DecompressedData {
 
 const rebuildDeBounce = debounce(rebuild, 500);
 
-async function rebuild(template: string, model: string, dataString: string) {
+async function rebuild(template: string, model: string, dataString: string): Promise<string> {
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
   const engine = new TemplateMarkInterpreter(modelManager, {});
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
     { content: template },
     modelManager,
     "contract",
     { verbose: false }
-  );
+  ) as object;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data = JSON.parse(dataString);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
   const ciceroMark = await engine.generate(templateMarkDom, data);
-  return await transform(
-    ciceroMark.toJSON(),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  const ciceroMarkJson = ciceroMark.toJSON() as unknown;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  const result = await transform(
+    ciceroMarkJson,
     "ciceromark_parsed",
     ["html"],
     {},
     { verbose: false }
-  );
+  ) as string;
+  return result;
 }
 
 const getInitialTheme = () => {
@@ -102,10 +120,52 @@ const getInitialTheme = () => {
   return { backgroundColor: '#ffffff', textColor: '#121212' };
 };
 
+/* --- Helper to safely load panel state --- */
+const getInitialPanelState = () => {
+  const defaults = {
+    isEditorsVisible: true,
+    isPreviewVisible: true,
+    isProblemPanelVisible: false,
+    isAIChatOpen: false,
+  };
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('ui-panels');
+      if (saved) return { ...defaults, ...(JSON.parse(saved) as Partial<AppState>) };
+    } catch (e) { /* ignore */ }
+  }
+  return defaults;
+};
+
+/* --- Helper to safely save panel state --- */
+const savePanelState = (state: Partial<AppState>) => {
+  if (typeof window !== 'undefined') {
+    const panels = {
+      isEditorsVisible: state.isEditorsVisible,
+      isPreviewVisible: state.isPreviewVisible,
+      isProblemPanelVisible: state.isProblemPanelVisible,
+      isAIChatOpen: state.isAIChatOpen,
+    };
+    localStorage.setItem('ui-panels', JSON.stringify(panels));
+  }
+};
+
+const getInitialLineNumbers = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('showLineNumbers');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+  }
+  return true; // Default to showing line numbers
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
       const initialTheme = getInitialTheme();
+      const initialPanels = getInitialPanelState(); // Load saved panels
+
       return {
         backgroundColor: initialTheme.backgroundColor,
         textColor: initialTheme.textColor,
@@ -118,7 +178,7 @@ const useAppStore = create<AppState>()(
       editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       agreementHtml: "",
       isAIConfigOpen: false,
-      isAIChatOpen: false,
+      isAIChatOpen: initialPanels.isAIChatOpen, 
       error: undefined,
       samples: SAMPLES,
       chatState: {
@@ -128,15 +188,31 @@ const useAppStore = create<AppState>()(
       },
       aiConfig: null,
       chatAbortController: null,
-      isEditorsVisible: true,
-      isPreviewVisible: true,
-      isProblemPanelVisible: false,
+      isEditorsVisible: initialPanels.isEditorsVisible, 
+      isPreviewVisible: initialPanels.isPreviewVisible, 
+      isProblemPanelVisible: initialPanels.isProblemPanelVisible, 
+      isModelCollapsed: false,
+      isTemplateCollapsed: false,
+      isDataCollapsed: false,
+      showLineNumbers: getInitialLineNumbers(),
+      isSettingsOpen: false,
+      toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
+      toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
+      toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
+      setShowLineNumbers: (value: boolean) => {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('showLineNumbers', String(value));
+        }
+        set({ showLineNumbers: value });
+      },
+      setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
       setEditorsVisible: (value) => {
         const state = get();
         if (!value && !state.isPreviewVisible) {
           return;
         }
         set({ isEditorsVisible: value });
+        savePanelState({ ...get(), isEditorsVisible: value }); // Save change
       },
       setPreviewVisible: (value) => {
         const state = get();
@@ -144,8 +220,12 @@ const useAppStore = create<AppState>()(
           return;
         }
         set({ isPreviewVisible: value });
+        savePanelState({ ...get(), isPreviewVisible: value }); // Save change
       },
-      setProblemPanelVisible: (value) => set({ isProblemPanelVisible: value }),
+      setProblemPanelVisible: (value) => {
+        set({ isProblemPanelVisible: value });
+        savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
+      },
       init: async () => {
         const params = new URLSearchParams(window.location.search);
         const compressedData = params.get("data");
@@ -176,19 +256,25 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
-        }
+          set(() => ({ agreementHtml: result, error: undefined }));
+        } catch (error: unknown) {
+          set(() => ({
+          error: formatError(error),
+          isProblemPanelVisible: true,
+        }));
+      }
       },
       setTemplateMarkdown: async (template: string) => {
         set(() => ({ templateMarkdown: template }));
         const { modelCto, data } = get();
         try {
           const result = await rebuildDeBounce(template, modelCto, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
+          set(() => ({ agreementHtml: result, error: undefined }));
+        } catch (error: unknown) {
+          set(() => ({
+          error: formatError(error),
+          isProblemPanelVisible: true,
+          }));
         }
       },
       setEditorValue: (value: string) => {
@@ -199,9 +285,12 @@ const useAppStore = create<AppState>()(
         const { templateMarkdown, data } = get();
         try {
           const result = await rebuildDeBounce(templateMarkdown, model, data);
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
+          set(() => ({ agreementHtml: result, error: undefined }));
+        } catch (error: unknown) {
+          set(() => ({
+          error: formatError(error),
+          isProblemPanelVisible: true,
+          }));
         }
       },
       setEditorModelCto: (value: string) => {
@@ -215,10 +304,14 @@ const useAppStore = create<AppState>()(
             get().modelCto,
             data
           );
-          set(() => ({ agreementHtml: result, error: undefined })); // Clear error on success
-        } catch (error: any) {
-          set(() => ({ error: formatError(error), isProblemPanelVisible: true }));
+          set(() => ({ agreementHtml: result, error: undefined }));
+        } catch (error: unknown) {
+          set(() => ({
+          error: formatError(error),
+          isProblemPanelVisible: true,
+        }));
         }
+
       },
       setEditorAgreementData: (value: string) => {
         set(() => ({ editorAgreementData: value }));
@@ -231,7 +324,7 @@ const useAppStore = create<AppState>()(
           data: state.data,
           agreementHtml: state.agreementHtml,
         });
-        return `${window.location.origin}?data=${compressedData}`;
+        return `${window.location.origin}/#data=${compressedData}`;
       },
       loadFromLink: async (compressedData: string) => {
         try {
@@ -264,16 +357,25 @@ const useAppStore = create<AppState>()(
             backgroundColor: isDark ? '#ffffff' : '#121212',
             textColor: isDark ? '#121212' : '#ffffff',
           };
-          
+           
           if (typeof window !== 'undefined') {
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+            const themeValue = isDark ? 'light' : 'dark';
+            localStorage.setItem('theme', themeValue);
+            try {
+              document.documentElement.setAttribute('data-theme', themeValue);
+            } catch (e) {
+              // ignore
+            }
           }
-          
+           
           return newTheme;
         });
       },
       setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
-      setAIChatOpen: (isOpen: boolean) => set(() => ({ isAIChatOpen: isOpen })),
+      setAIChatOpen: (isOpen: boolean) => {
+        set(() => ({ isAIChatOpen: isOpen }));
+        savePanelState({ ...get(), isAIChatOpen: isOpen }); // Save change
+      },
       setChatState: (state) => set({ chatState: state }),
       updateChatState: (partial) => set((state) => ({ 
         chatState: { ...state.chatState, ...partial } 
@@ -302,14 +404,15 @@ const useAppStore = create<AppState>()(
 
 export default useAppStore;
 
-function formatError(error: any): string {
+function formatError(error: unknown): string {
   console.error(error);
   if (typeof error === "string") return error;
   if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
-  if (error.code) {
-    const sub = error.errors ? formatError(error.errors) : "";
-    const msg = error.renderedMessage || "";
-    return `Error: ${error.code} ${sub} ${msg}`;
+  if (error && typeof error === "object" && "code" in error) {
+    const errorObj = error as { code?: unknown; errors?: unknown; renderedMessage?: unknown };
+    const sub = errorObj.errors ? formatError(errorObj.errors) : "";
+    const msg = String(errorObj.renderedMessage ?? "");
+    return `Error: ${String(errorObj.code ?? "")} ${sub} ${msg}`;
   }
-  return error.toString();
+  return String(error);
 }

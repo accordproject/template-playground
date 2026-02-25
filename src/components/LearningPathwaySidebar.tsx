@@ -39,7 +39,7 @@ const LearningPathwaySidebar: React.FC<SidebarProps> = ({ steps }) => {
         </HelperIcon>
         <HelperText>
           Welcome to the Learning Pathway! Use the sidebar to follow the guide.
-          Open the {" "}
+          Open the
           <Link to="/" target="_blank" rel="noopener noreferrer">
             Template Playground
           </Link>{" "}
