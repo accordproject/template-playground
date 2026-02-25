@@ -297,25 +297,6 @@ tour.addStep({
   ],
 });
 
-tour.addStep({
-  id: "dark-mode-toggle",
-  text: "Toggle between light and dark mode for a comfortable viewing experience. Switch themes to suit your preference while working on your template.",
-  attachTo: {
-    element: ".dark-mode-toggle",
-    on: "bottom",
-  },
-  buttons: [
-    {
-      text: "Skip",
-      action: () => void tour.cancel(),
-      classes: "shepherd-button-secondary",
-    },
-    {
-      text: "Next",
-      action: () => tour.next(),
-    },
-  ],
-});
 
 tour.addStep({
   id: "learn-button",
