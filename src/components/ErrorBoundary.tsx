@@ -43,6 +43,7 @@ class ErrorBoundary extends Component<Props, State> {
             We apologize for the inconvenience. An unexpected error has occurred.
           </p>
           <button
+            type="button"
             onClick={() => window.location.reload()}
             style={{
               padding: '0.75rem 1.5rem',
@@ -56,7 +57,7 @@ class ErrorBoundary extends Component<Props, State> {
           >
             Reload Page
           </button>
-          {this.state.error && (
+          {this.state.error && import.meta.env.DEV && (
             <details style={{ marginTop: '2rem', maxWidth: '800px', textAlign: 'left' }}>
               <summary style={{ cursor: 'pointer', color: '#666', fontSize: '0.9rem' }}>
                 Error details
