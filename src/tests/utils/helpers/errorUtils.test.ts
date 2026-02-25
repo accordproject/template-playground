@@ -53,6 +53,15 @@ describe("extractErrorMessage", () => {
       expect(result).toBe("invalid x-api-key");
     });
 
+    it("should extract string error from prefixed payload", () => {
+      const error = new Error(
+        'AuthenticationError: 401 {"error":"Simple error string"}'
+      );
+
+      const result = extractErrorMessage(error);
+      expect(result).toBe("Simple error string");
+    });
+
     it("should extract message from Anthropic pure JSON error", () => {
       const error = new Error(JSON.stringify({
         type: "error",

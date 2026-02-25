@@ -3,7 +3,6 @@ import AgreementData from "../editors/editorsContainer/AgreementData";
 import TemplateModel from "../editors/editorsContainer/TemplateModel";
 import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
 import useAppStore from "../store/store";
-import DOMPurify from 'dompurify';
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
@@ -15,6 +14,7 @@ import html2pdf from "html2pdf.js";
 import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
+import DOMPurify from "dompurify";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);

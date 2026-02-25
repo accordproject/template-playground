@@ -3,7 +3,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
 import FullScreenModal from "./components/FullScreenModal";
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boolean }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
