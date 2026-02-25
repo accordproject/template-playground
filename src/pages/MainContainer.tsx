@@ -64,7 +64,6 @@ const MainContainer = () => {
     isPreviewVisible,
     isProblemPanelVisible,
     isModelCollapsed,
-    isTemplateCollapsed,
     isDataCollapsed,
     toggleModelCollapse,
     toggleDataCollapse,
@@ -81,12 +80,9 @@ const MainContainer = () => {
   }));
 
   const [, setLoading] = useState(true);
-
-  // Calculate dynamic panel sizes based on collapse states
-  const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
-  const expandedCount = 3 - collapsedCount;
-  const collapsedSize = 5;
-  const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
+  
+  // tabbed editor state (default: TemplateMark active)
+  const [activeEditorTab, setActiveEditorTab] = useState<'model'|'template'|'data'>('template');
   
   // Create distinct preview background for better visual separation
   const previewBackgroundColor = backgroundColor === '#ffffff' 
@@ -96,9 +92,6 @@ const MainContainer = () => {
   const previewHeaderColor = backgroundColor === '#ffffff'
     ? '#dbeafe'  // Slightly darker blue for header in light mode
     : '#0f172a';  // Even darker shade for header in dark mode
-  
-  // Create a key that changes when collapse state changes to force panel re-layout
-  const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
   return (
     <div className="main-container" style={{ backgroundColor }}>
@@ -106,108 +99,146 @@ const MainContainer = () => {
         style={{ position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)" }}>
         {isEditorsVisible && (
           <>
-            <Panel defaultSize={62.5} minSize={30}>
+            <Panel defaultSize={65} minSize={30}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
-                <PanelGroup key={panelKey} direction="vertical" className="main-container-editors-panel-group">
-                  <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
-                    <div className="main-container-editor-section tour-concerto-model">
-                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        {/* Left side */}
-                        <div className="main-container-editor-header-left">
-                          <button
-                            className="collapse-button"
-                            onClick={toggleModelCollapse}
-                            style={{
-                              color: textColor,
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '4px',
-                              marginRight: '4px'
-                            }}
-                            title={isModelCollapsed ? "Expand" : "Collapse"}
-                          >
-                            {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
-                          </button>
-                          <span>Concerto Model</span>
-                          <SampleDropdown setLoading={setLoading} />
-                        </div>
-                      </div>
-                      {!isModelCollapsed && (
-                        <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <TemplateModel />
-                        </div>
-                      )}
-                    </div>
-                  </Panel>
-                  <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
+                {/* Tab bar for editor group */}
+                <div
+                  className={`main-container-editor-tabs ${
+                    backgroundColor === '#ffffff'
+                    ? 'main-container-editor-tabs-light'
+                    : 'main-container-editor-tabs-dark'
+                  }`}
+                >
+                  <button
+                    className={`main-container-editor-tab ${
+                      backgroundColor === '#ffffff'
+                        ? 'main-container-editor-tab-light'
+                        : 'main-container-editor-tab-dark'
+                    } ${
+                      activeEditorTab === "model"
+                        ? backgroundColor === '#ffffff'
+                          ? 'main-container-editor-tab-active-light'
+                          : 'main-container-editor-tab-active-dark'
+                        : ''
+                    }`}
+                    onClick={() => setActiveEditorTab("model")}
+                    title="Concerto Model"
+                  >
+                    Concerto Model
+                  </button>
 
-                  <Panel minSize={20}>
-                    <MarkdownEditorProvider>
-                      <div className="main-container-editor-section tour-template-mark">
-                        <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                          <span>TemplateMark</span>
-                          <TemplateMarkdownToolbar />
-                        </div>
-                        <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <TemplateMarkdown />
-                        </div>
-                      </div>
-                    </MarkdownEditorProvider>
-                  </Panel>
+                  <button
+                    className={`main-container-editor-tab ${
+                      backgroundColor === '#ffffff'
+                        ? 'main-container-editor-tab-light'
+                        : 'main-container-editor-tab-dark'
+                    } ${
+                      activeEditorTab === "template"
+                        ? backgroundColor === '#ffffff'
+                          ? 'main-container-editor-tab-active-light'
+                          : 'main-container-editor-tab-active-dark'
+                        : ''
+                    }`}                  
+                    onClick={() => setActiveEditorTab("template")}
+                    title="TemplateMark"
+                  >
+                    TemplateMark
+                  </button>
 
-                  <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
+                  <button
+                    className={`main-container-editor-tab ${
+                      backgroundColor === '#ffffff'
+                        ? 'main-container-editor-tab-light'
+                        : 'main-container-editor-tab-dark'
+                    } ${
+                      activeEditorTab === "data"
+                        ? backgroundColor === '#ffffff'
+                          ? 'main-container-editor-tab-active-light'
+                          : 'main-container-editor-tab-active-dark'
+                        : ''
+                    }`}
+                    onClick={() => setActiveEditorTab("data")}
+                    title="JSON Data"
+                  >
+                    JSON Data
+                  </button>
 
-                  <Panel minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
-                    <div className="main-container-editor-section tour-json-data">
-                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        <div className="main-container-editor-header-left">
-                          <button
-                            className="collapse-button"
-                            onClick={toggleDataCollapse}
-                            style={{
-                              color: textColor,
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '4px',
-                              marginRight: '4px'
-                            }}
-                            title={isDataCollapsed ? "Expand" : "Collapse"}
-                          >
-                            {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
-                          </button>
-                          <span>JSON Data</span>
-                        </div>
-                        <button
-                          onClick={handleJsonFormat}
-                          className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
-                          disabled={!jsonEditorRef.current || isDataCollapsed}
-                          title="Format JSON"
-                        >
-                          <MdFormatAlignLeft size={16} />
+                  <div className="flex-shrink-0 ml-auto">
+                    <SampleDropdown setLoading={setLoading} />
+                  </div>
+                </div>
+                <div className="main-container-editors-panel-group">
+                  {activeEditorTab === "model" && (
+                  <div className="main-container-editor-section tour-concerto-model">
+                    <div className={`main-container-editor-header ${backgroundColor==='#ffffff' ? 'main-container-editor-header-light'
+                      : 'main-container-editor-header-dark' }`}>
+                      <div className="main-container-editor-header-left">
+                        <button className="collapse-button" onClick={toggleModelCollapse} style={{ color: textColor,
+                          background: 'transparent' , border: 'none' , cursor: 'pointer' , display: 'flex' , alignItems: 'center' ,
+                          padding: '4px' , marginRight: '4px' }}>
+                          {isModelCollapsed ?
+                          <MdChevronRight size={20} /> :
+                          <MdExpandMore size={20} />}
                         </button>
                       </div>
-                      {!isDataCollapsed && (
-                        <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <AgreementData editorRef={jsonEditorRef} />
-                        </div>
-                      )}
                     </div>
-                  </Panel>
-                  {isProblemPanelVisible && (
-                    <>
-                      <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
-                      <Panel defaultSize={25} minSize={15}>
-                        <ProblemPanel />
-                      </Panel>
-                    </>
+
+                    {!isModelCollapsed && (
+                    <div className="main-container-editor-content" style={{ backgroundColor }}>
+                      <TemplateModel />
+                    </div>
+                    )}
+                  </div>
                   )}
-                </PanelGroup>
+
+                  {activeEditorTab === "template" && (
+                  <MarkdownEditorProvider>
+                    <div className="main-container-editor-section tour-template-mark">
+                      <div className={`main-container-editor-header ${backgroundColor==='#ffffff' ? 'main-container-editor-header-light'
+                        : 'main-container-editor-header-dark' }`}>
+                        <TemplateMarkdownToolbar />
+                      </div>
+
+                      <div className="main-container-editor-content" style={{ backgroundColor }}>
+                        <TemplateMarkdown />
+                      </div>
+                    </div>
+                  </MarkdownEditorProvider>
+                  )}
+
+                  {activeEditorTab === "data" && (
+                  <div className="main-container-editor-section tour-json-data">
+                    <div className={`main-container-editor-header ${backgroundColor==='#ffffff' ? 'main-container-editor-header-light'
+                      : 'main-container-editor-header-dark' }`}>
+                      <div className="main-container-editor-header-left">
+                        <button className="collapse-button" onClick={toggleDataCollapse} style={{ color: textColor,
+                          background: 'transparent' , border: 'none' , cursor: 'pointer' , display: 'flex' , alignItems: 'center' ,
+                          padding: '4px' , marginRight: '4px' }}>
+                          {isDataCollapsed ?
+                          <MdChevronRight size={20} /> :
+                          <MdExpandMore size={20} />}
+                        </button>
+                      </div>
+
+                      <button onClick={handleJsonFormat} className={`px-1 pt-1 rounded ${ backgroundColor==='#ffffff'
+                        ? 'bg-white border border-gray-300 hover:bg-gray-200'
+                        : 'bg-gray-600 border border-gray-500 hover:bg-gray-500 text-white' }`} disabled={!jsonEditorRef.current ||
+                        isDataCollapsed}>
+                        <MdFormatAlignLeft size={16} />
+                      </button>
+                    </div>
+
+                    {!isDataCollapsed && (
+                    <div className="main-container-editor-content" style={{ backgroundColor }}>
+                      <AgreementData editorRef={jsonEditorRef} />
+                    </div>
+                    )}
+                  </div>
+                  )}
+
+                  {isProblemPanelVisible &&
+                  <ProblemPanel />}
+                </div>                
               </div>
             </Panel>
             <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
@@ -215,7 +246,7 @@ const MainContainer = () => {
         )}
         {isPreviewVisible && (
           <>
-            <Panel defaultSize={37.5} minSize={20}>
+            <Panel defaultSize={35} minSize={20}>
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
