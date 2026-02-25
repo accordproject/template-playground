@@ -21,8 +21,8 @@ const LearningPathwaySidebar: React.FC<SidebarProps> = ({ steps }) => {
     <SidebarContainer>
       <SidebarTitle>Learning Pathway</SidebarTitle>
       <SidebarList>
-        {steps.map((step, index) => (
-          <SidebarListItem key={index}>
+        {steps.map((step) => (
+          <SidebarListItem key={step.link}>
             <SidebarLink
               to={step.link}
               className={({ isActive }) => (isActive ? "active" : "")}
