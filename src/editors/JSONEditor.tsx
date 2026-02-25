@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useCallback } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
 import { useCodeSelection } from "../hooks/useCodeSelection";
+import CodeSelectionMenu from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
 const MonacoEditor = lazy(() =>
@@ -17,7 +18,7 @@ export default function JSONEditor({
   onChange?: (value: string | undefined) => void;
   editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }) {
-  const { handleSelection, MenuComponent } = useCodeSelection("json");
+  const { handleSelection, closeMenu, showMenu, selectedText, menuPosition, enableCodeSelectionMenu } = useCodeSelection();
   
   const { backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
@@ -91,7 +92,14 @@ export default function JSONEditor({
           theme={themeName}
         />
       </Suspense>
-      {MenuComponent}
+      {enableCodeSelectionMenu && showMenu && selectedText && menuPosition && (
+        <CodeSelectionMenu
+          selectedText={selectedText}
+          position={menuPosition}
+          onClose={closeMenu}
+          editorType="json"
+        />
+      )}
     </div>
   );
 }

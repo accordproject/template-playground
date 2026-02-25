@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
 import useAppStore from "../store/store";
 import { useMonaco } from "@monaco-editor/react";
 import { useCodeSelection } from "../hooks/useCodeSelection";
+import CodeSelectionMenu from "../components/CodeSelectionMenu";
 import type { editor } from "monaco-editor";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
@@ -19,7 +20,7 @@ export default function MarkdownEditor({
   onChange?: (value: string | undefined) => void;
   onEditorReady?: (editor: editor.IStandaloneCodeEditor) => void;
 }) {
-  const { handleSelection, MenuComponent } = useCodeSelection("markdown");
+  const { handleSelection, closeMenu, showMenu, selectedText, menuPosition, enableCodeSelectionMenu } = useCodeSelection();
   const { backgroundColor, textColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     textColor: state.textColor,
@@ -114,7 +115,14 @@ export default function MarkdownEditor({
           theme={themeName}
         />
       </Suspense>
-      {MenuComponent}
+      {enableCodeSelectionMenu && showMenu && selectedText && menuPosition && (
+        <CodeSelectionMenu
+          selectedText={selectedText}
+          position={menuPosition}
+          onClose={closeMenu}
+          editorType="markdown"
+        />
+      )}
     </div>
   );
 }

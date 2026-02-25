@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
 import { useCodeSelection } from "../hooks/useCodeSelection";
+import CodeSelectionMenu from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
 const MonacoEditor = lazy(() =>
@@ -119,7 +120,7 @@ export default function ConcertoEditor({
   value,
   onChange,
 }: ConcertoEditorProps) {
-  const { handleSelection, MenuComponent } = useCodeSelection("concerto");
+  const { handleSelection, closeMenu, showMenu, selectedText, menuPosition, enableCodeSelectionMenu } = useCodeSelection();
   const monacoInstance = useMonaco();
   const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     error: state.error,
@@ -215,7 +216,14 @@ export default function ConcertoEditor({
           theme={themeName}
         />
       </Suspense>
-      {MenuComponent}
+      {enableCodeSelectionMenu && showMenu && selectedText && menuPosition && (
+        <CodeSelectionMenu
+          selectedText={selectedText}
+          position={menuPosition}
+          onClose={closeMenu}
+          editorType="concerto"
+        />
+      )}
     </div>
   );
 }
