@@ -10,6 +10,8 @@ import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState } from '../types/components/AIAssistant.types';
+import type { CustomSample, CreateSampleInput } from '../types/customSample.types';
+import * as sampleStorage from '../utils/sampleStorage/sampleStorage';
 
 interface AppState {
   templateMarkdown: string;
@@ -61,6 +63,14 @@ interface AppState {
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
+  // Custom Sample Library
+  customSamples: CustomSample[];
+  isSaveModalOpen: boolean;
+  setSaveModalOpen: (isOpen: boolean) => void;
+  refreshCustomSamples: () => void;
+  loadCustomSample: (id: string) => Promise<void>;
+  saveCurrentAsSample: (input: CreateSampleInput) => Promise<CustomSample>;
+  deleteCustomSample: (id: string) => void;
   showLineNumbers: boolean;
   setShowLineNumbers: (value: boolean) => void;
   isSettingsOpen: boolean;
@@ -395,6 +405,62 @@ const useAppStore = create<AppState>()(
       },
       startTour: () => {
         console.log('Starting tour...');
+      },
+      // Custom Sample Library Implementation
+      customSamples: sampleStorage.getAllSamples(),
+      isSaveModalOpen: false,
+      setSaveModalOpen: (isOpen: boolean) => set({ isSaveModalOpen: isOpen }),
+      refreshCustomSamples: () => {
+        set({ customSamples: sampleStorage.getAllSamples() });
+      },
+      loadCustomSample: async (id: string) => {
+        const sample = sampleStorage.getSampleById(id);
+        if (!sample) {
+          set(() => ({
+            error: `Custom sample with id ${id} not found`,
+            isProblemPanelVisible: true,
+          }));
+          return;
+        }
+
+        set(() => ({
+          sampleName: sample.name,
+          agreementHtml: undefined,
+          error: undefined,
+          templateMarkdown: sample.templateMarkdown,
+          editorValue: sample.templateMarkdown,
+          modelCto: sample.modelCto,
+          editorModelCto: sample.modelCto,
+          data: sample.data,
+          editorAgreementData: sample.data,
+        }));
+        await get().rebuild();
+      },
+      saveCurrentAsSample: async (input: CreateSampleInput) => {
+        try {
+          const sample = sampleStorage.createSample(input);
+          get().refreshCustomSamples();
+          return sample;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to save sample';
+          set(() => ({
+            error: errorMessage,
+            isProblemPanelVisible: true,
+          }));
+          throw error;
+        }
+      },
+      deleteCustomSample: (id: string) => {
+        try {
+          sampleStorage.deleteSample(id);
+          get().refreshCustomSamples();
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to delete sample';
+          set(() => ({
+            error: errorMessage,
+            isProblemPanelVisible: true,
+          }));
+        }
       },
       }
     })

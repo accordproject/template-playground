@@ -12,6 +12,7 @@ import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
 import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
+import SaveSampleModal from "./components/SaveSampleModal";
 
 const { Content } = Layout;
 
@@ -39,7 +40,7 @@ const App = () => {
     const initializeApp = async () => {
       try {
         setLoading(true);
-        // Prioritize hash for new links, fallback to searchParams for old links
+        // Proritize hash for new links, fallback to searchParams for old links
         let compressedData: string | null = null;
         if (window.location.hash.startsWith("#data=")) {
           compressedData = window.location.hash.substring(6);
@@ -99,7 +100,7 @@ const App = () => {
     }
   }, [searchParams]);
 
-  // Set data-theme attribute on initial load and when theme changes
+  // Set "data-theme attribute on initial load and when theme changes
   useEffect(() => {
     const theme = backgroundColor === "#121212" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", theme);
@@ -140,6 +141,7 @@ const App = () => {
                     onClose={() => setAIConfigOpen(false)}
                     onSave={handleConfigSave}
                   />
+                  <SaveSampleModal />
                 </>
               }
             />
@@ -163,5 +165,5 @@ const Spinner = () => (
     />
   </div>
 );
- 
+
 export default App;
