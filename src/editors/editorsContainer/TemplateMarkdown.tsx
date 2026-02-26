@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import { editor as MonacoEditorNS } from "monaco-editor";
 import MarkdownEditor from "../MarkdownEditor";
+import DiffViewer from "../DiffEditor";
 import useAppStore from "../../store/store";
 import useUndoRedo from "../../components/useUndoRedo";
 import { updateEditorActivity } from "../../ai-assistant/activityTracker";
@@ -42,12 +43,29 @@ function TemplateMarkdown() {
     setCommands(commands);
   };
 
+  const { isDiffViewEnabled, originalTemplate, backgroundColor } = useAppStore((state) => ({
+    isDiffViewEnabled: state.isDiffViewEnabled,
+    originalTemplate: state.originalTemplate,
+    backgroundColor: state.backgroundColor,
+  }));
+
   return (
-    <MarkdownEditor
-      value={value}
-      onChange={handleChange}
-      onEditorReady={handleEditorReady}
-    />
+    <>
+      {isDiffViewEnabled ? (
+        <DiffViewer
+          original={originalTemplate}
+          modified={value}
+          language="markdown"
+          theme={backgroundColor ? "darkTheme" : "lightTheme"}
+        />
+      ) : (
+        <MarkdownEditor
+          value={value}
+          onChange={handleChange}
+          onEditorReady={handleEditorReady}
+        />
+      )}
+    </>
   );
 }
 
