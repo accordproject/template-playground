@@ -18,11 +18,11 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@accordproject/concerto-core": "^3.15.0",
-    "@accordproject/markdown-common": "^0.16.23",
-    "@accordproject/markdown-template": "^0.16.23",
-    "@accordproject/markdown-transform": "^0.16.21",
-    "@accordproject/template-engine": "^2.6.5",
+    "@accordproject/concerto-core": "^3.25.7",
+    "@accordproject/markdown-common": "^0.17.2",
+    "@accordproject/markdown-template": "^0.17.2",
+    "@accordproject/markdown-transform": "^0.17.2",
+    "@accordproject/template-engine": "^2.7.1",
     "@ant-design/icons": "^5.3.7",
     "@anthropic-ai/sdk": "^0.56.0",
     "@google/genai": "^1.8.0",
