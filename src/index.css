@@ -8,7 +8,7 @@ body {
   font-family: "Rubik", Helvetica, Arial, sans-serif;
   height: 100vh;
   margin: 0;
-  padding: 0;
+  padding: 10px;
 }
 
 html[data-theme="dark"] {
