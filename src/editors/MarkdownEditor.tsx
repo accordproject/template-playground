@@ -1,5 +1,6 @@
 import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { useMonaco } from "@monaco-editor/react";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import type { editor } from "monaco-editor";
@@ -25,7 +26,7 @@ export default function MarkdownEditor({
     textColor: state.textColor,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
-  }));
+  }), shallow);
   const monaco = useMonaco();
 
   const themeName = useMemo(

@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
+import { shallow } from 'zustand/shallow';
 
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const { backgroundColor } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
-  }));
+  }), shallow);
 
   const theme = useMemo(() => {
     const isDarkMode = backgroundColor !== '#ffffff';

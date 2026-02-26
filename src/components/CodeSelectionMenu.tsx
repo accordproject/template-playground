@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { sendMessage } from '../ai-assistant/chatRelay';
 import { CodeSelectionMenuProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
+import { shallow } from 'zustand/shallow';
 import ReactMarkdown from "react-markdown";
 import * as monaco from 'monaco-editor';
 
@@ -48,7 +49,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
       editorTemplateMark: state.editorValue,
       editorModelCto: state.editorModelCto,
       editorAgreementData: state.editorAgreementData,
-  }));
+  }), shallow);
 
   const handleExplain = async () => {
     if (!aiConfig) {
