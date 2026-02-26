@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Modal, Input, Button, message, Tooltip, Space } from "antd";
-import { CopyOutlined, CheckOutlined, TwitterOutlined, LinkedinOutlined, MailOutlined } from "@ant-design/icons";
+import { Modal, Input, Button, message } from "antd";
+import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
 import useAppStore from "../store/store";
 
 const ShareModal: React.FC = () => {
@@ -8,14 +8,12 @@ const ShareModal: React.FC = () => {
         isShareModalOpen,
         setShareModalOpen,
         generateShareableLink,
-        backgroundColor,
-        textColor
+        backgroundColor
     } = useAppStore((state) => ({
         isShareModalOpen: state.isShareModalOpen,
         setShareModalOpen: state.setShareModalOpen,
         generateShareableLink: state.generateShareableLink,
         backgroundColor: state.backgroundColor,
-        textColor: state.textColor,
     }));
 
     const isDarkMode = backgroundColor === '#121212';
@@ -47,21 +45,6 @@ const ShareModal: React.FC = () => {
         }
     };
 
-    const shareToTwitter = () => {
-        const text = encodeURIComponent("Check out this Accord Project template!");
-        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareLink)}&text=${text}`, "_blank");
-    };
-
-    const shareToLinkedIn = () => {
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareLink)}`, "_blank");
-    };
-
-    const shareViaEmail = () => {
-        const subject = encodeURIComponent("Accord Project Template");
-        const body = encodeURIComponent(`Check out this template I built using the Accord Project Template Playground:\n\n${shareLink}`);
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    };
-
     return (
         <Modal
             title="Share Template"
@@ -70,8 +53,7 @@ const ShareModal: React.FC = () => {
             afterOpenChange={(open) => {
                 if (open) handleOpen();
             }}
-            className={isDarkMode ? 'dark-modal' : ''}
-            footer={null} // We manage our own footer/layout to match SettingsModal
+            footer={null}
             width="90%"
             style={{ maxWidth: 480 }}
             centered
@@ -101,49 +83,6 @@ const ShareModal: React.FC = () => {
                     >
                         {hasCopied ? "Copied!" : "Copy"}
                     </Button>
-                </div>
-
-                <hr className={isDarkMode ? 'border-gray-600' : 'border-gray-200'} />
-
-                {/* Social Share */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
-                            Share Externally
-                        </h4>
-                        <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Post your template link directly to your social platforms
-                        </p>
-                    </div>
-                    <div className="flex-shrink-0">
-                        <Space size="middle">
-                            <Tooltip title="Share on Twitter/X">
-                                <Button
-                                    shape="circle"
-                                    icon={<TwitterOutlined />}
-                                    onClick={shareToTwitter}
-                                    style={{ color: '#1DA1F2', borderColor: '#1DA1F2', background: 'transparent' }}
-                                />
-                            </Tooltip>
-                            <Tooltip title="Share on LinkedIn">
-                                <Button
-                                    shape="circle"
-                                    icon={<LinkedinOutlined />}
-                                    onClick={shareToLinkedIn}
-                                    style={{ color: '#0A66C2', borderColor: '#0A66C2', background: 'transparent' }}
-                                />
-                            </Tooltip>
-                            <Tooltip title="Share via Email">
-                                <Button
-                                    shape="circle"
-                                    icon={<MailOutlined />}
-                                    onClick={shareViaEmail}
-                                    style={{ background: 'transparent' }}
-                                    className={isDarkMode ? 'text-gray-300 border-gray-500' : 'text-gray-600'}
-                                />
-                            </Tooltip>
-                        </Space>
-                    </div>
                 </div>
             </div>
         </Modal>
