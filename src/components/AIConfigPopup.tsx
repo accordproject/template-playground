@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
+import { storeApiKey, retrieveApiKey, removeApiKey } from '../utils/keyVault';
 
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const { backgroundColor } = useAppStore((state) => ({
@@ -58,32 +59,35 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
 
   useEffect(() => {
     if (isOpen) {
-      const savedProvider = localStorage.getItem('aiProvider');
-      const savedModel = localStorage.getItem('aiModel');
-      const savedApiKey = localStorage.getItem('aiApiKey');
-      const savedCustomEndpoint = localStorage.getItem('aiCustomEndpoint');
-      const savedMaxTokens = localStorage.getItem('aiResMaxTokens');
-      
-      const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
-      const savedEnableCodeSelection = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
-      const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
-      
-      if (savedProvider) setProvider(savedProvider);
-      if (savedModel) setModel(savedModel);
-      if (savedApiKey) setApiKey(savedApiKey);
-      if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
-      if (savedMaxTokens) setMaxTokens(savedMaxTokens);
-      
-      setShowFullPrompt(savedShowFullPrompt);
-      setEnableCodeSelectionMenu(savedEnableCodeSelection);
-      setEnableInlineSuggestions(savedEnableInlineSuggestions);
+      const loadConfig = async () => {
+        const savedProvider = localStorage.getItem('aiProvider');
+        const savedModel = localStorage.getItem('aiModel');
+        const savedApiKey = await retrieveApiKey();
+        const savedCustomEndpoint = localStorage.getItem('aiCustomEndpoint');
+        const savedMaxTokens = localStorage.getItem('aiResMaxTokens');
+        
+        const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
+        const savedEnableCodeSelection = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
+        const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
+        
+        if (savedProvider) setProvider(savedProvider);
+        if (savedModel) setModel(savedModel);
+        if (savedApiKey) setApiKey(savedApiKey);
+        if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
+        if (savedMaxTokens) setMaxTokens(savedMaxTokens);
+        
+        setShowFullPrompt(savedShowFullPrompt);
+        setEnableCodeSelectionMenu(savedEnableCodeSelection);
+        setEnableInlineSuggestions(savedEnableInlineSuggestions);
+      };
+      void loadConfig();
     }
   }, [isOpen]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     localStorage.setItem('aiProvider', provider);
     localStorage.setItem('aiModel', model);
-    localStorage.setItem('aiApiKey', apiKey);
+    await storeApiKey(apiKey);
     
     if (provider === 'openai-compatible') {
       localStorage.setItem('aiCustomEndpoint', customEndpoint);
@@ -114,7 +118,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       // Clear all AI-related localStorage items
       localStorage.removeItem('aiProvider');
       localStorage.removeItem('aiModel');
-      localStorage.removeItem('aiApiKey');
+      removeApiKey();
       localStorage.removeItem('aiCustomEndpoint');
       localStorage.removeItem('aiResMaxTokens');
       localStorage.removeItem('aiShowFullPrompt');
@@ -246,6 +250,19 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
               placeholder="Enter API key"
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
             />
+            <div className={`mt-2 p-2 rounded text-xs flex items-start gap-1.5 ${
+              backgroundColor !== '#ffffff'
+                ? 'bg-yellow-900 bg-opacity-40 border border-yellow-700 text-yellow-200'
+                : 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+            }`}>
+              <span className="flex-shrink-0">⚠️</span>
+              <span>
+                <strong>Security Notice:</strong> Your API key is stored encrypted in your
+                browser's local storage and sent directly to the AI provider from your browser.
+                Use a <strong>restricted API key with spending limits</strong>.
+                Do not use this on shared or public computers.
+              </span>
+            </div>
           </div>
 
           <div className={`border rounded-lg ${theme.advancedContainer}`}>
@@ -345,7 +362,7 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
           </div>
 
            <button
-            onClick={handleSave}
+            onClick={() => void handleSave()}
             disabled={!provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
             className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${
               !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)

@@ -4,13 +4,14 @@ import { prepareSystemPrompt } from "./prompts";
 import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
 import { extractErrorMessage } from '../utils/helpers/errorUtils';
+import { retrieveApiKey } from '../utils/keyVault';
 
-export const loadConfigFromLocalStorage = () => {
+export const loadConfigFromLocalStorage = async () => {
   const setAIConfig = useAppStore.getState().setAIConfig;
   
   const savedProvider = localStorage.getItem('aiProvider');
   const savedModel = localStorage.getItem('aiModel');
-  const savedApiKey = localStorage.getItem('aiApiKey');
+  const savedApiKey = await retrieveApiKey();
   const savedCustomEndpoint = localStorage.getItem('aiCustomEndpoint');
   const savedMaxTokens = localStorage.getItem('aiResMaxTokens');
   
@@ -299,4 +300,4 @@ export const sendMessage = async (
   }
 };
 
-loadConfigFromLocalStorage();
+void loadConfigFromLocalStorage();
