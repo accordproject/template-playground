@@ -5,7 +5,6 @@ import { useCodeSelection } from "../components/CodeSelectionMenu";
 import type { editor } from "monaco-editor";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
-
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
 );
@@ -20,65 +19,87 @@ export default function MarkdownEditor({
   onEditorReady?: (editor: editor.IStandaloneCodeEditor) => void;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
-  const { backgroundColor, textColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
+
+  const {
+    backgroundColor,
+    textColor,
+    aiConfig,
+    showLineNumbers,
+    editorSettings,
+  } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     textColor: state.textColor,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
+    editorSettings: state.editorSettings,
   }));
+
   const monaco = useMonaco();
 
   const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
+    () => (backgroundColor === "#121212" ? "darkTheme" : "lightTheme"),
     [backgroundColor]
   );
 
   useEffect(() => {
-    if (monaco) {
-      const defineTheme = (name: string, base: "vs" | "vs-dark") => {
-        monaco.editor.defineTheme(name, {
-          base,
-          inherit: true,
-          rules: [],
-          colors: {
-            "editor.background": backgroundColor,
-            "editor.foreground": textColor,
-            "editor.lineHighlightBorder": "#EDE8DC",
-            "editorGhostText.foreground": "#9c9a9a"
-          },
-        });
-      };
+    if (!monaco) return;
 
-      defineTheme("lightTheme", "vs");
-      defineTheme("darkTheme", "vs-dark");
+    const defineTheme = (name: string, base: "vs" | "vs-dark") => {
+      monaco.editor.defineTheme(name, {
+        base,
+        inherit: true,
+        rules: [],
+        colors: {
+          "editor.background": backgroundColor,
+          "editor.foreground": textColor,
+          "editor.lineHighlightBorder": "#EDE8DC",
+          "editorGhostText.foreground": "#9c9a9a",
+        },
+      });
+    };
 
-      monaco.editor.setTheme(themeName);
-    }
+    defineTheme("lightTheme", "vs");
+    defineTheme("darkTheme", "vs-dark");
+
+    monaco.editor.setTheme(themeName);
   }, [monaco, backgroundColor, textColor, themeName]);
 
-  const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
-    minimap: { enabled: false },
-    wordWrap: "on" as const,
-    automaticLayout: true,
-    scrollBeyondLastLine: false,
-    lineNumbers: showLineNumbers ? 'on' : 'off',
-    inlineSuggest: {
-      enabled: aiConfig?.enableInlineSuggestions !== false,
-      mode: "prefix",
-      suppressSuggestions: false,
-      fontFamily: "inherit",
-      keepOnBlur: true,
-    },
-    suggest: {
-      preview: true,
-      showInlineDetails: true,
-    },
-    quickSuggestions: false,
-    suggestOnTriggerCharacters: false,
-    acceptSuggestionOnCommitCharacter: false,
-    acceptSuggestionOnEnter: "off",
-    tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
+  const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(
+    () => ({
+      minimap: { enabled: false },
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
+
+      // 🔑 NEW — editor settings
+      fontSize: editorSettings.fontSize,
+      wordWrap: editorSettings.wordWrap,
+
+      lineNumbers: showLineNumbers ? "on" : "off",
+
+      inlineSuggest: {
+        enabled: aiConfig?.enableInlineSuggestions !== false,
+        mode: "prefix",
+        suppressSuggestions: false,
+        fontFamily: "inherit",
+        keepOnBlur: true,
+      },
+      suggest: {
+        preview: true,
+        showInlineDetails: true,
+      },
+      quickSuggestions: false,
+      suggestOnTriggerCharacters: false,
+      acceptSuggestionOnCommitCharacter: false,
+      acceptSuggestionOnEnter: "off",
+      tabCompletion: "off",
+    }),
+    [
+      aiConfig?.enableInlineSuggestions,
+      showLineNumbers,
+      editorSettings.fontSize,
+      editorSettings.wordWrap,
+    ]
+  );
 
   const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
     editorInstance.onDidChangeCursorSelection(() => {
@@ -86,17 +107,15 @@ export default function MarkdownEditor({
     });
 
     if (monaco) {
-      registerAutocompletion('markdown', monaco);
+      registerAutocompletion("markdown", monaco);
     }
 
-    if (onEditorReady) {
-      onEditorReady(editorInstance);
-    }
+    onEditorReady?.(editorInstance);
   };
 
   const handleChange = useCallback(
     (val: string | undefined) => {
-      if (onChange) onChange(val);
+      onChange?.(val);
     },
     [onChange]
   );

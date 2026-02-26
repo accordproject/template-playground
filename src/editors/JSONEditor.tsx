@@ -18,53 +18,72 @@ export default function JSONEditor({
   editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("json");
-  
-  const { backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
+
+  const {
+    backgroundColor,
+    aiConfig,
+    showLineNumbers,
+    editorSettings,
+  } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
+    editorSettings: state.editorSettings,
   }));
 
   const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
+    () => (backgroundColor === "#121212" ? "darkTheme" : "lightTheme"),
     [backgroundColor]
   );
 
-  const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
-    minimap: { enabled: false },
-    wordWrap: "on",
-    automaticLayout: true,
-    scrollBeyondLastLine: false,
-    lineNumbers: showLineNumbers ? 'on' : 'off',
-    inlineSuggest: {
-      enabled: aiConfig?.enableInlineSuggestions !== false,
-      mode: "prefix",
-      suppressSuggestions: false,
-      fontFamily: "inherit",
-      keepOnBlur: true,
-    },
-    suggest: {
-      preview: true,
-      showInlineDetails: true,
-    },
-    quickSuggestions: false,
-    suggestOnTriggerCharacters: false,
-    acceptSuggestionOnCommitCharacter: false,
-    acceptSuggestionOnEnter: "off",
-    tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
+  const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(
+    () => ({
+      minimap: { enabled: false },
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
 
+      // 🔑 NEW — editor settings
+      fontSize: editorSettings.fontSize,
+      wordWrap: editorSettings.wordWrap,
+
+      lineNumbers: showLineNumbers ? "on" : "off",
+
+      inlineSuggest: {
+        enabled: aiConfig?.enableInlineSuggestions !== false,
+        mode: "prefix",
+        suppressSuggestions: false,
+        fontFamily: "inherit",
+        keepOnBlur: true,
+      },
+      suggest: {
+        preview: true,
+        showInlineDetails: true,
+      },
+      quickSuggestions: false,
+      suggestOnTriggerCharacters: false,
+      acceptSuggestionOnCommitCharacter: false,
+      acceptSuggestionOnEnter: "off",
+      tabCompletion: "off",
+    }),
+    [
+      aiConfig?.enableInlineSuggestions,
+      showLineNumbers,
+      editorSettings.fontSize,
+      editorSettings.wordWrap,
+    ]
+  );
 
   const handleEditorWillMount = (monacoInstance: typeof monaco) => {
-    if (monacoInstance) {
-      registerAutocompletion('json', monacoInstance);
-    }
+    registerAutocompletion("json", monacoInstance);
   };
 
-  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+  const handleEditorDidMount = (
+    editor: monaco.editor.IStandaloneCodeEditor
+  ) => {
     if (editorRef) {
       editorRef.current = editor;
     }
+
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
@@ -72,7 +91,7 @@ export default function JSONEditor({
 
   const handleChange = useCallback(
     (val: string | undefined) => {
-      if (onChange) onChange(val);
+      onChange?.(val);
     },
     [onChange]
   );

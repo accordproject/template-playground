@@ -24,7 +24,6 @@ const concertoKeywords = [
   "enum",
   "scalar",
   "extends",
-  "default",
   "participant",
   "asset",
   "o",
@@ -60,22 +59,21 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
       { open: "{", close: "}" },
       { open: "[", close: "]" },
       { open: "(", close: ")" },
-      { open: "\"", close: "\"" },
+      { open: `"`, close: `"` },
     ],
     surroundingPairs: [
       { open: "{", close: "}" },
       { open: "[", close: "]" },
       { open: "(", close: ")" },
-      { open: "\"", close: "\"" },
+      { open: `"`, close: `"` },
     ],
   });
 
   monacoInstance.languages.setMonarchTokensProvider("concerto", {
     keywords: concertoKeywords,
     typeKeywords: concertoTypes,
-    operators: ["=", "{", "}", "@", '"'],
+    operators: ["=", "{", "}", "@", `"`],
     symbols: /[=}{@"]+/,
-    escapes: /\\(?:[btnfru"'\\]|\\u[0-9A-Fa-f]{4})/,
     tokenizer: {
       root: [
         { include: "@whitespace" },
@@ -89,12 +87,11 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
             },
           },
         ],
-        [/"([^"\\]|\\.)*$/, "string.invalid"], // non-terminated string
+        [/"([^"\\]|\\.)*$/, "string.invalid"],
         [/"/, "string", "@string"],
       ],
       string: [
         [/[^\\"]+/, "string"],
-        [/@escapes/, "string.escape"],
         [/\\./, "string.escape.invalid"],
         [/"/, "string", "@pop"],
       ],
@@ -105,9 +102,7 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
     },
   });
 
-  if (monacoInstance) {
-    registerAutocompletion('concerto', monacoInstance);
-  }
+  registerAutocompletion("concerto", monacoInstance);
 };
 
 interface ConcertoEditorProps {
@@ -115,53 +110,77 @@ interface ConcertoEditorProps {
   onChange?: (value: string | undefined) => void;
 }
 
-export default function ConcertoEditor({
-  value,
-  onChange,
-}: ConcertoEditorProps) {
+export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
-  const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
+
+  const {
+    error,
+    backgroundColor,
+    aiConfig,
+    showLineNumbers,
+    editorSettings,
+  } = useAppStore((state) => ({
     error: state.error,
     backgroundColor: state.backgroundColor,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
+    editorSettings: state.editorSettings,
   }));
+
   const ctoErr = error?.startsWith("c:") ? error : undefined;
 
   const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
+    () => (backgroundColor === "#121212" ? "darkTheme" : "lightTheme"),
     [backgroundColor]
   );
 
-  const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
-    minimap: { enabled: false },
-    wordWrap: "on",
-    automaticLayout: true,
-    scrollBeyondLastLine: false,
-    lineNumbers: showLineNumbers ? 'on' : 'off',
-    autoClosingBrackets: "languageDefined",
-    autoSurround: "languageDefined",
-    bracketPairColorization: { enabled: true },
-    inlineSuggest: {
-      enabled: aiConfig?.enableInlineSuggestions !== false,
-      mode: "prefix",
-      suppressSuggestions: false,
-      fontFamily: "inherit",
-      keepOnBlur: true,
-    },
-    suggest: {
-      preview: true,
-      showInlineDetails: true,
-    },
-    quickSuggestions: false,
-    suggestOnTriggerCharacters: false,
-    acceptSuggestionOnCommitCharacter: false,
-    acceptSuggestionOnEnter: "off",
-    tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
+  const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(
+    () => ({
+      minimap: { enabled: false },
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
 
-  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+      // 🔑 NEW — editor settings
+      fontSize: editorSettings.fontSize,
+      wordWrap: editorSettings.wordWrap,
+
+      lineNumbers: showLineNumbers ? "on" : "off",
+
+      autoClosingBrackets: "languageDefined",
+      autoSurround: "languageDefined",
+      bracketPairColorization: { enabled: true },
+
+      inlineSuggest: {
+        enabled: aiConfig?.enableInlineSuggestions !== false,
+        mode: "prefix",
+        suppressSuggestions: false,
+        fontFamily: "inherit",
+        keepOnBlur: true,
+      },
+
+      suggest: {
+        preview: true,
+        showInlineDetails: true,
+      },
+
+      quickSuggestions: false,
+      suggestOnTriggerCharacters: false,
+      acceptSuggestionOnCommitCharacter: false,
+      acceptSuggestionOnEnter: "off",
+      tabCompletion: "off",
+    }),
+    [
+      aiConfig?.enableInlineSuggestions,
+      showLineNumbers,
+      editorSettings.fontSize,
+      editorSettings.wordWrap,
+    ]
+  );
+
+  const handleEditorDidMount = (
+    editor: monaco.editor.IStandaloneCodeEditor
+  ) => {
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
@@ -169,7 +188,7 @@ export default function ConcertoEditor({
 
   const handleChange = useCallback(
     (val: string | undefined) => {
-      if (onChange) onChange(val);
+      onChange?.(val);
     },
     [onChange]
   );
@@ -183,8 +202,9 @@ export default function ConcertoEditor({
     if (ctoErr) {
       const match = ctoErr.match(/Line (\d+) column (\d+)/);
       if (match) {
-        const lineNumber = parseInt(match[1], 10);
-        const columnNumber = parseInt(match[2], 10);
+        const lineNumber = Number(match[1]);
+        const columnNumber = Number(match[2]);
+
         monacoInstance.editor.setModelMarkers(model, "customMarker", [
           {
             startLineNumber: lineNumber,
