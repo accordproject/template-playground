@@ -18,7 +18,7 @@ export default function JSONEditor({
   editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("json");
-  
+
   const { backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     aiConfig: state.aiConfig,
@@ -65,6 +65,9 @@ export default function JSONEditor({
     if (editorRef) {
       editorRef.current = editor;
     }
+    // Register editor reference in store for snippet insertion
+    useAppStore.getState().setJsonEditorRef(editor);
+
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });

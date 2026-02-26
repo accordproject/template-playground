@@ -6,6 +6,7 @@ import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
+import SnippetLibraryPanel from "../components/SnippetLibraryPanel";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
@@ -19,7 +20,7 @@ import DOMPurify from "dompurify";
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
-  const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const localJsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -53,8 +54,8 @@ const MainContainer = () => {
   }
 
   const handleJsonFormat = () => {
-    if (jsonEditorRef.current) {
-      void jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+    if (localJsonEditorRef.current) {
+      void localJsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
     }
   };
 
@@ -63,22 +64,76 @@ const MainContainer = () => {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
+    isSnippetPanelVisible,
     isModelCollapsed,
     isTemplateCollapsed,
     isDataCollapsed,
     toggleModelCollapse,
     toggleDataCollapse,
+    templateMarkdownEditorRef,
+    concertoEditorRef,
+    jsonEditorRef,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
+    isSnippetPanelVisible: state.isSnippetPanelVisible,
     isModelCollapsed: state.isModelCollapsed,
     isTemplateCollapsed: state.isTemplateCollapsed,
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
+    templateMarkdownEditorRef: state.templateMarkdownEditorRef,
+    concertoEditorRef: state.concertoEditorRef,
+    jsonEditorRef: state.jsonEditorRef,
   }));
+
+  // Handler to insert snippet at cursor position
+  const handleInsertSnippet = (code: string, editorType: 'templatemark' | 'concerto' | 'typescript') => {
+    let editor: monaco.editor.IStandaloneCodeEditor | null = null;
+
+    // Determine which editor to use based on type
+    if (editorType === 'templatemark') {
+      editor = templateMarkdownEditorRef;
+    } else if (editorType === 'concerto') {
+      editor = concertoEditorRef;
+    } else if (editorType === 'typescript') {
+      editor = jsonEditorRef; // For now, TypeScript snippets go to JSON editor
+    }
+
+    if (!editor) {
+      void message.warning('Please focus on an editor first');
+      return;
+    }
+
+    const selection = editor.getSelection();
+    const position = selection ? selection.getStartPosition() : editor.getPosition();
+
+    if (!position) return;
+
+    editor.executeEdits('snippet-insert', [
+      {
+        range: new monaco.Range(
+          position.lineNumber,
+          position.column,
+          position.lineNumber,
+          position.column
+        ),
+        text: code,
+      },
+    ]);
+
+    // Focus the editor and move cursor to end of inserted text
+    editor.focus();
+    const lines = code.split('\n');
+    const lastLine = lines[lines.length - 1];
+    const newPosition = new monaco.Position(
+      position.lineNumber + lines.length - 1,
+      lines.length === 1 ? position.column + code.length : lastLine.length + 1
+    );
+    editor.setPosition(newPosition);
+  };
 
   const [, setLoading] = useState(true);
 
@@ -87,16 +142,16 @@ const MainContainer = () => {
   const expandedCount = 3 - collapsedCount;
   const collapsedSize = 5;
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
-  
+
   // Create distinct preview background for better visual separation
-  const previewBackgroundColor = backgroundColor === '#ffffff' 
+  const previewBackgroundColor = backgroundColor === '#ffffff'
     ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
     : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
-  
+
   const previewHeaderColor = backgroundColor === '#ffffff'
     ? '#dbeafe'  // Slightly darker blue for header in light mode
     : '#0f172a';  // Even darker shade for header in dark mode
-  
+
   // Create a key that changes when collapse state changes to force panel re-layout
   const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
@@ -186,7 +241,7 @@ const MainContainer = () => {
                         <button
                           onClick={handleJsonFormat}
                           className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
-                          disabled={!jsonEditorRef.current || isDataCollapsed}
+                          disabled={!localJsonEditorRef.current || isDataCollapsed}
                           title="Format JSON"
                         >
                           <MdFormatAlignLeft size={16} />
@@ -194,7 +249,7 @@ const MainContainer = () => {
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <AgreementData editorRef={jsonEditorRef} />
+                          <AgreementData editorRef={localJsonEditorRef} />
                         </div>
                       )}
                     </div>
@@ -250,6 +305,29 @@ const MainContainer = () => {
           <>
             <Panel defaultSize={30} minSize={20}>
               <AIChatPanel />
+            </Panel>
+            <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
+          </>
+        )}
+        {isSnippetPanelVisible && (
+          <>
+            <Panel defaultSize={25} minSize={20} maxSize={40}>
+              <SnippetLibraryPanel
+                editorType="templatemark"
+                onInsertSnippet={(code) => {
+                  // Determine active editor based on which has focus or was last active
+                  // For MVP, we'll try to insert into the most appropriate editor
+                  if (templateMarkdownEditorRef && !isTemplateCollapsed) {
+                    handleInsertSnippet(code, 'templatemark');
+                  } else if (concertoEditorRef && !isModelCollapsed) {
+                    handleInsertSnippet(code, 'concerto');
+                  } else if (jsonEditorRef && !isDataCollapsed) {
+                    handleInsertSnippet(code, 'typescript');
+                  } else {
+                    void message.warning('Please expand an editor panel first');
+                  }
+                }}
+              />
             </Panel>
           </>
         )}

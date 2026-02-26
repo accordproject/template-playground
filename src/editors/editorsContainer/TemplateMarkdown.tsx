@@ -40,6 +40,8 @@ function TemplateMarkdown() {
     editorRef.current = editor;
     const commands = createMarkdownCommands(editorRef);
     setCommands(commands);
+    // Register editor reference in store for snippet insertion
+    useAppStore.getState().setTemplateMarkdownEditorRef(editor);
   };
 
   return (

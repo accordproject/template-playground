@@ -113,11 +113,13 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
 interface ConcertoEditorProps {
   value: string;
   onChange?: (value: string | undefined) => void;
+  onEditorReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
 }
 
 export default function ConcertoEditor({
   value,
   onChange,
+  onEditorReady,
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
@@ -165,6 +167,9 @@ export default function ConcertoEditor({
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
+    if (onEditorReady) {
+      onEditorReady(editor);
+    }
   };
 
   const handleChange = useCallback(
