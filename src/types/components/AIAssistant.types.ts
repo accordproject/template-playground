@@ -43,3 +43,12 @@ export interface CodeSelectionMenuProps {
   onClose: () => void;
   editorType: 'markdown' | 'concerto' | 'json';
 }
+
+export interface EncryptedKeyData {
+  credentialId: string;
+  ciphertext: string;
+  iv: string;
+  salt: string;
+}
+
+export type KeyProtectionLevel = 'webauthn' | 'memory-only' | 'legacy-plaintext';

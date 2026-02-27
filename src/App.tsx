@@ -31,7 +31,7 @@ const App = () => {
 
 
   const handleConfigSave = () => {
-    loadConfigFromLocalStorage();
+    loadConfigFromLocalStorage().catch(console.warn);
     setAIConfigOpen(false);
   };
 
@@ -163,5 +163,5 @@ const Spinner = () => (
     />
   </div>
 );
- 
+
 export default App;
