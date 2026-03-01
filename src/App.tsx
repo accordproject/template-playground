@@ -3,7 +3,7 @@ import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import tour from "./components/Tour";
+import { createTour } from "./tour/tourConfig";
 import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
@@ -19,16 +19,15 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIConfigOpen, setAIConfigOpen } =
-    useAppStore((state) => ({
-      isAIConfigOpen: state.isAIConfigOpen,
-      setAIConfigOpen: state.setAIConfigOpen,
-    }));
+  const { isAIConfigOpen, setAIConfigOpen } = useAppStore((state) => ({
+    isAIConfigOpen: state.isAIConfigOpen,
+    setAIConfigOpen: state.setAIConfigOpen,
+  }));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-
+  const [tour] = useState(() => createTour());
 
   const handleConfigSave = () => {
     loadConfigFromLocalStorage();
@@ -84,20 +83,22 @@ const App = () => {
   }, [backgroundColor, textColor]);
 
   useEffect(() => {
-    const startTour = async () => {
-      try {
-        await tour.start();
-        localStorage.setItem("hasVisited", "true");
-      } catch (error) {
-        console.error("Tour failed to start:", error);
-      }
-    };
-
-    const showTour = searchParams.get("showTour") === "true";
-    if (showTour || !localStorage.getItem("hasVisited")) {
-      void startTour();
+  const startTour = async () => {
+    try {
+      await tour.start();
+      localStorage.setItem("hasVisited", "true");
+    } catch (error) {
+      console.error("Tour failed to start:", error);
     }
-  }, [searchParams]);
+  };
+
+  const showTour = searchParams.get("showTour") === "true";
+
+  if (showTour || !localStorage.getItem("hasVisited")) {
+    void startTour();
+  }
+
+}, [searchParams, tour]);
 
   // Set data-theme attribute on initial load and when theme changes
   useEffect(() => {
@@ -145,9 +146,18 @@ const App = () => {
             />
             <Route path="/learn" element={<LearnNow />}>
               <Route path="intro" element={<LearnContent file="intro.md" />} />
-              <Route path="module1" element={<LearnContent file="module1.md" />} />
-              <Route path="module2" element={<LearnContent file="module2.md" />} />
-              <Route path="module3" element={<LearnContent file="module3.md" />} />
+              <Route
+                path="module1"
+                element={<LearnContent file="module1.md" />}
+              />
+              <Route
+                path="module2"
+                element={<LearnContent file="module2.md" />}
+              />
+              <Route
+                path="module3"
+                element={<LearnContent file="module3.md" />}
+              />
             </Route>
           </Routes>
         </Layout>
@@ -159,9 +169,11 @@ const App = () => {
 const Spinner = () => (
   <div className="app-spinner-container">
     <Spin
-      indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
+      indicator={
+        <LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />
+      }
     />
   </div>
 );
- 
+
 export default App;
