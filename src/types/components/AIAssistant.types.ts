@@ -28,7 +28,6 @@ export interface AIConfig {
 export interface AIConfigPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
 }
 
 export interface editorsContent {

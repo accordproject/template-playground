@@ -11,7 +11,6 @@ import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
-import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
 
 const { Content } = Layout;
 
@@ -29,11 +28,6 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
-
-  const handleConfigSave = () => {
-    loadConfigFromLocalStorage().catch(console.warn);
-    setAIConfigOpen(false);
-  };
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -138,7 +132,6 @@ const App = () => {
                   <AIConfigPopup
                     isOpen={isAIConfigOpen}
                     onClose={() => setAIConfigOpen(false)}
-                    onSave={handleConfigSave}
                   />
                 </>
               }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { AIConfigPopupProps, KeyProtectionLevel } from '../types/components/AIAssistant.types';
+import { AIConfig, AIConfigPopupProps, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 import {
   isWebAuthnPRFSupported,
@@ -8,7 +8,7 @@ import {
   clearStoredKey,
 } from '../utils/secureKeyStorage';
 
-const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
+const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
   const { backgroundColor, keyProtectionLevel, setKeyProtectionLevel } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     keyProtectionLevel: state.keyProtectionLevel,
@@ -155,20 +155,42 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
           const success = await encryptAndStoreApiKey(apiKey);
           if (success) {
             protectionLevel = 'webauthn';
-          } else {
-            protectionLevel = 'memory-only';
+            // Only remove legacy plaintext key when encryption succeeds
+            localStorage.removeItem('aiApiKey');
           }
         } catch {
-          protectionLevel = 'memory-only';
+          // Encryption failed — fall through to memory-only
         }
       }
-      // Remove any legacy plaintext key
-      localStorage.removeItem('aiApiKey');
     }
 
+    // Build the config from the current form values and set it directly
+    // in the Zustand store. This avoids calling loadConfigFromLocalStorage()
+    // which would re-trigger a WebAuthn prompt to decrypt the key we just saved.
+    const config: AIConfig = {
+      provider,
+      model,
+      apiKey: provider === 'ollama' ? '' : apiKey,
+      includeTemplateMarkContent: localStorage.getItem('aiIncludeTemplateMark') === 'true',
+      includeConcertoModelContent: localStorage.getItem('aiIncludeConcertoModel') === 'true',
+      includeDataContent: localStorage.getItem('aiIncludeData') === 'true',
+      showFullPrompt,
+      enableCodeSelectionMenu,
+      enableInlineSuggestions,
+    };
+
+    if (provider === 'openai-compatible' && customEndpoint) {
+      config.customEndpoint = customEndpoint;
+    }
+
+    if (maxTokens) {
+      config.maxTokens = parseInt(maxTokens);
+    }
+
+    const { setAIConfig } = useAppStore.getState();
+    setAIConfig(config);
     setKeyProtectionLevel(protectionLevel);
     setIsEncrypting(false);
-    onSave();
     onClose();
   };
 
@@ -203,8 +225,9 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       setKeyProtectionLevel(null);
       setSecurityMessage('');
 
-      // Notify parent and reload config
-      onSave();
+      // Clear the in-memory AI config in Zustand so stale keys don't persist
+      const { setAIConfig } = useAppStore.getState();
+      setAIConfig(null);
     }
   };
 
@@ -444,8 +467,8 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             onClick={() => { handleSave().catch(console.warn); }}
             disabled={isEncrypting || !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
             className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${isEncrypting || !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)
-                ? theme.saveButton.disabled
-                : theme.saveButton.enabled
+              ? theme.saveButton.disabled
+              : theme.saveButton.enabled
               }`}
           >
             {isEncrypting ? 'Encrypting & Saving...' : 'Save Configuration'}
