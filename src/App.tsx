@@ -3,7 +3,7 @@ import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import { createTour } from "./tour/tourConfig";
+import { tour } from "./components/Tour";
 import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
@@ -27,7 +27,6 @@ const App = () => {
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-  const [tour] = useState(() => createTour());
 
   const handleConfigSave = () => {
     loadConfigFromLocalStorage();
@@ -82,23 +81,23 @@ const App = () => {
     };
   }, [backgroundColor, textColor]);
 
+  //shepherd tour setup
   useEffect(() => {
-  const startTour = async () => {
-    try {
-      await tour.start();
-      localStorage.setItem("hasVisited", "true");
-    } catch (error) {
-      console.error("Tour failed to start:", error);
+    const startTour = async () => {
+      try {
+        await tour.start();
+        localStorage.setItem("hasVisited", "true");
+      } catch (error) {
+        console.error("Tour failed to start:", error);
+      }
+    };
+
+    const showTour = searchParams.get("showTour") === "true";
+
+    if (showTour || !localStorage.getItem("hasVisited")) {
+      void startTour();
     }
-  };
-
-  const showTour = searchParams.get("showTour") === "true";
-
-  if (showTour || !localStorage.getItem("hasVisited")) {
-    void startTour();
-  }
-
-}, [searchParams, tour]);
+  }, [searchParams, tour]);
 
   // Set data-theme attribute on initial load and when theme changes
   useEffect(() => {

@@ -8,7 +8,7 @@ import useAppStore from "../store/store";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
 import SettingsModal from "./SettingsModal";
-import tour from "./Tour";
+import {tour} from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
 const PlaygroundSidebar = () => {
