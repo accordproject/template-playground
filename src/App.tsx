@@ -4,6 +4,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import { tour } from "./components/Tour";
+import "shepherd.js/dist/css/shepherd.css";
 import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
