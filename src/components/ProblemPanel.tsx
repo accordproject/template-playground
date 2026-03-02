@@ -87,7 +87,11 @@ const ProblemPanel: React.FC = () => {
 
   const handleProblemClick = useCallback((problem: ProblemItem) => {
     if (problem.source && problem.line && problem.line > 0) {
-      navigateToLine(problem.source as EditorSource, problem.line, problem.column);
+      // Validate source is a known EditorSource before navigating
+      const validSources: EditorSource[] = ['Concerto Model', 'TemplateMark', 'JSON Data', 'Template Compilation'];
+      if (validSources.includes(problem.source as EditorSource)) {
+        navigateToLine(problem.source as EditorSource, problem.line, problem.column);
+      }
     }
   }, []);
 
@@ -124,6 +128,7 @@ const ProblemPanel: React.FC = () => {
                 tabIndex={isClickable(problem) ? 0 : undefined}
                 onKeyDown={(e) => {
                   if (isClickable(problem) && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
                     handleProblemClick(problem);
                   }
                 }}

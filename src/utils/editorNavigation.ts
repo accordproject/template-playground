@@ -58,7 +58,6 @@ export const navigateToLine = (
                 options: {
                     isWholeLine: true,
                     className: 'error-line-highlight',
-                    glyphMarginClassName: 'error-glyph-margin',
                 },
             },
         ]);

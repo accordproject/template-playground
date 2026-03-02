@@ -23,6 +23,16 @@ const vitestConfig = defineVitestConfig({
     environment: "jsdom",
     setupFiles: "./src/utils/testing/setup.ts",
     exclude: [...configDefaults.exclude, "**/e2e/**"],
+    server: {
+      deps: {
+        inline: ["monaco-editor"],
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      "monaco-editor": "monaco-editor/esm/vs/editor/editor.api",
+    },
   },
 });
 
