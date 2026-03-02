@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from "vitest";
 import "@testing-library/jest-dom";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import useAppStore from "../../store/store";
@@ -13,8 +13,7 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 };
 
 describe("ErrorBoundary", () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let consoleErrorSpy: any;
+  let consoleErrorSpy: MockInstance;
 
   beforeEach(() => {
     // Suppress console.error for cleaner test output
@@ -113,20 +112,30 @@ describe("ErrorBoundary", () => {
   });
 
   it("should use theme colors from store", () => {
-    // Set dark mode
+    // Capture previous state and set dark mode
+    const previousBackgroundColor = useAppStore.getState().backgroundColor;
+    const previousTextColor = useAppStore.getState().textColor;
     useAppStore.setState({ backgroundColor: '#121212', textColor: '#ffffff' });
 
-    render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
+    try {
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
 
-    const container = screen.getByText("Something went wrong").parentElement;
-    expect(container).toHaveStyle({ backgroundColor: '#121212' });
+      const container = screen.getByText("Something went wrong").parentElement;
+      expect(container).toHaveStyle({ backgroundColor: '#121212' });
+    } finally {
+      // Restore previous state to avoid test order-dependency
+      useAppStore.setState({ 
+        backgroundColor: previousBackgroundColor, 
+        textColor: previousTextColor 
+      });
+    }
   });
 
-  it("should display component stack in development mode", () => {
+  it("should display component stack in development mode", async () => {
     render(
       <ErrorBoundary showDevDetails={true}>
         <ThrowError shouldThrow={true} />
@@ -137,7 +146,10 @@ describe("ErrorBoundary", () => {
     expect(errorDetails).toBeInTheDocument();
 
     // Component stack should be present in the pre element
-    const preElement = screen.getByText(/Error: Test error/).closest('pre');
-    expect(preElement?.textContent).toContain('Component Stack:');
+    // Use waitFor since errorInfo is set via setState in componentDidCatch
+    await waitFor(() => {
+      const preElement = screen.getByText(/Error: Test error/).closest('pre');
+      expect(preElement?.textContent).toContain('Component Stack:');
+    });
   });
 });
