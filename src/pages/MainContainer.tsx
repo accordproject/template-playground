@@ -13,7 +13,7 @@ import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
-import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
+import { MdFormatAlignLeft, MdChevronRight, MdExpandMore, MdAutoFixHigh } from "react-icons/md";
 import DOMPurify from "dompurify";
 
 const MainContainer = () => {
@@ -68,6 +68,7 @@ const MainContainer = () => {
     isDataCollapsed,
     toggleModelCollapse,
     toggleDataCollapse,
+    generateSampleDataFromModel,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
     isEditorsVisible: state.isEditorsVisible,
@@ -78,6 +79,7 @@ const MainContainer = () => {
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
+    generateSampleDataFromModel: state.generateSampleDataFromModel,
   }));
 
   const [, setLoading] = useState(true);
@@ -87,16 +89,16 @@ const MainContainer = () => {
   const expandedCount = 3 - collapsedCount;
   const collapsedSize = 5;
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
-  
+
   // Create distinct preview background for better visual separation
-  const previewBackgroundColor = backgroundColor === '#ffffff' 
+  const previewBackgroundColor = backgroundColor === '#ffffff'
     ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
     : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
-  
+
   const previewHeaderColor = backgroundColor === '#ffffff'
     ? '#dbeafe'  // Slightly darker blue for header in light mode
     : '#0f172a';  // Even darker shade for header in dark mode
-  
+
   // Create a key that changes when collapse state changes to force panel re-layout
   const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
@@ -183,14 +185,28 @@ const MainContainer = () => {
                           </button>
                           <span>JSON Data</span>
                         </div>
-                        <button
-                          onClick={handleJsonFormat}
-                          className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
-                          disabled={!jsonEditorRef.current || isDataCollapsed}
-                          title="Format JSON"
-                        >
-                          <MdFormatAlignLeft size={16} />
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+                          <button
+                            onClick={handleJsonFormat}
+                            className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
+                            disabled={!jsonEditorRef.current || isDataCollapsed}
+                            title="Format JSON"
+                          >
+                            <MdFormatAlignLeft size={16} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              void generateSampleDataFromModel().then(() => {
+                                void message.success('Sample data generated!');
+                              });
+                            }}
+                            className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
+                            disabled={isDataCollapsed}
+                            title="Auto-generate sample data from Concerto model"
+                          >
+                            <MdAutoFixHigh size={16} />
+                          </button>
+                        </div>
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
