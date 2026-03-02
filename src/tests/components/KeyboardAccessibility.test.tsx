@@ -1,7 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PlaygroundSidebar from "../../components/PlaygroundSidebar";
-import FullScreenModal from "../../components/FullScreenModal";
 import { vi } from "vitest";
 
 // Mock the store
