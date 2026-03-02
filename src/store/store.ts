@@ -9,7 +9,7 @@ import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
-import { AIConfig, ChatState } from '../types/components/AIAssistant.types';
+import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 
 interface AppState {
   templateMarkdown: string;
