@@ -400,7 +400,17 @@ export const AIChatPanel = () => {
               <span className="text-xs text-gray-600 mr-1" style={{color: textColor}}>Context:</span>
               {/* TemplateMark Button */}
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="Toggle TemplateMark context"
+                aria-pressed={includeTemplateMarkContent}
                 onClick={() => handleTemplateMarkToggle(!includeTemplateMarkContent)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleTemplateMarkToggle(!includeTemplateMarkContent);
+                  }
+                }}
                 className={
                   `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
                   ${includeTemplateMarkContent
@@ -435,7 +445,17 @@ export const AIChatPanel = () => {
               </div>
               {/* Concerto Button */}
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="Toggle Concerto context"
+                aria-pressed={includeConcertoModelContent}
                 onClick={() => handleConcertoModelToggle(!includeConcertoModelContent)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleConcertoModelToggle(!includeConcertoModelContent);
+                  }
+                }}
                 className={
                   `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
                   ${includeConcertoModelContent
@@ -470,7 +490,17 @@ export const AIChatPanel = () => {
               </div>
               {/* Data Button */}
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="Toggle Data context"
+                aria-pressed={includeDataContent}
                 onClick={() => handleDataToggle(!includeDataContent)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleDataToggle(!includeDataContent);
+                  }
+                }}
                 className={
                   `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
                   ${includeDataContent
