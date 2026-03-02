@@ -15,7 +15,6 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 describe("ErrorBoundary", () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let consoleErrorSpy: any;
-  const originalEnv = import.meta.env.DEV;
 
   beforeEach(() => {
     // Suppress console.error for cleaner test output
@@ -24,8 +23,6 @@ describe("ErrorBoundary", () => {
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
-    // Restore original env
-    import.meta.env.DEV = originalEnv;
   });
 
   it("should render children when there is no error", () => {
@@ -54,10 +51,10 @@ describe("ErrorBoundary", () => {
 
   it("should render reload button that calls window.location.reload", () => {
     const reloadMock = vi.fn();
-    Object.defineProperty(window, "location", {
-      value: { reload: reloadMock },
-      writable: true,
-    });
+    // Mock the entire location object
+    const originalLocation = window.location;
+    delete (window as any).location;
+    window.location = { ...originalLocation, reload: reloadMock } as any;
 
     render(
       <ErrorBoundary>
@@ -70,13 +67,15 @@ describe("ErrorBoundary", () => {
 
     reloadButton.click();
     expect(reloadMock).toHaveBeenCalledTimes(1);
+
+    // Restore original location
+    delete (window as any).location;
+    window.location = originalLocation;
   });
 
   it("should display error details in development mode", () => {
-    import.meta.env.DEV = true;
-
     render(
-      <ErrorBoundary>
+      <ErrorBoundary showDevDetails={true}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
@@ -89,10 +88,8 @@ describe("ErrorBoundary", () => {
   });
 
   it("should not display error details in production mode", () => {
-    import.meta.env.DEV = false;
-
     render(
-      <ErrorBoundary>
+      <ErrorBoundary showDevDetails={false}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
@@ -117,7 +114,7 @@ describe("ErrorBoundary", () => {
 
   it("should use theme colors from store", () => {
     // Set dark mode
-    useAppStore.setState({ backgroundColor: '#1e1e1e', textColor: '#ffffff' });
+    useAppStore.setState({ backgroundColor: '#121212', textColor: '#ffffff' });
 
     render(
       <ErrorBoundary>
@@ -126,14 +123,12 @@ describe("ErrorBoundary", () => {
     );
 
     const container = screen.getByText("Something went wrong").parentElement;
-    expect(container).toHaveStyle({ backgroundColor: '#1e1e1e' });
+    expect(container).toHaveStyle({ backgroundColor: '#121212' });
   });
 
   it("should display component stack in development mode", () => {
-    import.meta.env.DEV = true;
-
     render(
-      <ErrorBoundary>
+      <ErrorBoundary showDevDetails={true}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );

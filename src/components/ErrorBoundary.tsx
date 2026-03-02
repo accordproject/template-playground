@@ -3,6 +3,7 @@ import useAppStore from '../store/store';
 
 interface Props {
   children: ReactNode;
+  showDevDetails?: boolean;
 }
 
 interface State {
@@ -30,7 +31,8 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       // Get theme colors from store
       const { backgroundColor, textColor } = useAppStore.getState();
-      const isDarkMode = backgroundColor === '#1e1e1e';
+      const isDarkMode = backgroundColor === '#121212';
+      const showDevDetails = this.props.showDevDetails ?? import.meta.env.DEV;
       
       return (
         <div style={{
@@ -64,7 +66,7 @@ class ErrorBoundary extends Component<Props, State> {
           >
             Reload Page
           </button>
-          {this.state.error && import.meta.env.DEV && (
+          {this.state.error && showDevDetails && (
             <details style={{ marginTop: '2rem', maxWidth: '800px', textAlign: 'left' }}>
               <summary style={{ cursor: 'pointer', color: textColor, opacity: 0.8, fontSize: '0.9rem' }}>
                 Error details
