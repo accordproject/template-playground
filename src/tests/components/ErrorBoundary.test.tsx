@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import "@testing-library/jest-dom";
 import ErrorBoundary from "../../components/ErrorBoundary";
+import useAppStore from "../../store/store";
 
 // Component that throws an error for testing
 const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
@@ -112,5 +113,36 @@ describe("ErrorBoundary", () => {
       expect.any(Error),
       expect.any(Object)
     );
+  });
+
+  it("should use theme colors from store", () => {
+    // Set dark mode
+    useAppStore.setState({ backgroundColor: '#1e1e1e', textColor: '#ffffff' });
+
+    render(
+      <ErrorBoundary>
+        <ThrowError shouldThrow={true} />
+      </ErrorBoundary>
+    );
+
+    const container = screen.getByText("Something went wrong").parentElement;
+    expect(container).toHaveStyle({ backgroundColor: '#1e1e1e' });
+  });
+
+  it("should display component stack in development mode", () => {
+    import.meta.env.DEV = true;
+
+    render(
+      <ErrorBoundary>
+        <ThrowError shouldThrow={true} />
+      </ErrorBoundary>
+    );
+
+    const errorDetails = screen.getByText("Error details");
+    expect(errorDetails).toBeInTheDocument();
+
+    // Component stack should be present in the pre element
+    const preElement = screen.getByText(/Error: Test error/).closest('pre');
+    expect(preElement?.textContent).toContain('Component Stack:');
   });
 });
