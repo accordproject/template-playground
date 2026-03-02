@@ -63,11 +63,11 @@ interface MockCanvasContext {
 }
 
 // capture original method so we can delegate for non-2d calls
-// use a loose any type to avoid lib.dom union conflicts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const originalGetContext: any = HTMLCanvasElement.prototype.getContext.bind(
-  HTMLCanvasElement.prototype
-);
+const originalGetContext = HTMLCanvasElement.prototype.getContext as (
+  this: HTMLCanvasElement,
+  contextId: string,
+  options?: unknown
+) => RenderingContext | null;
 
 HTMLCanvasElement.prototype.getContext = function (
   this: HTMLCanvasElement,
@@ -107,8 +107,6 @@ HTMLCanvasElement.prototype.getContext = function (
   }
 
   // for other context types, delegate to original
-  // originalGetContext is typed as `any` above, so suppress safety checks
-  /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+// for other context types, delegate to original
   return originalGetContext.call(this, contextId, options);
-  /* eslint-enable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
-};
+} as unknown as typeof HTMLCanvasElement.prototype.getContext;

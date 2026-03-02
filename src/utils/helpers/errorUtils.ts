@@ -37,6 +37,10 @@ export const extractErrorMessage = (error: Error | unknown): string => {
             }
           }
         } else if (typeof parsed.error === 'string') {
+
+        }
+        // Handle error as string
+        if (typeof parsed.error === 'string') {
           return parsed.error;
         }
       }

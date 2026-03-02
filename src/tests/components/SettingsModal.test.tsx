@@ -4,9 +4,9 @@ import SettingsModal from '../../components/SettingsModal';
 
 interface StoreState {
   isSettingsOpen: boolean;
-  setSettingsOpen: () => void;
+  setSettingsOpen: (value: boolean) => void;
   showLineNumbers: boolean;
-  setShowLineNumbers: () => void;
+  setShowLineNumbers: (value: boolean) => void;
   textColor: string;
   backgroundColor: string;
   toggleDarkMode: () => void;
