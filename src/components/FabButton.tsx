@@ -1,7 +1,7 @@
 import { Fab, Action } from "react-tiny-fab";
 import { MdExplore } from "react-icons/md";
 import { FaCircleQuestion } from "react-icons/fa6";
-import tour from "../components/Tour";
+import {tour} from "./Tour";
 import FabGlobalStyle from "../styles/components/FabGlobalStyles";
 
 const FloatingFAB = () => {
