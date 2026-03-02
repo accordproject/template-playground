@@ -70,7 +70,7 @@ describe("ErrorBoundary", () => {
 
     // Restore original location
     delete (window as any).location;
-    window.location = originalLocation;
+    window.location = originalLocation as any;
   });
 
   it("should display error details in development mode", () => {
