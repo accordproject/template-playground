@@ -14,6 +14,12 @@ const editorRegistry: EditorRegistry = {
     json: null,
 };
 
+// Track active highlight timeouts for cleanup
+const activeTimeouts = new Map<monaco.editor.IStandaloneCodeEditor, number>();
+
+// Highlight duration for error line navigation
+const HIGHLIGHT_DURATION_MS = 2000;
+
 export const registerEditor = (
     type: keyof EditorRegistry,
     editor: monaco.editor.IStandaloneCodeEditor
@@ -22,6 +28,15 @@ export const registerEditor = (
 };
 
 export const unregisterEditor = (type: keyof EditorRegistry) => {
+    const editor = editorRegistry[type];
+    if (editor) {
+        // Clear any pending highlight timeouts for this editor
+        const timeoutId = activeTimeouts.get(editor);
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            activeTimeouts.delete(editor);
+        }
+    }
     editorRegistry[type] = null;
 };
 
@@ -46,6 +61,12 @@ export const navigateToLine = (
     }
 
     if (editor && line > 0) {
+        // Clear any existing highlight timeout for this editor
+        const existingTimeout = activeTimeouts.get(editor);
+        if (existingTimeout) {
+            clearTimeout(existingTimeout);
+        }
+
         const position = { lineNumber: line, column: column || 1 };
         editor.revealLineInCenter(line);
         editor.setPosition(position);
@@ -63,9 +84,12 @@ export const navigateToLine = (
         ]);
 
         // Remove highlight after 2 seconds
-        setTimeout(() => {
+        const timeoutId = window.setTimeout(() => {
             decorations.clear();
-        }, 2000);
+            activeTimeouts.delete(editor);
+        }, HIGHLIGHT_DURATION_MS);
+        
+        activeTimeouts.set(editor, timeoutId);
 
         return true;
     }

@@ -7,7 +7,7 @@ export interface ProblemItem {
   id: string;
   type: 'error' | 'warning' | 'info';
   message: string;
-  source?: string;
+  source?: EditorSource;
   line?: number;
   column?: number;
   timestamp: Date;
@@ -32,7 +32,7 @@ const ProblemPanel: React.FC = () => {
       const columnMatch = part.match(/[Cc]olumn? (\d+)/);
 
       let type: 'error' | 'warning' | 'info' = 'error';
-      let source = 'Template Compilation';
+      let source: EditorSource = 'Template Compilation';
 
       if (part.includes('Warning') || part.includes('warning')) {
         type = 'warning';
@@ -87,11 +87,7 @@ const ProblemPanel: React.FC = () => {
 
   const handleProblemClick = useCallback((problem: ProblemItem) => {
     if (problem.source && problem.line && problem.line > 0) {
-      // Validate source is a known EditorSource before navigating
-      const validSources: EditorSource[] = ['Concerto Model', 'TemplateMark', 'JSON Data', 'Template Compilation'];
-      if (validSources.includes(problem.source as EditorSource)) {
-        navigateToLine(problem.source as EditorSource, problem.line, problem.column);
-      }
+      navigateToLine(problem.source, problem.line, problem.column);
     }
   }, []);
 
