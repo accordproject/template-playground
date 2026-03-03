@@ -9,7 +9,7 @@ describe('useAppStore - editorWordWrap', () => {
     });
   });
 
-  it('should have editorWordWrap default to true', () => {
+  it('should have editorWordWrap set to true after reset', () => {
     const state = useAppStore.getState();
     expect(state.editorWordWrap).toBe(true);
   });

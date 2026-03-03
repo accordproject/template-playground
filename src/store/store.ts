@@ -6,6 +6,7 @@ import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
+import { FONT_SIZE_OPTIONS, DEFAULT_FONT_SIZE, MIN_FONT_SIZE, MAX_FONT_SIZE } from "../constants/editorSettings";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
@@ -169,10 +170,10 @@ const getInitialFontSize = () => {
     const saved = localStorage.getItem('editorFontSize');
     if (saved !== null) {
       const parsed = parseInt(saved, 10);
-      if (!isNaN(parsed)) return parsed;
+      if (!isNaN(parsed) && parsed >= MIN_FONT_SIZE && parsed <= MAX_FONT_SIZE) return parsed;
     }
   }
-  return 14; // Default font size
+  return DEFAULT_FONT_SIZE;
 };
 
 const getInitialWordWrap = () => {
@@ -233,6 +234,7 @@ const useAppStore = create<AppState>()(
         set({ showLineNumbers: value });
       },
       setEditorFontSize: (value: number) => {
+        if (!FONT_SIZE_OPTIONS.includes(value as typeof FONT_SIZE_OPTIONS[number])) return;
         if (typeof window !== 'undefined') {
           localStorage.setItem('editorFontSize', String(value));
         }

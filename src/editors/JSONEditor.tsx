@@ -34,7 +34,7 @@ export default function JSONEditor({
 
   const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },
-    wordWrap: editorWordWrap ? "on" : "off",
+    wordWrap: editorWordWrap ? "on" as const : "off" as const,
     automaticLayout: true,
     scrollBeyondLastLine: false,
     fontSize: editorFontSize,

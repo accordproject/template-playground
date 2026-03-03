@@ -9,7 +9,7 @@ describe('useAppStore - editorFontSize', () => {
     });
   });
 
-  it('should have editorFontSize default to 14', () => {
+  it('should have editorFontSize set to 14 after reset', () => {
     const state = useAppStore.getState();
     expect(state.editorFontSize).toBe(14);
   });
@@ -30,7 +30,7 @@ describe('useAppStore - editorFontSize', () => {
     expect(localStorage.getItem('editorFontSize')).toBe('16');
   });
 
-  it('should set various font sizes correctly', () => {
+  it('should set various valid font sizes correctly', () => {
     const store = useAppStore.getState();
     
     store.setEditorFontSize(12);
@@ -40,6 +40,16 @@ describe('useAppStore - editorFontSize', () => {
     expect(useAppStore.getState().editorFontSize).toBe(20);
     
     store.setEditorFontSize(14);
+    expect(useAppStore.getState().editorFontSize).toBe(14);
+  });
+
+  it('should reject font sizes outside the allowed options', () => {
+    const store = useAppStore.getState();
+
+    store.setEditorFontSize(5);
+    expect(useAppStore.getState().editorFontSize).toBe(14);
+
+    store.setEditorFontSize(100);
     expect(useAppStore.getState().editorFontSize).toBe(14);
   });
 });

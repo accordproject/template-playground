@@ -2,8 +2,8 @@ import React from 'react';
 import { Modal, Select, Switch } from 'antd';
 import DarkModeToggle from 'react-dark-mode-toggle';
 import useAppStore from '../store/store';
+import { FONT_SIZE_OPTIONS } from '../constants/editorSettings';
 
-const FONT_SIZE_OPTIONS = [12, 13, 14, 15, 16, 18, 20];
 
 const SettingsModal: React.FC = () => {
   const { 
