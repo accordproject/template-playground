@@ -222,7 +222,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
       setShowFullPrompt(false);
       setEnableCodeSelectionMenu(true);
       setEnableInlineSuggestions(true);
-      setKeyProtectionLevel(null);
+      setKeyProtectionLevel('legacy-plaintext');
       setSecurityMessage('');
 
       // Clear the in-memory AI config in Zustand so stale keys don't persist

@@ -1,0 +1,28 @@
+
+> template_playground@0.0.0 test:unit
+> vitest run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v1.6.1 /home/beerus1206/Documents/code/githubrepo/template-playground
+
+ ✓ src/tests/utils/compression/Compression.test.tsx  (2 tests) 4ms
+ ✓ src/tests/utils/secureKeyStorage.test.ts  (8 tests) 6ms
+ ✓ src/tests/utils/helpers/errorUtils.test.ts  (23 tests) 11ms
+ ✓ src/tests/store/showLineNumbers.test.tsx  (4 tests) 3ms
+ ✓ src/tests/store/generateSharebleLink.test.tsx  (1 test) 4ms
+ ✓ src/tests/components/Navbar.test.tsx  (3 tests) 158ms
+stderr | src/tests/components/Navbar.test.tsx > Navbar > renders logo and title on small screens
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ src/tests/components/PlaygroundSidebar.test.tsx  (5 tests) 313ms
+ ✓ src/tests/components/SettingsModal.test.tsx  (7 tests) 392ms
+ ✓ src/tests/components/Footer.test.tsx  (1 test) 287ms
+ ✓ src/tests/components/ShareModal.test.tsx  (3 tests) 413ms
+
+ Test Files  10 passed (10)
+      Tests  57 passed (57)
+   Start at  18:17:14
+   Duration  3.04s (transform 1.16s, setup 1.87s, collect 8.27s, tests 1.59s, environment 4.95s, prepare 1.20s)
+
