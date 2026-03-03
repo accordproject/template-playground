@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
 // Helper function to extract meaningful error message from complex error objects
 export const extractErrorMessage = (error: Error | unknown): string => {
   if (!error) return 'An unknown error occurred';
-  
-  let errorMessage = error instanceof Error ? error.message : String(error);
-  
+
+  const errorMessage = error instanceof Error ? error.message : String(error);
+
   // Try to extract JSON from the message (might be prefixed with error type/code)
-  let jsonMatch = errorMessage.match(/\{.*\}/s);
+  const jsonMatch = errorMessage.match(/\{.*\}/s);
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[0]);
-      
+
       // Handle Google error structure: {"error":{"message":"..."}}
       if (parsed.error) {
         if (typeof parsed.error === 'object') {
@@ -32,12 +33,12 @@ export const extractErrorMessage = (error: Error | unknown): string => {
           return parsed.error;
         }
       }
-      
+
       // Handle Mistral error structure: {"detail":"..."}
       if (parsed.detail) {
         return parsed.detail;
       }
-      
+
       // Handle direct error message
       if (parsed.message) {
         return parsed.message;
@@ -46,11 +47,11 @@ export const extractErrorMessage = (error: Error | unknown): string => {
       // JSON parsing failed, continue
     }
   }
-  
+
   // Try to parse the entire message as JSON (for cleanly formatted JSON errors)
   try {
     const parsed = JSON.parse(errorMessage);
-    
+
     // Handle nested error structures
     if (parsed.error) {
       if (typeof parsed.error === 'object') {
@@ -71,12 +72,12 @@ export const extractErrorMessage = (error: Error | unknown): string => {
         return parsed.error;
       }
     }
-    
+
     // Handle Mistral error structure: {"detail":"..."}
     if (parsed.detail) {
       return parsed.detail;
     }
-    
+
     // Handle direct error message
     if (parsed.message) {
       return parsed.message;
@@ -84,6 +85,6 @@ export const extractErrorMessage = (error: Error | unknown): string => {
   } catch {
     // Not JSON, return as is
   }
-  
+
   return errorMessage;
 };

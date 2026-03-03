@@ -1,0 +1,192 @@
+
+> template_playground@0.0.0 lint
+> eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0
+
+
+/home/beerus1206/Documents/code/githubrepo/template-playground/src/components/AIConfigPopup.tsx
+  143:2   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  146:4   error    Unexpected lexical declaration in case block                                                               no-case-declarations
+  149:4   error    Unexpected lexical declaration in case block                                                               no-case-declarations
+  151:4   error    Unexpected lexical declaration in case block                                                               no-case-declarations
+  152:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  153:2   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  157:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  158:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  161:4   error    Unexpected lexical declaration in case block                                                               no-case-declarations
+  161:10  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  162:44  error    Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<string[]>`                   @typescript-eslint/no-unsafe-argument
+  162:44  error    Unsafe member access .data on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  162:44  error    Unsafe call of an `any` typed value                                                                        @typescript-eslint/no-unsafe-call
+  162:63  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  162:71  error    Unsafe member access .id on an `any` value                                                                 @typescript-eslint/no-unsafe-member-access
+  162:71  error    Unsafe return of an `any` typed value                                                                      @typescript-eslint/no-unsafe-return
+  176:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  179:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  180:21  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  181:55  error    Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<string[]>`                   @typescript-eslint/no-unsafe-argument
+  181:55  error    Unsafe member access .models on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+  181:55  error    Unsafe call of an `any` typed value                                                                        @typescript-eslint/no-unsafe-call
+  181:76  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  181:84  error    Unsafe member access .name on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  181:84  error    Unsafe return of an `any` typed value                                                                      @typescript-eslint/no-unsafe-return
+  192:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  195:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  196:21  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  197:55  error    Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<string[]>`                   @typescript-eslint/no-unsafe-argument
+  197:55  error    Unsafe member access .models on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+  197:55  error    Unsafe call of an `any` typed value                                                                        @typescript-eslint/no-unsafe-call
+  197:76  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  197:84  error    Unsafe member access .name on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  197:84  error    Unsafe return of an `any` typed value                                                                      @typescript-eslint/no-unsafe-return
+  208:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  211:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  212:21  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  213:55  error    Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<string[]>`                   @typescript-eslint/no-unsafe-argument
+  213:55  error    Unsafe member access .models on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+  213:55  error    Unsafe call of an `any` typed value                                                                        @typescript-eslint/no-unsafe-call
+  213:76  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  213:84  error    Unsafe member access .name on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  213:84  error    Unsafe return of an `any` typed value                                                                      @typescript-eslint/no-unsafe-return
+  219:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  220:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  223:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  224:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  224:12  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  225:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  225:46  error    Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<string[]>`                   @typescript-eslint/no-unsafe-argument
+  225:46  error    Unsafe member access .models on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+  225:46  error    Unsafe call of an `any` typed value                                                                        @typescript-eslint/no-unsafe-call
+  225:67  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  225:75  error    Unsafe return of an `any` typed value                                                                      @typescript-eslint/no-unsafe-return
+  225:75  error    Unsafe member access .name on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  225:85  error    Unsafe member access .model on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+  236:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  239:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  240:21  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  241:55  error    Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<string[]>`                   @typescript-eslint/no-unsafe-argument
+  241:55  error    Unsafe member access .models on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+  241:55  error    Unsafe call of an `any` typed value                                                                        @typescript-eslint/no-unsafe-call
+  241:76  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  241:84  error    Unsafe member access .name on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  241:84  error    Unsafe return of an `any` typed value                                                                      @typescript-eslint/no-unsafe-return
+  248:21  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  249:13  error    Unsafe member access .name on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  261:6   warning  React Hook useEffect has a missing dependency: 'apiKey'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  435:2   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  436:2   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  440:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  446:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  447:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  451:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  453:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  459:4   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  460:4   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  461:4   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  462:4   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  467:4   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  468:4   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  469:4   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  470:4   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  474:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  476:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  479:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  481:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  483:2   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  490:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  491:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+  492:3   error    Mixed spaces and tabs                                                                                      no-mixed-spaces-and-tabs
+
+/home/beerus1206/Documents/code/githubrepo/template-playground/src/contexts/MarkdownEditorContext.tsx
+  36:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/beerus1206/Documents/code/githubrepo/template-playground/src/tests/components/SettingsModal.test.tsx
+  8:34  error  Unsafe return of an `any` typed value  @typescript-eslint/no-unsafe-return
+  8:34  error  Unsafe call of an `any` typed value    @typescript-eslint/no-unsafe-call
+
+/home/beerus1206/Documents/code/githubrepo/template-playground/src/tests/components/ShareModal.test.tsx
+  11:9   error  Unsafe assignment of an `any` value                                                                                                                                                                             @typescript-eslint/no-unsafe-assignment
+  78:16  error  Avoid referencing unbound methods which may cause unintentional scoping of `this`.
+If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead  @typescript-eslint/unbound-method
+
+/home/beerus1206/Documents/code/githubrepo/template-playground/src/utils/helpers/errorUtils.ts
+   5:7   error  'errorMessage' is never reassigned. Use 'const' instead                 prefer-const
+   8:7   error  'jsonMatch' is never reassigned. Use 'const' instead                    prefer-const
+  11:13  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  14:11  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  15:20  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  17:15  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  18:24  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  20:23  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  20:42  error  Unsafe argument of type `any` assigned to a parameter of type `string`  @typescript-eslint/no-unsafe-argument
+  20:42  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  21:21  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  22:19  error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  22:26  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  25:17  error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  25:24  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  31:20  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  32:11  error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  32:18  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  37:11  error  Unsafe member access .detail on an `any` value                          @typescript-eslint/no-unsafe-member-access
+  38:9   error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  38:16  error  Unsafe member access .detail on an `any` value                          @typescript-eslint/no-unsafe-member-access
+  42:11  error  Unsafe member access .message on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  43:9   error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  43:16  error  Unsafe member access .message on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  52:11  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  55:9   error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  56:18  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  58:13  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  61:19  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  61:44  error  Unsafe argument of type `any` assigned to a parameter of type `string`  @typescript-eslint/no-unsafe-argument
+  61:44  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  62:17  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  62:38  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  63:15  error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  63:22  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  66:13  error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  66:20  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  70:18  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  71:9   error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  71:16  error  Unsafe member access .error on an `any` value                           @typescript-eslint/no-unsafe-member-access
+  76:9   error  Unsafe member access .detail on an `any` value                          @typescript-eslint/no-unsafe-member-access
+  77:7   error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  77:14  error  Unsafe member access .detail on an `any` value                          @typescript-eslint/no-unsafe-member-access
+  81:9   error  Unsafe member access .message on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  82:7   error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  82:14  error  Unsafe member access .message on an `any` value                         @typescript-eslint/no-unsafe-member-access
+
+/home/beerus1206/Documents/code/githubrepo/template-playground/src/utils/secureKeyStorage.ts
+  171:17  error  This assertion is unnecessary since it does not change the type of the expression  @typescript-eslint/no-unnecessary-type-assertion
+  213:32  error  This assertion is unnecessary since it does not change the type of the expression  @typescript-eslint/no-unnecessary-type-assertion
+  220:36  error  This assertion is unnecessary since it does not change the type of the expression  @typescript-eslint/no-unnecessary-type-assertion
+  314:42  error  This assertion is unnecessary since it does not change the type of the expression  @typescript-eslint/no-unnecessary-type-assertion
+
+/home/beerus1206/Documents/code/githubrepo/template-playground/src/utils/testing/setup.ts
+  63:25  error    Unexpected empty method 'fillRect'                                                                                                                                                                              @typescript-eslint/no-empty-function
+  64:26  error    Unexpected empty method 'clearRect'                                                                                                                                                                             @typescript-eslint/no-empty-function
+  66:29  error    Unexpected empty method 'putImageData'                                                                                                                                                                          @typescript-eslint/no-empty-function
+  68:29  error    Unexpected empty method 'setTransform'                                                                                                                                                                          @typescript-eslint/no-empty-function
+  69:26  error    Unexpected empty method 'drawImage'                                                                                                                                                                             @typescript-eslint/no-empty-function
+  70:21  error    Unexpected empty method 'save'                                                                                                                                                                                  @typescript-eslint/no-empty-function
+  71:24  error    Unexpected empty method 'restore'                                                                                                                                                                               @typescript-eslint/no-empty-function
+  72:26  error    Unexpected empty method 'beginPath'                                                                                                                                                                             @typescript-eslint/no-empty-function
+  73:23  error    Unexpected empty method 'moveTo'                                                                                                                                                                                @typescript-eslint/no-empty-function
+  74:23  error    Unexpected empty method 'lineTo'                                                                                                                                                                                @typescript-eslint/no-empty-function
+  75:26  error    Unexpected empty method 'closePath'                                                                                                                                                                             @typescript-eslint/no-empty-function
+  76:23  error    Unexpected empty method 'stroke'                                                                                                                                                                                @typescript-eslint/no-empty-function
+  77:21  error    Unexpected empty method 'fill'                                                                                                                                                                                  @typescript-eslint/no-empty-function
+  78:26  error    Unexpected empty method 'translate'                                                                                                                                                                             @typescript-eslint/no-empty-function
+  79:22  error    Unexpected empty method 'scale'                                                                                                                                                                                 @typescript-eslint/no-empty-function
+  80:23  error    Unexpected empty method 'rotate'                                                                                                                                                                                @typescript-eslint/no-empty-function
+  81:20  error    Unexpected empty method 'arc'                                                                                                                                                                                   @typescript-eslint/no-empty-function
+  83:26  error    Unexpected empty method 'transform'                                                                                                                                                                             @typescript-eslint/no-empty-function
+  84:21  error    Unexpected empty method 'rect'                                                                                                                                                                                  @typescript-eslint/no-empty-function
+  85:21  error    Unexpected empty method 'clip'                                                                                                                                                                                  @typescript-eslint/no-empty-function
+  89:55  warning  Unexpected any. Specify a different type                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  91:4   error    Avoid referencing unbound methods which may cause unintentional scoping of `this`.
+If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead  @typescript-eslint/unbound-method
+
+✖ 168 problems (158 errors, 10 warnings)
+  6 errors and 0 warnings potentially fixable with the `--fix` option.
+
