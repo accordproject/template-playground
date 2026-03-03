@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Layout, Row, Col, Typography, Space, Button, Image, Grid } from "antd";
 import {
   GithubOutlined,
@@ -16,6 +17,7 @@ const { Text, Link } = Typography;
 const { useBreakpoint } = Grid;
 
 const CustomFooter: React.FC = () => {
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
   const screens = useBreakpoint();
   const [expanded, setExpanded] = useState(false);
@@ -41,7 +43,7 @@ const CustomFooter: React.FC = () => {
               />
             </Link>
             <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
-              The open-source smart legal contract stack
+              {t('footer.tagline')}
             </Text>
             <Link href="mailto:admin@accordproject.org">
               <Text strong style={{ color: "rgba(255, 255, 255, 0.65)" }}>
@@ -60,7 +62,7 @@ const CustomFooter: React.FC = () => {
                   border: "none",
                 }}
               >
-                Join
+                {t('footer.join')}
               </Button>
             </Link>
           </Space>
@@ -73,7 +75,7 @@ const CustomFooter: React.FC = () => {
               onClick={() => setExpanded(!expanded)}
               style={{ color: "white", fontSize: "16px", marginBottom: "10px" }}
             >
-              {expanded ? <UpOutlined /> : <DownOutlined />} Other Links
+              {expanded ? <UpOutlined /> : <DownOutlined />} {t('footer.otherLinks')}
             </Button>
           )}
 
@@ -114,14 +116,14 @@ const CustomFooter: React.FC = () => {
       <Row justify="space-between" align="middle" style={{ marginTop: "40px" }}>
         <Col>
           <Text style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-            copyright © {year} accord project &bull;{" "}
+            {t('footer.copyright')} © {year} accord project &bull;{" "}
             <Link
               strong
               href="https://accordproject.org/privacy"
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.85)" }}
             >
-              trademark policy
+              {t('footer.trademarkPolicy')}
             </Link>{" "}
             &bull;{" "}
             <Link
@@ -130,7 +132,7 @@ const CustomFooter: React.FC = () => {
               target="_blank"
               style={{ color: "rgba(255, 255, 255, 0.85)" }}
             >
-              brand assets
+              {t('footer.brandAssets')}
             </Link>
           </Text>
         </Col>

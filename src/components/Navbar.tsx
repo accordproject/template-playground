@@ -11,6 +11,8 @@ import {
   MenuOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
+import { MdLanguage } from 'react-icons/md';
+import { useTranslation } from 'react-i18next';
 
 
 interface DropdownProps {
@@ -42,7 +44,7 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
   };
 
   return (
-    <div 
+    <div
       className={`relative ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -52,8 +54,8 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
       </div>
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-10" 
+          <div
+            className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
@@ -118,12 +120,12 @@ const MenuItem = ({
   );
 };
 
-const MenuItemGroup = ({ 
-  title, 
-  children, 
-  className = "" 
-}: { 
-  title: string; 
+const MenuItemGroup = ({
+  title,
+  children,
+  className = ""
+}: {
+  title: string;
   children: React.ReactNode;
   className?: string;
 }) => (
@@ -135,16 +137,16 @@ const MenuItemGroup = ({
   </div>
 );
 
-const Button = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const Button = ({
+  children,
+  onClick,
+  className = ""
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
   className?: string;
 }) => (
-  <button 
+  <button
     className={`flex items-center ${className}`}
     onClick={onClick}
   >
@@ -152,12 +154,12 @@ const Button = ({
   </button>
 );
 
-const Image = ({ 
-  src, 
-  alt, 
-  className = "" 
-}: { 
-  src: string; 
+const Image = ({
+  src,
+  alt,
+  className = ""
+}: {
+  src: string;
   alt: string;
   className?: string;
 }) => (
@@ -190,12 +192,25 @@ const useBreakpoint = () => {
   return screenSize;
 };
 
+const LANGUAGES = [
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+];
+
 function Navbar() {
   const [hovered, setHovered] = useState<
-    null | "home" | "help" | "github" | "discord" | "join"
+    null | "home" | "help" | "github" | "discord" | "join" | "language"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng: string) => {
+    void i18n.changeLanguage(lng);
+  };
+
+  const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
   const props = useSpring({
     loop: true,
@@ -207,50 +222,65 @@ function Navbar() {
     config: { duration: 1000 },
   });
 
+  const languageMenu = (
+    <Menu>
+      {LANGUAGES.map((lang) => (
+        <MenuItem
+          key={lang.code}
+          onClick={() => changeLanguage(lang.code)}
+          className={i18n.language === lang.code ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : ''}
+        >
+          <span>{lang.flag}</span>
+          <span>{lang.label}</span>
+        </MenuItem>
+      ))}
+    </Menu>
+  );
+
   const mobileMenu = (
     <Menu>
       <MenuItem to="/">
-        <span>Template Playground</span>
+        <span>{t('navbar.templatePlayground')}</span>
       </MenuItem>
       <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
         <QuestionOutlined />
-        <span>About</span>
+        <span>{t('navbar.about')}</span>
       </MenuItem>
       <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
         <UserOutlined />
-        <span>Community</span>
+        <span>{t('navbar.community')}</span>
       </MenuItem>
       <MenuItem href="https://github.com/accordproject/template-playground/issues">
         <InfoOutlined />
-        <span>Issues</span>
+        <span>{t('navbar.issues')}</span>
       </MenuItem>
       <MenuItem href="https://github.com/accordproject/template-engine/blob/main/README.md">
         <BookOutlined />
-        <span>Documentation</span>
+        <span>{t('navbar.documentation')}</span>
       </MenuItem>
     </Menu>
   );
 
   const helpMenu = (
     <Menu>
-      <MenuItemGroup title="Info">
+      <MenuItemGroup title={t('navbar.info')}>
         <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
           <QuestionOutlined />
-          <span>About</span>
+          <span>{t('navbar.about')}</span>
         </MenuItem>
         <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
           <UserOutlined />
-          <span>Community</span>
+          <span>{t('navbar.community')}</span>
         </MenuItem>
         <MenuItem href="https://github.com/accordproject/template-playground/issues">
           <InfoOutlined />
-          <span>Issues</span>
+          <span>{t('navbar.issues')}</span>
         </MenuItem>
       </MenuItemGroup>
-      <MenuItemGroup title="Documentation">
+      <MenuItemGroup title={t('navbar.documentation')}>
         <MenuItem href="https://github.com/accordproject/template-engine/blob/main/README.md">
           <BookOutlined />
-          <span>Documentation</span>
+          <span>{t('navbar.documentation')}</span>
         </MenuItem>
       </MenuItemGroup>
     </Menu>
@@ -261,16 +291,15 @@ function Navbar() {
     const paddingClasses = screens.md ? "px-5" : "px-0";
     const bgClasses = hovered === key ? "bg-white bg-opacity-10" : "bg-transparent";
     const borderClasses = screens.md && !isLast ? "border-r border-white border-opacity-10" : "";
-    
+
     return `${baseClasses} ${paddingClasses} ${bgClasses} ${borderClasses}`;
   };
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${
-      screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
-    }`}>
+    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
+      }`}>
       <div
         className={`cursor-pointer ${menuItemClasses("home", false)}`}
         onMouseEnter={() => setHovered("home")}
@@ -283,15 +312,15 @@ function Navbar() {
         >
           <Image
             src={screens.lg ? "/logo.png" : "/accord_logo.png"}
-            alt="Template Playground"
+            alt={t('navbar.templatePlayground')}
             className={`h-6.5 ${screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"}`}
           />
           <span className={`text-white ${screens.lg ? "block" : "hidden"}`}>
-            Template Playground
+            {t('navbar.templatePlayground')}
           </span>
         </Link>
       </div>
-      
+
       {screens.md ? (
         <>
           <div
@@ -301,7 +330,7 @@ function Navbar() {
           >
             <Dropdown overlay={helpMenu} trigger={["click"]}>
               <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
-                Help
+                {t('navbar.help')}
                 <CaretDownFilled className="text-xs ml-1.5" />
               </Button>
             </Dropdown>
@@ -316,16 +345,14 @@ function Navbar() {
           </Dropdown>
         </div>
       )}
-      
-      <div className={`flex ml-auto items-center h-16 ${
-        screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
-      }`}>
-        
+
+      <div className={`flex ml-auto items-center h-16 ${screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
+        }`}>
+
         {!isLearnPage && (
           <div
-            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${
-              hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
-            }`}
+            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
+              }`}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
           >
@@ -334,20 +361,37 @@ function Navbar() {
                 style={props}
                 className="px-[22px] py-[10px] bg-[#19c6c7] text-[#050c40] border-none rounded-md cursor-pointer"
               >
-                Learn
+                {t('navbar.learn')}
               </animated.button>
             </Link>
           </div>
         )}
-        
+
+        {/* Language Switcher */}
         <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
+          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
               : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
+            } ${hovered === "language" ? "bg-white bg-opacity-10" : "bg-transparent"
+            }`}
+          onMouseEnter={() => setHovered("language")}
+          onMouseLeave={() => setHovered(null)}
+        >
+          <Dropdown overlay={languageMenu} trigger={["click"]}>
+            <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
+              <MdLanguage className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"
+                }`} />
+              <span className={screens.md ? "inline" : "hidden"}>{currentLang.flag} {currentLang.label}</span>
+            </Button>
+          </Dropdown>
+        </div>
+
+        <div
+          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+              : "px-2.5 pl-1.5 pr-1.5"
+            } ${hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
+            }`}
           onMouseEnter={() => setHovered("discord")}
           onMouseLeave={() => setHovered(null)}
         >
@@ -357,21 +401,18 @@ function Navbar() {
             rel="noopener noreferrer"
             className="flex items-center text-white"
           >
-            <FaDiscord className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Discord</span>
+            <FaDiscord className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"
+              }`} />
+            <span className={screens.md ? "inline" : "hidden"}>{t('navbar.discord')}</span>
           </a>
         </div>
-        
+
         <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
+          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
               : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
+            } ${hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
+            }`}
           onMouseEnter={() => setHovered("github")}
           onMouseLeave={() => setHovered(null)}
         >
@@ -381,10 +422,9 @@ function Navbar() {
             rel="noopener noreferrer"
             className="flex items-center text-white"
           >
-            <GithubOutlined className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>GitHub</span>
+            <GithubOutlined className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"
+              }`} />
+            <span className={screens.md ? "inline" : "hidden"}>{t('navbar.github')}</span>
           </a>
         </div>
       </div>

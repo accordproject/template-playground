@@ -2,6 +2,13 @@ import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeAll } from "vitest";
 import Footer from "../../components/Footer";
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { language: 'en', changeLanguage: vi.fn() }
+  })
+}));
+
 vi.mock("../../public/logo.png", () => ({
   default: "logo.png",
 }));

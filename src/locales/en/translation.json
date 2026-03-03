@@ -1,0 +1,63 @@
+{
+    "navbar": {
+        "templatePlayground": "Template Playground",
+        "help": "Help",
+        "about": "About",
+        "community": "Community",
+        "issues": "Issues",
+        "documentation": "Documentation",
+        "info": "Info",
+        "learn": "Learn",
+        "discord": "Discord",
+        "github": "GitHub",
+        "language": "Language"
+    },
+    "mainContainer": {
+        "concertoModel": "Concerto Model",
+        "templateMark": "TemplateMark",
+        "jsonData": "JSON Data",
+        "preview": "Preview",
+        "downloadPdf": "Download PDF",
+        "formatJson": "Format JSON",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "pdfError": "Failed to generate PDF. Please check the console."
+    },
+    "problemPanel": {
+        "problems": "Problems",
+        "noProblems": "No problems detected",
+        "line": "Line",
+        "col": "Col"
+    },
+    "sidebar": {
+        "editor": "Editor",
+        "preview": "Preview",
+        "problems": "Problems",
+        "aiAssistant": "AI Assistant",
+        "fullscreen": "Fullscreen",
+        "share": "Share",
+        "startTour": "Start Tour",
+        "settings": "Settings",
+        "linkCopied": "Link copied to clipboard!",
+        "linkCopyFailed": "Failed to copy link to clipboard",
+        "panelWarning": "At least one panel must be visible"
+    },
+    "footer": {
+        "tagline": "The open-source smart legal contract stack",
+        "join": "Join",
+        "otherLinks": "Other Links",
+        "copyright": "copyright",
+        "trademarkPolicy": "trademark policy",
+        "brandAssets": "brand assets"
+    },
+    "settings": {
+        "title": "Settings",
+        "darkMode": "Dark Mode",
+        "darkModeDescription": "Toggle between light and dark theme",
+        "showLineNumbers": "Show Line Numbers",
+        "lineNumbersDescription": "Display line numbers in code editors"
+    },
+    "fullscreen": {
+        "output": "Output"
+    }
+}

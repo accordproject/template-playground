@@ -1,0 +1,63 @@
+{
+    "navbar": {
+        "templatePlayground": "Área de pruebas de plantillas",
+        "help": "Ayuda",
+        "about": "Acerca de",
+        "community": "Comunidad",
+        "issues": "Incidencias",
+        "documentation": "Documentación",
+        "info": "Info",
+        "learn": "Aprender",
+        "discord": "Discord",
+        "github": "GitHub",
+        "language": "Idioma"
+    },
+    "mainContainer": {
+        "concertoModel": "Modelo Concerto",
+        "templateMark": "TemplateMark",
+        "jsonData": "Datos JSON",
+        "preview": "Vista previa",
+        "downloadPdf": "Descargar PDF",
+        "formatJson": "Formatear JSON",
+        "expand": "Expandir",
+        "collapse": "Contraer",
+        "pdfError": "Error al generar el PDF. Por favor, revise la consola."
+    },
+    "problemPanel": {
+        "problems": "Problemas",
+        "noProblems": "No se detectaron problemas",
+        "line": "Línea",
+        "col": "Col"
+    },
+    "sidebar": {
+        "editor": "Editor",
+        "preview": "Vista previa",
+        "problems": "Problemas",
+        "aiAssistant": "Asistente IA",
+        "fullscreen": "Pantalla completa",
+        "share": "Compartir",
+        "startTour": "Iniciar recorrido",
+        "settings": "Configuración",
+        "linkCopied": "¡Enlace copiado al portapapeles!",
+        "linkCopyFailed": "Error al copiar el enlace al portapapeles",
+        "panelWarning": "Al menos un panel debe ser visible"
+    },
+    "footer": {
+        "tagline": "La pila de contratos legales inteligentes de código abierto",
+        "join": "Unirse",
+        "otherLinks": "Otros enlaces",
+        "copyright": "derechos de autor",
+        "trademarkPolicy": "política de marcas",
+        "brandAssets": "recursos de marca"
+    },
+    "settings": {
+        "title": "Configuración",
+        "darkMode": "Modo oscuro",
+        "darkModeDescription": "Alternar entre tema claro y oscuro",
+        "showLineNumbers": "Mostrar números de línea",
+        "lineNumbersDescription": "Mostrar números de línea en los editores de código"
+    },
+    "fullscreen": {
+        "output": "Salida"
+    }
+}

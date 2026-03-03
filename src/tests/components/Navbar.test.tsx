@@ -2,6 +2,20 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Navbar from "../../components/Navbar";
 import { MemoryRouter } from "react-router-dom";
+import { vi } from "vitest";
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        "navbar.templatePlayground": "Template Playground",
+        "navbar.github": "Github", // the original test asserted for Github with a capital G
+      };
+      return map[key] || key;
+    },
+    i18n: { language: "en", changeLanguage: vi.fn() },
+  }),
+}));
 
 const renderNavbar = () => {
   render(

@@ -3,6 +3,25 @@ import "@testing-library/jest-dom";
 import PlaygroundSidebar from "../../components/PlaygroundSidebar";
 import { vi } from "vitest";
 
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const map: Record<string, string> = {
+                'sidebar.editor': 'Editor',
+                'sidebar.preview': 'Preview',
+                'sidebar.problems': 'Problems',
+                'sidebar.aiAssistant': 'AI Assistant',
+                'sidebar.share': 'Share',
+                'sidebar.startTour': 'Start Tour',
+                'sidebar.settings': 'Settings',
+                'sidebar.fullscreen': 'Fullscreen'
+            };
+            return map[key] || key;
+        },
+        i18n: { language: 'en', changeLanguage: vi.fn() }
+    })
+}));
+
 // Mock the store
 vi.mock("../../store/store", () => ({
     default: () => ({

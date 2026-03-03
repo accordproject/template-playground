@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, Switch } from 'antd';
 import DarkModeToggle from 'react-dark-mode-toggle';
 import useAppStore from '../store/store';
 
 const SettingsModal: React.FC = () => {
-  const { 
-    isSettingsOpen, 
-    setSettingsOpen, 
-    showLineNumbers, 
+  const { t } = useTranslation();
+  const {
+    isSettingsOpen,
+    setSettingsOpen,
+    showLineNumbers,
     setShowLineNumbers,
     textColor,
     backgroundColor,
@@ -26,7 +28,7 @@ const SettingsModal: React.FC = () => {
 
   return (
     <Modal
-      title="Settings"
+      title={t('settings.title')}
       open={isSettingsOpen}
       onCancel={() => setSettingsOpen(false)}
       footer={null}
@@ -39,10 +41,10 @@ const SettingsModal: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
-              Dark Mode
+              {t('settings.darkMode')}
             </h4>
             <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Toggle between light and dark theme
+              {t('settings.darkModeDescription')}
             </p>
           </div>
           <div className="flex-shrink-0">
@@ -60,10 +62,10 @@ const SettingsModal: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
-              Show Line Numbers
+              {t('settings.showLineNumbers')}
             </h4>
             <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Display line numbers in code editors
+              {t('settings.lineNumbersDescription')}
             </p>
           </div>
           <div className="flex-shrink-0">
