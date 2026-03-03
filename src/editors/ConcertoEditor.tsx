@@ -6,7 +6,7 @@ import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
 const MonacoEditor = lazy(() =>
-  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
+  import("@monaco-editor/react").then((mod) => ({ default: mod.Editor })),
 );
 
 const concertoKeywords = [
@@ -33,14 +33,7 @@ const concertoKeywords = [
   "event",
 ];
 
-const concertoTypes = [
-  "String",
-  "Integer",
-  "Double",
-  "DateTime",
-  "Long",
-  "Boolean",
-];
+const concertoTypes = ["String", "Integer", "Double", "DateTime", "Long", "Boolean"];
 
 const handleEditorWillMount = (monacoInstance: typeof monaco) => {
   monacoInstance.languages.register({
@@ -60,13 +53,13 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
       { open: "{", close: "}" },
       { open: "[", close: "]" },
       { open: "(", close: ")" },
-      { open: "\"", close: "\"" },
+      { open: '"', close: '"' },
     ],
     surroundingPairs: [
       { open: "{", close: "}" },
       { open: "[", close: "]" },
       { open: "(", close: ")" },
-      { open: "\"", close: "\"" },
+      { open: '"', close: '"' },
     ],
   });
 
@@ -106,7 +99,7 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
   });
 
   if (monacoInstance) {
-    registerAutocompletion('concerto', monacoInstance);
+    registerAutocompletion("concerto", monacoInstance);
   }
 };
 
@@ -115,10 +108,7 @@ interface ConcertoEditorProps {
   onChange?: (value: string | undefined) => void;
 }
 
-export default function ConcertoEditor({
-  value,
-  onChange,
-}: ConcertoEditorProps) {
+export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
   const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
@@ -131,35 +121,39 @@ export default function ConcertoEditor({
 
   const themeName = useMemo(
     () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
+    [backgroundColor],
   );
 
-  const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
-    minimap: { enabled: false },
-    wordWrap: "on",
-    automaticLayout: true,
-    scrollBeyondLastLine: false,
-    lineNumbers: showLineNumbers ? 'on' : 'off',
-    autoClosingBrackets: "languageDefined",
-    autoSurround: "languageDefined",
-    bracketPairColorization: { enabled: true },
-    inlineSuggest: {
-      enabled: aiConfig?.enableInlineSuggestions !== false,
-      mode: "prefix",
-      suppressSuggestions: false,
-      fontFamily: "inherit",
-      keepOnBlur: true,
-    },
-    suggest: {
-      preview: true,
-      showInlineDetails: true,
-    },
-    quickSuggestions: false,
-    suggestOnTriggerCharacters: false,
-    acceptSuggestionOnCommitCharacter: false,
-    acceptSuggestionOnEnter: "off",
-    tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
+  const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(
+    () => ({
+      minimap: { enabled: false },
+      wordWrap: "on",
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
+      lineNumbers: showLineNumbers ? "on" : "off",
+      autoClosingBrackets: "languageDefined",
+      autoSurround: "languageDefined",
+      bracketPairColorization: { enabled: true },
+      inlineSuggest: {
+        enabled: aiConfig?.enableInlineSuggestions !== false,
+        mode: "prefix",
+        suppressSuggestions: false,
+        fontFamily: "inherit",
+        keepOnBlur: true,
+      },
+      suggest: {
+        preview: true,
+        showInlineDetails: true,
+      },
+      quickSuggestions: false,
+      suggestOnTriggerCharacters: false,
+      acceptSuggestionOnCommitCharacter: false,
+      acceptSuggestionOnEnter: "off",
+      tabCompletion: "off",
+      ariaLabel: "Concerto Editor",
+    }),
+    [aiConfig?.enableInlineSuggestions, showLineNumbers],
+  );
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editor.onDidChangeCursorSelection(() => {
@@ -171,7 +165,7 @@ export default function ConcertoEditor({
     (val: string | undefined) => {
       if (onChange) onChange(val);
     },
-    [onChange]
+    [onChange],
   );
 
   useEffect(() => {
