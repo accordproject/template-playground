@@ -55,21 +55,23 @@ describe("ErrorBoundary", () => {
     delete (window as any).location;
     window.location = { ...originalLocation, reload: reloadMock } as any;
 
-    render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
+    try {
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow={true} />
+        </ErrorBoundary>
+      );
 
-    const reloadButton = screen.getByRole("button", { name: /Reload Page/i });
-    expect(reloadButton).toBeInTheDocument();
+      const reloadButton = screen.getByRole("button", { name: /Reload Page/i });
+      expect(reloadButton).toBeInTheDocument();
 
-    reloadButton.click();
-    expect(reloadMock).toHaveBeenCalledTimes(1);
-
-    // Restore original location
-    delete (window as any).location;
-    window.location = originalLocation as any;
+      reloadButton.click();
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+    } finally {
+      // Restore original location
+      delete (window as any).location;
+      window.location = originalLocation as any;
+    }
   });
 
   it("should display error details in development mode", () => {
