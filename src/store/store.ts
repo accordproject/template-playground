@@ -243,7 +243,7 @@ const useAppStore = create<AppState>()(
           if (sample) {
             set(() => ({
               sampleName: sample.NAME,
-              agreementHtml: undefined,
+              agreementHtml: "",
               error: undefined,
               templateMarkdown: sample.TEMPLATE,
               editorValue: sample.TEMPLATE,
