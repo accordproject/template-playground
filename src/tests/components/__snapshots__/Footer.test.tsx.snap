@@ -3,37 +3,36 @@
 exports[`Footer > matches the snapshot 1`] = `
 <DocumentFragment>
   <footer
-    class="ant-layout-footer css-dev-only-do-not-override-17a39f8"
+    class="ant-layout-footer css-dev-only-do-not-override-mncuj7"
     id="footer"
     style="background: rgb(27, 37, 64); color: white; padding: 50px 50px 20px 50px;"
   >
     <div
-      class="ant-row ant-row-space-between ant-row-middle css-dev-only-do-not-override-17a39f8"
-      style="margin: -8px -8px -8px -8px;"
+      class="ant-row ant-row-space-between ant-row-middle css-dev-only-do-not-override-mncuj7"
+      style="margin-left: -8px; margin-right: -8px; row-gap: 16px;"
     >
       <div
-        class="ant-col ant-col-xs-24 ant-col-md-12 css-dev-only-do-not-override-17a39f8"
-        style="padding: 8px 8px 8px 8px;"
+        class="ant-col ant-col-xs-24 ant-col-md-12 css-dev-only-do-not-override-mncuj7"
+        style="padding-left: 8px; padding-right: 8px;"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-17a39f8 ant-space-vertical"
+          class="ant-space css-dev-only-do-not-override-mncuj7 ant-space-vertical ant-space-gap-row-middle ant-space-gap-col-middle"
         >
           <div
             class="ant-space-item"
-            style="margin-bottom: 16px;"
           >
             <a
-              class="ant-typography css-dev-only-do-not-override-17a39f8"
+              class="ant-typography css-dev-only-do-not-override-mncuj7"
               href="https://www.accordproject.org"
               rel="noopener noreferrer"
               target="_blank"
             >
               <div
-                class="ant-image css-dev-only-do-not-override-17a39f8"
+                class="ant-image css-dev-only-do-not-override-mncuj7"
               >
                 <img
                   alt="Template Playground"
-                  class="ant-image-img css-dev-only-do-not-override-17a39f8"
+                  class="ant-image-img css-dev-only-do-not-override-mncuj7"
                   src="/logo.png"
                   style="height: 36px; max-width: 100%;"
                 />
@@ -42,10 +41,9 @@ exports[`Footer > matches the snapshot 1`] = `
           </div>
           <div
             class="ant-space-item"
-            style="margin-bottom: 16px;"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-17a39f8"
+              class="ant-typography css-dev-only-do-not-override-mncuj7"
               style="color: rgba(255, 255, 255, 0.65);"
             >
               The open-source smart legal contract stack
@@ -53,14 +51,13 @@ exports[`Footer > matches the snapshot 1`] = `
           </div>
           <div
             class="ant-space-item"
-            style="margin-bottom: 16px;"
           >
             <a
-              class="ant-typography css-dev-only-do-not-override-17a39f8"
+              class="ant-typography css-dev-only-do-not-override-mncuj7"
               href="mailto:admin@accordproject.org"
             >
               <span
-                class="ant-typography css-dev-only-do-not-override-17a39f8"
+                class="ant-typography css-dev-only-do-not-override-mncuj7"
                 style="color: rgba(255, 255, 255, 0.65);"
               >
                 <strong>
@@ -73,13 +70,13 @@ exports[`Footer > matches the snapshot 1`] = `
             class="ant-space-item"
           >
             <a
-              class="ant-typography css-dev-only-do-not-override-17a39f8"
+              class="ant-typography css-dev-only-do-not-override-mncuj7"
               href="https://discord.com/invite/Zm99SKhhtA"
               rel="noopener noreferrer"
               target="_blank"
             >
               <button
-                class="ant-btn css-dev-only-do-not-override-17a39f8 ant-btn-default ant-btn-lg"
+                class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-lg"
                 style="padding: 5px 30px; background-color: rgb(25, 198, 199); border-radius: 5px; color: rgb(5, 12, 64); text-align: center;"
                 type="button"
               >
@@ -92,11 +89,11 @@ exports[`Footer > matches the snapshot 1`] = `
         </div>
       </div>
       <div
-        class="ant-col ant-col-xs-24 ant-col-md-12 css-dev-only-do-not-override-17a39f8"
-        style="padding: 8px 8px 8px 8px;"
+        class="ant-col ant-col-xs-24 ant-col-md-12 css-dev-only-do-not-override-mncuj7"
+        style="padding-left: 8px; padding-right: 8px;"
       >
         <button
-          class="ant-btn css-dev-only-do-not-override-17a39f8 ant-btn-text"
+          class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-text ant-btn-color-default ant-btn-variant-text"
           style="color: white; font-size: 16px; margin-bottom: 10px;"
           type="button"
         >
@@ -126,19 +123,19 @@ exports[`Footer > matches the snapshot 1`] = `
       </div>
     </div>
     <div
-      class="ant-row ant-row-space-between ant-row-middle css-dev-only-do-not-override-17a39f8"
+      class="ant-row ant-row-space-between ant-row-middle css-dev-only-do-not-override-mncuj7"
       style="margin-top: 40px;"
     >
       <div
-        class="ant-col css-dev-only-do-not-override-17a39f8"
+        class="ant-col css-dev-only-do-not-override-mncuj7"
       >
         <span
-          class="ant-typography css-dev-only-do-not-override-17a39f8"
+          class="ant-typography css-dev-only-do-not-override-mncuj7"
           style="color: rgba(255, 255, 255, 0.85);"
         >
           copyright © 2026 accord project • 
           <a
-            class="ant-typography css-dev-only-do-not-override-17a39f8"
+            class="ant-typography css-dev-only-do-not-override-mncuj7"
             href="https://accordproject.org/privacy"
             rel="noopener noreferrer"
             style="color: rgba(255, 255, 255, 0.85);"
@@ -150,7 +147,7 @@ exports[`Footer > matches the snapshot 1`] = `
           </a>
            • 
           <a
-            class="ant-typography css-dev-only-do-not-override-17a39f8"
+            class="ant-typography css-dev-only-do-not-override-mncuj7"
             href="https://accordproject.org/brand-assets"
             rel="noopener noreferrer"
             style="color: rgba(255, 255, 255, 0.85);"
@@ -163,17 +160,16 @@ exports[`Footer > matches the snapshot 1`] = `
         </span>
       </div>
       <div
-        class="ant-col css-dev-only-do-not-override-17a39f8"
+        class="ant-col css-dev-only-do-not-override-mncuj7"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-17a39f8 ant-space-horizontal ant-space-align-center"
+          class="ant-space css-dev-only-do-not-override-mncuj7 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
-            style="margin-right: 8px;"
           >
             <a
-              class="ant-typography css-dev-only-do-not-override-17a39f8"
+              class="ant-typography css-dev-only-do-not-override-mncuj7"
               href="https://github.com/accordproject"
               rel="noopener noreferrer"
               style="color: rgba(255, 255, 255, 0.85);"
@@ -203,10 +199,9 @@ exports[`Footer > matches the snapshot 1`] = `
           </div>
           <div
             class="ant-space-item"
-            style="margin-right: 8px;"
           >
             <a
-              class="ant-typography css-dev-only-do-not-override-17a39f8"
+              class="ant-typography css-dev-only-do-not-override-mncuj7"
               href="https://twitter.com/AccordHQ"
               rel="noopener noreferrer"
               style="color: rgba(255, 255, 255, 0.85);"
@@ -237,10 +232,9 @@ exports[`Footer > matches the snapshot 1`] = `
           </div>
           <div
             class="ant-space-item"
-            style="margin-right: 8px;"
           >
             <a
-              class="ant-typography css-dev-only-do-not-override-17a39f8"
+              class="ant-typography css-dev-only-do-not-override-mncuj7"
               href="https://discord.com/invite/Zm99SKhhtA"
               rel="noopener noreferrer"
               style="color: rgba(255, 255, 255, 0.85);"
@@ -273,7 +267,7 @@ exports[`Footer > matches the snapshot 1`] = `
             class="ant-space-item"
           >
             <a
-              class="ant-typography css-dev-only-do-not-override-17a39f8"
+              class="ant-typography css-dev-only-do-not-override-mncuj7"
               href="https://www.linkedin.com/company/accordproject/"
               rel="noopener noreferrer"
               style="color: rgba(255, 255, 255, 0.85);"
