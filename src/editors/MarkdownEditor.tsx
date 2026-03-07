@@ -20,11 +20,13 @@ export default function MarkdownEditor({
   onEditorReady?: (editor: editor.IStandaloneCodeEditor) => void;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
-  const { backgroundColor, textColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
+  const { backgroundColor, textColor, aiConfig, showLineNumbers, editorFontSize, editorWordWrap } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     textColor: state.textColor,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
+    editorFontSize: state.editorFontSize,
+    editorWordWrap: state.editorWordWrap,
   }));
   const monaco = useMonaco();
 
@@ -58,9 +60,10 @@ export default function MarkdownEditor({
 
   const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },
-    wordWrap: "on" as const,
+    wordWrap: editorWordWrap ? "on" as const : "off" as const,
     automaticLayout: true,
     scrollBeyondLastLine: false,
+    fontSize: editorFontSize,
     lineNumbers: showLineNumbers ? 'on' : 'off',
     inlineSuggest: {
       enabled: aiConfig?.enableInlineSuggestions !== false,
@@ -78,7 +81,7 @@ export default function MarkdownEditor({
     acceptSuggestionOnCommitCharacter: false,
     acceptSuggestionOnEnter: "off",
     tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
+  }), [aiConfig?.enableInlineSuggestions, showLineNumbers, editorFontSize, editorWordWrap]);
 
   const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
     editorInstance.onDidChangeCursorSelection(() => {
