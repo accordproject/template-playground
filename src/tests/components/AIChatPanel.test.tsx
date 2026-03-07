@@ -1,9 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AIChatPanel } from '../../components/AIChatPanel';
 import { MemoryRouter } from 'react-router-dom';
 import type { ChatState, Message } from '../../types/components/AIAssistant.types';
+
+// Create a mutable mock state that can be updated in tests
+const mockStoreState = {
+  chatState: {
+    messages: [],
+    isLoading: false,
+    error: null,
+  } as ChatState,
+  resetChat: vi.fn(),
+  aiConfig: null,
+  setAIConfig: vi.fn(),
+  setAIConfigOpen: vi.fn(),
+  setAIChatOpen: vi.fn(),
+  textColor: '#121212',
+  backgroundColor: '#ffffff',
+  editorValue: '',
+  editorModelCto: '',
+  editorAgreementData: '',
+};
+
+// Mock the store at module level
+vi.mock('../../store/store', () => ({
+  default: vi.fn((selector) => selector(mockStoreState)),
+}));
 
 // Mock the chat relay module
 vi.mock('../../ai-assistant/chatRelay', () => ({
@@ -12,20 +36,18 @@ vi.mock('../../ai-assistant/chatRelay', () => ({
 }));
 
 // Mock window.matchMedia for responsive components
-beforeEach(() => {
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  });
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 });
 
 const createMockMessage = (
@@ -48,40 +70,21 @@ const renderAIChatPanel = () => {
 };
 
 describe('AIChatPanel', () => {
-  let mockStoreState: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Setup default mock store state
-    mockStoreState = {
-      chatState: {
-        messages: [],
-        isLoading: false,
-        error: null,
-      } as ChatState,
-      resetChat: vi.fn(),
-      aiConfig: null,
-      setAIConfig: vi.fn(),
-      setAIConfigOpen: vi.fn(),
-      setAIChatOpen: vi.fn(),
-      textColor: '#121212',
-      backgroundColor: '#ffffff',
-      editorValue: '',
-      editorModelCto: '',
-      editorAgreementData: '',
+    // Reset mock store state to defaults
+    mockStoreState.chatState = {
+      messages: [],
+      isLoading: false,
+      error: null,
     };
-
-    // Mock the store
-    vi.doMock('../../store/store', () => ({
-      default: vi.fn((selector) => selector(mockStoreState)),
-    }));
+    mockStoreState.aiConfig = null;
   });
 
   describe('Loading placeholder behavior', () => {
-    it('should render loading spinner when isLoading is true and last assistant message has empty/whitespace content', async () => {
+    it('should render loading spinner when isLoading is true and last assistant message has empty/whitespace content', () => {
       // Setup: Last message is assistant with whitespace-only content and loading state
-      const useAppStore = (await import('../../store/store')).default;
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'user', 'Hello'),
@@ -104,7 +107,7 @@ describe('AIChatPanel', () => {
       expect(statusElement).toHaveAttribute('aria-live', 'polite');
     });
 
-    it('should render message row even when content is empty during loading', async () => {
+    it('should render message row even when content is empty during loading', () => {
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'user', 'Hello'),
@@ -123,7 +126,7 @@ describe('AIChatPanel', () => {
       expect(screen.getByText('Thinking')).toBeInTheDocument();
     });
 
-    it('should filter out empty/whitespace messages when isLoading is false', async () => {
+    it('should filter out empty/whitespace messages when isLoading is false', () => {
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'user', 'First question'),
@@ -144,7 +147,7 @@ describe('AIChatPanel', () => {
       expect(screen.getByText('Actual response')).toBeInTheDocument();
     });
 
-    it('should not render loading spinner when isLoading is false', async () => {
+    it('should not render loading spinner when isLoading is false', () => {
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'user', 'Hello'),
@@ -161,7 +164,7 @@ describe('AIChatPanel', () => {
       expect(spinner).not.toBeInTheDocument();
     });
 
-    it('should only show spinner on the last assistant message during loading', async () => {
+    it('should only show spinner on the last assistant message during loading', () => {
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'user', 'First'),
@@ -182,7 +185,7 @@ describe('AIChatPanel', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have proper ARIA attributes on loading spinner container', async () => {
+    it('should have proper ARIA attributes on loading spinner container', () => {
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'user', 'Hello'),
@@ -199,7 +202,7 @@ describe('AIChatPanel', () => {
       expect(screen.getByText('Thinking')).toBeInTheDocument();
     });
 
-    it('should have aria-hidden and focusable attributes on SVG spinner', async () => {
+    it('should have aria-hidden and focusable attributes on SVG spinner', () => {
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'user', 'Hello'),
@@ -230,7 +233,7 @@ describe('AIChatPanel', () => {
       expect(screen.getByText('Hello! How can I help you today?')).toBeInTheDocument();
     });
 
-    it('should not render system messages', async () => {
+    it('should not render system messages', () => {
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'system', 'System instruction'),
@@ -246,7 +249,7 @@ describe('AIChatPanel', () => {
       expect(screen.getByText('User message')).toBeInTheDocument();
     });
 
-    it('should render user and assistant messages correctly', async () => {
+    it('should render user and assistant messages correctly', () => {
       mockStoreState.chatState = {
         messages: [
           createMockMessage('1', 'user', 'What is TemplateMark?'),
