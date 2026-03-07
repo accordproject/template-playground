@@ -19,6 +19,7 @@ interface AppState {
   data: string;
   editorAgreementData: string;
   agreementHtml: string;
+  agreementError: string | null;
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
@@ -179,6 +180,7 @@ const useAppStore = create<AppState>()(
         data: JSON.stringify(playground.DATA, null, 2),
         editorAgreementData: JSON.stringify(playground.DATA, null, 2),
         agreementHtml: "",
+        agreementError: null as string | null,
         isAIConfigOpen: false,
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
@@ -259,10 +261,16 @@ const useAppStore = create<AppState>()(
           const { templateMarkdown, modelCto, data } = get();
           try {
             const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({
+  agreementHtml: result,
+  agreementError: null,   // 👈 CLEAR ERROR
+  error: undefined,
+}));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
+              agreementError: formatError(error),  
+              agreementHtml: "", 
               isProblemPanelVisible: true,
             }));
           }
@@ -272,12 +280,18 @@ const useAppStore = create<AppState>()(
           const { modelCto, data } = get();
           try {
             const result = await rebuildDeBounce(template, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({
+  agreementHtml: result,
+  agreementError: null,   // 👈 CLEAR ERROR
+  error: undefined,
+}));
           } catch (error: unknown) {
             set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+  error: formatError(error),
+  agreementError: formatError(error),
+  agreementHtml: "",
+  isProblemPanelVisible: true,
+}));
           }
         },
         setEditorValue: (value: string) => {
@@ -288,12 +302,18 @@ const useAppStore = create<AppState>()(
           const { templateMarkdown, data } = get();
           try {
             const result = await rebuildDeBounce(templateMarkdown, model, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({
+  agreementHtml: result,
+  agreementError: null,   // 👈 CLEAR ERROR
+  error: undefined,
+}));
           } catch (error: unknown) {
             set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+  error: formatError(error),
+  agreementError: formatError(error),
+  agreementHtml: "",
+  isProblemPanelVisible: true,
+}));
           }
         },
         setEditorModelCto: (value: string) => {
@@ -307,12 +327,18 @@ const useAppStore = create<AppState>()(
               get().modelCto,
               data
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({
+  agreementHtml: result,
+  agreementError: null,   // 👈 CLEAR ERROR
+  error: undefined,
+}));
           } catch (error: unknown) {
             set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+  error: formatError(error),
+  agreementError: formatError(error),
+  agreementHtml: "",
+  isProblemPanelVisible: true,
+}));
           }
 
         },

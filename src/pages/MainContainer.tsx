@@ -17,12 +17,13 @@ import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md"
 import DOMPurify from "dompurify";
 
 const MainContainer = () => {
-  const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
   const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
+  const agreementHtml = useAppStore((state) => state.agreementHtml);
+const agreementError = useAppStore((state) => state.agreementError);
 
   const handleDownloadPdf = async () => {
     const element = downloadRef.current;
@@ -229,17 +230,34 @@ const MainContainer = () => {
                 </div>
                 <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor }}>
                   <div className="main-container-preview-text">
-                    <div
-                      ref={downloadRef}
-                      className="main-container-agreement"
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
-                      style={{
-                        color: textColor,
-                        backgroundColor: previewBackgroundColor,
-                        padding: "20px"
-                      }}
-                    />
-                  </div>
+  {agreementError ? (
+    <div
+      style={{
+        color: "#b91c1c",
+        backgroundColor: "#fee2e2",
+        padding: "20px",
+        borderRadius: "6px",
+        fontWeight: 500,
+        whiteSpace: "pre-wrap"
+      }}
+    >
+      ⚠️ {agreementError}
+    </div>
+  ) : (
+    <div
+      ref={downloadRef}
+      className="main-container-agreement"
+      dangerouslySetInnerHTML={{
+        __html: DOMPurify.sanitize(agreementHtml || "")
+      }}
+      style={{
+        color: textColor,
+        backgroundColor: previewBackgroundColor,
+        padding: "20px"
+      }}
+    />
+  )}
+</div>
                 </div>
               </div>
             </Panel>
