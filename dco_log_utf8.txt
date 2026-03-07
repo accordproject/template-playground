@@ -1,0 +1,84 @@
+﻿c10cf29 | kartik <kartikrautan0@gmail.com> | Merge branch 'differentLanguageSupport' of https://github.com/kartikrautan/template-playground into differentLanguageSupport | Signed-off-by: kartik <kartikrautan0@gmail.com>
+
+d6199d2 | kartik <kartikrautan0@gmail.com> | Updation on copilot reviews | 
+9a71e91 | Kartik Rautan <kartikrautan0@gmail.com> | Merge branch 'main' into differentLanguageSupport | 
+76717a7 | Harshit Kumar <10harshitkumar@gmail.com> | feat: Implement Error Boundary for better error handling (#734) | * feat: add ErrorBoundary to prevent app crashes
+
+Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
+
+* refactor: address code review feedback
+
+- Add type='button' to prevent unintended form submission
+- Hide error details in production for security (only show in dev mode)
+
+Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
+
+* test(ErrorBoundary): add comprehensive test coverage for error boundary component
+
+Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
+
+* feat(ErrorBoundary): add theme-aware colors and component stack to error details
+
+Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
+
+* fix(ErrorBoundary): address Copilot review suggestions for test quality
+
+- Add showDevDetails prop for testable dev mode control
+
+- Fix window.location.reload mock to avoid test pollution
+
+- Correct dark mode color to #121212 (matches store)
+
+- Remove import.meta.env.DEV mutations (read-only property)
+
+Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
+
+* fix(ErrorBoundary): resolve TypeScript error in test
+
+Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
+
+* fix(ErrorBoundary): implement 3 additional Copilot suggestions
+
+- Properly type consoleErrorSpy as MockInstance (no eslint-disable)
+
+- Add async/await for component stack test to handle state update timing
+
+- Capture and restore Zustand state in theme test to prevent order-dependency
+
+Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
+
+---------
+
+Signed-off-by: Harshit Kumar <10harshitkumar@gmail.com>
+Co-authored-by: Matt Roberts <7544022+mttrbrts@users.noreply.github.com>
+7b51f8a | kartik <kartikrautan0@gmail.com> | Merge remote-tracking branch 'upstream/main' into differentLanguageSupport | Signed-off-by: kartik <kartikrautan0@gmail.com>
+
+# Conflicts:
+#	package-lock.json
+
+b8ead94 | kartik <kartikrautan0@gmail.com> | Different Language Support | Signed-off-by: kartik <kartikrautan0@gmail.com>
+
+cb2e662 | Vaggelis Argyropoulos <69078031+Vaggelis-Arg@users.noreply.github.com> | fix(AIConfigPopup): UX: validate model selection and allow API key visibility (#744) | Signed-off-by: Evangelos Argyropoulos <vag.argyropoulos@gmail.com>
+1272f54 | Majoju Vaishnavi <majojuvaishnavi@gmail.com> | feat(playground): improve default agreement sample (#702) | * feat(playground): improve default agreement sample to better reflect legal use case
+
+Signed-off-by: Vaishnavi <majojuvaishnavi@gmail.com>
+
+* Update Service Agreement template
+
+Signed-off-by: Vaishnavi <majojuvaishnavi@gmail.com>
+
+---------
+
+Signed-off-by: Vaishnavi <majojuvaishnavi@gmail.com>
+Co-authored-by: Matt Roberts <7544022+mttrbrts@users.noreply.github.com>
+ddf33c2 | Kartik Rautan <kartikrautan0@gmail.com> | fix: Replace plaintext API key storage with hardware-backed WebAuthn PRF + AES-GCM encryption (#762) | * Replaced plaintext storage with WebAuthn PRF encryption
+
+Signed-off-by: kartik <kartikrautan0@gmail.com>
+
+* Updation on copilot reviews
+
+Signed-off-by: kartik <kartikrautan0@gmail.com>
+
+---------
+
+Signed-off-by: kartik <kartikrautan0@gmail.com>

@@ -48,7 +48,7 @@ exports[`Footer > matches the snapshot 1`] = `
               class="ant-typography css-dev-only-do-not-override-17a39f8"
               style="color: rgba(255, 255, 255, 0.65);"
             >
-              footer.tagline
+              The open-source smart legal contract stack
             </span>
           </div>
           <div
@@ -84,7 +84,7 @@ exports[`Footer > matches the snapshot 1`] = `
                 type="button"
               >
                 <span>
-                  footer.join
+                  Join
                 </span>
               </button>
             </a>
@@ -120,7 +120,7 @@ exports[`Footer > matches the snapshot 1`] = `
             </svg>
           </span>
           <span>
-             footer.otherLinks
+             Other Links
           </span>
         </button>
       </div>
@@ -136,7 +136,7 @@ exports[`Footer > matches the snapshot 1`] = `
           class="ant-typography css-dev-only-do-not-override-17a39f8"
           style="color: rgba(255, 255, 255, 0.85);"
         >
-          footer.copyright © 2026 accord project • 
+          copyright © 2026 accord project • 
           <a
             class="ant-typography css-dev-only-do-not-override-17a39f8"
             href="https://accordproject.org/privacy"
@@ -145,7 +145,7 @@ exports[`Footer > matches the snapshot 1`] = `
             target="_blank"
           >
             <strong>
-              footer.trademarkPolicy
+              trademark policy
             </strong>
           </a>
            • 
@@ -157,7 +157,7 @@ exports[`Footer > matches the snapshot 1`] = `
             target="_blank"
           >
             <strong>
-              footer.brandAssets
+              brand assets
             </strong>
           </a>
         </span>

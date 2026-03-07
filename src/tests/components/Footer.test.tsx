@@ -2,10 +2,7 @@ import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeAll } from "vitest";
 import Footer from "../../components/Footer";
 
-vi.mock('react-i18next', async () => {
-  const { reactI18nextMock } = await import("../../utils/testing/i18nMock");
-  return reactI18nextMock;
-});
+
 
 vi.mock("../../public/logo.png", () => ({
   default: "logo.png",

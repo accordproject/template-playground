@@ -213,7 +213,8 @@ function Navbar() {
     void i18n.changeLanguage(lng);
   };
 
-  const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
+  const currentLanguageCode = i18n.resolvedLanguage || (i18n.language ? i18n.language.split('-')[0] : 'en');
+  const currentLang = LANGUAGES.find(l => l.code === currentLanguageCode) || LANGUAGES[0];
 
   const props = useSpring({
     loop: true,
@@ -231,7 +232,7 @@ function Navbar() {
         <MenuItem
           key={lang.code}
           onClick={() => changeLanguage(lang.code)}
-          className={i18n.language === lang.code ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : ''}
+          className={currentLanguageCode === lang.code ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : ''}
         >
           <span>{lang.flag}</span>
           <span>{lang.label}</span>

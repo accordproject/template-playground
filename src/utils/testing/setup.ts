@@ -1,4 +1,4 @@
-import { expect, afterEach } from "vitest";
+import { expect, afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import * as matchers from "@testing-library/jest-dom/matchers";
 
@@ -60,32 +60,57 @@ HTMLCanvasElement.prototype.getContext = ((originalGetContext) => {
     if (contextId === '2d') {
       return {
         fillStyle: '',
-        fillRect: () => {},
-        clearRect: () => {},
+        fillRect: () => { },
+        clearRect: () => { },
         getImageData: () => ({ data: [] }),
-        putImageData: () => {},
+        putImageData: () => { },
         createImageData: () => ({ data: [] }),
-        setTransform: () => {},
-        drawImage: () => {},
-        save: () => {},
-        restore: () => {},
-        beginPath: () => {},
-        moveTo: () => {},
-        lineTo: () => {},
-        closePath: () => {},
-        stroke: () => {},
-        fill: () => {},
-        translate: () => {},
-        scale: () => {},
-        rotate: () => {},
-        arc: () => {},
+        setTransform: () => { },
+        drawImage: () => { },
+        save: () => { },
+        restore: () => { },
+        beginPath: () => { },
+        moveTo: () => { },
+        lineTo: () => { },
+        closePath: () => { },
+        stroke: () => { },
+        fill: () => { },
+        translate: () => { },
+        scale: () => { },
+        rotate: () => { },
+        arc: () => { },
         measureText: () => ({ width: 0 }),
-        transform: () => {},
-        rect: () => {},
-        clip: () => {},
+        transform: () => { },
+        rect: () => { },
+        clip: () => { },
         canvas: this,
       } as unknown as CanvasRenderingContext2D;
     }
     return originalGetContext.call(this, contextId as any, options);
   };
 })(HTMLCanvasElement.prototype.getContext);
+
+// Global mock for react-i18next
+export const mockChangeLanguage = vi.fn();
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-i18next')>();
+  const enTranslations = await import("../../locales/en/translation.json");
+
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((acc: any, part: string) => acc && acc[part], obj);
+  };
+
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => getNestedValue(enTranslations.default || enTranslations, key) || key,
+      i18n: {
+        get language() {
+          return localStorage.getItem("i18nextLng") || "en";
+        },
+        changeLanguage: mockChangeLanguage,
+      },
+    }),
+  };
+});

@@ -2,33 +2,9 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Navbar from "../../components/Navbar";
 import { MemoryRouter } from "react-router-dom";
-import { vi, describe, it, expect, afterEach } from "vitest";
-import { mockChangeLanguage } from "../../utils/testing/i18nMock";
+import { describe, it, expect, afterEach } from "vitest";
 
-vi.mock("react-i18next", async () => {
-  const { reactI18nextMock } = await import("../../utils/testing/i18nMock");
-  return {
-    useTranslation: () => ({
-      t: (key: string) => {
-        const map: Record<string, string> = {
-          "navbar.templatePlayground": "Template Playground",
-          "navbar.github": "GitHub",
-          "navbar.help": "Help",
-          "navbar.learn": "Learn Now",
-          "navbar.discord": "Discord",
-          "navbar.about": "About",
-          "navbar.community": "Community",
-          "navbar.issues": "Issues",
-          "navbar.documentation": "Documentation",
-          "navbar.info": "Info",
-          "navbar.language": "Language",
-        };
-        return map[key] || key;
-      },
-      i18n: reactI18nextMock.useTranslation().i18n,
-    }),
-  };
-});
+import { mockChangeLanguage } from "../../utils/testing/setup";
 
 const renderNavbar = () => {
   render(
