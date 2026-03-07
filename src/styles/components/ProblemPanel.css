@@ -1,9 +1,9 @@
 .problem-panel-container {
-  @apply h-full flex flex-col border border-gray-200;
+  @apply h-full w-full min-h-full flex flex-col border border-gray-200;
 }
 
 .problem-panel-header {
-  @apply flex items-center px-4 py-2 border-b border-gray-200;
+  @apply flex items-center px-4 py-2 border-b border-gray-200 flex-shrink-0;
 }
 
 .problem-panel-header-light {
@@ -19,11 +19,19 @@
 }
 
 .problem-panel-content {
-  @apply flex-1 overflow-y-auto;
+  @apply flex-1 overflow-y-auto min-h-0;
+}
+
+.problem-panel-content-light {
+  @apply bg-white;
+}
+
+.problem-panel-content-dark {
+  @apply bg-gray-800;
 }
 
 .problem-panel-empty-state {
-  @apply flex flex-col items-center justify-center h-full text-gray-500;
+  @apply flex flex-col items-center justify-center h-full min-h-full text-gray-500;
 }
 
 .problem-panel-empty-state-content {
@@ -39,7 +47,15 @@
 }
 
 .problem-panel-problems-list {
-  @apply divide-y divide-gray-100;
+  @apply divide-y divide-gray-100 h-full;
+}
+
+.problem-panel-problems-list-light {
+  @apply bg-white;
+}
+
+.problem-panel-problems-list-dark {
+  @apply bg-gray-800;
 }
 
 .problem-panel-problem-item {
@@ -51,7 +67,7 @@
 }
 
 .problem-panel-problem-item-dark {
-  @apply bg-gray-800 hover:bg-gray-700;
+  @apply bg-gray-800;
 }
 
 .problem-panel-problem-item-error {
@@ -83,7 +99,19 @@
 }
 
 .problem-panel-problem-type-badge {
-  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border;
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold;
+}
+
+.problem-panel-problem-item-error .problem-panel-problem-type-badge {
+  @apply bg-red-100 text-red-700 border border-red-300;
+}
+
+.problem-panel-problem-item-warning .problem-panel-problem-type-badge {
+  @apply bg-amber-100 text-amber-700 border border-amber-300;
+}
+
+.problem-panel-problem-item-info .problem-panel-problem-type-badge {
+  @apply bg-blue-100 text-blue-700 border border-blue-300;
 }
 
 .problem-panel-problem-source {

@@ -203,7 +203,9 @@ const MainContainer = () => {
                     <>
                       <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
                       <Panel defaultSize={25} minSize={15}>
-                        <ProblemPanel />
+                        <div className={`h-full w-full ${backgroundColor === '#ffffff' ? 'bg-white' : 'bg-gray-800'}`}>
+                          <ProblemPanel />
+                        </div>
                       </Panel>
                     </>
                   )}
