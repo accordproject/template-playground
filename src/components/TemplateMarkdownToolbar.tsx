@@ -1,15 +1,23 @@
 import { LuHeading1, LuHeading2, LuHeading3 } from "react-icons/lu";
-import { FaBold, FaItalic, FaLink, FaImage, FaListUl, FaListOl } from "react-icons/fa";
+import {
+  FaBold,
+  FaItalic,
+  FaLink,
+  FaImage,
+  FaListUl,
+  FaListOl,
+} from "react-icons/fa";
 import { useMarkdownEditorContext } from "../contexts/MarkdownEditorContext";
 
 export const TemplateMarkdownToolbar = () => {
   const { commands: markdownEditorCommands } = useMarkdownEditorContext();
+  const buttonClassName = "markdown-toolbar-button border-none bg-transparent";
 
   return (
     <div className="markdown-toolbar">
       <button
         type="button"
-        className="markdown-toolbar-button border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.toggleHeading1?.()}
         title="Heading 1"
         aria-label="Heading 1"
@@ -18,7 +26,7 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="markdown-toolbar-button border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.toggleHeading2?.()}
         title="Heading 2"
         aria-label="Heading 2"
@@ -27,7 +35,7 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="markdown-toolbar-button border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.toggleHeading3?.()}
         title="Heading 3"
         aria-label="Heading 3"
@@ -36,7 +44,7 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="markdown-toolbar-button border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.toggleBold?.()}
         title="Bold"
         aria-label="Bold"
@@ -45,7 +53,7 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.toggleItalic?.()}
         title="Italic"
         aria-label="Italic"
@@ -54,7 +62,7 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.toggleUnorderedList?.()}
         title="Unordered list"
         aria-label="Unordered list"
@@ -63,7 +71,7 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.toggleOrderedList?.()}
         title="Ordered list"
         aria-label="Ordered list"
@@ -72,7 +80,7 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.insertLink?.()}
         title="Insert link"
         aria-label="Insert link"
@@ -81,7 +89,7 @@ export const TemplateMarkdownToolbar = () => {
       </button>
       <button
         type="button"
-        className="border-none bg-transparent hover:bg-slate-200"
+        className={buttonClassName}
         onClick={() => markdownEditorCommands?.insertImage?.()}
         title="Insert image"
         aria-label="Insert image"
@@ -91,5 +99,3 @@ export const TemplateMarkdownToolbar = () => {
     </div>
   );
 };
-
-
