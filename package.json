@@ -22,7 +22,7 @@
     "@accordproject/markdown-common": "^0.17.2",
     "@accordproject/markdown-template": "^0.17.2",
     "@accordproject/markdown-transform": "^0.17.2",
-    "@accordproject/template-engine": "^2.7.1",
+    "@accordproject/template-engine": "^2.8.0",
     "@ant-design/icons": "^5.3.7",
     "@anthropic-ai/sdk": "^0.56.0",
     "@google/genai": "^1.8.0",
