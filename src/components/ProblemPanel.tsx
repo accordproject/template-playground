@@ -110,7 +110,7 @@ const ProblemPanel: React.FC = () => {
                   <div className="problem-panel-problem-details">
                     <div className="problem-panel-problem-meta">
                       <div className="problem-panel-problem-tags">
-                        <span className="problem-panel-problem-type-badge">
+                        <span className="problem-panel-problem-type-badge" style={{ color: textColor }}>
                           {problem.type.toUpperCase()}
                         </span>
                         {problem.source && (
