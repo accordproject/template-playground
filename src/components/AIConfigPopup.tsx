@@ -130,7 +130,6 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 
   useEffect(() => {
 	setAvailableModels([]);
-	setModel('');
     if (!provider || !debouncedApiKey) return;
 
     const controller = new AbortController();
@@ -159,28 +158,36 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			}
 
 			const data = await res.json();
-			if (!signal.aborted) setAvailableModels(data.data?.map((m: any) => m.id) || []);
+			if (!signal.aborted) {
+			  let models = data.data?.map((m: any) => m.id) || []
+			  setAvailableModels(models);
+			  setModel(prev => models.includes(prev) ? prev : '');
+			}
 			break;
 
           case 'anthropic':
-            if (!apiKey) return;
-            {
-              const res = await fetch('https://api.anthropic.com/v1/models', {
-                headers: {
-                  'x-api-key': apiKey,
-                  'anthropic-version': '2023-06-01',
-                  'content-type': 'application/json',
-                },
-                signal,
-              });
+			if (!apiKey) return;
+			{
+			  const res = await fetch('https://api.anthropic.com/v1/models', {
+			    headers: {
+				  'x-api-key': apiKey,
+				  'anthropic-version': '2023-06-01',
+				  'anthropic-dangerous-direct-browser-access': 'true',
+				},
+				signal,
+			  });
 			  if (!res.ok) {
 				console.error(`Fetch error (${res.status}): ${res.statusText}`);
 				return;
 			  }
-              const data = await res.json();
-              if (!signal.aborted) setAvailableModels(data.models?.map((m: any) => m.name) || []);
-            }
-            break;
+			  const data = await res.json();
+			  if (!signal.aborted) {
+				let models = data.data?.map((m: any) => m.id) || [];
+				setAvailableModels(models);
+			  	setModel(prev => models.includes(prev) ? prev : '');
+			  }
+			}
+			break;
 
           case 'google':
             if (!apiKey) return;
@@ -194,7 +201,11 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 				return;
 			  }
               const data = await res.json();
-              if (!signal.aborted) setAvailableModels(data.models?.map((m: any) => m.name) || []);
+              if (!signal.aborted) {
+				let models = data.models?.map((m: any) => m.name) || [];
+				setAvailableModels(models);
+				setModel(prev => models.includes(prev) ? prev : '');
+			  }
             }
             break;
 
@@ -210,7 +221,11 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 				return;
 			  }
               const data = await res.json();
-              if (!signal.aborted) setAvailableModels(data.models?.map((m: any) => m.name) || []);
+              if (!signal.aborted) {
+				let models = data.models?.map((m: any) => m.id) || [];
+				setAvailableModels(models);
+				setModel(prev => models.includes(prev) ? prev : '');
+			  }
             }
             break;
 
@@ -222,7 +237,11 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 				return;
 			  }
 			  const data = await res.json();
-			  if (!signal.aborted) setAvailableModels(data.models?.map((m: any) => m.name || m.model) || []);
+			  if (!signal.aborted) {
+				let models = data.models?.map((m: any) => m.name || m.model) || [];
+				setAvailableModels(models);
+				setModel(prev => models.includes(prev) ? prev : '');
+			  }
 			}
 			break;
 
@@ -238,7 +257,11 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 				return;
 			  }
               const data = await res.json();
-              if (!signal.aborted) setAvailableModels(data.models?.map((m: any) => m.name) || []);
+              if (!signal.aborted) {
+				let models = data.data?.map((m: any) => m.id) || [];
+				setAvailableModels(models);
+				setModel(prev => models.includes(prev) ? prev : '');
+			  }
             }
             break;
 
@@ -259,6 +282,12 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
       controller.abort();
     };
   }, [provider, debouncedApiKey, customEndpoint]);
+
+  useEffect(() => {
+    if (availableModels.length > 0 && model && !availableModels.includes(model)) {
+      setModel('');
+    }
+  }, [model, availableModels]);
 
   const handleSave = async () => {
     localStorage.setItem('aiProvider', provider);
