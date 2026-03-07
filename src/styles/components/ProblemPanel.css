@@ -26,14 +26,6 @@
   @apply flex flex-col items-center justify-center h-full text-gray-500;
 }
 
-.problem-panel-empty-state-content {
-  @apply text-center;
-}
-
-.problem-panel-empty-state-icon {
-  @apply text-2xl mb-2;
-}
-
 .problem-panel-empty-state-text {
   @apply text-sm;
 }
