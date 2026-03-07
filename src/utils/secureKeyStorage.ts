@@ -168,7 +168,7 @@ export async function deriveEncryptionKey(
         throw new Error('PRF extension did not return results. Authentication failed.');
     }
 
-    const ikm = prfResults.first as ArrayBuffer;
+    const ikm = prfResults.first ;
 
     // Import the PRF output as raw key material for HKDF
     const hkdfKey = await crypto.subtle.importKey(
@@ -210,14 +210,14 @@ export async function encryptApiKey(
     const encoded = new TextEncoder().encode(apiKey);
 
     const ciphertext = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: iv.buffer as ArrayBuffer },
+        { name: 'AES-GCM', iv: iv.buffer  },
         encryptionKey,
         encoded
     );
 
     return {
         ciphertext: arrayBufferToBase64Url(ciphertext),
-        iv: arrayBufferToBase64Url(iv.buffer as ArrayBuffer),
+        iv: arrayBufferToBase64Url(iv.buffer ),
     };
 }
 
@@ -311,7 +311,7 @@ export async function encryptAndStoreApiKey(apiKey: string): Promise<boolean> {
             credentialId,
             ciphertext,
             iv,
-            salt: arrayBufferToBase64Url(salt.buffer as ArrayBuffer),
+            salt: arrayBufferToBase64Url(salt.buffer ),
         });
 
         return true;

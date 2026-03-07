@@ -1,0 +1,51 @@
+
+> template_playground@0.0.0 test:e2e
+> playwright test
+
+[1A[2K[2m[WebServer] [22m[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+
+Running 17 tests using 8 workers
+
+[1A[2K[1/17] [chromium] › e2e/navigation.spec.ts:4:7 › Navigation › should navigate to Learn page
+[1A[2K[2/17] [chromium] › e2e/app.spec.ts:4:7 › App Loading › should load the app and display main components
+[1A[2K[3/17] [chromium] › e2e/app.spec.ts:46:7 › Dark Mode › should toggle dark mode via Settings modal
+[1A[2K[4/17] [chromium] › e2e/app.spec.ts:29:7 › App Loading › should display Preview panel with content
+[1A[2K[5/17] [chromium] › e2e/app.spec.ts:19:7 › App Loading › should display editor panels
+[1A[2K[6/17] [chromium] › e2e/navigation.spec.ts:53:7 › Navigation › should have external links in navbar
+[1A[2K[7/17] [chromium] › e2e/navigation.spec.ts:20:7 › Navigation › should navigate back to playground from Learn page
+[1A[2K[8/17] [chromium] › e2e/navigation.spec.ts:35:7 › Navigation › should have Help dropdown menu
+[1A[2K[9/17] [chromium] › e2e/share.spec.ts:9:7 › Share Functionality › should have Share button in sidebar
+[1A[2K[10/17] [chromium] › e2e/share.spec.ts:14:7 › Share Functionality › should copy shareable link to clipboard on Share click
+[1A[2K[11/17] [chromium] › e2e/share.spec.ts:34:7 › Share Functionality › should load template from shared URL
+[1A[2K[12/17] [chromium] › e2e/share.spec.ts:83:7 › Share Functionality › should have Start Tour button
+[1A[2K[13/17] [chromium] › e2e/share.spec.ts:88:7 › Share Functionality › should have Settings button
+[1A[2K[14/17] [chromium] › e2e/template-workflow.spec.ts:9:7 › Template Workflow › should have sample dropdown and change templates
+[1A[2K[15/17] [chromium] › e2e/template-workflow.spec.ts:30:7 › Template Workflow › should collapse and expand editor panels
+[1A[2K[16/17] [chromium] › e2e/template-workflow.spec.ts:42:7 › Template Workflow › should toggle Editor panel visibility
+[1A[2K[17/17] [chromium] › e2e/template-workflow.spec.ts:63:7 › Template Workflow › should toggle Preview panel visibility
+[1A[2K  1) [chromium] › e2e/share.spec.ts:34:7 › Share Functionality › should load template from shared URL 
+
+    Error: Shareable link should be a non-empty string
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31m""[39m
+
+      51 |
+      52 |     // Validate that we got a non-empty string
+    > 53 |     expect(shareableLink, 'Shareable link should be a non-empty string').toBeTruthy();
+         |                                                                          ^
+      54 |     expect(typeof shareableLink, 'Shareable link should be a string').toBe('string');
+      55 |
+      56 |     // Parse URL with validation
+        at /home/beerus1206/Documents/code/githubrepo/template-playground/e2e/share.spec.ts:53:74
+
+    Error Context: test-results/share-Share-Functionality--d6b00-ad-template-from-shared-URL-chromium/error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] › e2e/share.spec.ts:34:7 › Share Functionality › should load template from shared URL 
+  16 passed (37.0s)
+
+[36m  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.[39m

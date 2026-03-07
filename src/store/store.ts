@@ -28,6 +28,7 @@ interface AppState {
   textColor: string;
   chatState: ChatState;
   aiConfig: AIConfig | null;
+  keyProtectionLevel: KeyProtectionLevel;
   chatAbortController: AbortController | null;
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
@@ -46,6 +47,7 @@ interface AppState {
   setChatState: (state: ChatState) => void;
   updateChatState: (partial: Partial<ChatState>) => void;
   setAIConfig: (config: AIConfig | null) => void;
+  setKeyProtectionLevel: (level: KeyProtectionLevel) => void;
   setChatAbortController: (controller: AbortController | null) => void;
   resetChat: () => void;
   isEditorsVisible: boolean;
@@ -65,8 +67,8 @@ interface AppState {
   setShowLineNumbers: (value: boolean) => void;
   isSettingsOpen: boolean;
   setSettingsOpen: (value: boolean) => void;
-  keyProtectionLevel: KeyProtectionLevel | null;
-  setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
+  isShareModalOpen: boolean;
+  setShareModalOpen: (value: boolean) => void;
 }
 
 export interface DecompressedData {
@@ -189,6 +191,7 @@ const useAppStore = create<AppState>()(
           error: null,
         },
         aiConfig: null,
+        keyProtectionLevel: 'legacy-plaintext',
         chatAbortController: null,
         isEditorsVisible: initialPanels.isEditorsVisible,
         isPreviewVisible: initialPanels.isPreviewVisible,
@@ -198,7 +201,7 @@ const useAppStore = create<AppState>()(
         isDataCollapsed: false,
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
-        keyProtectionLevel: null,
+        isShareModalOpen: false,
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
         toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
@@ -209,6 +212,8 @@ const useAppStore = create<AppState>()(
           set({ showLineNumbers: value });
         },
         setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
+        setShareModalOpen: (value: boolean) => set({ isShareModalOpen: value }),
+        setKeyProtectionLevel: (value: KeyProtectionLevel) => set({ keyProtectionLevel: value }),
         setEditorsVisible: (value) => {
           const state = get();
           if (!value && !state.isPreviewVisible) {
@@ -385,7 +390,6 @@ const useAppStore = create<AppState>()(
         })),
         setAIConfig: (config) => set({ aiConfig: config }),
         setChatAbortController: (controller) => set({ chatAbortController: controller }),
-        setKeyProtectionLevel: (level) => set({ keyProtectionLevel: level }),
         resetChat: () => {
           const { chatAbortController } = get();
           if (chatAbortController) {

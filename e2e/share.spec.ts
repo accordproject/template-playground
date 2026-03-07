@@ -18,12 +18,19 @@ test.describe('Share Functionality', () => {
     const shareButton = page.getByRole('button', { name: 'Share' });
     await shareButton.click();
 
+    // Click the Copy button inside the Share Modal
+    const copyButton = page.getByRole('dialog').getByRole('button', { name: /Copy/i });
+    await expect(copyButton).toBeVisible();
+    await copyButton.click();
+
     // Should show success message
     await expect(page.getByText('Link copied to clipboard')).toBeVisible({ timeout: 5000 });
 
-    // Verify clipboard contains the link with data parameter
-    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clipboardText).toContain('data=');
+    // Verify input contains the link with data parameter
+    const inputLocator = page.getByRole('dialog').locator('input[type="text"]');
+    await expect(inputLocator).toBeVisible();
+    const inputValue = await inputLocator.inputValue();
+    expect(inputValue).toContain('data=');
   });
 
   test('should load template from shared URL', async ({ page }) => {
@@ -33,12 +40,19 @@ test.describe('Share Functionality', () => {
     const shareButton = page.getByRole('button', { name: 'Share' });
     await shareButton.click();
 
+    // Click the Copy button inside the Share Modal
+    const copyButton = page.getByRole('dialog').getByRole('button', { name: /Copy/i });
+    await expect(copyButton).toBeVisible();
+    await copyButton.click();
+
     // Wait for clipboard to be populated
     await expect(page.getByText('Link copied to clipboard')).toBeVisible({ timeout: 5000 });
 
-    // Get the shareable link from clipboard
-    const shareableLink = await page.evaluate(() => navigator.clipboard.readText());
-    
+    // Get the shareable link from the modal input directly to avoid clipboard flakiness
+    const inputLocator = page.getByRole('dialog').locator('input[type="text"]');
+    await expect(inputLocator).toBeVisible();
+    const shareableLink = await inputLocator.inputValue();
+
     // Validate that we got a non-empty string
     expect(shareableLink, 'Shareable link should be a non-empty string').toBeTruthy();
     expect(typeof shareableLink, 'Shareable link should be a string').toBe('string');

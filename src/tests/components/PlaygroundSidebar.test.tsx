@@ -15,6 +15,7 @@ vi.mock("../../store/store", () => ({
         setProblemPanelVisible: vi.fn(),
         setAIChatOpen: vi.fn(),
         setSettingsOpen: vi.fn(),
+        setShareModalOpen: vi.fn(),
         generateShareableLink: vi.fn(() => "https://example.com"),
     }),
 }));
@@ -32,6 +33,11 @@ vi.mock("../../components/FullScreenModal", () => ({
 // Mock SettingsModal
 vi.mock("../../components/SettingsModal", () => ({
     default: () => <div data-testid="settings-modal">Settings</div>,
+}));
+
+// Mock ShareModal
+vi.mock("../../components/ShareModal", () => ({
+    default: () => <div data-testid="share-modal">Share Modal</div>,
 }));
 
 const renderSidebar = () => {
@@ -65,5 +71,10 @@ describe("PlaygroundSidebar", () => {
     it("renders FullScreen modal component", () => {
         renderSidebar();
         expect(screen.getByTestId("fullscreen-modal")).toBeInTheDocument();
+    });
+
+    it("renders Share modal component", () => {
+        renderSidebar();
+        expect(screen.getByTestId("share-modal")).toBeInTheDocument();
     });
 });

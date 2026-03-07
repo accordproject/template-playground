@@ -8,11 +8,12 @@ import useAppStore from "../store/store";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
 import SettingsModal from "./SettingsModal";
+import ShareModal from "./ShareModal";
 import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
 const PlaygroundSidebar = () => {
-  const { 
+  const {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
@@ -21,7 +22,7 @@ const PlaygroundSidebar = () => {
     setPreviewVisible,
     setProblemPanelVisible,
     setAIChatOpen,
-    generateShareableLink,
+    setShareModalOpen,
     setSettingsOpen,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
@@ -32,19 +33,12 @@ const PlaygroundSidebar = () => {
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
-    generateShareableLink: state.generateShareableLink,
+    setShareModalOpen: state.setShareModalOpen,
     setSettingsOpen: state.setSettingsOpen,
   }));
 
-  const handleShare = async () => {
-    try {
-      const link = generateShareableLink();
-      await navigator.clipboard.writeText(link);
-      void message.success('Link copied to clipboard!');
-    } catch (err) {
-      console.error('Error copying to clipboard:', err);
-      void message.error('Failed to copy link to clipboard');
-    }
+  const handleShare = () => {
+    setShareModalOpen(true);
   };
 
   const handleSettings = () => {
@@ -85,20 +79,20 @@ const PlaygroundSidebar = () => {
   }
 
   const navTop: NavItem[] = [
-    { 
-      title: "Editor", 
-      icon: IoCodeSlash, 
+    {
+      title: "Editor",
+      icon: IoCodeSlash,
       onClick: handleEditorToggle,
       active: isEditorsVisible
     },
-    { 
-      title: "Preview", 
+    {
+      title: "Preview",
       icon: VscOutput,
       onClick: handlePreviewToggle,
       active: isPreviewVisible
     },
-    { 
-      title: "Problems", 
+    {
+      title: "Problems",
       icon: FiTerminal,
       onClick: () => setProblemPanelVisible(!isProblemPanelVisible),
       active: isProblemPanelVisible
@@ -123,8 +117,8 @@ const PlaygroundSidebar = () => {
       onClick: () => setAIChatOpen(!isAIChatOpen),
       active: isAIChatOpen
     },
-    { 
-      title: "Fullscreen", 
+    {
+      title: "Fullscreen",
       component: <FullScreenModal />
     },
   ];
@@ -136,18 +130,18 @@ const PlaygroundSidebar = () => {
   }
 
   const navBottom: NavBottomItem[] = [
-    { 
-      title: "Share", 
+    {
+      title: "Share",
       icon: FiShare2,
-      onClick: () => void handleShare()
+      onClick: handleShare
     },
-    { 
-      title: "Start Tour", 
+    {
+      title: "Start Tour",
       icon: FaCirclePlay,
       onClick: () => void handleStartTour()
     },
-    { 
-      title: "Settings", 
+    {
+      title: "Settings",
       icon: FiSettings,
       onClick: handleSettings
     },
@@ -158,24 +152,23 @@ const PlaygroundSidebar = () => {
       <nav className="playground-sidebar-nav">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={title} placement="right">
-          <div
-            role="button"
-            aria-label={title}
-            tabIndex={0}
-            onClick={onClick}
-            className={`group playground-sidebar-nav-item ${
-              active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
-            } tour-${title.toLowerCase().replace(' ', '-')}`}
-          >
-            {component ? (
-              <div className="playground-sidebar-nav-item-icon-container">
-                {component}
-              </div>
-            ) : Icon ? (
-              <Icon size={20} />
-            ) : null}
-            <span className="playground-sidebar-nav-item-title">{title}</span>
-          </div>
+            <div
+              role="button"
+              aria-label={title}
+              tabIndex={0}
+              onClick={onClick}
+              className={`group playground-sidebar-nav-item ${active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
+                } tour-${title.toLowerCase().replace(' ', '-')}`}
+            >
+              {component ? (
+                <div className="playground-sidebar-nav-item-icon-container">
+                  {component}
+                </div>
+              ) : Icon ? (
+                <Icon size={20} />
+              ) : null}
+              <span className="playground-sidebar-nav-item-title">{title}</span>
+            </div>
           </Tooltip>
         ))}
       </nav>
@@ -183,21 +176,22 @@ const PlaygroundSidebar = () => {
       <nav className="playground-sidebar-nav-bottom">
         {navBottom.map(({ title, icon: Icon, onClick }) => (
           <Tooltip key={title} title={title} placement="right">
-          <div
-            role="button"
-            aria-label={title}
-            tabIndex={0}
-            onClick={onClick}
-            className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
-          >
-            <Icon size={18} />
-            <span className="playground-sidebar-nav-item-title">{title}</span>
-          </div>
+            <div
+              role="button"
+              aria-label={title}
+              tabIndex={0}
+              onClick={onClick}
+              className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
+            >
+              <Icon size={18} />
+              <span className="playground-sidebar-nav-item-title">{title}</span>
+            </div>
           </Tooltip>
         ))}
       </nav>
     </aside>,
-    <SettingsModal key="settings-modal" />
+    <SettingsModal key="settings-modal" />,
+    <ShareModal key="share-modal" />
   ];
 };
 

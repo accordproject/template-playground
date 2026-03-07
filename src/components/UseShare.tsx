@@ -1,31 +1,20 @@
-import { useState } from "react";
-import { Button, message } from "antd";
+import { Button } from "antd";
 import { ShareAltOutlined } from "@ant-design/icons";
 import useAppStore from "../store/store";
 
 const UseShare = () => {
-  const generateShareableLink = useAppStore(
-    (state) => state.generateShareableLink
+  const setShareModalOpen = useAppStore(
+    (state) => state.setShareModalOpen
   );
-  const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
-    try {
-      const link = generateShareableLink();
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-      void message.success("Link copied to clipboard!");
-      setTimeout(() => setCopied(false), 3000);
-    } catch (error) {
-      void message.error("Failed to copy link");
-      console.error("Clipboard error:", error);
-    }
+  const handleShareClick = () => {
+    setShareModalOpen(true);
   };
 
   return (
     <div className="share-element">
-      <Button icon={<ShareAltOutlined />} onClick={() => void handleCopy()}>
-        {copied ? "Copied!" : "Share"}
+      <Button icon={<ShareAltOutlined />} onClick={handleShareClick}>
+        Share
       </Button>
     </div>
   );
