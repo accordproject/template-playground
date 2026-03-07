@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig as defineViteConfig, mergeConfig } from "vite";
 import { defineConfig as defineVitestConfig, configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
@@ -23,6 +24,12 @@ const vitestConfig = defineVitestConfig({
     environment: "jsdom",
     setupFiles: "./src/utils/testing/setup.ts",
     exclude: [...configDefaults.exclude, "**/e2e/**"],
+    deps: {
+      inline: ["monaco-editor"],
+    },
+    alias: {
+      "monaco-editor": fileURLToPath(new URL("./src/utils/testing/__mocks__/monaco-editor.ts", import.meta.url)),
+    },
   },
 });
 
