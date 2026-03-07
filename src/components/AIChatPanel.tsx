@@ -244,6 +244,7 @@ export const AIChatPanel = () => {
             onClick={() => setAIConfigOpen(true)}
             className="text-gray-500 hover:text-gray-800"
             title="AI Settings"
+            aria-label="AI Settings"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -269,6 +270,7 @@ export const AIChatPanel = () => {
             onClick={resetChat}
             className="text-gray-500 hover:text-gray-800"
             title="Reset Chat"
+            aria-label="Reset Chat"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -289,6 +291,7 @@ export const AIChatPanel = () => {
             onClick={() => setAIChatOpen(false)}
             className="text-gray-500 hover:text-gray-800"
             title="Close"
+            aria-label="Close Chat"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -378,6 +381,7 @@ export const AIChatPanel = () => {
                 <button
                 onClick={() => setPromptPreset(null)}
                 className="text-indigo-200 hover:text-white transition-colors"
+                aria-label="Clear preset"
                 >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -420,6 +424,7 @@ export const AIChatPanel = () => {
                     className={`ml-1 focus:outline-none ${theme.contextButtons.templateMark.cross}`}
                     tabIndex={-1}
                     type="button"
+                    aria-label="Remove TemplateMark context"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -454,6 +459,7 @@ export const AIChatPanel = () => {
                     className={`ml-1 focus:outline-none ${theme.contextButtons.concerto.cross}`}
                     tabIndex={-1}
                     type="button"
+                    aria-label="Remove Concerto context"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -488,6 +494,7 @@ export const AIChatPanel = () => {
                     className={`ml-1 focus:outline-none ${theme.contextButtons.data.cross}`}
                     tabIndex={-1}
                     type="button"
+                    aria-label="Remove Data context"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -532,6 +539,7 @@ export const AIChatPanel = () => {
                   }`}
                   title="Select Prompt Mode"
                   disabled={chatState.isLoading}
+                  aria-label="Select Prompt Mode"
               >
                   <svg
                       xmlns="http://www.w3.org/2000/svg"
