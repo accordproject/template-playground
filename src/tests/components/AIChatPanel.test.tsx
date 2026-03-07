@@ -5,24 +5,28 @@ import { AIChatPanel } from '../../components/AIChatPanel';
 import { MemoryRouter } from 'react-router-dom';
 import type { ChatState, Message } from '../../types/components/AIAssistant.types';
 
-// Create a mutable mock state that can be updated in tests
-const mockStoreState = {
-  chatState: {
-    messages: [],
-    isLoading: false,
-    error: null,
-  } as ChatState,
-  resetChat: vi.fn(),
-  aiConfig: null,
-  setAIConfig: vi.fn(),
-  setAIConfigOpen: vi.fn(),
-  setAIChatOpen: vi.fn(),
-  textColor: '#121212',
-  backgroundColor: '#ffffff',
-  editorValue: '',
-  editorModelCto: '',
-  editorAgreementData: '',
-};
+// Create a mutable mock state in hoisted scope to avoid TDZ errors
+const { mockStoreState } = vi.hoisted(() => {
+  return {
+    mockStoreState: {
+      chatState: {
+        messages: [],
+        isLoading: false,
+        error: null,
+      } as ChatState,
+      resetChat: vi.fn(),
+      aiConfig: null,
+      setAIConfig: vi.fn(),
+      setAIConfigOpen: vi.fn(),
+      setAIChatOpen: vi.fn(),
+      textColor: '#121212',
+      backgroundColor: '#ffffff',
+      editorValue: '',
+      editorModelCto: '',
+      editorAgreementData: '',
+    },
+  };
+});
 
 // Mock the store at module level
 vi.mock('../../store/store', () => ({
