@@ -27,6 +27,11 @@ export const PROVIDER_MODELS: Record<string, ModelOption[]> = {
         { label: 'Claude Haiku 4.5', value: 'claude-haiku-4.5' },
     ],
     google: [
+        { label: 'Gemini 3.1 Pro', value: 'gemini-3.1-pro' },
+        { label: 'Gemini 3.1 Flash', value: 'gemini-3.1-flash' },
+        { label: 'Gemini 3 Pro', value: 'gemini-3-pro' },
+        { label: 'Gemini 3 Flash', value: 'gemini-3-flash' },
+
         { label: 'Gemini 2.5 Pro', value: 'gemini-2.5-pro' },
         { label: 'Gemini 2.5 Flash', value: 'gemini-2.5-flash' },
         { label: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash' },
