@@ -64,6 +64,10 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     }
   };
 
+  const handleExitLearning = () => {
+    navigate("/");
+  };
+
   const copyToClipboard = (code: string) => {
     void navigator.clipboard.writeText(code);
     setCopied(code);
@@ -96,6 +100,23 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
 
   return (
     <ContentContainer>
+	  {currentIndex !== steps.length - 1 && (
+		<div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+		  <button
+		    onClick={handleExitLearning}
+		    style={{
+			  background: "transparent",
+			  border: "none",
+			  color: "#6b7280",
+			  cursor: "pointer",
+			  fontSize: "0.9rem",
+			  textDecoration: "underline"
+		    }}
+		  >
+		    Exit learning
+		  </button>
+		</div>
+	  )}
       {content && (
         <ReactMarkdown
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
@@ -127,12 +148,15 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
         >
           <LeftOutlined /> Previous
         </NavigationButton>
-        <NavigationButton
-          onClick={handleNext}
-          disabled={currentIndex === steps.length - 1}
-        >
-          Next <RightOutlined />
-        </NavigationButton>
+        {currentIndex === steps.length - 1 ? (
+		  <NavigationButton onClick={handleExitLearning}>
+		  Finish
+		  </NavigationButton>
+		) : (
+		  <NavigationButton onClick={handleNext}>
+		  Next <RightOutlined />
+		  </NavigationButton>
+		)}
       </NavigationButtons>
     </ContentContainer>
   );
