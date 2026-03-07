@@ -1,0 +1,53 @@
+name: check PR
+
+on:
+  issues:
+    types: [opened]
+
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const isPR = Boolean(context.payload.pull_request);
+
+            const author = isPR
+              ? context.payload.pull_request.user.login
+              : context.payload.issue.user.login;
+
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+            const currentNumber = context.issue.number;
+
+            const query = isPR
+              ? `repo:${repo} is:pr author:${author}`
+              : `repo:${repo} is:issue author:${author}`;
+
+            const { data } = await github.rest.search.issuesAndPullRequests({ q: query });
+
+            const previousItems = data.items.filter(
+              item => item.number !== currentNumber
+            );
+
+            if (previousItems.length === 0) {
+              const message = isPR
+                ? `🎉 **Welcome @${author}!**\n\nThank you for submitting your **first Pull Request** to this repository 🚀\n\nWe really appreciate you taking the time to contribute. A maintainer will review your changes soon — feel free to respond to any feedback or questions.\n\nIn the meantime, you can also join our [**Discord community**](https://discord.com/invite/Zm99SKhhtA) and go through the [**contribution guidelines**](https://github.com/accordproject/techdocs/blob/main/CONTRIBUTING.md).\n\n![Thank you](https://raw.githubusercontent.com/Vatsal-Verma/final-test1/main/.github/images/ap-blue.svg)`
+                : `👋 **Hi @${author}, welcome!**\n\nThanks for opening your **first issue** 🎉\n\nWe appreciate you helping improve this project by reporting problems or suggesting enhancements. A maintainer will take a look shortly.\n\nIn the meantime, you can also join our [**Discord community**](https://discord.com/invite/Zm99SKhhtA) and go through the [**contribution guidelines**](https://github.com/accordproject/techdocs/blob/main/CONTRIBUTING.md).\n\n![Welcome](https://raw.githubusercontent.com/Vatsal-Verma/final-test1/main/.github/images/ap-blue.svg)`;
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: currentNumber,
+                body: message
+              });
+            }
