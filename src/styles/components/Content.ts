@@ -23,7 +23,7 @@ export const ContentContainer = styled.div`
   }
 
   a {
-    color: #19c6c7;
+    color: #2eaa4b;
     text-decoration: none;
     &:hover {
       text-decoration: underline;
@@ -118,7 +118,7 @@ export const NavigationButton = styled.button`
   background-color: white;
   color: #1b2540;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1rem;
   display: flex;
   align-items: center;
