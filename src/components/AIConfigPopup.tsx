@@ -141,7 +141,8 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       setShowFullPrompt(false);
       setEnableCodeSelectionMenu(true);
       setEnableInlineSuggestions(true);
-      
+      setIsCustomModel(false);
+
       // Notify parent and reload config
       onSave();
     }
@@ -182,7 +183,11 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             </label>
             <select
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => {
+                setProvider(e.target.value);
+                setModel('');
+                setIsCustomModel(false);
+              }}
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
             >
               <option value="">Select a provider</option>
