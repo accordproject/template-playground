@@ -3,7 +3,7 @@
 }
 
 .problem-panel-header {
-  @apply flex items-center px-4 py-2 border-b border-gray-200;
+  @apply flex items-center justify-between px-4 py-2 border-b border-gray-200;
 }
 
 .problem-panel-header-light {
@@ -16,6 +16,23 @@
 
 .problem-panel-title {
   @apply text-sm font-medium;
+}
+
+.problem-panel-close-button {
+  @apply text-xl leading-none opacity-60 hover:opacity-100 transition-opacity cursor-pointer bg-transparent border-none p-1 rounded;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.problem-panel-close-button:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.problem-panel-header-dark .problem-panel-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .problem-panel-content {
