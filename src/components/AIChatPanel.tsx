@@ -227,9 +227,10 @@ export const AIChatPanel = () => {
       
       if (messageContainer) {
         setTimeout(() => {
-          const messageTop = latestMessageRef.current!.offsetTop;
-          
-          messageContainer.scrollTop = messageTop - 50;
+          if (latestMessageRef.current) {
+            const messageTop = latestMessageRef.current.offsetTop;
+            messageContainer.scrollTop = messageTop - 50;
+          }
         }, 100);
       }
     }
