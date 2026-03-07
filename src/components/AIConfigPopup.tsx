@@ -418,6 +418,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
       // Clear the in-memory AI config in Zustand so stale keys don't persist
       const { setAIConfig } = useAppStore.getState();
       setAIConfig(null);
+      setIsCustomModel(false);
     }
   };
 
@@ -456,7 +457,11 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
             </label>
             <select
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => {
+                setProvider(e.target.value);
+                setModel('');
+                setIsCustomModel(false);
+              }}
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
             >
               <option value="">Select a provider</option>
