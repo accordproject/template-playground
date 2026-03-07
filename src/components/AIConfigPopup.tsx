@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AIConfigPopupProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
+import { getModelsForProvider } from '../ai-assistant/providerModels';
 
 const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const { backgroundColor } = useAppStore((state) => ({
@@ -51,10 +52,11 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
   const [customEndpoint, setCustomEndpoint] = useState<string>('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
   const [maxTokens, setMaxTokens] = useState<string>('');
-  
+  const [isCustomModel, setIsCustomModel] = useState<boolean>(false);
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
   const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
+  const availableModels = useMemo(() => getModelsForProvider(provider), [provider]);
 
   useEffect(() => {
     if (isOpen) {
@@ -69,7 +71,13 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
       const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
       
       if (savedProvider) setProvider(savedProvider);
-      if (savedModel) setModel(savedModel);
+      if (savedModel) {
+        setModel(savedModel);
+        // checking if saved model is in the provider's lis — if not, it's custom
+        const models = getModelsForProvider(savedProvider ?? '');
+        const isKnown = models.some(m => m.value === savedModel);
+        setIsCustomModel(!isKnown && savedModel !== '');
+      }
       if (savedApiKey) setApiKey(savedApiKey);
       if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
       if (savedMaxTokens) setMaxTokens(savedMaxTokens);
@@ -210,27 +218,53 @@ const AIConfigPopup = ({ isOpen, onClose, onSave }: AIConfigPopupProps) => {
             <label className={`block text-sm font-medium ${theme.label} mb-1`}>
               Model Name
             </label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="Enter model name"
-              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-            />
-            {provider && (
-              <div className={`mt-1 text-xs ${theme.helpText}`}>
-                {provider === 'openai' && 'Example: gpt-5, gpt-5-mini'}
-                {provider === 'anthropic' && 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929'}
-                {provider === 'google' && 'Example: gemini-3-pro, gemini-2.5-flash'}
-                {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
-                {provider === 'openrouter' && 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct'}
-                {provider === 'ollama' && (
-                  <span className="text-orange-500 font-bold">
-                    ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
-                    <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
-                  </span>
+            {provider === 'openai-compatible' || availableModels.length === 0 ? (
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Enter model name"
+                className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+              />
+            ) : (
+              <>
+                <select
+                  value={isCustomModel ? '__custom__' : model}
+                  onChange={(e) => {
+                    if (e.target.value === '__custom__') {
+                      setIsCustomModel(true);
+                      setModel('');
+                    } else {
+                      setIsCustomModel(false);
+                      setModel(e.target.value);
+                    }
+                  }}
+                  className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
+                >
+                  <option value="">Select a model</option>
+                  {availableModels.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                  <option value="__custom__">Custom...</option>
+                </select>
+                {isCustomModel && (
+                  <input
+                    type="text"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder="Enter custom model name"
+                    className={`w-full p-2 mt-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+                  />
                 )}
-                
+              </>
+            )}
+            {provider === 'ollama' && (
+              <div className={`mt-1 text-xs ${theme.helpText}`}>
+                <span className="text-orange-500 font-bold">
+                  ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
+                </span>
               </div>
             )}
           </div>
