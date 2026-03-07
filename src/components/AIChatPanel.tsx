@@ -322,7 +322,15 @@ export const AIChatPanel = () => {
               </div>
             ) : (
               chatState.messages.map((message, index) => {
-                if (message.role === "system" || (!message.content.trim() && !chatState.isLoading)) return null;
+                const isCurrentLoadingPlaceholder =
+                  chatState.isLoading &&
+                  message.role === "assistant" &&
+                  index === chatState.messages.length - 1;
+                const hasContent = message.content.trim().length > 0;
+                const shouldRenderMessage =
+                  message.role !== "system" &&
+                  (hasContent || isCurrentLoadingPlaceholder);
+                if (!shouldRenderMessage) return null;
                 // Detect error marker
                 const isError = message.content.startsWith('[ERROR]');
                 return (
@@ -345,7 +353,7 @@ export const AIChatPanel = () => {
                       <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
                           {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
-                      {message.content && renderMessageContent(
+                      {message.content.trim() && renderMessageContent(
                         (message.role === 'user') 
                           ? (aiConfig?.showFullPrompt ? (
                             `**System message:** ${chatState.messages[index-1].content}\n**User message:** ${message.content}`
@@ -355,8 +363,8 @@ export const AIChatPanel = () => {
                       {message.role === 'assistant' && 
                           message.id === chatState.messages[chatState.messages.length - 1].id && 
                           chatState.isLoading && (
-                          <div className={`flex items-center gap-2 mt-2 ${theme.thinkingText}`}>
-                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <div className={`flex items-center gap-2 mt-2 ${theme.thinkingText}`} role="status" aria-live="polite">
+                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
