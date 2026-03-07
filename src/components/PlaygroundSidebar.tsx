@@ -12,7 +12,7 @@ import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
 const PlaygroundSidebar = () => {
-  const { 
+  const {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
@@ -40,10 +40,10 @@ const PlaygroundSidebar = () => {
     try {
       const link = generateShareableLink();
       await navigator.clipboard.writeText(link);
-      void message.success('Link copied to clipboard!');
+      void message.success("Link copied to clipboard!");
     } catch (err) {
-      console.error('Error copying to clipboard:', err);
-      void message.error('Failed to copy link to clipboard');
+      console.error("Error copying to clipboard:", err);
+      void message.error("Failed to copy link to clipboard");
     }
   };
 
@@ -62,7 +62,7 @@ const PlaygroundSidebar = () => {
 
   const handleEditorToggle = () => {
     if (isEditorsVisible && !isPreviewVisible) {
-      void message.info('At least one panel must be visible');
+      void message.info("At least one panel must be visible");
       return;
     }
     setEditorsVisible(!isEditorsVisible);
@@ -70,7 +70,7 @@ const PlaygroundSidebar = () => {
 
   const handlePreviewToggle = () => {
     if (isPreviewVisible && !isEditorsVisible) {
-      void message.info('At least one panel must be visible');
+      void message.info("At least one panel must be visible");
       return;
     }
     setPreviewVisible(!isPreviewVisible);
@@ -85,23 +85,23 @@ const PlaygroundSidebar = () => {
   }
 
   const navTop: NavItem[] = [
-    { 
-      title: "Editor", 
-      icon: IoCodeSlash, 
+    {
+      title: "Editor",
+      icon: IoCodeSlash,
       onClick: handleEditorToggle,
-      active: isEditorsVisible
+      active: isEditorsVisible,
     },
-    { 
-      title: "Preview", 
+    {
+      title: "Preview",
       icon: VscOutput,
       onClick: handlePreviewToggle,
-      active: isPreviewVisible
+      active: isPreviewVisible,
     },
-    { 
-      title: "Problems", 
+    {
+      title: "Problems",
       icon: FiTerminal,
       onClick: () => setProblemPanelVisible(!isProblemPanelVisible),
-      active: isProblemPanelVisible
+      active: isProblemPanelVisible,
     },
     {
       title: "AI Assistant",
@@ -112,7 +112,7 @@ const PlaygroundSidebar = () => {
             <div
               className="absolute -top-3 -right-3.5 text-[12.5px] font-bold px-1 py-0 rounded bg-white text-transparent bg-gradient-to-r from-[#a78bfa] via-[#ec4899] to-[#ef4444] bg-clip-text shadow-sm"
               style={{
-                WebkitBackgroundClip: "text"
+                WebkitBackgroundClip: "text",
               }}
             >
               AI
@@ -121,11 +121,11 @@ const PlaygroundSidebar = () => {
         </div>
       ),
       onClick: () => setAIChatOpen(!isAIChatOpen),
-      active: isAIChatOpen
+      active: isAIChatOpen,
     },
-    { 
-      title: "Fullscreen", 
-      component: <FullScreenModal />
+    {
+      title: "Fullscreen",
+      component: <FullScreenModal />,
     },
   ];
 
@@ -136,68 +136,85 @@ const PlaygroundSidebar = () => {
   }
 
   const navBottom: NavBottomItem[] = [
-    { 
-      title: "Share", 
+    {
+      title: "Share",
       icon: FiShare2,
-      onClick: () => void handleShare()
+      onClick: () => void handleShare(),
     },
-    { 
-      title: "Start Tour", 
+    {
+      title: "Start Tour",
       icon: FaCirclePlay,
-      onClick: () => void handleStartTour()
+      onClick: () => void handleStartTour(),
     },
-    { 
-      title: "Settings", 
+    {
+      title: "Settings",
       icon: FiSettings,
-      onClick: handleSettings
+      onClick: handleSettings,
     },
   ];
 
   return [
-    <aside key="sidebar" className="playground-sidebar">
-      <nav className="playground-sidebar-nav">
+    <aside
+      key="sidebar"
+      className="playground-sidebar"
+      role="region"
+      aria-label="Playground Sidebar"
+    >
+      <nav className="playground-sidebar-nav" aria-label="Top Navigation">
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={title} placement="right">
-          <div
-            role="button"
-            aria-label={title}
-            tabIndex={0}
-            onClick={onClick}
-            className={`group playground-sidebar-nav-item ${
-              active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
-            } tour-${title.toLowerCase().replace(' ', '-')}`}
-          >
-            {component ? (
-              <div className="playground-sidebar-nav-item-icon-container">
-                {component}
-              </div>
-            ) : Icon ? (
-              <Icon size={20} />
-            ) : null}
-            <span className="playground-sidebar-nav-item-title">{title}</span>
-          </div>
+            <div
+              role="button"
+              aria-label={title}
+              tabIndex={0}
+              onClick={onClick}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  if (onClick) onClick();
+                }
+              }}
+              className={`group playground-sidebar-nav-item ${
+                active
+                  ? "playground-sidebar-nav-item-active"
+                  : "playground-sidebar-nav-item-inactive"
+              } tour-${title.toLowerCase().replace(" ", "-")}`}
+            >
+              {component ? (
+                <div className="playground-sidebar-nav-item-icon-container">{component}</div>
+              ) : Icon ? (
+                <Icon size={20} />
+              ) : null}
+              <span className="playground-sidebar-nav-item-title">{title}</span>
+            </div>
           </Tooltip>
         ))}
       </nav>
 
-      <nav className="playground-sidebar-nav-bottom">
+      <nav className="playground-sidebar-nav-bottom" aria-label="Bottom Navigation">
         {navBottom.map(({ title, icon: Icon, onClick }) => (
           <Tooltip key={title} title={title} placement="right">
-          <div
-            role="button"
-            aria-label={title}
-            tabIndex={0}
-            onClick={onClick}
-            className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
-          >
-            <Icon size={18} />
-            <span className="playground-sidebar-nav-item-title">{title}</span>
-          </div>
+            <div
+              role="button"
+              aria-label={title}
+              tabIndex={0}
+              onClick={onClick}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onClick();
+                }
+              }}
+              className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(" ", "-")}`}
+            >
+              <Icon size={18} />
+              <span className="playground-sidebar-nav-item-title">{title}</span>
+            </div>
           </Tooltip>
         ))}
       </nav>
     </aside>,
-    <SettingsModal key="settings-modal" />
+    <SettingsModal key="settings-modal" />,
   ];
 };
 
