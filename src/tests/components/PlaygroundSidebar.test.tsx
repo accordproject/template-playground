@@ -3,24 +3,28 @@ import "@testing-library/jest-dom";
 import PlaygroundSidebar from "../../components/PlaygroundSidebar";
 import { vi } from "vitest";
 
-vi.mock('react-i18next', () => ({
-    useTranslation: () => ({
-        t: (key: string) => {
-            const map: Record<string, string> = {
-                'sidebar.editor': 'Editor',
-                'sidebar.preview': 'Preview',
-                'sidebar.problems': 'Problems',
-                'sidebar.aiAssistant': 'AI Assistant',
-                'sidebar.share': 'Share',
-                'sidebar.startTour': 'Start Tour',
-                'sidebar.settings': 'Settings',
-                'sidebar.fullscreen': 'Fullscreen'
-            };
-            return map[key] || key;
-        },
-        i18n: { language: 'en', changeLanguage: vi.fn() }
-    })
-}));
+
+vi.mock('react-i18next', async () => {
+    const { reactI18nextMock } = await import("../../utils/testing/i18nMock");
+    return {
+        useTranslation: () => ({
+            t: (key: string) => {
+                const map: Record<string, string> = {
+                    'sidebar.editor': 'Editor',
+                    'sidebar.preview': 'Preview',
+                    'sidebar.problems': 'Problems',
+                    'sidebar.aiAssistant': 'AI Assistant',
+                    'sidebar.share': 'Share',
+                    'sidebar.startTour': 'Start Tour',
+                    'sidebar.settings': 'Settings',
+                    'sidebar.fullscreen': 'Fullscreen'
+                };
+                return map[key] || key;
+            },
+            i18n: reactI18nextMock.useTranslation().i18n,
+        })
+    };
+});
 
 // Mock the store
 vi.mock("../../store/store", () => ({

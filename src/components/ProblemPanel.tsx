@@ -14,7 +14,7 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { error, backgroundColor, textColor } = useAppStore((state) => ({
     error: state.error,
     backgroundColor: state.backgroundColor,
@@ -74,7 +74,7 @@ const ProblemPanel: React.FC = () => {
 
 
   const formatTimestamp = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString('en-US', {
+    return timestamp.toLocaleTimeString(i18n.language, {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',

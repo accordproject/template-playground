@@ -2,21 +2,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import SettingsModal from '../../components/SettingsModal';
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => {
-      const map: Record<string, string> = {
-        'settings.title': 'Settings',
-        'settings.darkMode': 'Dark Mode',
-        'settings.darkModeDescription': 'Toggle between light and dark theme',
-        'settings.showLineNumbers': 'Show Line Numbers',
-        'settings.lineNumbersDescription': 'Display line numbers in code editors'
-      };
-      return map[key] || key;
-    },
-    i18n: { language: 'en', changeLanguage: vi.fn() }
-  })
-}));
+vi.mock('react-i18next', async () => {
+  const { reactI18nextMock } = await import('../../utils/testing/i18nMock');
+  return {
+    useTranslation: () => ({
+      t: (key: string) => {
+        const map: Record<string, string> = {
+          'settings.title': 'Settings',
+          'settings.darkMode': 'Dark Mode',
+          'settings.darkModeDescription': 'Toggle between light and dark theme',
+          'settings.showLineNumbers': 'Show Line Numbers',
+          'settings.lineNumbersDescription': 'Display line numbers in code editors'
+        };
+        return map[key] || key;
+      },
+      i18n: reactI18nextMock.useTranslation().i18n,
+    })
+  };
+});
 
 // Mock the store - use inline functions to avoid hoisting issues
 vi.mock('../../store/store', () => {

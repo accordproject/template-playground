@@ -140,15 +140,18 @@ const MenuItemGroup = ({
 const Button = ({
   children,
   onClick,
-  className = ""
+  className = "",
+  "aria-label": ariaLabel
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   className?: string;
+  "aria-label"?: string;
 }) => (
   <button
     className={`flex items-center ${className}`}
     onClick={onClick}
+    aria-label={ariaLabel}
   >
     {children}
   </button>
@@ -370,17 +373,17 @@ function Navbar() {
         {/* Language Switcher */}
         <div
           className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${screens.md
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
-              : "px-2.5 pl-1.5 pr-1.5"
+            ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+            : "px-2.5 pl-1.5 pr-1.5"
             } ${hovered === "language" ? "bg-white bg-opacity-10" : "bg-transparent"
             }`}
           onMouseEnter={() => setHovered("language")}
           onMouseLeave={() => setHovered(null)}
         >
           <Dropdown overlay={languageMenu} trigger={["click"]}>
-            <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
+            <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer" aria-label={t('navbar.language')}>
               <MdLanguage className={`text-xl text-white ${screens.md ? "mr-1.5" : "mr-0"
-                }`} />
+                }`} aria-hidden="true" />
               <span className={screens.md ? "inline" : "hidden"}>{currentLang.flag} {currentLang.label}</span>
             </Button>
           </Dropdown>
@@ -388,8 +391,8 @@ function Navbar() {
 
         <div
           className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${screens.md
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
-              : "px-2.5 pl-1.5 pr-1.5"
+            ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+            : "px-2.5 pl-1.5 pr-1.5"
             } ${hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
             }`}
           onMouseEnter={() => setHovered("discord")}
@@ -409,8 +412,8 @@ function Navbar() {
 
         <div
           className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${screens.md
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
-              : "px-2.5 pl-1.5 pr-1.5"
+            ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+            : "px-2.5 pl-1.5 pr-1.5"
             } ${hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
             }`}
           onMouseEnter={() => setHovered("github")}
