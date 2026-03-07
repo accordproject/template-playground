@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Modal } from "antd";
 import AgreementHtml from "../AgreementHtml";
 import { MdFullscreen } from "react-icons/md";
@@ -6,6 +7,7 @@ import useAppStore from "../store/store";
 
 const FullScreenModal: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
+  const { t } = useTranslation();
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
 
@@ -42,7 +44,7 @@ const FullScreenModal: React.FC = () => {
         onClick={() => setOpen(true)}
       />
       <Modal
-        title="Output"
+        title={t('fullscreen.output')}
         centered
         open={open}
         onOk={() => setOpen(false)}

@@ -1,0 +1,63 @@
+{
+    "navbar": {
+        "templatePlayground": "Terrain de jeu de modèles",
+        "help": "Aide",
+        "about": "À propos",
+        "community": "Communauté",
+        "issues": "Problèmes",
+        "documentation": "Documentation",
+        "info": "Info",
+        "learn": "Apprendre",
+        "discord": "Discord",
+        "github": "GitHub",
+        "language": "Langue"
+    },
+    "mainContainer": {
+        "concertoModel": "Modèle Concerto",
+        "templateMark": "TemplateMark",
+        "jsonData": "Données JSON",
+        "preview": "Aperçu",
+        "downloadPdf": "Télécharger PDF",
+        "formatJson": "Formater JSON",
+        "expand": "Développer",
+        "collapse": "Réduire",
+        "pdfError": "Échec de la génération du PDF. Veuillez vérifier la console."
+    },
+    "problemPanel": {
+        "problems": "Problèmes",
+        "noProblems": "Aucun problème détecté",
+        "line": "Ligne",
+        "col": "Col"
+    },
+    "sidebar": {
+        "editor": "Éditeur",
+        "preview": "Aperçu",
+        "problems": "Problèmes",
+        "aiAssistant": "Assistant IA",
+        "fullscreen": "Plein écran",
+        "share": "Partager",
+        "startTour": "Démarrer la visite",
+        "settings": "Paramètres",
+        "linkCopied": "Lien copié dans le presse-papiers !",
+        "linkCopyFailed": "Échec de la copie du lien",
+        "panelWarning": "Au moins un panneau doit être visible"
+    },
+    "footer": {
+        "tagline": "La pile de contrats juridiques intelligents open source",
+        "join": "Rejoindre",
+        "otherLinks": "Autres liens",
+        "copyright": "droits d'auteur",
+        "trademarkPolicy": "politique de marque",
+        "brandAssets": "ressources de marque"
+    },
+    "settings": {
+        "title": "Paramètres",
+        "darkMode": "Mode sombre",
+        "darkModeDescription": "Basculer entre le thème clair et sombre",
+        "showLineNumbers": "Afficher les numéros de ligne",
+        "lineNumbersDescription": "Afficher les numéros de ligne dans les éditeurs de code"
+    },
+    "fullscreen": {
+        "output": "Sortie"
+    }
+}
