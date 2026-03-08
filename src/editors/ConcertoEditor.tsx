@@ -13,7 +13,7 @@ const MonacoEditor = lazy(() =>
 const concertoKeywords = [
   "map", "concept", "from", "optional", "default", "range",
   "regex", "length", "abstract", "namespace", "import", "enum",
-  "scalar", "extends", "default", "participant", "asset", "o",
+  "scalar", "extends", "participant", "asset", "o",
   "identified by", "transaction", "event",
 ];
 
