@@ -1,7 +1,8 @@
 import { useMonaco } from "@monaco-editor/react";
-import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
@@ -10,36 +11,14 @@ const MonacoEditor = lazy(() =>
 );
 
 const concertoKeywords = [
-  "map",
-  "concept",
-  "from",
-  "optional",
-  "default",
-  "range",
-  "regex",
-  "length",
-  "abstract",
-  "namespace",
-  "import",
-  "enum",
-  "scalar",
-  "extends",
-  "default",
-  "participant",
-  "asset",
-  "o",
-  "identified by",
-  "transaction",
-  "event",
+  "map", "concept", "from", "optional", "default", "range",
+  "regex", "length", "abstract", "namespace", "import", "enum",
+  "scalar", "extends", "default", "participant", "asset", "o",
+  "identified by", "transaction", "event",
 ];
 
 const concertoTypes = [
-  "String",
-  "Integer",
-  "Double",
-  "DateTime",
-  "Long",
-  "Boolean",
+  "String", "Integer", "Double", "DateTime", "Long", "Boolean",
 ];
 
 const handleEditorWillMount = (monacoInstance: typeof monaco) => {
@@ -51,11 +30,7 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
   });
 
   monacoInstance.languages.setLanguageConfiguration("concerto", {
-    brackets: [
-      ["{", "}"],
-      ["[", "]"],
-      ["(", ")"],
-    ],
+    brackets: [["{", "}"], ["[", "]"], ["(", ")"]],
     autoClosingPairs: [
       { open: "{", close: "}" },
       { open: "[", close: "]" },
@@ -79,17 +54,14 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
     tokenizer: {
       root: [
         { include: "@whitespace" },
-        [
-          /[a-zA-Z_]\w*/,
-          {
-            cases: {
-              "@keywords": "keyword",
-              "@typeKeywords": "type",
-              "@default": "identifier",
-            },
+        [/[a-zA-Z_]\w*/, {
+          cases: {
+            "@keywords": "keyword",
+            "@typeKeywords": "type",
+            "@default": "identifier",
           },
-        ],
-        [/"([^"\\]|\\.)*$/, "string.invalid"], // non-terminated string
+        }],
+        [/"([^"\\]|\\.)*$/, "string.invalid"],
         [/"/, "string", "@string"],
       ],
       string: [
@@ -115,23 +87,19 @@ interface ConcertoEditorProps {
   onChange?: (value: string | undefined) => void;
 }
 
-export default function ConcertoEditor({
-  value,
-  onChange,
-}: ConcertoEditorProps) {
+export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
-  const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
-    error: state.error,
-    backgroundColor: state.backgroundColor,
-    aiConfig: state.aiConfig,
-    showLineNumbers: state.showLineNumbers,
-  }));
-  const ctoErr = error?.startsWith("c:") ? error : undefined;
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const decorationIds = useRef<string[]>([]);
 
-  const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
+  const { error, backgroundColor, showLineNumbers } = useAppStore(
+    (state: any) => ({
+      error: state.error,
+      backgroundColor: state.backgroundColor,
+      showLineNumbers: state.showLineNumbers,
+    }),
+    shallow
   );
 
   const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
@@ -143,63 +111,53 @@ export default function ConcertoEditor({
     autoClosingBrackets: "languageDefined",
     autoSurround: "languageDefined",
     bracketPairColorization: { enabled: true },
-    inlineSuggest: {
-      enabled: aiConfig?.enableInlineSuggestions !== false,
-      mode: "prefix",
-      suppressSuggestions: false,
-      fontFamily: "inherit",
-      keepOnBlur: true,
-    },
-    suggest: {
-      preview: true,
-      showInlineDetails: true,
-    },
+    suggest: { preview: true, showInlineDetails: true },
     quickSuggestions: false,
-    suggestOnTriggerCharacters: false,
-    acceptSuggestionOnCommitCharacter: false,
     acceptSuggestionOnEnter: "off",
-    tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
+  }), [showLineNumbers]);
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
   };
 
-  const handleChange = useCallback(
-    (val: string | undefined) => {
-      if (onChange) onChange(val);
-    },
-    [onChange]
-  );
-
   useEffect(() => {
-    if (!monacoInstance) return;
-
-    const model = monacoInstance.editor.getModels()?.[0];
+    if (!monacoInstance || !editorRef.current) return;
+    const model = editorRef.current.getModel();
     if (!model) return;
 
-    if (ctoErr) {
-      const match = ctoErr.match(/Line (\d+) column (\d+)/);
+    if (error) {
+      const match = error.match(/Line (\d+)(?::| )Col(?:umn)? (\d+)/i);
       if (match) {
-        const lineNumber = parseInt(match[1], 10);
-        const columnNumber = parseInt(match[2], 10);
-        monacoInstance.editor.setModelMarkers(model, "customMarker", [
+        const line = parseInt(match[1], 10);
+        const col = parseInt(match[2], 10);
+
+        monacoInstance.editor.setModelMarkers(model, "customMarker", [{
+          startLineNumber: line,
+          startColumn: col,
+          endLineNumber: line,
+          endColumn: model.getLineMaxColumn(line),
+          message: error,
+          severity: monaco.MarkerSeverity.Error,
+        }]);
+
+        decorationIds.current = editorRef.current.deltaDecorations(decorationIds.current, [
           {
-            startLineNumber: lineNumber,
-            startColumn: columnNumber - 1,
-            endLineNumber: lineNumber,
-            endColumn: columnNumber + 1,
-            message: ctoErr,
-            severity: monaco.MarkerSeverity.Error,
-          },
+            range: new monaco.Range(line, 1, line, 1),
+            options: {
+              isWholeLine: true,
+              className: 'errorLineHighlight',
+            }
+          }
         ]);
       }
     } else {
       monacoInstance.editor.setModelMarkers(model, "customMarker", []);
+      decorationIds.current = editorRef.current.deltaDecorations(decorationIds.current, []);
     }
-  }, [ctoErr, monacoInstance]);
+  }, [error, monacoInstance]);
 
   return (
     <div className="editorwrapper h-full w-full">
@@ -211,11 +169,14 @@ export default function ConcertoEditor({
           value={value}
           beforeMount={handleEditorWillMount}
           onMount={handleEditorDidMount}
-          onChange={handleChange}
-          theme={themeName}
+          onChange={(val) => onChange?.(val)}
+          theme={backgroundColor === "#121212" ? "darkTheme" : "lightTheme"}
         />
       </Suspense>
       {MenuComponent}
+      <style>{`
+        .errorLineHighlight { background: rgba(255, 0, 0, 0.1); width: 100% !important; }
+      `}</style>
     </div>
   );
 }

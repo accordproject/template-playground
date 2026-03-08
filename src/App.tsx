@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
 import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
+import { shallow } from "zustand/shallow";
 import LearnContent from "./components/Content";
 import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
@@ -16,24 +17,26 @@ const { Content } = Layout;
 
 const App = () => {
   const navigate = useNavigate();
-  const init = useAppStore((state) => state.init);
-  const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIConfigOpen, setAIConfigOpen } =
-    useAppStore((state) => ({
+  const init = useAppStore((state: any) => state.init);
+  const loadFromLink = useAppStore((state: any) => state.loadFromLink);
+  
+  const { isAIConfigOpen, setAIConfigOpen } = useAppStore(
+    (state: any) => ({
       isAIConfigOpen: state.isAIConfigOpen,
       setAIConfigOpen: state.setAIConfigOpen,
-    }));
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const textColor = useAppStore((state) => state.textColor);
+    }),
+    shallow
+  );
+  
+  const backgroundColor = useAppStore((state: any) => state.backgroundColor);
+  const textColor = useAppStore((state: any) => state.textColor);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
         setLoading(true);
-        // Prioritize hash for new links, fallback to searchParams for old links
         let compressedData: string | null = null;
         if (window.location.hash.startsWith("#data=")) {
           compressedData = window.location.hash.substring(6);
@@ -49,7 +52,7 @@ const App = () => {
           await init();
         }
       } catch (error) {
-        console.error("Initialization error:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -83,7 +86,7 @@ const App = () => {
         await tour.start();
         localStorage.setItem("hasVisited", "true");
       } catch (error) {
-        console.error("Tour failed to start:", error);
+        console.error(error);
       }
     };
 
@@ -93,7 +96,6 @@ const App = () => {
     }
   }, [searchParams]);
 
-  // Set data-theme attribute on initial load and when theme changes
   useEffect(() => {
     const theme = backgroundColor === "#121212" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", theme);
