@@ -13,7 +13,7 @@ vi.mock('../../store/store', () => {
 
 describe('AIConfigPopup - Model Selection', () => {
     const mockOnClose = vi.fn();
-    const mockOnSave = vi.fn();
+
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -21,7 +21,7 @@ describe('AIConfigPopup - Model Selection', () => {
     });
 
     it('should show model dropdown when a provider is selected', () => {
-        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} />);
 
         // Select OpenAI provider
         const providerSelect = screen.getByDisplayValue('Select a provider');
@@ -32,7 +32,7 @@ describe('AIConfigPopup - Model Selection', () => {
     });
 
     it('should populate model dropdown with provider-specific models', () => {
-        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} />);
 
         const providerSelect = screen.getByDisplayValue('Select a provider');
         fireEvent.change(providerSelect, { target: { value: 'openai' } });
@@ -44,7 +44,7 @@ describe('AIConfigPopup - Model Selection', () => {
     });
 
     it('should show different models when switching providers', () => {
-        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} />);
 
         const providerSelect = screen.getByDisplayValue('Select a provider');
 
@@ -58,7 +58,7 @@ describe('AIConfigPopup - Model Selection', () => {
     });
 
     it('should reset model when provider changes', () => {
-        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} />);
 
         const providerSelect = screen.getByDisplayValue('Select a provider');
 
@@ -74,7 +74,7 @@ describe('AIConfigPopup - Model Selection', () => {
     });
 
     it('should show Custom option and text input when Custom is selected', () => {
-        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} />);
 
         const providerSelect = screen.getByDisplayValue('Select a provider');
         fireEvent.change(providerSelect, { target: { value: 'openai' } });
@@ -88,7 +88,7 @@ describe('AIConfigPopup - Model Selection', () => {
     });
 
     it('should show text input instead of dropdown for openai-compatible provider', () => {
-        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} />);
 
         const providerSelect = screen.getByDisplayValue('Select a provider');
         fireEvent.change(providerSelect, { target: { value: 'openai-compatible' } });
@@ -98,7 +98,7 @@ describe('AIConfigPopup - Model Selection', () => {
     });
 
     it('should include Custom option in the model dropdown', () => {
-        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+        render(<AIConfigPopup isOpen={true} onClose={mockOnClose} />);
 
         const providerSelect = screen.getByDisplayValue('Select a provider');
         fireEvent.change(providerSelect, { target: { value: 'google' } });
