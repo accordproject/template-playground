@@ -17,13 +17,13 @@ export const CiceroGenerator = (): JSX.Element => {
   const {
     backgroundColor,
     aiConfig,
-    setAIConfigOpen,
+    setSettingsOpen,
     ciceroGeneratorState,
     setCiceroGeneratorState,
   } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     aiConfig: state.aiConfig,
-    setAIConfigOpen: state.setAIConfigOpen,
+    setSettingsOpen: state.setSettingsOpen,
     ciceroGeneratorState: state.ciceroGeneratorState,
     setCiceroGeneratorState: state.setCiceroGeneratorState,
   }));
@@ -38,9 +38,6 @@ export const CiceroGenerator = (): JSX.Element => {
       logTextColor: '#94a3b8',
       logErrorColor: '#fca5a5',
       logSuccessColor: '#4ade80',
-      warningBg: isDarkMode ? '#422006' : '#fefce8',
-      warningBorder: isDarkMode ? '#854d0e' : '#fbbf24',
-      warningText: isDarkMode ? '#fcd34d' : '#92400e',
     };
   }, [backgroundColor]);
 
@@ -61,12 +58,19 @@ export const CiceroGenerator = (): JSX.Element => {
 
   const hasOutput = !!(outputs.grammarTem || outputs.modelCto || outputs.logicTs);
 
+  const handleTabChange = useCallback(
+    (tab: OutputTabId) => {
+      setCiceroGeneratorState({ activeTab: tab });
+    },
+    [setCiceroGeneratorState]
+  );
+
   const handleGenerate = useCallback(async () => {
     if (!documentText.trim()) return;
 
     // Check for AI config
     if (!aiConfig) {
-      setAIConfigOpen(true);
+      setSettingsOpen(true);
       void message.info('Please configure your AI provider first');
       return;
     }
@@ -152,35 +156,10 @@ export const CiceroGenerator = (): JSX.Element => {
       setCiceroGeneratorState({ isGenerating: false });
       abortControllerRef.current = null;
     }
-  }, [documentText, templateName, namespace, isContract, aiConfig, setAIConfigOpen, setCiceroGeneratorState, ciceroGeneratorState.completedSteps]);
-
-  const handleTabChange = useCallback(
-    (tab: OutputTabId) => {
-      setCiceroGeneratorState({ activeTab: tab });
-    },
-    [setCiceroGeneratorState]
-  );
-
-  // Check if provider is not Anthropic
-  const showProviderWarning = aiConfig && aiConfig.provider !== 'anthropic';
+  }, [documentText, templateName, namespace, isContract, aiConfig, setSettingsOpen, setCiceroGeneratorState, ciceroGeneratorState.completedSteps]);
 
   return (
     <div className="twp" style={{ background: theme.containerBg }}>
-      {/* Provider warning */}
-      {showProviderWarning && (
-        <Alert
-          message="For best results, use Anthropic Claude"
-          description="The Cicero Generator is optimized for Anthropic's Claude models. Other providers may produce less accurate results."
-          type="warning"
-          showIcon
-          style={{
-            marginBottom: 16,
-            background: theme.warningBg,
-            borderColor: theme.warningBorder,
-          }}
-        />
-      )}
-
       {/* Error display */}
       {error && (
         <Alert

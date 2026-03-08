@@ -87,7 +87,7 @@ export const CiceroGeneratorPanel = (): JSX.Element => {
               fontFamily: 'var(--font-family-primary, Rubik, sans-serif)',
             }}
           >
-            Cicero Template Generator
+            AI Template Generator
           </span>
           <Badge
             count="BETA"

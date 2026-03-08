@@ -73,7 +73,7 @@ Example: Late Delivery and Penalty. In case of delayed delivery except for Force
         style={{
           minHeight: hasOutput ? 120 : 160,
           fontSize: 13,
-          fontFamily: "'Source Serif 4', Georgia, serif",
+          fontFamily: 'var(--font-family-primary, Rubik, sans-serif)',
           lineHeight: 1.6,
           color: theme.inputText,
           background: theme.inputBg,

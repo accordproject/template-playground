@@ -81,7 +81,7 @@ export const CiceroStepIndicator = ({
                   justifyContent: 'center',
                   fontSize: 14,
                   fontWeight: 600,
-                  fontFamily: "'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif",
+                  fontFamily: 'var(--font-family-primary, Rubik, sans-serif)',
                   transition: 'all 0.3s ease-out',
                   background: isFailed
                     ? theme.failedBg

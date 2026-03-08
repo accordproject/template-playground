@@ -28,7 +28,7 @@ test.describe('Template Workflow', () => {
   });
 
   test('should collapse and expand editor panels', async ({ page }) => {
-    // Find the Concerto Model collapse button
+    // Find the Data Model collapse button
     const modelCollapseBtn = page.locator('button[title="Collapse"]').first();
     await expect(modelCollapseBtn).toBeVisible();
 
@@ -45,19 +45,19 @@ test.describe('Template Workflow', () => {
     await expect(editorToggle).toBeVisible();
 
     // Initially editors should be visible
-    await expect(page.getByText('Concerto Model')).toBeVisible();
+    await expect(page.getByText('Data Model')).toBeVisible();
 
     // Toggle off
     await editorToggle.click();
 
     // Editors should be hidden
-    await expect(page.getByText('Concerto Model')).toBeHidden();
+    await expect(page.getByText('Data Model')).toBeHidden();
 
     // Toggle back on
     await editorToggle.click();
 
     // Editors should be visible again
-    await expect(page.getByText('Concerto Model')).toBeVisible();
+    await expect(page.getByText('Data Model')).toBeVisible();
   });
 
   test('should toggle Preview panel visibility', async ({ page }) => {
@@ -72,12 +72,12 @@ test.describe('Template Workflow', () => {
     // Ensure at least one editor panel is visible before hiding preview
     // (app forbids hiding the last visible panel)
     const editorToggle = page.getByRole('button', { name: 'Editor' });
-    const concertoModelHeader = page.getByText('Concerto Model');
+    const dataModelHeader = page.getByText('Data Model');
     
     // If editors are not visible, click to show them first
-    if (!(await concertoModelHeader.isVisible())) {
+    if (!(await dataModelHeader.isVisible())) {
       await editorToggle.click();
-      await expect(concertoModelHeader).toBeVisible();
+      await expect(dataModelHeader).toBeVisible();
     }
 
     // Now toggle preview off

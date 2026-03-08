@@ -59,7 +59,7 @@ tour.addStep({
 
 tour.addStep({
   id: "toggle-editor",
-  text: "Use this button to toggle the editor panel on/off. The editor panel contains the Concerto Model, TemplateMark, and JSON Data editors.",
+  text: "Use this button to toggle the editor panel on/off. The editor panel contains the Data Model, Template, and Data editors.",
   attachTo: {
     element: ".tour-editor",
     on: "right",
@@ -219,7 +219,7 @@ tour.addStep({
 
 tour.addStep({
   id: "concerto-model",
-  text: "This is the Concerto Model editor. Define the data model for your template including types, concepts, and business logic here.",
+  text: "This is the Data Model editor. Define the data model for your template using Concerto, including types, concepts, and business logic here.",
   attachTo: {
     element: ".tour-concerto-model",
     on: "top",
@@ -239,7 +239,7 @@ tour.addStep({
 
 tour.addStep({
   id: "template-mark",
-  text: "This is the TemplateMark editor. Write your natural language template with embedded variables, conditional sections, and TypeScript code.",
+  text: "This is the Template editor. Write your natural language template using TemplateMark with embedded variables, conditional sections, and TypeScript code.",
   attachTo: {
     element: ".tour-template-mark",
     on: "top",
@@ -259,7 +259,7 @@ tour.addStep({
 
 tour.addStep({
   id: "json-data",
-  text: "This is the JSON Data editor. Provide sample data that matches your Concerto model to test and preview your template.",
+  text: "This is the Data editor. Provide sample JSON data that matches your Concerto model to test and preview your template.",
   attachTo: {
     element: ".tour-json-data",
     on: "top",
