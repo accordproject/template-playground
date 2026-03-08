@@ -1,5 +1,5 @@
 import { useMonaco } from "@monaco-editor/react";
-import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useCallback } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
@@ -108,6 +108,13 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
     [backgroundColor]
   );
 
+  const handleChange = useCallback(
+    (val: string | undefined) => {
+      onChange?.(val);
+    },
+    [onChange]
+  );
+
   const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },
     wordWrap: "on",
@@ -189,7 +196,7 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
           value={value}
           beforeMount={handleEditorWillMount}
           onMount={handleEditorDidMount}
-          onChange={(val) => onChange?.(val)}
+          onChange={handleChange}
           theme={themeName}
         />
       </Suspense>
