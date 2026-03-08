@@ -78,7 +78,7 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
   });
 
   if (monacoInstance) {
-    registerAutocompletion('concerto', monacoInstance);
+    registerAutocompletion("concerto", monacoInstance);
   }
 };
 
@@ -113,7 +113,7 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
     wordWrap: "on",
     automaticLayout: true,
     scrollBeyondLastLine: false,
-    lineNumbers: showLineNumbers ? 'on' : 'off',
+    lineNumbers: showLineNumbers ? "on" : "off",
     autoClosingBrackets: "languageDefined",
     autoSurround: "languageDefined",
     bracketPairColorization: { enabled: true },
@@ -165,10 +165,13 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
             range: new monaco.Range(line, 1, line, 1),
             options: {
               isWholeLine: true,
-              className: 'errorLineHighlight',
+              className: "errorLineHighlight",
             }
           }
         ]);
+      } else {
+        monacoInstance.editor.setModelMarkers(model, "customMarker", []);
+        decorationsCollectionRef.current?.clear();
       }
     } else {
       monacoInstance.editor.setModelMarkers(model, "customMarker", []);
