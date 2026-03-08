@@ -9,6 +9,7 @@ import {
   clearStoredKey,
 } from '../utils/secureKeyStorage';
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { getModelsForProvider } from '../ai-assistant/providerModels';
 
 const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
   const { backgroundColor, keyProtectionLevel, setKeyProtectionLevel } = useAppStore((state) => ({
@@ -62,12 +63,27 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
   const [maxTokens, setMaxTokens] = useState<string>('');
 
+  const [isCustomModel, setIsCustomModel] = useState<boolean>(false);
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
   const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
   const [webauthnAvailable, setWebauthnAvailable] = useState<boolean>(false);
   const [isEncrypting, setIsEncrypting] = useState<boolean>(false);
   const [securityMessage, setSecurityMessage] = useState<string>('');
+
+  const [fetchedModels, setFetchedModels] = useState<string[]>([]);
+  const staticModels = useMemo(() => getModelsForProvider(provider), [provider]);
+
+  const combinedModels = useMemo(() => {
+    const models = [...staticModels];
+    const staticValues = new Set(staticModels.map(m => m.value));
+    for (const m of fetchedModels) {
+      if (!staticValues.has(m)) {
+        models.push({ label: m, value: m });
+      }
+    }
+    return models;
+  }, [staticModels, fetchedModels]);
 
   // Check WebAuthn PRF support on mount
   useEffect(() => {
@@ -86,7 +102,14 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
     const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
 
     if (savedProvider) setProvider(savedProvider);
-    if (savedModel) setModel(savedModel);
+    if (savedModel) {
+      setModel(savedModel);
+      // initially check if it's a known model (static list)
+      const models = getModelsForProvider(savedProvider ?? '');
+      const isKnown = models.some(m => m.value === savedModel);
+      setIsCustomModel(!isKnown && savedModel !== '');
+    }
+
     if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
     if (savedMaxTokens) setMaxTokens(savedMaxTokens);
 
@@ -117,7 +140,6 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
     }
   }, [setKeyProtectionLevel]);
 
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [debouncedApiKey] = useDebounce(apiKey, 1000);
 
@@ -129,7 +151,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
   }, [isOpen, loadConfig]);
 
   useEffect(() => {
-	setAvailableModels([]);
+    setFetchedModels([]);
     if (!provider || !debouncedApiKey) return;
 
     const controller = new AbortController();
@@ -139,55 +161,55 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
       try {
         switch (provider) {
           case 'openai':
-		  case 'openai-compatible':
-			if (!apiKey) return;
+          case 'openai-compatible':
+            if (!apiKey) return;
 
-			let endpoint = provider === 'openai-compatible' ? customEndpoint : 'https://api.openai.com/v1';
-			if (!endpoint) return;
-			endpoint = endpoint.replace(/\/$/, '');
-			const url = `${endpoint}/models`;
+            let endpoint = provider === 'openai-compatible' ? customEndpoint : 'https://api.openai.com/v1';
+            if (!endpoint) return;
+            endpoint = endpoint.replace(/\/$/, '');
+            const url = `${endpoint}/models`;
 
-			const res = await fetch(url, {
-			  headers: { Authorization: `Bearer ${apiKey}` },
-		  	  signal,
-			});
+            const res = await fetch(url, {
+              headers: { Authorization: `Bearer ${apiKey}` },
+              signal,
+            });
 
-			if (!res.ok) {
-			  console.error(`Fetch error (${res.status}): ${res.statusText}`);
-			  return;
-			}
+            if (!res.ok) {
+              console.error(`Fetch error (${res.status}): ${res.statusText}`);
+              return;
+            }
 
-			const data = await res.json();
-			if (!signal.aborted) {
-			  let models = data.data?.map((m: any) => m.id) || []
-			  setAvailableModels(models);
-			  setModel(prev => models.includes(prev) ? prev : '');
-			}
-			break;
+            const data = await res.json();
+            if (!signal.aborted) {
+              let models = data.data?.map((m: any) => m.id) || []
+              setFetchedModels(models);
+              setModel(prev => models.includes(prev) ? prev : '');
+            }
+            break;
 
           case 'anthropic':
-			if (!apiKey) return;
-			{
-			  const res = await fetch('https://api.anthropic.com/v1/models', {
-			    headers: {
-				  'x-api-key': apiKey,
-				  'anthropic-version': '2023-06-01',
-				  'anthropic-dangerous-direct-browser-access': 'true',
-				},
-				signal,
-			  });
-			  if (!res.ok) {
-				console.error(`Fetch error (${res.status}): ${res.statusText}`);
-				return;
-			  }
-			  const data = await res.json();
-			  if (!signal.aborted) {
-				let models = data.data?.map((m: any) => m.id) || [];
-				setAvailableModels(models);
-			  	setModel(prev => models.includes(prev) ? prev : '');
-			  }
-			}
-			break;
+            if (!apiKey) return;
+            {
+              const res = await fetch('https://api.anthropic.com/v1/models', {
+                headers: {
+                  'x-api-key': apiKey,
+                  'anthropic-version': '2023-06-01',
+                  'anthropic-dangerous-direct-browser-access': 'true',
+                },
+                signal,
+              });
+              if (!res.ok) {
+                console.error(`Fetch error (${res.status}): ${res.statusText}`);
+                return;
+              }
+              const data = await res.json();
+              if (!signal.aborted) {
+                let models = data.data?.map((m: any) => m.id) || [];
+                setFetchedModels(models);
+                setModel(prev => models.includes(prev) ? prev : '');
+              }
+            }
+            break;
 
           case 'google':
             if (!apiKey) return;
@@ -196,16 +218,16 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
                 headers: { 'x-goog-api-key': apiKey },
                 signal,
               });
-			  if (!res.ok) {
-				console.error(`Fetch error (${res.status}): ${res.statusText}`);
-				return;
-			  }
+              if (!res.ok) {
+                console.error(`Fetch error (${res.status}): ${res.statusText}`);
+                return;
+              }
               const data = await res.json();
               if (!signal.aborted) {
-				let models = data.models?.map((m: any) => m.name) || [];
-				setAvailableModels(models);
-				setModel(prev => models.includes(prev) ? prev : '');
-			  }
+                let models = data.models?.map((m: any) => m.name) || [];
+                setFetchedModels(models);
+                setModel(prev => models.includes(prev) ? prev : '');
+              }
             }
             break;
 
@@ -216,34 +238,34 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
                 headers: { Authorization: `Bearer ${apiKey}` },
                 signal,
               });
-			  if (!res.ok) {
-				console.error(`Fetch error (${res.status}): ${res.statusText}`);
-				return;
-			  }
+              if (!res.ok) {
+                console.error(`Fetch error (${res.status}): ${res.statusText}`);
+                return;
+              }
               const data = await res.json();
               if (!signal.aborted) {
-				let models = data.models?.map((m: any) => m.id) || [];
-				setAvailableModels(models);
-				setModel(prev => models.includes(prev) ? prev : '');
-			  }
+                let models = data.models?.map((m: any) => m.id) || [];
+                setFetchedModels(models);
+                setModel(prev => models.includes(prev) ? prev : '');
+              }
             }
             break;
 
           case 'ollama':
-			{
-			  const res = await fetch('http://localhost:11434/api/tags', { signal });
-			  if (!res.ok) {
-				console.error(`Ollama fetch failed: ${res.statusText}`);
-				return;
-			  }
-			  const data = await res.json();
-			  if (!signal.aborted) {
-				let models = data.models?.map((m: any) => m.name || m.model) || [];
-				setAvailableModels(models);
-				setModel(prev => models.includes(prev) ? prev : '');
-			  }
-			}
-			break;
+            {
+              const res = await fetch('http://localhost:11434/api/tags', { signal });
+              if (!res.ok) {
+                console.error(`Ollama fetch failed: ${res.statusText}`);
+                return;
+              }
+              const data = await res.json();
+              if (!signal.aborted) {
+                let models = data.models?.map((m: any) => m.name || m.model) || [];
+                setFetchedModels(models);
+                setModel(prev => models.includes(prev) ? prev : '');
+              }
+            }
+            break;
 
           case 'openrouter':
             if (!apiKey) return;
@@ -252,26 +274,26 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
                 headers: { Authorization: `Bearer ${apiKey}` },
                 signal,
               });
-			  if (!res.ok) {
-				console.error(`Fetch error (${res.status}): ${res.statusText}`);
-				return;
-			  }
+              if (!res.ok) {
+                console.error(`Fetch error (${res.status}): ${res.statusText}`);
+                return;
+              }
               const data = await res.json();
               if (!signal.aborted) {
-				let models = data.data?.map((m: any) => m.id) || [];
-				setAvailableModels(models);
-				setModel(prev => models.includes(prev) ? prev : '');
-			  }
+                let models = data.data?.map((m: any) => m.id) || [];
+                setFetchedModels(models);
+                setModel(prev => models.includes(prev) ? prev : '');
+              }
             }
             break;
 
           default:
-            setAvailableModels([]);
+            setFetchedModels([]);
         }
       } catch (err: any) {
         if (err.name !== 'AbortError') {
           console.error('Failed to fetch models:', err);
-          setAvailableModels([]);
+          setFetchedModels([]);
         }
       }
     };
@@ -284,10 +306,15 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
   }, [provider, debouncedApiKey, customEndpoint]);
 
   useEffect(() => {
-    if (availableModels.length > 0 && model && !availableModels.includes(model)) {
-      setModel('');
+    if (combinedModels.length > 0 && model && model !== '') {
+      const isKnown = combinedModels.some(m => m.value === model);
+      if (!isKnown && !isCustomModel) {
+        setIsCustomModel(true);
+      } else if (isKnown && isCustomModel) {
+        setIsCustomModel(false);
+      }
     }
-  }, [model, availableModels]);
+  }, [model, combinedModels, isCustomModel]);
 
   const handleSave = async () => {
     localStorage.setItem('aiProvider', provider);
@@ -391,6 +418,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
       // Clear the in-memory AI config in Zustand so stale keys don't persist
       const { setAIConfig } = useAppStore.getState();
       setAIConfig(null);
+      setIsCustomModel(false);
     }
   };
 
@@ -429,7 +457,11 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
             </label>
             <select
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => {
+                setProvider(e.target.value);
+                setModel('');
+                setIsCustomModel(false);
+              }}
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
             >
               <option value="">Select a provider</option>
@@ -461,88 +493,122 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
             </div>
           )}
 
-		  <div className="relative">
-		    <label className={`block text-sm font-medium ${theme.label} mb-1`}>
-				API Key
-			</label>
-			<div className="flex items-center">
-			  <input
-				type={showApiKey ? "text" : "password"}
-				value={apiKey}
-				onChange={(e) => setApiKey(e.target.value)}
-				placeholder="Enter API key"
-				className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-			  />
-			  <button
-				type="button"
-				onClick={() => setShowApiKey(!showApiKey)}
-				className={`ml-2 p-2 rounded ${theme.closeButton}`}
-			  >
-				{showApiKey ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-			  </button>
-			</div>
+          <div className="relative">
+            <label className={`block text-sm font-medium ${theme.label} mb-1`}>
+              API Key
+            </label>
+            <div className="flex items-center">
+              <input
+                type={showApiKey ? "text" : "password"}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter API key"
+                className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className={`ml-2 p-2 rounded ${theme.closeButton}`}
+              >
+                {showApiKey ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+              </button>
+            </div>
 
-			{/* Security status indicators */}
-			{keyProtectionLevel === 'webauthn' && (
-				<div className="mt-1 text-xs text-green-500 flex items-center gap-1">
-				  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-				    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-				  </svg>
-				  Protected with Passkey (WebAuthn)
-				</div>
-			)}
-			{keyProtectionLevel === 'memory-only' && (
-				<div className="mt-1 text-xs text-yellow-500 flex items-center gap-1">
-				  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-				    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-				  </svg>
-				  Stored in memory only (cleared on refresh)
-				</div>
-			)}
-			{!webauthnAvailable && apiKey && provider !== 'ollama' && !keyProtectionLevel && (
-			  <div className="mt-1 text-xs text-yellow-500">
-				⚠️ WebAuthn not available. Key will be stored in memory only.
-			  </div>
-			)}
-			{securityMessage && (
-			  <div className="mt-1 text-xs text-orange-400">
-				{securityMessage}
-			  </div>
-			)}
-		  </div>
+            {/* Security status indicators */}
+            {keyProtectionLevel === 'webauthn' && (
+              <div className="mt-1 text-xs text-green-500 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                Protected with Passkey (WebAuthn)
+              </div>
+            )}
+            {keyProtectionLevel === 'memory-only' && (
+              <div className="mt-1 text-xs text-yellow-500 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Stored in memory only (cleared on refresh)
+              </div>
+            )}
+            {!webauthnAvailable && apiKey && provider !== 'ollama' && !keyProtectionLevel && (
+              <div className="mt-1 text-xs text-yellow-500">
+                ⚠️ WebAuthn not available. Key will be stored in memory only.
+              </div>
+            )}
+            {securityMessage && (
+              <div className="mt-1 text-xs text-orange-400">
+                {securityMessage}
+              </div>
+            )}
+          </div>
 
           <div>
             <label className={`block text-sm font-medium ${theme.label} mb-1`}>
               Model Name
             </label>
-            <select
-			  value={model}
-			  onChange={(e) => setModel(e.target.value)}
-			  className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
-			>
-			<option value="">Select a model</option>
-			{availableModels.length > 0
-				? availableModels.map((m) => (
-					<option key={m} value={m}>{m}</option>
-				)) : <option disabled>No models available</option>
-			}
-			</select>
+
+            {provider === 'openai-compatible' || combinedModels.length === 0 ? (
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => {
+                  setModel(e.target.value);
+                  setIsCustomModel(true);
+                }}
+                placeholder="Enter model name"
+                className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+              />
+            ) : (
+              <>
+                <select
+                  value={isCustomModel ? '__custom__' : model}
+                  onChange={(e) => {
+                    if (e.target.value === '__custom__') {
+                      setIsCustomModel(true);
+                      setModel('');
+                    } else {
+                      setIsCustomModel(false);
+                      setModel(e.target.value);
+                    }
+                  }}
+                  className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
+                >
+                  <option value="">Select a model</option>
+                  {combinedModels.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                  <option value="__custom__">Custom...</option>
+                </select>
+                {isCustomModel && (
+                  <input
+                    type="text"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder="Enter custom model name"
+                    className={`w-full p-2 mt-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
+                  />
+                )}
+              </>
+            )}
             {provider && (
               <div className={`mt-1 text-xs ${theme.helpText}`}>
-                {provider === 'openai' && 'Example: gpt-5, gpt-5-mini'}
-                {provider === 'anthropic' && 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929'}
-                {provider === 'google' && 'Example: gemini-3-pro, gemini-2.5-flash'}
+                {provider === 'openai' && 'Example: gpt-4, gpt-4-mini'}
+                {provider === 'anthropic' && 'Example: claude-3-5-sonnet-241022'}
+                {provider === 'google' && 'Example: gemini-2.5-pro, gemini-2.5-flash'}
                 {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
-                {provider === 'openrouter' && 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct'}
+                {provider === 'openrouter' && 'Example: openai/gpt-4o, meta-llama/llama-3.3-70b-instruct'}
                 {provider === 'ollama' && (
                   <span className="text-orange-500 font-bold">
                     ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
-                    <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
+                    <br />Example models: tinyllama, qwen2.5:0.5b, llama3
                   </span>
                 )}
-                
               </div>
             )}
+
           </div>
 
           <div className={`border rounded-lg ${theme.advancedContainer}`}>
@@ -643,7 +709,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 
           <button
             onClick={() => { handleSave().catch(console.warn); }}
-            disabled={isEncrypting || !provider || !model || (availableModels.length > 0 && !availableModels.includes(model)) || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
+            disabled={isEncrypting || !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
             className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${isEncrypting || !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)
               ? theme.saveButton.disabled
               : theme.saveButton.enabled
