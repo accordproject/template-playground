@@ -4,6 +4,7 @@ import { VscOutput } from "react-icons/vsc";
 import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
+import { HiSparkles } from "react-icons/hi2";
 import useAppStore from "../store/store";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
@@ -17,10 +18,12 @@ const PlaygroundSidebar = () => {
     isPreviewVisible,
     isProblemPanelVisible,
     isAIChatOpen,
+    isCiceroGeneratorOpen,
     setEditorsVisible,
     setPreviewVisible,
     setProblemPanelVisible,
     setAIChatOpen,
+    setIsCiceroGeneratorOpen,
     generateShareableLink,
     setSettingsOpen,
   } = useAppStore((state) => ({
@@ -28,10 +31,12 @@ const PlaygroundSidebar = () => {
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
     isAIChatOpen: state.isAIChatOpen,
+    isCiceroGeneratorOpen: state.isCiceroGeneratorOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
+    setIsCiceroGeneratorOpen: state.setIsCiceroGeneratorOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
   }));
@@ -122,6 +127,26 @@ const PlaygroundSidebar = () => {
       ),
       onClick: () => setAIChatOpen(!isAIChatOpen),
       active: isAIChatOpen
+    },
+    {
+      title: "Template Generator",
+      component: (
+        <div className="flex items-center justify-center">
+          <div className="relative w-6 h-6">
+            <HiSparkles size={24} />
+            <div
+              className="absolute -top-3 -right-3.5 text-[10px] font-bold px-1 py-0 rounded text-white shadow-sm"
+              style={{
+                background: "linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #ef4444 100%)"
+              }}
+            >
+              β
+            </div>
+          </div>
+        </div>
+      ),
+      onClick: () => setIsCiceroGeneratorOpen(!isCiceroGeneratorOpen),
+      active: isCiceroGeneratorOpen
     },
     { 
       title: "Fullscreen", 

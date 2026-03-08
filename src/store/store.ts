@@ -10,6 +10,7 @@ import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
+import { CiceroGeneratorState, initialCiceroGeneratorState } from '../components/CiceroGenerator/types';
 
 interface AppState {
   templateMarkdown: string;
@@ -67,6 +68,13 @@ interface AppState {
   setSettingsOpen: (value: boolean) => void;
   keyProtectionLevel: KeyProtectionLevel | null;
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
+  // Cicero Generator state
+  isCiceroGeneratorOpen: boolean;
+  ciceroGeneratorState: CiceroGeneratorState;
+  setIsCiceroGeneratorOpen: (open: boolean) => void;
+  setCiceroGeneratorState: (state: Partial<CiceroGeneratorState>) => void;
+  resetCiceroGenerator: () => void;
+  loadGeneratedTemplateToEditors: () => Promise<void>;
 }
 
 export interface DecompressedData {
@@ -129,6 +137,7 @@ const getInitialPanelState = () => {
     isPreviewVisible: true,
     isProblemPanelVisible: false,
     isAIChatOpen: false,
+    isCiceroGeneratorOpen: false,
   };
   if (typeof window !== 'undefined') {
     try {
@@ -147,6 +156,7 @@ const savePanelState = (state: Partial<AppState>) => {
       isPreviewVisible: state.isPreviewVisible,
       isProblemPanelVisible: state.isProblemPanelVisible,
       isAIChatOpen: state.isAIChatOpen,
+      isCiceroGeneratorOpen: state.isCiceroGeneratorOpen,
     };
     localStorage.setItem('ui-panels', JSON.stringify(panels));
   }
@@ -199,6 +209,9 @@ const useAppStore = create<AppState>()(
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
+        // Cicero Generator initial state
+        isCiceroGeneratorOpen: initialPanels.isCiceroGeneratorOpen,
+        ciceroGeneratorState: initialCiceroGeneratorState,
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
         toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
@@ -399,6 +412,67 @@ const useAppStore = create<AppState>()(
         },
         startTour: () => {
           console.log('Starting tour...');
+        },
+        // Cicero Generator actions
+        setIsCiceroGeneratorOpen: (open: boolean) => {
+          set(() => ({ isCiceroGeneratorOpen: open }));
+          savePanelState({ ...get(), isCiceroGeneratorOpen: open });
+        },
+        setCiceroGeneratorState: (partial: Partial<CiceroGeneratorState>) => {
+          set((state) => ({
+            ciceroGeneratorState: {
+              ...state.ciceroGeneratorState,
+              ...partial,
+            },
+          }));
+        },
+        resetCiceroGenerator: () => {
+          set(() => ({
+            ciceroGeneratorState: initialCiceroGeneratorState,
+          }));
+        },
+        loadGeneratedTemplateToEditors: async () => {
+          const { ciceroGeneratorState } = get();
+          const { outputs } = ciceroGeneratorState;
+
+          if (!outputs.grammarTem && !outputs.modelCto) {
+            throw new Error('No generated template to load');
+          }
+
+          // Load grammar.tem.md to template editor
+          if (outputs.grammarTem) {
+            set(() => ({
+              templateMarkdown: outputs.grammarTem,
+              editorValue: outputs.grammarTem,
+            }));
+          }
+
+          // Load model.cto to model editor
+          if (outputs.modelCto) {
+            set(() => ({
+              modelCto: outputs.modelCto,
+              editorModelCto: outputs.modelCto,
+            }));
+          }
+
+          // Generate sample data from contract brief
+          if (outputs.contractBrief) {
+            const brief = outputs.contractBrief;
+            const sampleData: Record<string, unknown> = {
+              $class: `${brief.namespace}@${brief.version}.${brief.templateName}`,
+            };
+            for (const v of brief.variables || []) {
+              sampleData[v.name] = v.sampleValue;
+            }
+            const dataJson = JSON.stringify(sampleData, null, 2);
+            set(() => ({
+              data: dataJson,
+              editorAgreementData: dataJson,
+            }));
+          }
+
+          // Trigger rebuild
+          await get().rebuild();
         },
       }
     })

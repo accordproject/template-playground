@@ -4,6 +4,7 @@ import TemplateModel from "../editors/editorsContainer/TemplateModel";
 import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
 import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
+import { CiceroGeneratorPanel } from "../components/CiceroGenerator/CiceroGeneratorPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
 import { useState, useRef } from "react";
@@ -60,6 +61,7 @@ const MainContainer = () => {
 
   const {
     isAIChatOpen,
+    isCiceroGeneratorOpen,
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
@@ -70,6 +72,7 @@ const MainContainer = () => {
     toggleDataCollapse,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
+    isCiceroGeneratorOpen: state.isCiceroGeneratorOpen,
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
@@ -250,6 +253,13 @@ const MainContainer = () => {
           <>
             <Panel defaultSize={30} minSize={20}>
               <AIChatPanel />
+            </Panel>
+          </>
+        )}
+        {isCiceroGeneratorOpen && (
+          <>
+            <Panel defaultSize={35} minSize={25}>
+              <CiceroGeneratorPanel />
             </Panel>
           </>
         )}
