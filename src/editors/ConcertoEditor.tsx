@@ -106,7 +106,7 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
   );
 
   const themeName = useMemo(
-    () => (backgroundColor === "#121212" ? "darkTheme" : "lightTheme"),
+    () => (backgroundColor ? "darkTheme" : "lightTheme"),
     [backgroundColor]
   );
 
