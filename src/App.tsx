@@ -17,19 +17,19 @@ const { Content } = Layout;
 
 const App = () => {
   const navigate = useNavigate();
-  const init = useAppStore((state: any) => state.init);
-  const loadFromLink = useAppStore((state: any) => state.loadFromLink);
+  const init = useAppStore((state) => state.init);
+  const loadFromLink = useAppStore((state) => state.loadFromLink);
   
   const { isAIConfigOpen, setAIConfigOpen } = useAppStore(
-    (state: any) => ({
+    (state) => ({
       isAIConfigOpen: state.isAIConfigOpen,
       setAIConfigOpen: state.setAIConfigOpen,
     }),
     shallow
   );
   
-  const backgroundColor = useAppStore((state: any) => state.backgroundColor);
-  const textColor = useAppStore((state: any) => state.textColor);
+  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
@@ -52,7 +52,7 @@ const App = () => {
           await init();
         }
       } catch (error) {
-        console.error(error);
+        console.error("Initialization error:", error);
       } finally {
         setLoading(false);
       }
@@ -86,7 +86,7 @@ const App = () => {
         await tour.start();
         localStorage.setItem("hasVisited", "true");
       } catch (error) {
-        console.error(error);
+        console.error("Tour failed to start:", error);
       }
     };
 

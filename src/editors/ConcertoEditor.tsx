@@ -91,15 +91,21 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const decorationIds = useRef<string[]>([]);
+  const decorationsCollectionRef = useRef<monaco.editor.IEditorDecorationsCollection | null>(null);
 
-  const { error, backgroundColor, showLineNumbers } = useAppStore(
-    (state: any) => ({
+  const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore(
+    (state) => ({
       error: state.error,
       backgroundColor: state.backgroundColor,
+      aiConfig: state.aiConfig,
       showLineNumbers: state.showLineNumbers,
     }),
     shallow
+  );
+
+  const themeName = useMemo(
+    () => (backgroundColor === "#121212" ? "darkTheme" : "lightTheme"),
+    [backgroundColor]
   );
 
   const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
@@ -111,13 +117,24 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
     autoClosingBrackets: "languageDefined",
     autoSurround: "languageDefined",
     bracketPairColorization: { enabled: true },
+    inlineSuggest: {
+      enabled: aiConfig?.enableInlineSuggestions !== false,
+      mode: "prefix",
+      suppressSuggestions: false,
+      fontFamily: "inherit",
+      keepOnBlur: true,
+    },
     suggest: { preview: true, showInlineDetails: true },
     quickSuggestions: false,
+    suggestOnTriggerCharacters: false,
+    acceptSuggestionOnCommitCharacter: false,
     acceptSuggestionOnEnter: "off",
-  }), [showLineNumbers]);
+    tabCompletion: "off",
+  }), [showLineNumbers, aiConfig?.enableInlineSuggestions]);
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
+    decorationsCollectionRef.current = editor.createDecorationsCollection();
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
@@ -143,7 +160,7 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
           severity: monaco.MarkerSeverity.Error,
         }]);
 
-        decorationIds.current = editorRef.current.deltaDecorations(decorationIds.current, [
+        decorationsCollectionRef.current?.set([
           {
             range: new monaco.Range(line, 1, line, 1),
             options: {
@@ -155,7 +172,7 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
       }
     } else {
       monacoInstance.editor.setModelMarkers(model, "customMarker", []);
-      decorationIds.current = editorRef.current.deltaDecorations(decorationIds.current, []);
+      decorationsCollectionRef.current?.clear();
     }
   }, [error, monacoInstance]);
 
@@ -170,13 +187,10 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
           beforeMount={handleEditorWillMount}
           onMount={handleEditorDidMount}
           onChange={(val) => onChange?.(val)}
-          theme={backgroundColor === "#121212" ? "darkTheme" : "lightTheme"}
+          theme={themeName}
         />
       </Suspense>
       {MenuComponent}
-      <style>{`
-        .errorLineHighlight { background: rgba(255, 0, 0, 0.1); width: 100% !important; }
-      `}</style>
     </div>
   );
 }
