@@ -117,7 +117,7 @@ CONCERTO CTO SYNTAX REFERENCE:
   import org.accordproject.time@0.3.0.Duration from https://models.accordproject.org/time@0.3.0.cto
   import org.accordproject.money@0.3.0.MonetaryAmount from https://models.accordproject.org/money@0.3.0.cto
   import org.accordproject.contract@0.2.0.{Contract, Clause} from https://models.accordproject.org/accordproject/contract@0.2.0.cto
-  import org.accordproject.runtime0.2.0.{Obligation, Request, Response, State} from https://models.accordproject.org/accordproject/runtime@0.2.0.cto
+  import org.accordproject.runtime@0.2.0.{Obligation, Request, Response, State} from https://models.accordproject.org/accordproject/runtime@0.2.0.cto
 - Enumerations: enum Name { o VALUE1 o VALUE2 }
 - @template decorator on root asset
 - Root asset extends AccordClause or AccordContract
