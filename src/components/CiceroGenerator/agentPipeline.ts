@@ -280,7 +280,7 @@ export interface CallAgentOptions {
 
 /**
  * Calls an LLM agent with the given prompts.
- * Uses Anthropic's API directly (optimized for this use case).
+ * Uses the configured AI provider (Anthropic or OpenAI-compatible) based on `aiConfig`.
  */
 export async function callAgent({
   systemPrompt,
