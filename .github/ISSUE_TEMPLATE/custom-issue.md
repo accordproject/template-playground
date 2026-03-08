@@ -16,3 +16,5 @@ assignees: ''
 
 ## Detailed Description
 <!--- Provide any further details -->
+
+_Tip: You can self-assign this issue by commenting `/assign` if you are working on it._
