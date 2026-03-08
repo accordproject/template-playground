@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
+import { shallow } from "zustand/shallow";
+import { useStoreWithEqualityFn } from "zustand/traditional";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
 import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
-import { shallow } from "zustand/shallow";
 import LearnContent from "./components/Content";
 import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
@@ -20,7 +21,8 @@ const App = () => {
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
   
-  const { isAIConfigOpen, setAIConfigOpen } = useAppStore(
+  const { isAIConfigOpen, setAIConfigOpen } = useStoreWithEqualityFn(
+    useAppStore,
     (state) => ({
       isAIConfigOpen: state.isAIConfigOpen,
       setAIConfigOpen: state.setAIConfigOpen,

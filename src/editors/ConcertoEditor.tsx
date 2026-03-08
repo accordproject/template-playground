@@ -1,8 +1,9 @@
 import { useMonaco } from "@monaco-editor/react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useCallback } from "react";
 import * as monaco from "monaco-editor";
-import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
+import { useStoreWithEqualityFn } from "zustand/traditional";
+import useAppStore from "../store/store";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 
@@ -93,7 +94,8 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const decorationsCollectionRef = useRef<monaco.editor.IEditorDecorationsCollection | null>(null);
 
-  const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore(
+  const { error, backgroundColor, aiConfig, showLineNumbers } = useStoreWithEqualityFn(
+    useAppStore,
     (state) => ({
       error: state.error,
       backgroundColor: state.backgroundColor,
