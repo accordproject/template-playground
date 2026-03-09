@@ -15,7 +15,8 @@
     "test": "npm run test:unit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "prepare": "husky"
   },
   "dependencies": {
     "@accordproject/concerto-core": "^3.25.7",
@@ -87,7 +88,9 @@
     "eslint": "^8.44.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
+    "husky": "^9.1.7",
     "jsdom": "^24.1.0",
+    "lint-staged": "^16.3.2",
     "module": "^1.2.5",
     "postcss": "^8.5.6",
     "rollup-plugin-ignore": "^1.0.10",
