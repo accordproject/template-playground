@@ -6,7 +6,7 @@ import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
-import { FONT_SIZE_OPTIONS, DEFAULT_FONT_SIZE, MIN_FONT_SIZE, MAX_FONT_SIZE } from "../constants/editorSettings";
+import { FONT_SIZE_OPTIONS, DEFAULT_FONT_SIZE } from "../constants/editorSettings";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
@@ -172,7 +172,7 @@ const getInitialFontSize = () => {
     const saved = localStorage.getItem('editorFontSize');
     if (saved !== null) {
       const parsed = parseInt(saved, 10);
-      if (!isNaN(parsed) && parsed >= MIN_FONT_SIZE && parsed <= MAX_FONT_SIZE) return parsed;
+      if (!isNaN(parsed) && (FONT_SIZE_OPTIONS as readonly number[]).includes(parsed)) return parsed;
     }
   }
   return DEFAULT_FONT_SIZE;

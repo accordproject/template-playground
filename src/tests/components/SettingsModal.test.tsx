@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import SettingsModal from '../../components/SettingsModal';
 
 // Mock the store - use inline functions to avoid hoisting issues
+const mockSetEditorFontSize = vi.fn();
+const mockSetEditorWordWrap = vi.fn();
+
 vi.mock('../../store/store', () => {
   return {
     default: vi.fn((selector) => selector({
@@ -11,9 +14,9 @@ vi.mock('../../store/store', () => {
       showLineNumbers: true,
       setShowLineNumbers: vi.fn(),
       editorFontSize: 14,
-      setEditorFontSize: vi.fn(),
+      setEditorFontSize: mockSetEditorFontSize,
       editorWordWrap: true,
-      setEditorWordWrap: vi.fn(),
+      setEditorWordWrap: mockSetEditorWordWrap,
       textColor: '#121212',
       backgroundColor: '#ffffff',
       toggleDarkMode: vi.fn(),
@@ -108,6 +111,14 @@ describe('SettingsModal', () => {
     expect(toggle).toBeChecked();
   });
 
+  it('calls setEditorWordWrap when word wrap toggle is clicked', () => {
+    render(<SettingsModal />);
+    
+    const toggle = screen.getByRole('switch', { name: /toggle word wrap/i });
+    fireEvent.click(toggle);
+    expect(mockSetEditorWordWrap).toHaveBeenCalledWith(false, expect.anything());
+  });
+
   it('renders divider between settings', () => {
     render(<SettingsModal />);
     
@@ -115,4 +126,3 @@ describe('SettingsModal', () => {
     expect(dividers.length).toBeGreaterThanOrEqual(1);
   });
 });
-

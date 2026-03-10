@@ -46,10 +46,15 @@ describe('useAppStore - editorFontSize', () => {
   it('should reject font sizes outside the allowed options', () => {
     const store = useAppStore.getState();
 
+    // Start from a non-default valid size
+    store.setEditorFontSize(18);
+    expect(useAppStore.getState().editorFontSize).toBe(18);
+
+    // Invalid sizes should not change the current font size
     store.setEditorFontSize(5);
-    expect(useAppStore.getState().editorFontSize).toBe(14);
+    expect(useAppStore.getState().editorFontSize).toBe(18);
 
     store.setEditorFontSize(100);
-    expect(useAppStore.getState().editorFontSize).toBe(14);
+    expect(useAppStore.getState().editorFontSize).toBe(18);
   });
 });
