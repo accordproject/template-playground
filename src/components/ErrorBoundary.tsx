@@ -32,8 +32,7 @@ class ErrorBoundary extends Component<Props, State> {
       // Get theme colors from store
       const { backgroundColor, textColor } = useAppStore.getState();
       const isDarkMode = backgroundColor === '#121212';
-      // Use showDevDetails prop, default to false if not provided
-      const showDevDetails = this.props.showDevDetails ?? false;
+      const showDevDetails = this.props.showDevDetails ?? import.meta.env.DEV;
       
       return (
         <div style={{
