@@ -383,7 +383,7 @@ const useAppStore = create<AppState>()(
         updateChatState: (partial) => set((state) => ({
           chatState: { ...state.chatState, ...partial }
         })),
-        setAIConfig: (config) => set({ aiConfig: config }),
+        setAIConfig: (config) => set({ aiConfig: config, ...(config === null ? { keyProtectionLevel: null } : {}) }),
         setChatAbortController: (controller) => set({ chatAbortController: controller }),
         setKeyProtectionLevel: (level) => set({ keyProtectionLevel: level }),
         resetChat: () => {

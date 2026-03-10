@@ -50,10 +50,13 @@ describe("ErrorBoundary", () => {
 
   it("should render reload button that calls window.location.reload", () => {
     const reloadMock = vi.fn();
-    // Mock the entire location object
+    // JSDOM makes window.location properties non-configurable, so we
+    // replace the entire location object for this test.
     const originalLocation = window.location;
-    delete (window as any).location;
-    window.location = { ...originalLocation, reload: reloadMock } as any;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...originalLocation, reload: reloadMock },
+    });
 
     try {
       render(
@@ -69,8 +72,10 @@ describe("ErrorBoundary", () => {
       expect(reloadMock).toHaveBeenCalledTimes(1);
     } finally {
       // Restore original location
-      delete (window as any).location;
-      window.location = originalLocation as any;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
     }
   });
 

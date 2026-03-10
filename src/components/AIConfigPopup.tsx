@@ -485,6 +485,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 				type="button"
 				onClick={() => setShowApiKey(!showApiKey)}
 				className={`ml-2 p-2 rounded ${theme.closeButton}`}
+				aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
 			  >
 				{showApiKey ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
 			  </button>

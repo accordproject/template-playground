@@ -29,7 +29,7 @@ test.describe('Navigation', () => {
     await homeLink.click();
 
     // Should be back at the playground
-    await expect(page).toHaveURL(/^https?:\/\/[^/]+\/?$/);
+    await expect(page).toHaveURL('/');
   });
 
   test('should have Help dropdown menu', async ({ page }) => {
