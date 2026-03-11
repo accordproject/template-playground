@@ -1,5 +1,5 @@
 import { useMonaco } from "@monaco-editor/react";
-import { lazy, Suspense, useEffect, useMemo, useRef, useCallback } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useCallback, useState, MutableRefObject } from "react";
 import * as monaco from "monaco-editor";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
@@ -73,7 +73,6 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
       ],
       whitespace: [
         [/\s+/, "white"],
-        [/(\/\/.*)/, "comment"],
       ],
     },
   });
@@ -86,13 +85,16 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
 interface ConcertoEditorProps {
   value: string;
   onChange?: (value: string | undefined) => void;
+  editorRef?: MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }
 
-export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps) {
+export default function ConcertoEditor({ value, onChange, editorRef }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const internalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const activeEditorRef = editorRef || internalEditorRef;
   const decorationsCollectionRef = useRef<monaco.editor.IEditorDecorationsCollection | null>(null);
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
   const { error, backgroundColor, aiConfig, showLineNumbers } = useStoreWithEqualityFn(
     useAppStore,
@@ -142,16 +144,17 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
   }), [showLineNumbers, aiConfig?.enableInlineSuggestions]);
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    editorRef.current = editor;
+    activeEditorRef.current = editor;
     decorationsCollectionRef.current = editor.createDecorationsCollection();
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
+    setIsEditorReady(true);
   };
 
   useEffect(() => {
-    if (!monacoInstance || !editorRef.current) return;
-    const model = editorRef.current.getModel();
+    if (!isEditorReady || !monacoInstance || !activeEditorRef.current) return;
+    const model = activeEditorRef.current.getModel();
     if (!model) return;
 
     if (error) {
@@ -174,7 +177,7 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
             range: new monaco.Range(line, 1, line, 1),
             options: {
               isWholeLine: true,
-              className: "errorLineHighlight",
+              className: "error-line-highlight",
             }
           }
         ]);
@@ -186,7 +189,7 @@ export default function ConcertoEditor({ value, onChange }: ConcertoEditorProps)
       monacoInstance.editor.setModelMarkers(model, "customMarker", []);
       decorationsCollectionRef.current?.clear();
     }
-  }, [error, monacoInstance]);
+  }, [error, monacoInstance, isEditorReady]);
 
   return (
     <div className="editorwrapper h-full w-full">

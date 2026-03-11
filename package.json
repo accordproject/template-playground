@@ -88,7 +88,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "jsdom": "^24.1.0",
-    "module": "^1.2.5",
+    "module": "^2.0.0",
     "postcss": "^8.5.6",
     "rollup-plugin-ignore": "^1.0.10",
     "rollup-plugin-polyfill-node": "^0.12.0",
