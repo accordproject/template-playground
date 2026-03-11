@@ -18,18 +18,21 @@ const viteConfig = defineViteConfig({
 
 
 // https://vitest.dev/config/
-const vitestConfig = defineVitestConfig({
-  test: {
+const vitestConfig = defineVitestConfig({  test: {
     globals: true,
     environment: "jsdom",
     setupFiles: "./src/utils/testing/setup.ts",
     exclude: [...configDefaults.exclude, "**/e2e/**"],
-    deps: {
-      inline: ["monaco-editor"],
+    server: {
+      deps: {
+        inline: ["monaco-editor"],
+      },
     },
-    alias: {
+  },
+  resolve: {
+    alias: process.env.VITEST ? {
       "monaco-editor": fileURLToPath(new URL("./src/utils/testing/__mocks__/monaco-editor.ts", import.meta.url)),
-    },
+    } : {},
   },
 });
 

@@ -43,7 +43,15 @@
 }
 
 .problem-panel-problem-item {
-  @apply p-3 cursor-pointer border-l-4;
+  @apply p-3 border-l-4 transition-all duration-150;
+}
+
+.problem-panel-problem-item-clickable {
+  @apply cursor-pointer;
+}
+
+.problem-panel-problem-item-clickable:active {
+  @apply scale-[0.99];
 }
 
 .problem-panel-problem-item-light {
@@ -104,4 +112,12 @@
 
 .problem-panel-problem-message {
   @apply text-sm break-words font-mono;
+}
+
+.problem-panel-clickable-link {
+  @apply text-sm text-blue-400 cursor-pointer font-medium underline underline-offset-2;
+}
+
+.problem-panel-clickable-link:hover {
+  @apply text-blue-300;
 }
