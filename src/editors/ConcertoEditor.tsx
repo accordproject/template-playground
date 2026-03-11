@@ -6,6 +6,7 @@ import { useStoreWithEqualityFn } from "zustand/traditional";
 import useAppStore from "../store/store";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
+import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -15,7 +16,7 @@ const concertoKeywords = [
   "map", "concept", "from", "optional", "default", "range",
   "regex", "length", "abstract", "namespace", "import", "enum",
   "scalar", "extends", "participant", "asset", "o",
-  "identified by", "transaction", "event",
+  "transaction", "event",
 ];
 
 const concertoTypes = [
@@ -73,6 +74,7 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
       ],
       whitespace: [
         [/\s+/, "white"],
+        [/\/\/.*$/, "comment"],
       ],
     },
   });
@@ -150,7 +152,14 @@ export default function ConcertoEditor({ value, onChange, editorRef }: ConcertoE
       handleSelection(editor);
     });
     setIsEditorReady(true);
+    registerEditor("concerto", editor);
   };
+
+  useEffect(() => {
+    return () => {
+      unregisterEditor("concerto");
+    };
+  }, []);
 
   useEffect(() => {
     if (!isEditorReady || !monacoInstance || !activeEditorRef.current) return;
