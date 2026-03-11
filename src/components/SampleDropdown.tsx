@@ -38,7 +38,7 @@ function SampleDropdown({
           await loadSample(e.key);
           void message.success({
             content: `Loaded ${e.key} sample`,
-            duration: 3,
+            duration: 2,
           });
           setSelectedSample(e.key);
         } catch (error) {
