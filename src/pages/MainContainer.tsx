@@ -197,7 +197,8 @@ const MainContainer = () => {
                               padding: '4px',
                               marginRight: '4px'
                             }}
-                            title={isDataCollapsed ? "Expand" : "Collapse"}
+                            title={isDataCollapsed ? "Expand Data (JSON) panel" : "Collapse Data (JSON) panel"}
+                            aria-label={isDataCollapsed ? "Expand Data (JSON) panel" : "Collapse Data (JSON) panel"}
                           >
                             {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
