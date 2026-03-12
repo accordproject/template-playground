@@ -38,8 +38,17 @@ const FullScreenModal: React.FC = () => {
     <>
       <MdFullscreen
         size={24}
+        role="button"
+        tabIndex={0}
+        aria-label="Open fullscreen preview"
         style={{ cursor: "pointer" }}
         onClick={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setOpen(true);
+          }
+        }}
       />
       <Modal
         title="Output"
