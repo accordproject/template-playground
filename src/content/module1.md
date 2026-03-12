@@ -2,7 +2,7 @@
 
 ## _Create a Concerto model for your template._
 
-Learn more about Concerto modelling language and its runtime [here](https://concerto.accordproject.org/)
+Learn more about Concerto modelling language and its runtime [here](https://concerto.accordproject.org/).
 
 - Step 1: Open the Concerto Model editor and define the [Model Namespace](https://concerto.accordproject.org/docs/design/specification/model-namespaces).
 
