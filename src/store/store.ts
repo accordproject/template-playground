@@ -23,7 +23,6 @@ interface AppState {
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
-  isAIConfigOpen: boolean;
   isAIChatOpen: boolean;
   backgroundColor: string;
   textColor: string;
@@ -42,7 +41,6 @@ interface AppState {
   generateShareableLink: () => string;
   loadFromLink: (compressedData: string) => Promise<void>;
   toggleDarkMode: () => void;
-  setAIConfigOpen: (visible: boolean) => void;
   setAIChatOpen: (visible: boolean) => void;
   setChatState: (state: ChatState) => void;
   updateChatState: (partial: Partial<ChatState>) => void;
@@ -184,7 +182,6 @@ const useAppStore = create<AppState>()(
         data: JSON.stringify(playground.DATA, null, 2),
         editorAgreementData: JSON.stringify(playground.DATA, null, 2),
         agreementHtml: "",
-        isAIConfigOpen: false,
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
         samples: SAMPLES,
@@ -379,7 +376,6 @@ const useAppStore = create<AppState>()(
             return newTheme;
           });
         },
-        setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
         setAIChatOpen: (isOpen: boolean) => {
           set(() => ({ isAIChatOpen: isOpen }));
           savePanelState({ ...get(), isAIChatOpen: isOpen }); // Save change
