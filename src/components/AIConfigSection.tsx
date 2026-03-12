@@ -463,6 +463,8 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
             type="button"
             onClick={() => setShowApiKey(!showApiKey)}
             className={`ml-2 p-2 rounded ${theme.closeButton}`}
+            aria-label={showApiKey ? "Hide API key" : "Show API key"}
+            aria-pressed={showApiKey}
           >
             {showApiKey ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
           </button>
