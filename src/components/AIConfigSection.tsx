@@ -524,7 +524,9 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
             {provider === 'openrouter' && 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct'}
             {provider === 'ollama' && (
               <span className="text-orange-500 font-bold">
-                ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
+                ⚠️ For browser access, configure <code>OLLAMA_ORIGINS</code> to this site's origin
+                (for example, <code>https://template-playground.accordproject.org</code>), not <code>"*"</code>.
+                Using <code>"*"</code> allows any website to send requests to your local Ollama server.
                 <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
               </span>
             )}
