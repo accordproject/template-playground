@@ -126,7 +126,8 @@ const MainContainer = () => {
                               padding: '4px',
                               marginRight: '4px'
                             }}
-                            title={isModelCollapsed ? "Expand" : "Collapse"}
+                            title={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
+                            aria-label={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
                           >
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
@@ -197,8 +198,8 @@ const MainContainer = () => {
                               padding: '4px',
                               marginRight: '4px'
                             }}
-                            title={isDataCollapsed ? "Expand Data (JSON) panel" : "Collapse Data (JSON) panel"}
-                            aria-label={isDataCollapsed ? "Expand Data (JSON) panel" : "Collapse Data (JSON) panel"}
+                            title={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
+                            aria-label={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
                           >
                             {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
