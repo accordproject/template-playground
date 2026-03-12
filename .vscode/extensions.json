@@ -1,0 +1,26 @@
+{
+    // Recommended extensions for the Accord Project Template Playground.
+    // VS Code will suggest installing these when opening the project.
+    // See https://go.microsoft.com/fwlink/?LinkId=827846 for more info.
+    "recommendations": [
+        // ── Editor & Formatting ──────────────────────────────────────
+        "editorconfig.editorconfig", // EditorConfig support
+        "esbenp.prettier-vscode", // Prettier – code formatter
+        "dbaeumer.vscode-eslint", // ESLint – JS/TS linter
+        // ── Languages & Frameworks ───────────────────────────────────
+        "ms-vscode.vscode-typescript-next", // TypeScript nightly (better DX)
+        "bradlc.vscode-tailwindcss", // Tailwind CSS IntelliSense
+        "styled-components.vscode-styled-components", // Styled-components syntax
+        // ── React & JSX/TSX ──────────────────────────────────────────
+        "dsznajder.es7-react-js-snippets", // React/Redux/GraphQL snippets
+        // ── Testing ──────────────────────────────────────────────────
+        "ms-playwright.playwright", // Playwright Test runner
+        "vitest.explorer", // Vitest test explorer
+        // ── Developer Quality-of-Life ────────────────────────────────
+        "streetsidesoftware.code-spell-checker", // Spell checker for code
+        "mikestead.dotenv", // .env syntax highlighting
+        "csstools.postcss", // PostCSS language support
+        "yoavbls.pretty-ts-errors" // Human-readable TS errors
+    ],
+    "unwantedRecommendations": []
+}

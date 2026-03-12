@@ -1,0 +1,58 @@
+{
+    // ── Editor Defaults ────────────────────────────────────────────
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    // ── File Handling ──────────────────────────────────────────────
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.git": true
+    },
+    // ── TypeScript ─────────────────────────────────────────────────
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    // ── Tailwind CSS ───────────────────────────────────────────────
+    "tailwindCSS.includeLanguages": {
+        "typescriptreact": "html"
+    },
+    "tailwindCSS.experimental.classRegex": [
+        [
+            "className\\s*=\\s*[\"']([^\"']*)[\"']",
+            "([^\"'\\s]*)"
+        ]
+    ],
+    // ── ESLint ─────────────────────────────────────────────────────
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact"
+    ],
+    // ── Search ─────────────────────────────────────────────────────
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/package-lock.json": true,
+        "**/playwright-report": true
+    },
+    // ── File Associations ──────────────────────────────────────────
+    "[markdown]": {
+        "editor.wordWrap": "on",
+        "files.trimTrailingWhitespace": false
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+}
