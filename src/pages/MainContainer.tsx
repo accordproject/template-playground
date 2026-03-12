@@ -127,6 +127,7 @@ const MainContainer = () => {
                               marginRight: '4px'
                             }}
                             title={isModelCollapsed ? "Expand" : "Collapse"}
+                            aria-label={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
                           >
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
@@ -161,6 +162,7 @@ const MainContainer = () => {
                                 marginRight: '4px'
                               }}
                               title={isTemplateCollapsed ? "Expand" : "Collapse"}
+                              aria-label={isTemplateCollapsed ? "Expand Template panel" : "Collapse Template panel"}
                             >
                               {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                             </button>
@@ -197,6 +199,7 @@ const MainContainer = () => {
                               marginRight: '4px'
                             }}
                             title={isDataCollapsed ? "Expand" : "Collapse"}
+                            aria-label={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
                           >
                             {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
