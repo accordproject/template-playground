@@ -23,3 +23,5 @@ assignees: ''
 
 ## Detailed Description
 <!--- Provide a detailed description of the change or addition you are proposing -->
+
+_Tip: You can self-assign this issue by commenting `/assign` if you are working on it._

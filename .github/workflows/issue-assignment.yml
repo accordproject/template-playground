@@ -1,0 +1,40 @@
+name: Issue Assignment
+on:
+    issue_comment:
+        types: [created]
+
+permissions:
+    issues: write
+
+jobs:
+    assign:
+        if: |
+            (!github.event.issue.pull_request) && 
+            (contains(github.event.comment.body, '/assign') || contains(github.event.comment.body, '/unassign'))
+        runs-on: ubuntu-latest
+        steps:
+            - name: Assign or Unassign
+              uses: actions/github-script@v6
+              with:
+                  script: |
+                      const comment = context.payload.comment.body.trim();
+                      const user = context.payload.comment.user.login;
+                      const issueNumber = context.payload.issue.number;
+
+                      if (comment === '/assign') {
+                        console.log(`Assigning issue #${issueNumber} to ${user}`);
+                        await github.rest.issues.addAssignees({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: issueNumber,
+                          assignees: [user]
+                        });
+                      } else if (comment === '/unassign') {
+                        console.log(`Unassigning issue #${issueNumber} from ${user}`);
+                        await github.rest.issues.removeAssignees({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: issueNumber,
+                          assignees: [user]
+                        });
+                      }
