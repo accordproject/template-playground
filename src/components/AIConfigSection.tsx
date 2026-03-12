@@ -131,8 +131,13 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
 
   useEffect(() => {
     setAvailableModels([]);
-    if (!provider || !debouncedApiKey) return;
 
+    if (!provider) return;
+
+    // Only gate on API key for providers that require it (e.g., OpenAI, Anthropic, etc.).
+    // Ollama does not require an API key, so allow it to proceed without debouncedApiKey.
+    const requiresApiKey = provider !== 'ollama';
+    if (requiresApiKey && !debouncedApiKey) return;
     const controller = new AbortController();
     const signal = controller.signal;
 
