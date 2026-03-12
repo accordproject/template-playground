@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import SettingsModal from '../../components/SettingsModal';
 
 // Mock the store - use inline functions to avoid hoisting issues
@@ -13,6 +14,8 @@ vi.mock('../../store/store', () => {
       textColor: '#121212',
       backgroundColor: '#ffffff',
       toggleDarkMode: vi.fn(),
+      keyProtectionLevel: 'none',
+      setKeyProtectionLevel: vi.fn(),
     })),
   };
 });
@@ -28,6 +31,11 @@ vi.mock('react-dark-mode-toggle', () => ({
       Dark Mode Toggle
     </button>
   ),
+}));
+
+// Mock AIConfigSection to isolate SettingsModal tests
+vi.mock('../../components/AIConfigSection', () => ({
+  default: () => <div data-testid="ai-config-section">AI Configuration Content</div>,
 }));
 
 describe('SettingsModal', () => {
@@ -81,5 +89,37 @@ describe('SettingsModal', () => {
     
     const divider = document.querySelector('hr');
     expect(divider).toBeInTheDocument();
+  });
+
+  // Collapse panel tests
+  it('renders the General collapse panel header', () => {
+    render(<SettingsModal />);
+
+    expect(screen.getByText('General')).toBeInTheDocument();
+  });
+
+  it('renders the AI Configuration collapse panel header', () => {
+    render(<SettingsModal />);
+
+    expect(screen.getByText('AI Configuration')).toBeInTheDocument();
+  });
+
+  it('General panel is expanded by default and shows its content', () => {
+    render(<SettingsModal />);
+
+    // Dark Mode and Show Line Numbers content should be visible since General is open by default
+    expect(screen.getByText('Dark Mode')).toBeInTheDocument();
+    expect(screen.getByText('Show Line Numbers')).toBeInTheDocument();
+  });
+
+  it('renders AIConfigSection when AI Configuration panel is opened', () => {
+    render(<SettingsModal />);
+
+    // Click the AI Configuration panel header to expand it
+    const aiPanelHeader = screen.getByText('AI Configuration');
+    fireEvent.click(aiPanelHeader);
+
+    expect(screen.getByTestId('ai-config-section')).toBeInTheDocument();
+    expect(screen.getByText('AI Configuration Content')).toBeInTheDocument();
   });
 });
