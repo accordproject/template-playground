@@ -39,6 +39,19 @@ The Accord Project Playground is an open-source project, welcoming contributions
 - **Documentation and Tutorials:** Contribute to comprehensive documentation and tutorials that guide users through the platform effectively.
 
 ## Demo
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 18 (LTS recommended)
+- npm >= 9
+
+### Installation
+
+```bash
+git clone https://github.com/accordproject/template-playground.git
+cd template-playground
+npm install
 
 The Template Playground is deployed at: [https://playground.accordproject.org](https://playground.accordproject.org)
 
