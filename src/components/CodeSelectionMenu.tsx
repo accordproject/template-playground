@@ -16,7 +16,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   const [isExplaining, setIsExplaining] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const explanationRef = useRef<HTMLDivElement>(null);
-  const { aiConfig, setAIConfigOpen, setAIChatOpen } = useAppStore();
+  const { aiConfig, setSettingsOpen, setAIChatOpen } = useAppStore();
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const handleClose = useCallback(() => {
@@ -52,7 +52,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
 
   const handleExplain = async () => {
     if (!aiConfig) {
-      setAIConfigOpen(true);
+      setSettingsOpen(true);
       return;
     }
 
@@ -104,7 +104,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
 
   const handleChat = async () => {
     if (!aiConfig) {
-      setAIConfigOpen(true);
+      setSettingsOpen(true);
       return;
     }
 
