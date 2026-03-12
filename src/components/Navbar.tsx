@@ -114,12 +114,13 @@ const MenuItem = ({
   }
 
   return (
-    <div
-      className={baseClasses}
+    <button
+      type="button"
+      className={`w-full text-left ${baseClasses}`}
       onClick={onClick}
     >
       {children}
-    </div>
+    </button>
   );
 };
 
@@ -243,9 +244,15 @@ function Navbar() {
       </MenuItem>
       <MenuItemGroup title="Samples">
         {samples?.map((s) => (
-          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
-            <FileTextOutlined />
-            <span>{s.NAME}</span>
+          <MenuItem key={s.NAME}>
+            <button
+              type="button"
+              onClick={() => void handleSampleClick(s.NAME)}
+              style={{ all: "unset", cursor: "pointer", display: "flex", alignItems: "center", width: "100%" }}
+            >
+              <FileTextOutlined />
+              <span>{s.NAME}</span>
+            </button>
           </MenuItem>
         ))}
       </MenuItemGroup>
@@ -345,7 +352,7 @@ function Navbar() {
       {screens.md ? (
         <>
           <div
-            className={`${menuItemClasses("samples", false)} cursor-pointer`}
+            className={`${menuItemClasses("samples", false)} cursor-pointer samples-element`}
             onMouseEnter={() => setHovered("samples")}
             onMouseLeave={() => setHovered(null)}
           >

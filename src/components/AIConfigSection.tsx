@@ -131,8 +131,13 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
 
   useEffect(() => {
     setAvailableModels([]);
-    if (!provider || !debouncedApiKey) return;
 
+    if (!provider) return;
+
+    // Only gate on API key for providers that require it (e.g., OpenAI, Anthropic, etc.).
+    // Ollama does not require an API key, so allow it to proceed without debouncedApiKey.
+    const requiresApiKey = provider !== 'ollama';
+    if (requiresApiKey && !debouncedApiKey) return;
     const controller = new AbortController();
     const signal = controller.signal;
 
@@ -458,6 +463,8 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
             type="button"
             onClick={() => setShowApiKey(!showApiKey)}
             className={`ml-2 p-2 rounded ${theme.closeButton}`}
+            aria-label={showApiKey ? "Hide API key" : "Show API key"}
+            aria-pressed={showApiKey}
           >
             {showApiKey ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
           </button>
@@ -517,7 +524,9 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
             {provider === 'openrouter' && 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct'}
             {provider === 'ollama' && (
               <span className="text-orange-500 font-bold">
-                ⚠️ Must run: <code>OLLAMA_ORIGINS="*" ollama serve</code>
+                ⚠️ For browser access, configure <code>OLLAMA_ORIGINS</code> to this site's origin
+                (for example, <code>https://template-playground.accordproject.org</code>), not <code>"*"</code>.
+                Using <code>"*"</code> allows any website to send requests to your local Ollama server.
                 <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
               </span>
             )}
