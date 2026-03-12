@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import SettingsModal from '../../components/SettingsModal';
 
 // Mock the store - use inline functions to avoid hoisting issues
+const mockSetEditorFontSize = vi.fn();
+const mockSetEditorWordWrap = vi.fn();
+
 vi.mock('../../store/store', () => {
   return {
     default: vi.fn((selector) => selector({
@@ -10,6 +13,10 @@ vi.mock('../../store/store', () => {
       setSettingsOpen: vi.fn(),
       showLineNumbers: true,
       setShowLineNumbers: vi.fn(),
+      editorFontSize: 14,
+      setEditorFontSize: mockSetEditorFontSize,
+      editorWordWrap: true,
+      setEditorWordWrap: mockSetEditorWordWrap,
       textColor: '#121212',
       backgroundColor: '#ffffff',
       toggleDarkMode: vi.fn(),
@@ -76,10 +83,46 @@ describe('SettingsModal', () => {
     expect(toggle).toBeChecked();
   });
 
+  it('renders the Font Size setting', () => {
+    render(<SettingsModal />);
+    
+    expect(screen.getByText('Font Size')).toBeInTheDocument();
+    expect(screen.getByText('Adjust font size in code editors')).toBeInTheDocument();
+  });
+
+  it('renders the Word Wrap setting', () => {
+    render(<SettingsModal />);
+    
+    expect(screen.getByText('Word Wrap')).toBeInTheDocument();
+    expect(screen.getByText('Wrap long lines in code editors')).toBeInTheDocument();
+  });
+
+  it('renders the word wrap toggle switch', () => {
+    render(<SettingsModal />);
+    
+    const toggle = screen.getByRole('switch', { name: /toggle word wrap/i });
+    expect(toggle).toBeInTheDocument();
+  });
+
+  it('word wrap toggle is checked when editorWordWrap is true', () => {
+    render(<SettingsModal />);
+    
+    const toggle = screen.getByRole('switch', { name: /toggle word wrap/i });
+    expect(toggle).toBeChecked();
+  });
+
+  it('calls setEditorWordWrap when word wrap toggle is clicked', () => {
+    render(<SettingsModal />);
+    
+    const toggle = screen.getByRole('switch', { name: /toggle word wrap/i });
+    fireEvent.click(toggle);
+    expect(mockSetEditorWordWrap).toHaveBeenCalledWith(false, expect.anything());
+  });
+
   it('renders divider between settings', () => {
     render(<SettingsModal />);
     
-    const divider = document.querySelector('hr');
-    expect(divider).toBeInTheDocument();
+    const dividers = document.querySelectorAll('hr');
+    expect(dividers.length).toBeGreaterThanOrEqual(1);
   });
 });

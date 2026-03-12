@@ -1,7 +1,9 @@
 import React from 'react';
-import { Modal, Switch } from 'antd';
+import { Modal, Select, Switch } from 'antd';
 import DarkModeToggle from 'react-dark-mode-toggle';
 import useAppStore from '../store/store';
+import { FONT_SIZE_OPTIONS } from '../constants/editorSettings';
+
 
 const SettingsModal: React.FC = () => {
   const { 
@@ -9,6 +11,10 @@ const SettingsModal: React.FC = () => {
     setSettingsOpen, 
     showLineNumbers, 
     setShowLineNumbers,
+    editorFontSize,
+    setEditorFontSize,
+    editorWordWrap,
+    setEditorWordWrap,
     textColor,
     backgroundColor,
     toggleDarkMode
@@ -17,6 +23,10 @@ const SettingsModal: React.FC = () => {
     setSettingsOpen: state.setSettingsOpen,
     showLineNumbers: state.showLineNumbers,
     setShowLineNumbers: state.setShowLineNumbers,
+    editorFontSize: state.editorFontSize,
+    setEditorFontSize: state.setEditorFontSize,
+    editorWordWrap: state.editorWordWrap,
+    setEditorWordWrap: state.setEditorWordWrap,
     textColor: state.textColor,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
@@ -71,6 +81,53 @@ const SettingsModal: React.FC = () => {
               checked={showLineNumbers}
               onChange={setShowLineNumbers}
               aria-label="Toggle line numbers"
+            />
+          </div>
+        </div>
+
+        <hr className={isDarkMode ? 'border-gray-600' : 'border-gray-200'} />
+
+        {/* Font Size Dropdown */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
+              Font Size
+            </h4>
+            <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Adjust font size in code editors
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Select
+              value={editorFontSize}
+              onChange={setEditorFontSize}
+              style={{ width: 80 }}
+              aria-label="Editor font size"
+              options={FONT_SIZE_OPTIONS.map((size) => ({
+                value: size,
+                label: `${size}px`,
+              }))}
+            />
+          </div>
+        </div>
+
+        <hr className={isDarkMode ? 'border-gray-600' : 'border-gray-200'} />
+
+        {/* Word Wrap Toggle */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
+              Word Wrap
+            </h4>
+            <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Wrap long lines in code editors
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Switch
+              checked={editorWordWrap}
+              onChange={setEditorWordWrap}
+              aria-label="Toggle word wrap"
             />
           </div>
         </div>
