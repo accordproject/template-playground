@@ -114,12 +114,13 @@ const MenuItem = ({
   }
 
   return (
-    <div
-      className={baseClasses}
+    <button
+      type="button"
+      className={`w-full text-left ${baseClasses}`}
       onClick={onClick}
     >
       {children}
-    </div>
+    </button>
   );
 };
 
