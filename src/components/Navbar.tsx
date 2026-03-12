@@ -345,7 +345,7 @@ function Navbar() {
       {screens.md ? (
         <>
           <div
-            className={`${menuItemClasses("samples", false)} cursor-pointer`}
+            className={`${menuItemClasses("samples", false)} cursor-pointer samples-element`}
             onMouseEnter={() => setHovered("samples")}
             onMouseLeave={() => setHovered(null)}
           >
