@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -9,8 +9,13 @@ import {
   BookOutlined,
   CaretDownFilled,
   MenuOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
+import { message } from "antd";
+import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
+import { useStoreWithEqualityFn } from "zustand/traditional";
 
 
 interface DropdownProps {
@@ -109,12 +114,13 @@ const MenuItem = ({
   }
 
   return (
-    <div
-      className={baseClasses}
+    <button
+      type="button"
+      className={`w-full text-left ${baseClasses}`}
       onClick={onClick}
     >
       {children}
-    </div>
+    </button>
   );
 };
 
@@ -192,10 +198,34 @@ const useBreakpoint = () => {
 
 function Navbar() {
   const [hovered, setHovered] = useState<
-    null | "home" | "help" | "github" | "discord" | "join"
+    null | "home" | "help" | "samples" | "github" | "discord" | "join"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
+
+  const { samples, loadSample } = useStoreWithEqualityFn(
+    useAppStore,
+    (state) => ({
+      samples: state.samples,
+      loadSample: state.loadSample as (key: string) => Promise<void>,
+    }),
+    shallow
+  );
+
+  const [selectedSample, setSelectedSample] = useState<string | null>(null);
+
+  const handleSampleClick = useCallback(
+    async (sampleName: string) => {
+      try {
+        await loadSample(sampleName);
+        setSelectedSample(sampleName);
+        void message.info(`Loaded ${sampleName} sample`);
+      } catch {
+        void message.error("Failed to load sample");
+      }
+    },
+    [loadSample]
+  );
 
   const props = useSpring({
     loop: true,
@@ -212,6 +242,14 @@ function Navbar() {
       <MenuItem to="/">
         <span>Template Playground</span>
       </MenuItem>
+      <MenuItemGroup title="Samples">
+        {samples?.map((s) => (
+          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
+            <FileTextOutlined />
+            <span>{s.NAME}</span>
+          </MenuItem>
+        ))}
+      </MenuItemGroup>
       <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
         <QuestionOutlined />
         <span>About</span>
@@ -256,6 +294,19 @@ function Navbar() {
     </Menu>
   );
 
+  const samplesMenu = (
+    <Menu>
+      <MenuItemGroup title="Load Sample">
+        {samples?.map((s) => (
+          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
+            <FileTextOutlined />
+            <span>{s.NAME}</span>
+          </MenuItem>
+        ))}
+      </MenuItemGroup>
+    </Menu>
+  );
+
   const menuItemClasses = (key: string, isLast: boolean) => {
     const baseClasses = "flex items-center h-16";
     const paddingClasses = screens.md ? "px-5" : "px-0";
@@ -294,6 +345,18 @@ function Navbar() {
       
       {screens.md ? (
         <>
+          <div
+            className={`${menuItemClasses("samples", false)} cursor-pointer samples-element`}
+            onMouseEnter={() => setHovered("samples")}
+            onMouseLeave={() => setHovered(null)}
+          >
+            <Dropdown overlay={samplesMenu} trigger={["click"]}>
+              <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
+                {selectedSample || "Samples"}
+                <CaretDownFilled className="text-xs ml-1.5" />
+              </Button>
+            </Dropdown>
+          </div>
           <div
             className={`${menuItemClasses("help", false)} cursor-pointer`}
             onMouseEnter={() => setHovered("help")}
