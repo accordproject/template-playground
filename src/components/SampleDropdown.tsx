@@ -36,7 +36,10 @@ function SampleDropdown({
         setLoading(true);
         try {
           await loadSample(e.key);
-          void message.info(`Loaded ${e.key} sample`);
+          void message.success({
+            content: `Loaded ${e.key} sample`,
+            duration: 2,
+          });
           setSelectedSample(e.key);
         } catch (error) {
           void message.error("Failed to load sample");
@@ -47,8 +50,7 @@ function SampleDropdown({
     },
     [loadSample, setLoading]
   );
-  
-  
+
   return (
     <Space>
       <Dropdown menu={{ items, onClick: (e) => void handleMenuClick(e) }} trigger={["click"]}>
