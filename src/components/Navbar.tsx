@@ -244,15 +244,9 @@ function Navbar() {
       </MenuItem>
       <MenuItemGroup title="Samples">
         {samples?.map((s) => (
-          <MenuItem key={s.NAME}>
-            <button
-              type="button"
-              onClick={() => void handleSampleClick(s.NAME)}
-              style={{ all: "unset", cursor: "pointer", display: "flex", alignItems: "center", width: "100%" }}
-            >
-              <FileTextOutlined />
-              <span>{s.NAME}</span>
-            </button>
+          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
+            <FileTextOutlined />
+            <span>{s.NAME}</span>
           </MenuItem>
         ))}
       </MenuItemGroup>
