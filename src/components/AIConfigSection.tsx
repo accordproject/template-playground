@@ -410,10 +410,11 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   return (
     <div className="twp space-y-4">
       <div>
-        <label className={`block text-sm font-medium ${theme.label} mb-1`}>
+        <label htmlFor="ai-provider-select" className={`block text-sm font-medium ${theme.label} mb-1`}>
           Provider
         </label>
         <select
+          id="ai-provider-select"
           value={provider}
           onChange={(e) => setProvider(e.target.value)}
           className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
@@ -431,10 +432,11 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
 
       {provider === 'openai-compatible' && (
         <div>
-          <label className={`block text-sm font-medium ${theme.label} mb-1`}>
+          <label htmlFor="ai-api-endpoint" className={`block text-sm font-medium ${theme.label} mb-1`}>
             API Endpoint
           </label>
           <input
+            id="ai-api-endpoint"
             type="text"
             value={customEndpoint}
             onChange={(e) => setCustomEndpoint(e.target.value)}
@@ -448,11 +450,12 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       )}
 
       <div className="relative">
-        <label className={`block text-sm font-medium ${theme.label} mb-1`}>
+        <label htmlFor="ai-api-key" className={`block text-sm font-medium ${theme.label} mb-1`}>
           API Key
         </label>
         <div className="flex items-center">
           <input
+            id="ai-api-key"
             type={showApiKey ? "text" : "password"}
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
@@ -500,10 +503,11 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       </div>
 
       <div>
-        <label className={`block text-sm font-medium ${theme.label} mb-1`}>
+        <label htmlFor="ai-model-select" className={`block text-sm font-medium ${theme.label} mb-1`}>
           Model Name
         </label>
         <select
+          id="ai-model-select"
           value={model}
           onChange={(e) => setModel(e.target.value)}
           className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
@@ -560,10 +564,11 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         {showAdvancedSettings && (
           <div className={`p-3 border-t space-y-4 ${theme.advancedContent}`}>
             <div>
-              <label className={`block text-sm font-medium ${theme.label} mb-1`}>
+              <label htmlFor="ai-max-tokens" className={`block text-sm font-medium ${theme.label} mb-1`}>
                 Max Tokens
               </label>
               <input
+                id="ai-max-tokens"
                 type="number"
                 value={maxTokens}
                 onChange={(e) => setMaxTokens(e.target.value)}
