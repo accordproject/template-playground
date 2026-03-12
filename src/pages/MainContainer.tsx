@@ -160,7 +160,8 @@ const MainContainer = () => {
                                 padding: '4px',
                                 marginRight: '4px'
                               }}
-                              title={isTemplateCollapsed ? "Expand" : "Collapse"}
+                              title={isTemplateCollapsed ? "Expand Template panel" : "Collapse Template panel"}
+                              aria-label={isTemplateCollapsed ? "Expand Template panel" : "Collapse Template panel"}
                             >
                               {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                             </button>
