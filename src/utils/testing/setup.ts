@@ -1,4 +1,4 @@
-import { expect, afterEach } from "vitest";
+import { expect, afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import * as matchers from "@testing-library/jest-dom/matchers";
 
@@ -8,6 +8,22 @@ afterEach(() => {
   cleanup();
 });
 
+// Mock monaco-editor for tests
+vi.mock("monaco-editor", () => ({
+  editor: {
+    create: vi.fn(),
+    defineTheme: vi.fn(),
+  },
+  Range: vi.fn(),
+  languages: {
+    register: vi.fn(),
+    setMonarchTokensProvider: vi.fn(),
+  },
+}));
+
+// Mock getComputedStyle for Ant Design components that use scroll locking
+// jsdom doesn't fully support getComputedStyle with pseudo-elements
+// rc-util's getScrollBarSize calls .match() on style properties
 const originalGetComputedStyle = window.getComputedStyle;
 window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
   if (pseudoElt) {
@@ -107,6 +123,5 @@ HTMLCanvasElement.prototype.getContext = function (
   }
 
   // for other context types, delegate to original
-// for other context types, delegate to original
   return originalGetContext.call(this, contextId, options);
 } as unknown as typeof HTMLCanvasElement.prototype.getContext;
