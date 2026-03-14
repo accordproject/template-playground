@@ -37,10 +37,11 @@ const App = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (globalError && globalError.includes("Failed to decompress")) {
+    if (globalError && globalError.includes("Failed to load shared content:")) {
       message.error("Failed to load shared workspace. The link data may be corrupted.");
+      void init(); 
     }
-  }, [globalError]);
+  }, [globalError, init]);
 
   useEffect(() => {
     const initializeApp = async () => {
