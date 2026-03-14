@@ -18,7 +18,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@accordproject/concerto-core": "^3.25.7",
+    "@accordproject/concerto-core": "^4.0.0-beta.1",
     "@accordproject/markdown-common": "^0.17.2",
     "@accordproject/markdown-template": "^0.17.2",
     "@accordproject/markdown-transform": "^0.17.2",
