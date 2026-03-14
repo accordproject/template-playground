@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Modal, Switch, Collapse } from 'antd';
-import { RobotOutlined, SettingOutlined } from '@ant-design/icons';
-import DarkModeToggle from 'react-dark-mode-toggle';
+import { Modal, Switch, Collapse, Space, Divider, Typography } from 'antd';
+import { BulbOutlined, MoonOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 import useAppStore from '../store/store';
 import AIConfigSection from './AIConfigSection';
+
+const { Text } = Typography;
 
 const SettingsModal: React.FC = () => {
   const { 
@@ -11,7 +12,6 @@ const SettingsModal: React.FC = () => {
     setSettingsOpen, 
     showLineNumbers, 
     setShowLineNumbers,
-    textColor,
     backgroundColor,
     toggleDarkMode
   } = useAppStore((state) => ({
@@ -19,7 +19,6 @@ const SettingsModal: React.FC = () => {
     setSettingsOpen: state.setSettingsOpen,
     showLineNumbers: state.showLineNumbers,
     setShowLineNumbers: state.setShowLineNumbers,
-    textColor: state.textColor,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
   }));
@@ -31,62 +30,57 @@ const SettingsModal: React.FC = () => {
     {
       key: 'general',
       label: (
-        <span className="flex items-center gap-2">
+        <Space size={8}>
           <SettingOutlined />
           General
-        </span>
+        </Space>
       ),
       children: (
-        <div className="twp space-y-6 py-2">
+        <Space direction="vertical" size={16} style={{ width: '100%', paddingTop: 4, paddingBottom: 4 }}>
           {/* Dark Mode Toggle */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
-                Dark Mode
-              </h4>
-              <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1 }}>
+              <Text strong style={{ display: 'block' }}>Dark Mode</Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
                 Toggle between light and dark theme
-              </p>
+              </Text>
             </div>
-            <div className="flex-shrink-0">
-              <DarkModeToggle
-                onChange={toggleDarkMode}
-                checked={isDarkMode}
-                size={50}
-              />
-            </div>
+            <Switch
+              data-testid="dark-mode-toggle"
+              checked={isDarkMode}
+              onChange={toggleDarkMode}
+              checkedChildren={<MoonOutlined />}
+              unCheckedChildren={<BulbOutlined />}
+              aria-label="Toggle dark mode"
+            />
           </div>
 
-          <hr className={isDarkMode ? 'border-gray-600' : 'border-gray-200'} />
+          <Divider style={{ margin: 0 }} />
 
           {/* Line Numbers Toggle */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
-                Show Line Numbers
-              </h4>
-              <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1 }}>
+              <Text strong style={{ display: 'block' }}>Show Line Numbers</Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
                 Display line numbers in code editors
-              </p>
+              </Text>
             </div>
-            <div className="flex-shrink-0">
-              <Switch
-                checked={showLineNumbers}
-                onChange={setShowLineNumbers}
-                aria-label="Toggle line numbers"
-              />
-            </div>
+            <Switch
+              checked={showLineNumbers}
+              onChange={setShowLineNumbers}
+              aria-label="Toggle line numbers"
+            />
           </div>
-        </div>
+        </Space>
       ),
     },
     {
       key: 'ai',
       label: (
-        <span className="flex items-center gap-2">
+        <Space size={8}>
           <RobotOutlined />
           AI Configuration
-        </span>
+        </Space>
       ),
       children: <AIConfigSection />,
     },
