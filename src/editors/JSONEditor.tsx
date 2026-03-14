@@ -27,7 +27,7 @@ export default function JSONEditor({
   }));
 
   const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
+    () => (backgroundColor === "#121212" ? "darkTheme" : "lightTheme"),
     [backgroundColor]
   );
 
