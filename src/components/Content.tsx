@@ -17,7 +17,7 @@ import {
   CopyOutlined,
   CheckOutlined,
 } from "@ant-design/icons";
-import { Spin, message } from "antd";
+import { Spin, message, Button } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
@@ -101,21 +101,24 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   return (
     <ContentContainer>
 	  {currentIndex !== steps.length - 1 && (
-		<div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
-		  <button
-		    onClick={handleExitLearning}
-		    style={{
-			  background: "transparent",
+  		<div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+    	  <Button
+			type="link"
+			onClick={handleExitLearning}
+			style={{
+    		  background: "transparent",
 			  border: "none",
 			  color: "#6b7280",
 			  cursor: "pointer",
 			  fontSize: "0.9rem",
-			  textDecoration: "underline"
-		    }}
+			  textDecoration: "underline",
+			  padding: 0,
+			  height: "auto"
+			}}
 		  >
-		    Exit learning
-		  </button>
-		</div>
+			Exit learning
+		  </Button>
+	    </div>
 	  )}
       {content && (
         <ReactMarkdown
