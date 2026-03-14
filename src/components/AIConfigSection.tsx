@@ -2,7 +2,22 @@
  * AI Configuration form section - can be embedded in SettingsModal or used standalone.
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Button,
+  Checkbox,
+  Collapse,
+  Divider,
+  Form,
+  Input,
+  Select,
+  Space,
+  Typography,
+} from 'antd';
+import {
+  LockOutlined,
+  WarningOutlined,
+} from '@ant-design/icons';
 import { AIConfig, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { useDebounce } from 'use-debounce';
 import useAppStore from '../store/store';
@@ -12,52 +27,19 @@ import {
   loadAndDecryptApiKey,
   clearStoredKey,
 } from '../utils/secureKeyStorage';
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { fetchModels } from '../utils/fetchModels';
+
+const { Text } = Typography;
 
 interface AIConfigSectionProps {
   onSaveSuccess?: () => void;
 }
 
 const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element => {
-  const { backgroundColor, keyProtectionLevel, setKeyProtectionLevel } = useAppStore((state) => ({
-    backgroundColor: state.backgroundColor,
+  const { keyProtectionLevel, setKeyProtectionLevel } = useAppStore((state) => ({
     keyProtectionLevel: state.keyProtectionLevel,
     setKeyProtectionLevel: state.setKeyProtectionLevel,
   }));
-
-  const isDarkMode = backgroundColor !== '#ffffff';
-
-  const theme = useMemo(() => {
-    return {
-      label: isDarkMode ? 'text-gray-200' : 'text-gray-700',
-      input: isDarkMode
-        ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500'
-        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500',
-      select: isDarkMode
-        ? 'bg-gray-700 border-gray-600 text-gray-100 focus:border-blue-500 focus:ring-blue-500'
-        : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500',
-      helpText: isDarkMode ? 'text-gray-400' : 'text-gray-500',
-
-      advancedContainer: isDarkMode ? 'border-gray-600' : 'border-gray-200',
-      advancedButton: isDarkMode ? 'text-gray-200' : 'text-gray-700',
-      advancedContent: isDarkMode ? 'border-gray-600' : 'border-gray-200',
-      divider: isDarkMode ? 'border-gray-600' : 'border-gray-200',
-
-      checkbox: isDarkMode
-        ? 'text-blue-400 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-offset-gray-800'
-        : 'text-blue-500 bg-white border-gray-300 focus:ring-blue-400 focus:ring-offset-white',
-      checkboxLabel: isDarkMode ? 'text-gray-200' : 'text-gray-700',
-      closeButton: isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700',
-
-      saveButton: {
-        enabled: 'bg-blue-500 text-white hover:bg-blue-600',
-        disabled: isDarkMode ? 'bg-gray-600 text-gray-400' : 'bg-gray-400 text-gray-200'
-      },
-      resetButton: isDarkMode
-        ? 'border-red-600 text-red-400 hover:bg-red-900 hover:border-red-500'
-        : 'border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600'
-    };
-  }, [isDarkMode]);
 
   const [provider, setProvider] = useState<string>('');
   const [model, setModel] = useState<string>('');
@@ -65,7 +47,6 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   const [customEndpoint, setCustomEndpoint] = useState<string>('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
   const [maxTokens, setMaxTokens] = useState<string>('');
-
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
   const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
@@ -73,7 +54,6 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   const [isEncrypting, setIsEncrypting] = useState<boolean>(false);
   const [securityMessage, setSecurityMessage] = useState<string>('');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [debouncedApiKey] = useDebounce(apiKey, 1000);
 
   // Check WebAuthn PRF support on mount
@@ -138,151 +118,23 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     // Ollama does not require an API key, so allow it to proceed without debouncedApiKey.
     const requiresApiKey = provider !== 'ollama';
     if (requiresApiKey && !debouncedApiKey) return;
+
     const controller = new AbortController();
-    const signal = controller.signal;
 
-    const fetchModels = async () => {
-      try {
-        switch (provider) {
-          case 'openai':
-          case 'openai-compatible':
-            if (!apiKey) return;
-
-            let endpoint = provider === 'openai-compatible' ? customEndpoint : 'https://api.openai.com/v1';
-            if (!endpoint) return;
-            endpoint = endpoint.replace(/\/$/, '');
-            const url = `${endpoint}/models`;
-
-            const res = await fetch(url, {
-              headers: { Authorization: `Bearer ${apiKey}` },
-              signal,
-            });
-
-            if (!res.ok) {
-              console.error(`Fetch error (${res.status}): ${res.statusText}`);
-              return;
-            }
-
-            const data = await res.json();
-            if (!signal.aborted) {
-              const models = data.data?.map((m: { id: string }) => m.id) || [];
-              setAvailableModels(models);
-              setModel(prev => models.includes(prev) ? prev : '');
-            }
-            break;
-
-          case 'anthropic':
-            if (!apiKey) return;
-            {
-              const res = await fetch('https://api.anthropic.com/v1/models', {
-                headers: {
-                  'x-api-key': apiKey,
-                  'anthropic-version': '2023-06-01',
-                  'anthropic-dangerous-direct-browser-access': 'true',
-                },
-                signal,
-              });
-              if (!res.ok) {
-                console.error(`Fetch error (${res.status}): ${res.statusText}`);
-                return;
-              }
-              const data = await res.json();
-              if (!signal.aborted) {
-                const models = data.data?.map((m: { id: string }) => m.id) || [];
-                setAvailableModels(models);
-                setModel(prev => models.includes(prev) ? prev : '');
-              }
-            }
-            break;
-
-          case 'google':
-            if (!apiKey) return;
-            {
-              const res = await fetch('https://generativelanguage.googleapis.com/v1beta2/models', {
-                headers: { 'x-goog-api-key': apiKey },
-                signal,
-              });
-              if (!res.ok) {
-                console.error(`Fetch error (${res.status}): ${res.statusText}`);
-                return;
-              }
-              const data = await res.json();
-              if (!signal.aborted) {
-                const models = data.models?.map((m: { name: string }) => m.name) || [];
-                setAvailableModels(models);
-                setModel(prev => models.includes(prev) ? prev : '');
-              }
-            }
-            break;
-
-          case 'mistral':
-            if (!apiKey) return;
-            {
-              const res = await fetch('https://api.mistral.ai/v1/models', {
-                headers: { Authorization: `Bearer ${apiKey}` },
-                signal,
-              });
-              if (!res.ok) {
-                console.error(`Fetch error (${res.status}): ${res.statusText}`);
-                return;
-              }
-              const data = await res.json();
-              if (!signal.aborted) {
-                const models = data.models?.map((m: { id: string }) => m.id) || [];
-                setAvailableModels(models);
-                setModel(prev => models.includes(prev) ? prev : '');
-              }
-            }
-            break;
-
-          case 'ollama':
-            {
-              const res = await fetch('http://localhost:11434/api/tags', { signal });
-              if (!res.ok) {
-                console.error(`Ollama fetch failed: ${res.statusText}`);
-                return;
-              }
-              const data = await res.json();
-              if (!signal.aborted) {
-                const models = data.models?.map((m: { name?: string; model?: string }) => m.name || m.model) || [];
-                setAvailableModels(models);
-                setModel(prev => models.includes(prev) ? prev : '');
-              }
-            }
-            break;
-
-          case 'openrouter':
-            if (!apiKey) return;
-            {
-              const res = await fetch('https://openrouter.ai/api/v1/models', {
-                headers: { Authorization: `Bearer ${apiKey}` },
-                signal,
-              });
-              if (!res.ok) {
-                console.error(`Fetch error (${res.status}): ${res.statusText}`);
-                return;
-              }
-              const data = await res.json();
-              if (!signal.aborted) {
-                const models = data.data?.map((m: { id: string }) => m.id) || [];
-                setAvailableModels(models);
-                setModel(prev => models.includes(prev) ? prev : '');
-              }
-            }
-            break;
-
-          default:
-            setAvailableModels([]);
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name !== 'AbortError') {
-          console.error('Failed to fetch models:', err);
-          setAvailableModels([]);
-        }
+    const runFetch = async () => {
+      const models = await fetchModels({
+        provider,
+        apiKey,
+        customEndpoint,
+        signal: controller.signal,
+      });
+      if (!controller.signal.aborted) {
+        setAvailableModels(models);
+        setModel(prev => models.includes(prev) ? prev : '');
       }
     };
 
-    void fetchModels();
+    void runFetch();
 
     return () => {
       controller.abort();
@@ -297,7 +149,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
 
   const handleSave = async () => {
     setIsEncrypting(true);
-    
+
     localStorage.setItem('aiProvider', provider);
     localStorage.setItem('aiModel', model);
 
@@ -373,16 +225,12 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     if (confirmed) {
       // Clear all AI-related localStorage items (including encrypted key data)
       clearStoredKey();
-      localStorage.removeItem('aiProvider');
-      localStorage.removeItem('aiModel');
-      localStorage.removeItem('aiCustomEndpoint');
-      localStorage.removeItem('aiResMaxTokens');
-      localStorage.removeItem('aiShowFullPrompt');
-      localStorage.removeItem('aiEnableCodeSelectionMenu');
-      localStorage.removeItem('aiEnableInlineSuggestions');
-      localStorage.removeItem('aiIncludeTemplateMark');
-      localStorage.removeItem('aiIncludeConcertoModel');
-      localStorage.removeItem('aiIncludeData');
+      const keysToRemove = [
+        'aiProvider', 'aiModel', 'aiCustomEndpoint', 'aiResMaxTokens',
+        'aiShowFullPrompt', 'aiEnableCodeSelectionMenu', 'aiEnableInlineSuggestions',
+        'aiIncludeTemplateMark', 'aiIncludeConcertoModel', 'aiIncludeData',
+      ];
+      keysToRemove.forEach(key => localStorage.removeItem(key));
 
       // Reset all state variables to default
       setProvider('');
@@ -402,256 +250,206 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     }
   };
 
-  const isSaveDisabled = isEncrypting || !provider || !model || 
-    (availableModels.length > 0 && !availableModels.includes(model)) || 
-    (provider !== 'ollama' && !apiKey) || 
+  const isSaveDisabled = isEncrypting || !provider || !model ||
+    (availableModels.length > 0 && !availableModels.includes(model)) ||
+    (provider !== 'ollama' && !apiKey) ||
     (provider === 'openai-compatible' && !customEndpoint);
 
+  const providerOptions = [
+    { value: 'anthropic', label: 'Anthropic' },
+    { value: 'google', label: 'Google' },
+    { value: 'mistral', label: 'Mistral' },
+    { value: 'ollama', label: 'Ollama (Local)' },
+    { value: 'openai', label: 'OpenAI' },
+    { value: 'openrouter', label: 'OpenRouter' },
+    { value: 'openai-compatible', label: 'OpenAI Compatible API' },
+  ];
+
+  const modelOptions = availableModels.map(m => ({ value: m, label: m }));
+
+  const providerHint: Record<string, React.ReactNode> = {
+    openai: 'Example: gpt-5, gpt-5-mini',
+    anthropic: 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929',
+    google: 'Example: gemini-3-pro, gemini-2.5-flash',
+    mistral: 'Example: mistral-large-latest, mistral-medium-latest',
+    openrouter: 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct',
+    ollama: (
+      <Text type="warning">
+        ⚠️ For browser access, configure <code>OLLAMA_ORIGINS</code> to this site&apos;s origin
+        (for example, <code>https://template-playground.accordproject.org</code>), not{' '}
+        <code>&quot;*&quot;</code>. Using <code>&quot;*&quot;</code> allows any website to send
+        requests to your local Ollama server.
+        <br />Example models: tinyllama, qwen2.5:0.5b, llama3
+      </Text>
+    ),
+  };
+
+  const advancedItems = [
+    {
+      key: 'advanced',
+      label: 'Advanced Settings',
+      children: (
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Form.Item
+            label="Max Tokens"
+            extra="Maximum number of tokens the model can generate in response"
+            style={{ marginBottom: 8 }}
+          >
+            <Input
+              id="ai-max-tokens"
+              type="number"
+              value={maxTokens}
+              onChange={(e) => setMaxTokens(e.target.value)}
+              placeholder="Leave empty for default"
+              min={1}
+              max={32000}
+            />
+          </Form.Item>
+
+          <Divider style={{ margin: '4px 0' }} />
+
+          <Checkbox
+            id="showFullPrompt"
+            checked={showFullPrompt}
+            onChange={(e) => setShowFullPrompt(e.target.checked)}
+          >
+            Show Full Prompts in Chat History
+          </Checkbox>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            When enabled, you&apos;ll see the complete prompt sent to the AI (including any context), not just your input
+          </Text>
+
+          <Checkbox
+            id="enableCodeSelectionMenu"
+            checked={enableCodeSelectionMenu}
+            onChange={(e) => setEnableCodeSelectionMenu(e.target.checked)}
+          >
+            Enable Code Selection Menu
+          </Checkbox>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            When enabled, selecting code in editors will show a menu with &quot;Explain&quot; and &quot;Chat&quot; options
+          </Text>
+
+          <Checkbox
+            id="enableInlineSuggestions"
+            checked={enableInlineSuggestions}
+            onChange={(e) => setEnableInlineSuggestions(e.target.checked)}
+          >
+            Enable Inline AI Suggestions
+          </Checkbox>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            When enabled, AI will provide ghost text suggestions as you type in the editors
+          </Text>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <div className="twp space-y-4">
-      <div>
-        <label htmlFor="ai-provider-select" className={`block text-sm font-medium ${theme.label} mb-1`}>
-          Provider
-        </label>
-        <select
+    <Form layout="vertical" style={{ width: '100%' }}>
+      <Form.Item label="Provider">
+        <Select
           id="ai-provider-select"
-          value={provider}
-          onChange={(e) => setProvider(e.target.value)}
-          className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
-        >
-          <option value="">Select a provider</option>
-          <option value="anthropic">Anthropic</option>
-          <option value="google">Google</option>
-          <option value="mistral">Mistral</option>
-          <option value="ollama">Ollama (Local)</option>
-          <option value="openai">OpenAI</option>
-          <option value="openrouter">OpenRouter</option>
-          <option value="openai-compatible">OpenAI Compatible API</option>
-        </select>
-      </div>
+          value={provider || undefined}
+          onChange={setProvider}
+          placeholder="Select a provider"
+          options={providerOptions}
+          style={{ width: '100%' }}
+        />
+      </Form.Item>
 
       {provider === 'openai-compatible' && (
-        <div>
-          <label htmlFor="ai-api-endpoint" className={`block text-sm font-medium ${theme.label} mb-1`}>
-            API Endpoint
-          </label>
-          <input
+        <Form.Item
+          label="API Endpoint"
+          extra="Enter the full base URL of the OpenAI-compatible API"
+        >
+          <Input
             id="ai-api-endpoint"
-            type="text"
             value={customEndpoint}
             onChange={(e) => setCustomEndpoint(e.target.value)}
             placeholder="https://your-api-endpoint/v1"
-            className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
           />
-          <div className={`mt-1 text-xs ${theme.helpText}`}>
-            Enter the full base URL of the OpenAI-compatible API
-          </div>
-        </div>
+        </Form.Item>
       )}
 
-      <div className="relative">
-        <label htmlFor="ai-api-key" className={`block text-sm font-medium ${theme.label} mb-1`}>
-          API Key
-        </label>
-        <div className="flex items-center">
-          <input
-            id="ai-api-key"
-            type={showApiKey ? "text" : "password"}
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter API key"
-            className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowApiKey(!showApiKey)}
-            className={`ml-2 p-2 rounded ${theme.closeButton}`}
-            aria-label={showApiKey ? "Hide API key" : "Show API key"}
-            aria-pressed={showApiKey}
-          >
-            {showApiKey ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-          </button>
-        </div>
-
-        {/* Security status indicators */}
+      <Form.Item label="API Key">
+        <Input.Password
+          id="ai-api-key"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          placeholder="Enter API key"
+        />
         {keyProtectionLevel === 'webauthn' && (
-          <div className="mt-1 text-xs text-green-500 flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-            </svg>
-            Protected with Passkey (WebAuthn)
-          </div>
+          <Space size={4} style={{ marginTop: 4 }}>
+            <LockOutlined style={{ color: '#52c41a', fontSize: 12 }} />
+            <Text style={{ color: '#52c41a', fontSize: 12 }}>
+              Protected with Passkey (WebAuthn)
+            </Text>
+          </Space>
         )}
         {keyProtectionLevel === 'memory-only' && (
-          <div className="mt-1 text-xs text-yellow-500 flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            Stored in memory only (cleared on refresh)
-          </div>
+          <Space size={4} style={{ marginTop: 4 }}>
+            <WarningOutlined style={{ color: '#faad14', fontSize: 12 }} />
+            <Text style={{ color: '#faad14', fontSize: 12 }}>
+              Stored in memory only (cleared on refresh)
+            </Text>
+          </Space>
         )}
         {!webauthnAvailable && apiKey && provider !== 'ollama' && !keyProtectionLevel && (
-          <div className="mt-1 text-xs text-yellow-500">
+          <Text style={{ color: '#faad14', fontSize: 12, display: 'block', marginTop: 4 }}>
             ⚠️ WebAuthn not available. Key will be stored in memory only.
-          </div>
+          </Text>
         )}
         {securityMessage && (
-          <div className="mt-1 text-xs text-orange-400">
+          <Text style={{ color: '#fa8c16', fontSize: 12, display: 'block', marginTop: 4 }}>
             {securityMessage}
-          </div>
+          </Text>
         )}
-      </div>
+      </Form.Item>
 
-      <div>
-        <label htmlFor="ai-model-select" className={`block text-sm font-medium ${theme.label} mb-1`}>
-          Model Name
-        </label>
-        <select
+      <Form.Item
+        label="Model Name"
+        extra={provider ? providerHint[provider] : undefined}
+      >
+        <Select
           id="ai-model-select"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.select}`}
-        >
-          <option value="">Select a model</option>
-          {availableModels.length > 0
-            ? availableModels.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              )) : <option disabled>No models available</option>
-          }
-        </select>
-        {provider && (
-          <div className={`mt-1 text-xs ${theme.helpText}`}>
-            {provider === 'openai' && 'Example: gpt-5, gpt-5-mini'}
-            {provider === 'anthropic' && 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929'}
-            {provider === 'google' && 'Example: gemini-3-pro, gemini-2.5-flash'}
-            {provider === 'mistral' && 'Example: mistral-large-latest, mistral-medium-latest'}
-            {provider === 'openrouter' && 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct'}
-            {provider === 'ollama' && (
-              <span className="text-orange-500 font-bold">
-                ⚠️ For browser access, configure <code>OLLAMA_ORIGINS</code> to this site's origin
-                (for example, <code>https://template-playground.accordproject.org</code>), not <code>"*"</code>.
-                Using <code>"*"</code> allows any website to send requests to your local Ollama server.
-                <br/>Example models: tinyllama, qwen2.5:0.5b, llama3
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+          value={model || undefined}
+          onChange={setModel}
+          placeholder="Select a model"
+          options={modelOptions}
+          notFoundContent="No models available"
+          style={{ width: '100%' }}
+        />
+      </Form.Item>
 
-      <div className={`border rounded-lg ${theme.advancedContainer}`}>
-        <button
-          onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-          className={`w-full p-3 flex justify-between items-center text-left ${theme.advancedButton}`}
-          aria-expanded={showAdvancedSettings}
-        >
-          <span className="font-medium">Advanced Settings</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={`h-5 w-5 transition-transform ${showAdvancedSettings ? 'rotate-180' : ''}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
+      <Collapse
+        items={advancedItems}
+        activeKey={showAdvancedSettings ? ['advanced'] : []}
+        onChange={(keys) =>
+          setShowAdvancedSettings(Array.isArray(keys) ? keys.includes('advanced') : keys === 'advanced')
+        }
+        bordered
+        style={{ marginBottom: 16 }}
+      />
 
-        {showAdvancedSettings && (
-          <div className={`p-3 border-t space-y-4 ${theme.advancedContent}`}>
-            <div>
-              <label htmlFor="ai-max-tokens" className={`block text-sm font-medium ${theme.label} mb-1`}>
-                Max Tokens
-              </label>
-              <input
-                id="ai-max-tokens"
-                type="number"
-                value={maxTokens}
-                onChange={(e) => setMaxTokens(e.target.value)}
-                placeholder="Leave empty for default"
-                min="1"
-                max="32000"
-                className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 ${theme.input}`}
-              />
-              <div className={`mt-1 text-xs ${theme.helpText}`}>
-                Maximum number of tokens the model can generate in response
-              </div>
-            </div>
-
-            <div className={`border-t my-4 ${theme.divider}`}></div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="showFullPrompt"
-                checked={showFullPrompt}
-                onChange={(e) => setShowFullPrompt(e.target.checked)}
-                className={`h-4 w-4 rounded focus:ring-2 ${theme.checkbox}`}
-              />
-              <label htmlFor="showFullPrompt" className={`ml-2 text-sm ${theme.checkboxLabel}`}>
-                Show Full Prompts in Chat History
-              </label>
-            </div>
-            <div className={`mt-1 text-xs ${theme.helpText}`}>
-              When enabled, you'll see the complete prompt sent to the AI (including any context), not just your input
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="enableCodeSelectionMenu"
-                checked={enableCodeSelectionMenu}
-                onChange={(e) => setEnableCodeSelectionMenu(e.target.checked)}
-                className={`h-4 w-4 rounded focus:ring-2 ${theme.checkbox}`}
-              />
-              <label htmlFor="enableCodeSelectionMenu" className={`ml-2 text-sm ${theme.checkboxLabel}`}>
-                Enable Code Selection Menu
-              </label>
-            </div>
-            <div className={`mt-1 text-xs ${theme.helpText}`}>
-              When enabled, selecting code in editors will show a menu with "Explain" and "Chat" options
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="enableInlineSuggestions"
-                checked={enableInlineSuggestions}
-                onChange={(e) => setEnableInlineSuggestions(e.target.checked)}
-                className={`h-4 w-4 rounded focus:ring-2 ${theme.checkbox}`}
-              />
-              <label htmlFor="enableInlineSuggestions" className={`ml-2 text-sm ${theme.checkboxLabel}`}>
-                Enable Inline AI Suggestions
-              </label>
-            </div>
-            <div className={`mt-1 text-xs ${theme.helpText}`}>
-              When enabled, AI will provide ghost text suggestions as you type in the editors
-            </div>
-          </div>
-        )}
-      </div>
-
-      <button
-        onClick={() => { handleSave().catch(console.warn); }}
+      <Button
+        type="primary"
+        block
         disabled={isSaveDisabled}
-        className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${
-          isSaveDisabled ? theme.saveButton.disabled : theme.saveButton.enabled
-        }`}
+        onClick={() => { handleSave().catch(console.warn); }}
       >
         {isEncrypting ? 'Encrypting & Saving...' : 'Save Configuration'}
-      </button>
+      </Button>
 
-      <button
+      <Button
+        danger
+        block
         onClick={handleReset}
-        className={`w-full py-2 rounded-lg border-2 transition-colors ${theme.resetButton}`}
+        style={{ marginTop: 8 }}
       >
         Reset Configuration
-      </button>
-    </div>
+      </Button>
+    </Form>
   );
 };
 
