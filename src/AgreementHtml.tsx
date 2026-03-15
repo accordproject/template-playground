@@ -1,4 +1,4 @@
-
+import { colors } from './utils/theme';
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import useAppStore from "./store/store";
@@ -41,7 +41,7 @@ function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boole
       </p>
       {loading ? (
         <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <Spin indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />} />
+          <Spin indicator={<LoadingOutlined style={{ fontSize: 42, color: colors.primary }} spin />} />
         </div>
       ) : (
         <div

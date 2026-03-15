@@ -11,6 +11,7 @@ import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
+import { colors } from './utils/theme';
 
 const { Content } = Layout;
 
@@ -152,7 +153,7 @@ const App = () => {
 const Spinner = () => (
   <div className="app-spinner-container">
     <Spin
-      indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
+      indicator={<LoadingOutlined style={{ fontSize: 42, color: colors.primary }} spin />}
     />
   </div>
 );

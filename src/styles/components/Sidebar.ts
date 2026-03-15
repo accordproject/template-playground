@@ -1,3 +1,4 @@
+import { colors } from '../../utils/theme';
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
 
@@ -48,7 +49,7 @@ export const SidebarLink = styled(NavLink)`
     background-color: var(--active-bg-color) !important;
     color: var(--active-text-color) !important;
     font-weight: 600;
-    border-left: 2.5px solid #19c6c7;
+    border-left: 2.5px solid ${colors.primary};
   }
 
   &:hover {
@@ -73,7 +74,7 @@ export const HelperBox = styled.div`
 export const HelperIcon = styled.div`
   margin-right: 0.5rem;
   font-size: 1.2rem;
-  color: #19c6c7;
+  color: ${colors.primary};
 `;
 
 export const HelperText = styled.div`
@@ -81,7 +82,7 @@ export const HelperText = styled.div`
   color: #333;
 
   a {
-    color: #19c6c7 !important;
+    color: ${colors.primary} !important;
     text-decoration: none;
 
     &:hover {

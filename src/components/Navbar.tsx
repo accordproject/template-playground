@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { useState } from "react";
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
@@ -268,9 +269,9 @@ function Navbar() {
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${
+    <div className={`fixed top-0 left-0 right-0 z-50 h-16 flex items-center ${
       screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
-    }`}>
+    }`} style={{ backgroundColor: colors.navy }}>
       <div
         className={`cursor-pointer ${menuItemClasses("home", false)}`}
         onMouseEnter={() => setHovered("home")}
@@ -332,7 +333,8 @@ function Navbar() {
             <Link to="/learn/intro" className="learnNow-button">
               <animated.button
                 style={props}
-                className="px-[22px] py-[10px] bg-[#19c6c7] text-[#050c40] border-none rounded-md cursor-pointer"
+                className="px-[22px] py-[10px] border-none rounded-md cursor-pointer"
+style={{ backgroundColor: colors.primary, color: colors.darkNavy }}
               >
                 Learn
               </animated.button>
