@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { App as AntdApp, Layout, Spin } from "antd";
+import { App as AntdApp, Layout, Spin, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
+import { shallow } from "zustand/shallow";
+import { useStoreWithEqualityFn } from "zustand/traditional";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
 import LearnNow from "./pages/LearnNow";
@@ -18,41 +20,48 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIConfigOpen, setAIConfigOpen } =
-    useAppStore((state) => ({
+  const globalError = useAppStore((state) => state.error);
+  
+  const { isAIConfigOpen, setAIConfigOpen } = useStoreWithEqualityFn(
+    useAppStore,
+    (state) => ({
       isAIConfigOpen: state.isAIConfigOpen,
       setAIConfigOpen: state.setAIConfigOpen,
-    }));
+    }),
+    shallow
+  );
+  
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
+  useEffect(() => {
+    if (globalError && globalError.includes("Failed to load shared content:")) {
+      void message.error("Failed to load shared workspace. The link data may be corrupted.");
+      void init(); 
+    }
+  }, [globalError, init]);
 
   useEffect(() => {
     const initializeApp = async () => {
-      try {
-        setLoading(true);
-        // Prioritize hash for new links, fallback to searchParams for old links
-        let compressedData: string | null = null;
-        if (window.location.hash.startsWith("#data=")) {
-          compressedData = window.location.hash.substring(6);
-        } else {
-          compressedData = searchParams.get("data");
-        }
-        if (compressedData) {
-          await loadFromLink(compressedData);
-          if (window.location.pathname !== "/") {
-            navigate("/", { replace: true });
-          }
-        } else {
-          await init();
-        }
-      } catch (error) {
-        console.error("Initialization error:", error);
-      } finally {
-        setLoading(false);
+      setLoading(true);
+      let compressedData: string | null = null;
+      if (window.location.hash.startsWith("#data=")) {
+        compressedData = window.location.hash.substring(6);
+      } else {
+        compressedData = searchParams.get("data");
       }
+      
+      if (compressedData) {
+        await loadFromLink(compressedData);
+        if (window.location.pathname !== "/") {
+          navigate("/", { replace: true });
+        }
+      } else {
+        await init();
+      }
+      setLoading(false);
     };
     void initializeApp();
   }, [init, loadFromLink, searchParams, navigate]);
@@ -93,7 +102,6 @@ const App = () => {
     }
   }, [searchParams]);
 
-  // Set data-theme attribute on initial load and when theme changes
   useEffect(() => {
     const theme = backgroundColor === "#121212" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", theme);

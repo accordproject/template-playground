@@ -12,38 +12,30 @@ test.describe('Share Functionality', () => {
   });
 
   test('should copy shareable link to clipboard on Share click', async ({ page, context }) => {
-    // Grant clipboard permissions
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     const shareButton = page.getByRole('button', { name: 'Share' });
     await shareButton.click();
 
-    // Should show success message
     await expect(page.getByText('Link copied to clipboard')).toBeVisible({ timeout: 5000 });
 
-    // Verify clipboard contains the link with data parameter
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
     expect(clipboardText).toContain('data=');
   });
 
   test('should load template from shared URL', async ({ page }) => {
-    // First, get a shareable link by clicking share
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
     const shareButton = page.getByRole('button', { name: 'Share' });
     await shareButton.click();
 
-    // Wait for clipboard to be populated
     await expect(page.getByText('Link copied to clipboard')).toBeVisible({ timeout: 5000 });
 
-    // Get the shareable link from clipboard
     const shareableLink = await page.evaluate(() => navigator.clipboard.readText());
     
-    // Validate that we got a non-empty string
     expect(shareableLink, 'Shareable link should be a non-empty string').toBeTruthy();
     expect(typeof shareableLink, 'Shareable link should be a string').toBe('string');
 
-    // Parse URL with validation
     let url: URL;
     try {
       url = new URL(shareableLink);
@@ -51,22 +43,17 @@ test.describe('Share Functionality', () => {
       throw new Error(`Failed to parse shareable link as URL: "${shareableLink}". Error: ${error}`);
     }
 
-    // The app uses hash-based routing (#data=...) not query params (?data=...)
-    // Extract data from hash fragment
-    const hashParams = new URLSearchParams(url.hash.slice(1)); // Remove leading #
+    const hashParams = new URLSearchParams(url.hash.slice(1));
     const dataParam = hashParams.get('data');
     expect(
       dataParam,
       `URL should contain a "data" parameter in hash. Received URL: "${shareableLink}"`
     ).toBeTruthy();
 
-    // Navigate to the shareable link using the hash
     await page.goto(`/#data=${dataParam}`);
 
-    // Wait for app to load
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
-    // Verify the app loaded successfully with content
     await expect(page.locator('.main-container-agreement')).toBeVisible();
   });
 
@@ -78,5 +65,16 @@ test.describe('Share Functionality', () => {
   test('should have Settings button', async ({ page }) => {
     const settingsButton = page.getByRole('button', { name: 'Settings' });
     await expect(settingsButton).toBeVisible();
+  });
+
+  test('should display error toast and fallback to default state on corrupted share link', async ({ page }) => {
+    await page.goto('/#data=invalid_garbage_base64_string');
+    
+    await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 10000 });
+    
+    const errorMessage = page.locator('.ant-message-notice-content', { hasText: 'Failed to load shared workspace. The link data may be corrupted.' });
+    await expect(errorMessage).toBeVisible();
+
+    await expect(page.locator('.agreement')).toContainText('Acme Corp', { timeout: 15000 });
   });
 });
