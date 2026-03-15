@@ -402,9 +402,7 @@ const useAppStore = create<AppState>()(
             error: null,
           });
         },
-        startTour: () => {
-          console.log('Starting tour...');
-        },
+        startTour: () => {},
       }
     })
   )
