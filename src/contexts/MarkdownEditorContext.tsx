@@ -33,7 +33,6 @@ export const MarkdownEditorProvider = ({ children }: { children: ReactNode }) =>
   );
 };
 // eslint-disable-next-line react-refresh/only-export-components
-
 export const useMarkdownEditorContext = () => {
   const context = useContext(MarkdownEditorContext);
   if (context === undefined) {

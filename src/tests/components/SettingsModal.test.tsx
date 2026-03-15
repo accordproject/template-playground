@@ -12,7 +12,7 @@ interface StoreState {
   toggleDarkMode: () => void;
 }
 
-// Update the mock
+// Mock the Zustand store selector with a fixed settings state for isolated SettingsModal tests
 vi.mock('../../store/store', () => {
   return {
     default: vi.fn((selector: (state: StoreState) => unknown) => 
