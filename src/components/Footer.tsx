@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import React, { useState } from "react";
 import { Layout, Row, Col, Typography, Space, Button, Image, Grid } from "antd";
 import {
@@ -24,7 +25,7 @@ const CustomFooter: React.FC = () => {
     <Footer
       id="footer"
       style={{
-        background: "#1b2540",
+        background: colors.navy,
         color: "white",
         padding: "50px 50px 20px 50px",
       }}
@@ -53,9 +54,9 @@ const CustomFooter: React.FC = () => {
                 size="large"
                 style={{
                   padding: "5px 30px",
-                  backgroundColor: "#19c6c7",
+                  backgroundColor: colors.primary,
                   borderRadius: "5px",
-                  color: "#050c40",
+                  color: colors.darkNavy,
                   textAlign: "center",
                   border: "none",
                 }}
