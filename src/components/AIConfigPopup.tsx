@@ -10,6 +10,24 @@ import {
 } from '../utils/secureKeyStorage';
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
+interface OpenAIModel {
+  id: string;
+}
+
+interface ProviderModel {
+  id?: string;
+  name?: string;
+  model?: string;
+}
+
+interface OpenAIModelsResponse {
+  data?: OpenAIModel[];
+}
+
+interface ProviderModelsResponse {
+  models?: ProviderModel[];
+}
+
 const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
   const { backgroundColor, keyProtectionLevel, setKeyProtectionLevel } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
@@ -159,7 +177,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 
 			const data = await res.json();
 			if (!signal.aborted) {
-			  let models = data.data?.map((m: any) => m.id) || []
+			  let models = (data as OpenAIModelsResponse).data?.map((m: OpenAIModel) => m.id) || []
 			  setAvailableModels(models);
 			  setModel(prev => models.includes(prev) ? prev : '');
 			}
@@ -182,7 +200,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			  }
 			  const data = await res.json();
 			  if (!signal.aborted) {
-				let models = data.data?.map((m: any) => m.id) || [];
+				let models = (data as OpenAIModelsResponse).data?.map((m: OpenAIModel) => m.id) || [];
 				setAvailableModels(models);
 			  	setModel(prev => models.includes(prev) ? prev : '');
 			  }
@@ -202,7 +220,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			  }
               const data = await res.json();
               if (!signal.aborted) {
-				let models = data.models?.map((m: any) => m.name) || [];
+				let models = (data as ProviderModelsResponse).models?.map((m: ProviderModel) => m.name) || [];
 				setAvailableModels(models);
 				setModel(prev => models.includes(prev) ? prev : '');
 			  }
@@ -222,7 +240,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			  }
               const data = await res.json();
               if (!signal.aborted) {
-				let models = data.models?.map((m: any) => m.id) || [];
+				let models = (data as ProviderModelsResponse).models?.map((m: ProviderModel) => m.id) || [];
 				setAvailableModels(models);
 				setModel(prev => models.includes(prev) ? prev : '');
 			  }
@@ -238,7 +256,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			  }
 			  const data = await res.json();
 			  if (!signal.aborted) {
-				let models = data.models?.map((m: any) => m.name || m.model) || [];
+				let models = (data as ProviderModelsResponse).models?.map((m: ProviderModel) => m.name ?? m.model) || [];
 				setAvailableModels(models);
 				setModel(prev => models.includes(prev) ? prev : '');
 			  }
@@ -258,7 +276,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			  }
               const data = await res.json();
               if (!signal.aborted) {
-				let models = data.data?.map((m: any) => m.id) || [];
+				let models = (data as OpenAIModelsResponse).data?.map((m: OpenAIModel) => m.id) || [];
 				setAvailableModels(models);
 				setModel(prev => models.includes(prev) ? prev : '');
 			  }
@@ -268,8 +286,8 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
           default:
             setAvailableModels([]);
         }
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== 'AbortError') {
           console.error('Failed to fetch models:', err);
           setAvailableModels([]);
         }
@@ -365,17 +383,13 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
     if (confirmed) {
       // Clear all AI-related localStorage items (including encrypted key data)
       clearStoredKey();
-      localStorage.removeItem('aiProvider');
-      localStorage.removeItem('aiModel');
-      localStorage.removeItem('aiCustomEndpoint');
-      localStorage.removeItem('aiResMaxTokens');
-      localStorage.removeItem('aiShowFullPrompt');
-      localStorage.removeItem('aiEnableCodeSelectionMenu');
-      localStorage.removeItem('aiEnableInlineSuggestions');
-      localStorage.removeItem('aiIncludeTemplateMark');
-      localStorage.removeItem('aiIncludeConcertoModel');
-      localStorage.removeItem('aiIncludeData');
-
+      const keysToRemove = [
+        'aiProvider', 'aiModel', 'aiCustomEndpoint',
+        'aiResMaxTokens', 'aiShowFullPrompt',
+        'aiEnableCodeSelectionMenu', 'aiEnableInlineSuggestions',
+        'aiIncludeTemplateMark', 'aiIncludeConcertoModel', 'aiIncludeData'
+      ];
+      keysToRemove.forEach(key => localStorage.removeItem(key));
       // Reset all state variables to default
       setProvider('');
       setModel('');
