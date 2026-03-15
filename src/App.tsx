@@ -38,7 +38,7 @@ const App = () => {
 
   useEffect(() => {
     if (globalError && globalError.includes("Failed to load shared content:")) {
-      message.error("Failed to load shared workspace. The link data may be corrupted.");
+      void message.error("Failed to load shared workspace. The link data may be corrupted.");
       void init(); 
     }
   }, [globalError, init]);

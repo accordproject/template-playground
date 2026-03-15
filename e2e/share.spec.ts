@@ -75,6 +75,6 @@ test.describe('Share Functionality', () => {
     const errorMessage = page.locator('.ant-message-notice-content', { hasText: 'Failed to load shared workspace. The link data may be corrupted.' });
     await expect(errorMessage).toBeVisible();
 
-    await expect(page.frameLocator('iframe[title="PDF Preview"]').locator('text="Acme Corp"')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('.agreement')).toContainText('Acme Corp', { timeout: 15000 });
   });
 });
