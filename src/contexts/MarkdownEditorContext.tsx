@@ -32,7 +32,7 @@ export const MarkdownEditorProvider = ({ children }: { children: ReactNode }) =>
     </MarkdownEditorContext.Provider>
   );
 };
-
+// eslint-disable-next-line react-refresh/only-export-components
 export const useMarkdownEditorContext = () => {
   const context = useContext(MarkdownEditorContext);
   if (context === undefined) {
