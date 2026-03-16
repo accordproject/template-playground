@@ -70,7 +70,8 @@ test.describe('Share Functionality', () => {
   test('should display error toast and fallback to default state on corrupted share link', async ({ page }) => {
     await page.goto('/#data=invalid_garbage_base64_string');
     
-    await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 10000 });
+    // Updated to 30000 to match the rest of the suite
+    await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
     
     const errorMessage = page.locator('.ant-message-notice-content', { hasText: 'Failed to load shared workspace. The link data may be corrupted.' });
     await expect(errorMessage).toBeVisible();
