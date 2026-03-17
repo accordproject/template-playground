@@ -373,16 +373,9 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     if (confirmed) {
       // Clear all AI-related localStorage items (including encrypted key data)
       clearStoredKey();
-      localStorage.removeItem('aiProvider');
-      localStorage.removeItem('aiModel');
-      localStorage.removeItem('aiCustomEndpoint');
-      localStorage.removeItem('aiResMaxTokens');
-      localStorage.removeItem('aiShowFullPrompt');
-      localStorage.removeItem('aiEnableCodeSelectionMenu');
-      localStorage.removeItem('aiEnableInlineSuggestions');
-      localStorage.removeItem('aiIncludeTemplateMark');
-      localStorage.removeItem('aiIncludeConcertoModel');
-      localStorage.removeItem('aiIncludeData');
+const keysToRemove = ['aiProvider', 'aiModel', 'aiCustomEndpoint', 'aiResMaxTokens', 'aiShowFullPrompt', 'aiEnableCodeSelectionMenu', 'aiEnableInlineSuggestions', 'aiIncludeTemplateMark', 'aiIncludeConcertoModel', 'aiIncludeConcertoModel'];
+
+keysToRemove.forEach(key => localStorage.removeItem(key));
 
       // Reset all state variables to default
       setProvider('');
