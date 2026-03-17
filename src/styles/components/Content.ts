@@ -117,7 +117,7 @@ export const NavigationButton = styled.button`
   border: 0.125rem solid ${colors.primary};
   border-radius: 0.25rem;
   background-color: white;
-  color: ${colors.navy}
+  color: ${colors.navy};
   cursor: pointer;
   font-weight: 600;
   font-size: 1rem;

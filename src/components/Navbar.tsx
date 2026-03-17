@@ -332,10 +332,9 @@ function Navbar() {
           >
             <Link to="/learn/intro" className="learnNow-button">
               <animated.button
-                style={props}
-                className="px-[22px] py-[10px] border-none rounded-md cursor-pointer"
-style={{ backgroundColor: colors.primary, color: colors.darkNavy }}
-              >
+  style={{ ...props, backgroundColor: colors.primary, color: colors.darkNavy }}
+  className="px-[22px] py-[10px] border-none rounded-md cursor-pointer"
+>
                 Learn
               </animated.button>
             </Link>
