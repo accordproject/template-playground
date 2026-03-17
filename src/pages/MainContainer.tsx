@@ -6,6 +6,7 @@ import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import SampleDropdown from "../components/SampleDropdown";
+import ConcertoFormatButton from "../components/ConcertoFormatButton";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
@@ -134,6 +135,7 @@ const MainContainer = () => {
                           <span>Concerto Model</span>
                           <SampleDropdown setLoading={setLoading} />
                         </div>
+                        <ConcertoFormatButton disabled={isModelCollapsed} />
                       </div>
                       {!isModelCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
@@ -259,3 +261,4 @@ const MainContainer = () => {
 };
 
 export default MainContainer;
+
