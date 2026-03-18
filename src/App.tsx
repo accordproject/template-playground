@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { App as AntdApp, Layout, Spin, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
@@ -6,13 +6,14 @@ import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
-import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
-import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
+
+const LearnNow = lazy(() => import("./pages/LearnNow"));
+const MainContainer = lazy(() => import("./pages/MainContainer"));
 
 const { Content } = Layout;
 
@@ -133,7 +134,9 @@ const App = () => {
                       </div>
                     ) : (
                       <div className="app-main-content">
-                        <MainContainer />
+                        <Suspense fallback={<Spinner />}>
+                          <MainContainer />
+                        </Suspense>
                       </div>
                     )}
                   </Content>
@@ -144,7 +147,14 @@ const App = () => {
                 </>
               }
             />
-            <Route path="/learn" element={<LearnNow />}>
+            <Route 
+              path="/learn" 
+              element={
+                <Suspense fallback={<Spinner />}>
+                  <LearnNow />
+                </Suspense>
+              }
+            >
               <Route path="intro" element={<LearnContent file="intro.md" />} />
               <Route path="module1" element={<LearnContent file="module1.md" />} />
               <Route path="module2" element={<LearnContent file="module2.md" />} />
