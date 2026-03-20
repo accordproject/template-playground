@@ -32,7 +32,7 @@ function TemplateMarkdown() {
     if (val !== undefined) {
       updateEditorActivity("markdown");
       setValue(val); // Update editor state and sync
-      setTemplateMarkdown(val);
+      void setTemplateMarkdown(val);
     }
   };
 

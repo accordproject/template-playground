@@ -2,10 +2,10 @@
 export const extractErrorMessage = (error: Error | unknown): string => {
   if (!error) return 'An unknown error occurred';
   
-  let errorMessage = error instanceof Error ? error.message : String(error);
+  const errorMessage = error instanceof Error ? error.message : String(error);
   
   // Try to extract JSON from the message (might be prefixed with error type/code)
-  let jsonMatch = errorMessage.match(/\{.*\}/s);
+  const jsonMatch = errorMessage.match(/\{.*\}/s);
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[0]);
