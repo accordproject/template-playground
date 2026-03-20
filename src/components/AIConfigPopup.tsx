@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AIConfig, AIConfigPopupProps, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { useDebounce } from 'use-debounce';
 import useAppStore from '../store/store';
+import { shallow } from 'zustand/shallow';
 import {
   isWebAuthnPRFSupported,
   encryptAndStoreApiKey,
@@ -15,7 +16,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
     backgroundColor: state.backgroundColor,
     keyProtectionLevel: state.keyProtectionLevel,
     setKeyProtectionLevel: state.setKeyProtectionLevel,
-  }));
+  }), shallow);
 
   const theme = useMemo(() => {
     const isDarkMode = backgroundColor !== '#ffffff';

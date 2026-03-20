@@ -5,6 +5,7 @@ import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
 import useAppStore from "./store/store";
+import { shallow } from "zustand/shallow";
 import LearnContent from "./components/Content";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
@@ -23,7 +24,7 @@ const App = () => {
     useAppStore((state) => ({
       isAIConfigOpen: state.isAIConfigOpen,
       setAIConfigOpen: state.setAIConfigOpen,
-    }));
+    }), shallow);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);

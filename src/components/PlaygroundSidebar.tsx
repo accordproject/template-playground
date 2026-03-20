@@ -5,6 +5,7 @@ import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
 import SettingsModal from "./SettingsModal";
@@ -34,7 +35,7 @@ const PlaygroundSidebar = () => {
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
-  }));
+  }), shallow);
 
   const handleShare = async () => {
     try {

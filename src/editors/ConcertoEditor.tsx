@@ -1,7 +1,8 @@
 import { useMonaco } from "@monaco-editor/react";
-import { lazy, Suspense, useCallback, useEffect, useMemo, MutableRefObject } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, MutableRefObject } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
@@ -124,12 +125,13 @@ export default function ConcertoEditor({
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
+  const localEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     error: state.error,
     backgroundColor: state.backgroundColor,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
-  }));
+  }), shallow);
   const ctoErr = error?.startsWith("c:") ? error : undefined;
 
   const themeName = useMemo(
@@ -165,6 +167,7 @@ export default function ConcertoEditor({
   }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    localEditorRef.current = editor;
     if (editorRef) {
       editorRef.current = editor;
     }
@@ -190,7 +193,9 @@ export default function ConcertoEditor({
   useEffect(() => {
     if (!monacoInstance) return;
 
-    const model = monacoInstance.editor.getModels()?.[0];
+    const editor = localEditorRef.current;
+    if (!editor) return;
+    const model = editor.getModel();
     if (!model) return;
 
     if (ctoErr) {

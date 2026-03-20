@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
 import useAppStore from '../store/store';
+import { shallow } from 'zustand/shallow';
 import { navigateToLine, EditorSource } from '../utils/editorNavigation';
 import '../styles/components/ProblemPanel.css';
 
@@ -18,7 +19,7 @@ const ProblemPanel: React.FC = () => {
     error: state.error,
     backgroundColor: state.backgroundColor,
     textColor: state.textColor
-  }));
+  }), shallow);
 
   const parseError = (errorMessage: string) => {
     const errors: Omit<ProblemItem, 'id' | 'timestamp'>[] = [];

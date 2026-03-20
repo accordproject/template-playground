@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
@@ -24,7 +25,7 @@ export default function JSONEditor({
     backgroundColor: state.backgroundColor,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
-  }));
+  }), shallow);
 
   const themeName = useMemo(
     () => (backgroundColor ? "darkTheme" : "lightTheme"),

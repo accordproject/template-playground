@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
 
 export const AIChatPanel = () => {
@@ -13,7 +14,7 @@ export const AIChatPanel = () => {
     editorTemplateMark: state.editorValue,
     editorModelCto: state.editorModelCto,
     editorAgreementData: state.editorAgreementData,
-  }));
+  }), shallow);
   
   const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
     chatState: state.chatState,
@@ -24,7 +25,7 @@ export const AIChatPanel = () => {
     setAIChatOpen: state.setAIChatOpen,
     textColor: state.textColor,
     backgroundColor: state.backgroundColor
-  }));
+  }), shallow);
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
 
