@@ -1,9 +1,10 @@
 import { useMonaco } from "@monaco-editor/react";
-import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, MutableRefObject } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
+import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -113,18 +114,21 @@ const handleEditorWillMount = (monacoInstance: typeof monaco) => {
 interface ConcertoEditorProps {
   value: string;
   onChange?: (value: string | undefined) => void;
+  editorRef?: MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }
 
 export default function ConcertoEditor({
   value,
   onChange,
+  editorRef,
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
-  const { error, backgroundColor, aiConfig } = useAppStore((state) => ({
+  const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     error: state.error,
     backgroundColor: state.backgroundColor,
-    aiConfig: state.aiConfig
+    aiConfig: state.aiConfig,
+    showLineNumbers: state.showLineNumbers,
   }));
   const ctoErr = error?.startsWith("c:") ? error : undefined;
 
@@ -138,6 +142,7 @@ export default function ConcertoEditor({
     wordWrap: "on",
     automaticLayout: true,
     scrollBeyondLastLine: false,
+    lineNumbers: showLineNumbers ? 'on' : 'off',
     autoClosingBrackets: "languageDefined",
     autoSurround: "languageDefined",
     bracketPairColorization: { enabled: true },
@@ -157,13 +162,23 @@ export default function ConcertoEditor({
     acceptSuggestionOnCommitCharacter: false,
     acceptSuggestionOnEnter: "off",
     tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions]);
+  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    if (editorRef) {
+      editorRef.current = editor;
+    }
+    registerEditor('concerto', editor);
     editor.onDidChangeCursorSelection(() => {
       handleSelection(editor);
     });
   };
+
+  useEffect(() => {
+    return () => {
+      unregisterEditor('concerto');
+    };
+  }, []);
 
   const handleChange = useCallback(
     (val: string | undefined) => {

@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
-import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
-import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
 import AIConfigPopup from "./components/AIConfigPopup";
-import { loadConfigFromLocalStorage } from "./ai-assistant/chatRelay";
+
+const LearnNow = lazy(() => import("./pages/LearnNow"));
+const MainContainer = lazy(() => import("./pages/MainContainer"));
 
 const { Content } = Layout;
 
@@ -29,11 +29,6 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
-
-  const handleConfigSave = () => {
-    loadConfigFromLocalStorage();
-    setAIConfigOpen(false);
-  };
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -131,19 +126,27 @@ const App = () => {
                       </div>
                     ) : (
                       <div className="app-main-content">
-                        <MainContainer />
+                        <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
+                          <MainContainer />
+                        </Suspense>
                       </div>
                     )}
                   </Content>
                   <AIConfigPopup
                     isOpen={isAIConfigOpen}
                     onClose={() => setAIConfigOpen(false)}
-                    onSave={handleConfigSave}
                   />
                 </>
               }
             />
-            <Route path="/learn" element={<LearnNow />}>
+            <Route
+              path="/learn"
+              element={
+                <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
+                  <LearnNow />
+                </Suspense>
+              }
+            >
               <Route path="intro" element={<LearnContent file="intro.md" />} />
               <Route path="module1" element={<LearnContent file="module1.md" />} />
               <Route path="module2" element={<LearnContent file="module2.md" />} />
@@ -163,5 +166,5 @@ const Spinner = () => (
     />
   </div>
 );
- 
+
 export default App;
