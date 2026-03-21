@@ -100,15 +100,15 @@ describe('AIChatPanel', () => {
 
       renderAIChatPanel();
 
-      // Verify spinner and "Thinking" text are visible
+      // Verify "Thinking" text is visible
       expect(screen.getByText('Thinking')).toBeInTheDocument();
-      const spinner = document.querySelector('.animate-spin');
-      expect(spinner).toBeInTheDocument();
       
-      // Verify the loading indicator has proper accessibility attributes
+      // Verify the loading indicator has proper accessibility attributes and contains a spinner icon
       const statusElement = screen.getByRole('status');
       expect(statusElement).toBeInTheDocument();
       expect(statusElement).toHaveAttribute('aria-live', 'polite');
+      const spinnerSvg = statusElement.querySelector('svg');
+      expect(spinnerSvg).toBeInTheDocument();
     });
 
     it('should render message row even when content is empty during loading', () => {
@@ -218,7 +218,9 @@ describe('AIChatPanel', () => {
 
       renderAIChatPanel();
 
-      const spinner = document.querySelector('.animate-spin');
+      const statusElement = screen.getByRole('status');
+      const spinner = statusElement.querySelector('svg');
+      expect(spinner).not.toBeNull();
       expect(spinner).toHaveAttribute('aria-hidden', 'true');
       expect(spinner).toHaveAttribute('focusable', 'false');
     });
