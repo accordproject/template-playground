@@ -27,7 +27,7 @@ concept HelloWorld {
 }
 ```
 
-- Step 4: Add a new [String Propoerty](https://concerto.accordproject.org/docs/design/specification/model-properties) to the Concept.
+- Step 4: Add a new [String Property](https://concerto.accordproject.org/docs/design/specification/model-properties) to the Concept.
 
 ```
 namespace hello@1.0.0

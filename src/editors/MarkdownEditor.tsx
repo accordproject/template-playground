@@ -1,9 +1,10 @@
-import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
+import { lazy, Suspense, useMemo, useCallback, useEffect, MutableRefObject } from "react";
 import useAppStore from "../store/store";
 import { useMonaco } from "@monaco-editor/react";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import type { editor } from "monaco-editor";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
+import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
 
 
 const MonacoEditor = lazy(() =>
@@ -14,16 +15,19 @@ export default function MarkdownEditor({
   value,
   onChange,
   onEditorReady,
+  editorRef,
 }: {
   value: string;
   onChange?: (value: string | undefined) => void;
   onEditorReady?: (editor: editor.IStandaloneCodeEditor) => void;
+  editorRef?: MutableRefObject<editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
-  const { backgroundColor, textColor, aiConfig } = useAppStore((state) => ({
+  const { backgroundColor, textColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     textColor: state.textColor,
     aiConfig: state.aiConfig,
+    showLineNumbers: state.showLineNumbers,
   }));
   const monaco = useMonaco();
 
@@ -60,6 +64,7 @@ export default function MarkdownEditor({
     wordWrap: "on" as const,
     automaticLayout: true,
     scrollBeyondLastLine: false,
+    lineNumbers: showLineNumbers ? 'on' : 'off',
     inlineSuggest: {
       enabled: aiConfig?.enableInlineSuggestions !== false,
       mode: "prefix",
@@ -76,9 +81,13 @@ export default function MarkdownEditor({
     acceptSuggestionOnCommitCharacter: false,
     acceptSuggestionOnEnter: "off",
     tabCompletion: "off",
-  }), [aiConfig?.enableInlineSuggestions]);
+  }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
 
   const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
+    if (editorRef) {
+      editorRef.current = editorInstance;
+    }
+    registerEditor('template', editorInstance);
     editorInstance.onDidChangeCursorSelection(() => {
       handleSelection(editorInstance);
     });
@@ -91,6 +100,12 @@ export default function MarkdownEditor({
       onEditorReady(editorInstance);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      unregisterEditor('template');
+    };
+  }, []);
 
   const handleChange = useCallback(
     (val: string | undefined) => {
