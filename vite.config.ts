@@ -6,6 +6,7 @@ import {
 import react from "@vitejs/plugin-react";
 import nodePolyfills from "vite-plugin-node-stdlib-browser";
 import { visualizer } from "rollup-plugin-visualizer";
+
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
   plugins: [
@@ -22,7 +23,7 @@ const viteConfig = defineViteConfig({
   },
   define: {
     "process.env.TYPESCRIPT_URL": JSON.stringify(
-      "https://cdn.jsdelivr.net/npm/typescript@5.9.3/+esm",
+      "https://cdn.jsdelivr.net/npm/typescript@5.1.6/+esm",
     ),
   },
 });
