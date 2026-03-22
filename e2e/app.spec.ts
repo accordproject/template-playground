@@ -11,9 +11,20 @@ test.describe('App Loading', () => {
     await expect(page.getByRole('img', { name: 'Template Playground' })).toBeVisible();
 
     // Sidebar should be visible with navigation buttons
-    await expect(page.getByRole('button', { name: 'Editor' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Preview' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Problems' })).toBeVisible();
+    await expect(
+  page.getByRole('button', { name: 'Editor' }),
+  'Editor button should be visible in sidebar'
+).toBeVisible();
+
+    await expect(
+  page.getByRole('button', { name: 'Preview' }),
+  'Preview button should be visible in sidebar'
+).toBeVisible();
+
+    await expect(
+  page.getByRole('button', { name: 'Problems' }),
+  'Problems button should be visible in sidebar'
+).toBeVisible();
   });
 
   test('should display editor panels', async ({ page }) => {
