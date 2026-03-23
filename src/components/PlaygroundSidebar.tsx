@@ -163,6 +163,12 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick?.();
+              }
+            }}
             className={`group playground-sidebar-nav-item ${
               active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
             } tour-${title.toLowerCase().replace(' ', '-')}`}
@@ -188,6 +194,12 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }}
             className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             <Icon size={18} />
