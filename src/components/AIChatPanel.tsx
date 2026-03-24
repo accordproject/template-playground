@@ -26,6 +26,19 @@ export const AIChatPanel = () => {
     backgroundColor: state.backgroundColor
   }));
 
+  // Pre-compute nearest preceding system message per index (O(n) single pass)
+  const systemMessageByIndex = useMemo(() => {
+    const lookup: Record<number, string> = {};
+    let lastSystem = '(none)';
+    for (let i = 0; i < chatState.messages.length; i++) {
+      if (chatState.messages[i].role === 'system') {
+        lastSystem = chatState.messages[i].content;
+      }
+      lookup[i] = lastSystem;
+    }
+    return lookup;
+  }, [chatState.messages]);
+
   const latestMessageRef = useRef<HTMLDivElement>(null);
 
   const theme = useMemo(() => {
@@ -346,7 +359,7 @@ export const AIChatPanel = () => {
                       {message.content && renderMessageContent(
                         (message.role === 'user')
                           ? (aiConfig?.showFullPrompt ? (
-                            `**System message:** ${chatState.messages.slice(0, index).reverse().find(m => m.role === 'system')?.content ?? '(none)'}\n**User message:** ${message.content}`
+                            `**System message:** ${systemMessageByIndex[index] ?? '(none)'}\n**User message:** ${message.content}`
                           ) : message.content)
                           : message.content
                       )}
