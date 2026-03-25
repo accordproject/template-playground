@@ -192,7 +192,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
           case 'google':
             if (!apiKey) return;
             {
-              const res = await fetch('https://generativelanguage.googleapis.com/v1beta2/models', {
+              const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
                 headers: { 'x-goog-api-key': apiKey },
                 signal,
               });
