@@ -23,11 +23,7 @@ const CustomFooter: React.FC = () => {
   return (
     <Footer
       id="footer"
-      style={{
-        background: "#1b2540",
-        color: "white",
-        padding: "50px 50px 20px 50px",
-      }}
+      className="bg-[#1b2540] text-white px-[50px] pt-[50px] pb-[20px]"
     >
       <Row justify="space-between" align="middle" gutter={[16, 16]}>
         <Col xs={24} md={12}>
@@ -37,28 +33,21 @@ const CustomFooter: React.FC = () => {
                 src="/logo.png"
                 alt="Template Playground"
                 preview={false}
-                style={{ height: "36px", maxWidth: "100%" }}
+                className="h-9 max-w-full"
               />
             </Link>
-            <Text style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+            <Text className="text-white/65">
               The open-source smart legal contract stack
             </Text>
             <Link href="mailto:admin@accordproject.org">
-              <Text strong style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+              <Text strong className="text-white/65">
                 admin@accordproject.org
               </Text>
             </Link>
             <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank">
               <Button
                 size="large"
-                style={{
-                  padding: "5px 30px",
-                  backgroundColor: "#19c6c7",
-                  borderRadius: "5px",
-                  color: "#050c40",
-                  textAlign: "center",
-                  border: "none",
-                }}
+                className="px-[30px] py-[5px] bg-[#19c6c7] rounded-[5px] text-[#050c40] text-center border-none"
               >
                 Join
               </Button>
@@ -71,7 +60,7 @@ const CustomFooter: React.FC = () => {
             <Button
               type="text"
               onClick={() => setExpanded(!expanded)}
-              style={{ color: "white", fontSize: "16px", marginBottom: "10px" }}
+              className="text-white text-base mb-[10px]"
             >
               {expanded ? <UpOutlined /> : <DownOutlined />} Other Links
             </Button>
@@ -84,11 +73,7 @@ const CustomFooter: React.FC = () => {
                   <Space direction="vertical" size="middle">
                     <Text
                       strong
-                      style={{
-                        color: "rgba(255, 255, 255, 0.65)",
-                        fontSize: "11px",
-                        letterSpacing: "0.1em",
-                      }}
+                      className="text-white/65 text-[11px] tracking-widest"
                     >
                       {section.title}
                     </Text>
@@ -98,7 +83,7 @@ const CustomFooter: React.FC = () => {
                         key={link.title}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ color: "white", fontSize: "15px" }}
+                        className="text-white text-[15px]"
                       >
                         {link.title}
                       </Link>
@@ -111,15 +96,15 @@ const CustomFooter: React.FC = () => {
         </Col>
       </Row>
 
-      <Row justify="space-between" align="middle" style={{ marginTop: "40px" }}>
+      <Row justify="space-between" align="middle" className="mt-[40px]">
         <Col>
-          <Text style={{ color: "rgba(255, 255, 255, 0.85)" }}>
+          <Text className="text-white/85">
             copyright © {year} accord project &bull;{" "}
             <Link
               strong
               href="https://accordproject.org/privacy"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+              className="text-white/85"
             >
               trademark policy
             </Link>{" "}
@@ -128,7 +113,7 @@ const CustomFooter: React.FC = () => {
               strong
               href="https://accordproject.org/brand-assets"
               target="_blank"
-              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+              className="text-white/85"
             >
               brand assets
             </Link>
@@ -137,17 +122,17 @@ const CustomFooter: React.FC = () => {
 
         <Col>
           <Space>
-            <Link href="https://github.com/accordproject" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-              <GithubOutlined style={{ fontSize: "17px" }} />
+            <Link href="https://github.com/accordproject" target="_blank" className="text-white/85">
+              <GithubOutlined className="text-[17px]" />
             </Link>
-            <Link href="https://twitter.com/AccordHQ" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-              <XOutlined style={{ fontSize: "17px" }} />
+            <Link href="https://twitter.com/AccordHQ" target="_blank" className="text-white/85">
+              <XOutlined className="text-[17px]" />
             </Link>
-            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-              <DiscordFilled style={{ fontSize: "17px" }} />
+            <Link href="https://discord.com/invite/Zm99SKhhtA" target="_blank" className="text-white/85">
+              <DiscordFilled className="text-[17px]" />
             </Link>
-            <Link href="https://www.linkedin.com/company/accordproject/" target="_blank" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-              <LinkedinFilled style={{ fontSize: "17px" }} />
+            <Link href="https://www.linkedin.com/company/accordproject/" target="_blank" className="text-white/85">
+              <LinkedinFilled className="text-[17px]" />
             </Link>
           </Space>
         </Col>
