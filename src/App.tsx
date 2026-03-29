@@ -40,9 +40,13 @@ const App = () => {
   useEffect(() => {
     if (globalError && globalError.includes("Failed to load shared content:")) {
       void message.error("Failed to load shared workspace. The link data may be corrupted.");
-      void init(); 
+      // Clear legacy ?data= query param so init() does not re-trigger the same failing loadFromLink
+      if (window.location.search.includes("data=")) {
+        navigate(window.location.pathname + window.location.hash, { replace: true });
+      }
+      void init();
     }
-  }, [globalError, init]);
+  }, [globalError, init, navigate]);
 
   useEffect(() => {
     const initializeApp = async () => {
