@@ -9,6 +9,11 @@ const viteConfig = defineViteConfig({
     emitFile: true,
     filename: "stats.html",
   })],
+  resolve: {
+    alias: {
+      './adapters/http.js': 'axios/lib/adapters/xhr.js',
+    },
+  },
   optimizeDeps: {
     include: ["immer"],
     needsInterop: ['@accordproject/template-engine'],
