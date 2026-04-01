@@ -2,11 +2,22 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import useAppStore from "../store/store";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
+import { updateEditorActivity } from "../ai-assistant/activityTracker";
+
+type ApplyLanguage = "concertoapply" | "templatemarkapply" | "jsonapply";
+
+type ApplyFeedback = {
+  blockKey: string;
+  message: string;
+  type: "error" | "success";
+};
 
 export const AIChatPanel = () => {
   const [promptPreset, setPromptPreset] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInput, setUserInput] = useState("");
+  const [applyFeedback, setApplyFeedback] = useState<ApplyFeedback | null>(null);
+  const [applyingBlockKey, setApplyingBlockKey] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const editorsContent = useAppStore((state) => ({
@@ -15,7 +26,22 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
+  const {
+    chatState,
+    resetChat,
+    aiConfig,
+    setAIConfig,
+    setAIConfigOpen,
+    setAIChatOpen,
+    textColor,
+    backgroundColor,
+    setEditorValue,
+    setTemplateMarkdown,
+    setEditorModelCto,
+    setModelCto,
+    setEditorAgreementData,
+    setData
+  } = useAppStore((state) => ({
     chatState: state.chatState,
     resetChat: state.resetChat,
     aiConfig: state.aiConfig,
@@ -23,7 +49,13 @@ export const AIChatPanel = () => {
     setAIConfigOpen: state.setAIConfigOpen,
     setAIChatOpen: state.setAIChatOpen,
     textColor: state.textColor,
-    backgroundColor: state.backgroundColor
+    backgroundColor: state.backgroundColor,
+    setEditorValue: state.setEditorValue,
+    setTemplateMarkdown: state.setTemplateMarkdown,
+    setEditorModelCto: state.setEditorModelCto,
+    setModelCto: state.setModelCto,
+    setEditorAgreementData: state.setEditorAgreementData,
+    setData: state.setData
   }));
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
@@ -68,7 +100,13 @@ export const AIChatPanel = () => {
         }
       },
 
-      inlineCode: isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
+      inlineCode: isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800',
+      applyButton: isDarkMode
+        ? 'bg-blue-800 text-blue-100 hover:bg-blue-700'
+        : 'bg-blue-600 text-white hover:bg-blue-700',
+      applyButtonDisabled: 'opacity-60 cursor-not-allowed',
+      applyFeedbackSuccess: isDarkMode ? 'text-green-300' : 'text-green-700',
+      applyFeedbackError: isDarkMode ? 'text-red-300' : 'text-red-700'
     };
   }, [backgroundColor]);
   
@@ -148,6 +186,70 @@ export const AIChatPanel = () => {
     stopMessage();
   };
 
+  const getApplyTarget = (language: string) => {
+    const normalizedLanguage = language.toLowerCase() as ApplyLanguage;
+
+    switch (normalizedLanguage) {
+      case "concertoapply":
+        return {
+          apply: async (code: string) => {
+            updateEditorActivity("concerto");
+            setEditorModelCto(code);
+            await setModelCto(code);
+          },
+          successMessage: "Applied to the Concerto editor and rebuilt preview.",
+        };
+      case "templatemarkapply":
+        return {
+          apply: async (code: string) => {
+            updateEditorActivity("markdown");
+            setEditorValue(code);
+            await setTemplateMarkdown(code);
+          },
+          successMessage: "Applied to the TemplateMark editor and rebuilt preview.",
+        };
+      case "jsonapply":
+        return {
+          apply: async (code: string) => {
+            updateEditorActivity("json");
+            setEditorAgreementData(code);
+            await setData(code);
+          },
+          successMessage: "Applied to the JSON data editor and rebuilt preview.",
+        };
+      default:
+        return null;
+    }
+  };
+
+  const handleApplyToEditor = async (language: string, code: string, blockKey: string) => {
+    const applyTarget = getApplyTarget(language);
+
+    if (!applyTarget) {
+      return;
+    }
+
+    setApplyingBlockKey(blockKey);
+    setApplyFeedback(null);
+
+    try {
+      await applyTarget.apply(code);
+      setApplyFeedback({
+        blockKey,
+        message: applyTarget.successMessage,
+        type: "success",
+      });
+    } catch (error) {
+      setApplyFeedback({
+        blockKey,
+        message: error instanceof Error ? error.message : "Could not apply this suggestion.",
+        type: "error",
+      });
+    } finally {
+      setApplyingBlockKey(null);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       if (chatState.isLoading) {
@@ -158,7 +260,7 @@ export const AIChatPanel = () => {
     }
   };
 
-  const renderMessageContent = (content: string) => {
+  const renderMessageContent = (content: string, messageId?: string) => {
     // Detect error marker
     const isError = content.startsWith('[ERROR]');
     const displayContent = isError ? content.replace(/^\[ERROR\]\s*/, '') : content;
@@ -194,17 +296,42 @@ export const AIChatPanel = () => {
     for (let i = 1; i < segments.length; i++) {
       if (i % 2 === 1 && segments[i]) {
         const firstLineBreak = segments[i].indexOf('\n');
-        let code = segments[i];
-        
-        if (firstLineBreak > -1) {
-          code = segments[i].substring(firstLineBreak + 1);
-        }
+        const language = firstLineBreak > -1 ? segments[i].substring(0, firstLineBreak).trim() : "";
+        const code = (firstLineBreak > -1 ? segments[i].substring(firstLineBreak + 1) : segments[i]).trim();
+        const applyTarget = getApplyTarget(language);
+        const blockKey = `${messageId ?? "message"}:${i}:${language}:${code}`;
         
         parts.push(
           <div key={key++} className="relative mt-2 mb-2">
             <pre className="bg-gray-800 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">
-              {code.trim()}
+              {code}
             </pre>
+            {applyTarget && code && (
+              <div className="mt-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${theme.applyButton} ${
+                    applyingBlockKey === blockKey ? theme.applyButtonDisabled : ""
+                  }`}
+                  onClick={() => void handleApplyToEditor(language, code, blockKey)}
+                  disabled={applyingBlockKey === blockKey}
+                  aria-label={`Apply this ${language} code block to the editor`}
+                >
+                  {applyingBlockKey === blockKey ? "Applying..." : "Apply to Editor"}
+                </button>
+                {applyFeedback?.blockKey === blockKey && (
+                  <span
+                    className={`text-xs ${
+                      applyFeedback.type === "success"
+                        ? theme.applyFeedbackSuccess
+                        : theme.applyFeedbackError
+                    }`}
+                  >
+                    {applyFeedback.message}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         );
       } else if (i % 2 === 0 && segments[i]) {
@@ -350,7 +477,8 @@ export const AIChatPanel = () => {
                           ? (aiConfig?.showFullPrompt ? (
                             `**System message:** ${chatState.messages[index-1].content}\n**User message:** ${message.content}`
                           ) : message.content)
-                          : message.content
+                          : message.content,
+                        message.id
                       )}
                       {message.role === 'assistant' && 
                           message.id === chatState.messages[chatState.messages.length - 1].id && 
