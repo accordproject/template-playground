@@ -220,7 +220,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
       ref={menuRef}
       className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 flex"
       style={{ 
-        left: Math.max(10, Math.min(225, window.innerWidth - 150)), 
+        left: Math.max(10, Math.min(position.x, window.innerWidth - 150)), 
         top: Math.max(10, Math.min(position.y, window.innerHeight - 50)),
         minWidth: '120px'
       }}
@@ -260,23 +260,26 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
     if (selection && !selection.isEmpty()) {
       const selectedText = editor.getModel()?.getValueInRange(selection).trim();
       if (selectedText && selectedText.length > 0) {
-        const position = editor.getScrolledVisiblePosition(selection.getStartPosition());
+        const startPosition = editor.getScrolledVisiblePosition(selection.getStartPosition());
+        const endPosition = editor.getScrolledVisiblePosition(selection.getEndPosition());
         const editorContainer = editor.getDomNode()?.closest('.editorwrapper');
         const editorRect = editorContainer?.getBoundingClientRect();
 
         let x: number, y: number;
 
-        if (editorRect && position) {
-          x = Math.max(editorRect.left + 20, Math.min(position.left, editorRect.right - 150));
-          y = Math.max(editorRect.top + 20, Math.min(position.top, editorRect.bottom - 50));
+        if (!startPosition || !endPosition) {
+          return;
+        }
+
+        if (editorRect) {
+          x = Math.max(editorRect.left + 20, Math.min(editorRect.left + startPosition.left, editorRect.right - 150));
+          y = Math.max(editorRect.top + 20, Math.min(editorRect.top + endPosition.top - 40, editorRect.bottom - 50));
 
           x = Math.max(10, Math.min(x, window.innerWidth - 150));
           y = Math.max(10, Math.min(y, window.innerHeight - 50));
-        } else if (position) {
-          x = Math.max(10, Math.min(position.left, window.innerWidth - 150));
-          y = Math.max(10, Math.min(position.top, window.innerHeight - 50));
         } else {
-          return;
+          x = Math.max(10, Math.min(startPosition.left, window.innerWidth - 150));
+          y = Math.max(10, Math.min(endPosition.top - 40, window.innerHeight - 50));
         }
 
         setSelectedText(selectedText);
