@@ -278,8 +278,13 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
           x = Math.max(10, Math.min(x, window.innerWidth - 150));
           y = Math.max(10, Math.min(y, window.innerHeight - 50));
         } else {
-          x = Math.max(10, Math.min(startPosition.left, window.innerWidth - 150));
-          y = Math.max(10, Math.min(endPosition.top - 40, window.innerHeight - 50));
+          const editorDomRect = editor.getDomNode()?.getBoundingClientRect();
+          if (!editorDomRect) {
+            return;
+          }
+
+          x = Math.max(10, Math.min(editorDomRect.left + startPosition.left, window.innerWidth - 150));
+          y = Math.max(10, Math.min(editorDomRect.top + endPosition.top - 40, window.innerHeight - 50));
         }
 
         setSelectedText(selectedText);
