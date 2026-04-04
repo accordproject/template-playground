@@ -26,10 +26,10 @@ export const extractErrorMessage = (error: Error | unknown): string => {
               }
             }
           }
-          // Handle error as string
-          if (typeof parsed.error === 'string') {
-            return parsed.error;
-          }
+        }
+        // Handle error as string
+        if (typeof parsed.error === 'string') {
+          return parsed.error;
         }
       }
       

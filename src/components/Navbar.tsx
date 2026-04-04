@@ -71,22 +71,52 @@ const Menu = ({ children, className = "" }: { children: React.ReactNode; classNa
   </div>
 );
 
-const MenuItem = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
+const MenuItem = ({
+  children,
+  onClick,
+  to,
+  href,
+  className = ""
+}: {
+  children: React.ReactNode;
   onClick?: () => void;
+  to?: string;
+  href?: string;
   className?: string;
-}) => (
-  <div 
-    className={`px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`}
-    onClick={onClick}
-  >
-    {children}
-  </div>
-);
+}) => {
+  const baseClasses = `px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`;
+
+  if (to) {
+    return (
+      <Link to={to} className={baseClasses} onClick={onClick}>
+        {children}
+      </Link>
+    );
+  }
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={baseClasses}
+        onClick={onClick}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <div
+      className={baseClasses}
+      onClick={onClick}
+    >
+      {children}
+    </div>
+  );
+};
 
 const MenuItemGroup = ({ 
   title, 
@@ -179,54 +209,24 @@ function Navbar() {
 
   const mobileMenu = (
     <Menu>
-      <MenuItem>
-        <Link to="/" className="flex items-center space-x-2">
-          <span>Template Playground</span>
-        </Link>
+      <MenuItem to="/">
+        <span>Template Playground</span>
       </MenuItem>
-      <MenuItem>
-        <a
-          href="https://github.com/accordproject/template-playground/blob/main/README.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2"
-        >
-          <QuestionOutlined />
-          <span>About</span>
-        </a>
+      <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
+        <QuestionOutlined />
+        <span>About</span>
       </MenuItem>
-      <MenuItem>
-        <a
-          href="https://discord.com/invite/Zm99SKhhtA"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2"
-        >
-          <UserOutlined />
-          <span>Community</span>
-        </a>
+      <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
+        <UserOutlined />
+        <span>Community</span>
       </MenuItem>
-      <MenuItem>
-        <a
-          href="https://github.com/accordproject/template-playground/issues"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2"
-        >
-          <InfoOutlined />
-          <span>Issues</span>
-        </a>
+      <MenuItem href="https://github.com/accordproject/template-playground/issues">
+        <InfoOutlined />
+        <span>Issues</span>
       </MenuItem>
-      <MenuItem>
-        <a
-          href="https://github.com/accordproject/template-engine/blob/main/README.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2"
-        >
-          <BookOutlined />
-          <span>Documentation</span>
-        </a>
+      <MenuItem href="https://github.com/accordproject/template-engine/blob/main/README.md">
+        <BookOutlined />
+        <span>Documentation</span>
       </MenuItem>
     </Menu>
   );
@@ -234,51 +234,23 @@ function Navbar() {
   const helpMenu = (
     <Menu>
       <MenuItemGroup title="Info">
-        <MenuItem>
-          <a
-            href="https://github.com/accordproject/template-playground/blob/main/README.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <QuestionOutlined />
-            <span>About</span>
-          </a>
+        <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
+          <QuestionOutlined />
+          <span>About</span>
         </MenuItem>
-        <MenuItem>
-          <a
-            href="https://discord.com/invite/Zm99SKhhtA"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <UserOutlined />
-            <span>Community</span>
-          </a>
+        <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
+          <UserOutlined />
+          <span>Community</span>
         </MenuItem>
-        <MenuItem>
-          <a
-            href="https://github.com/accordproject/template-playground/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <InfoOutlined />
-            <span>Issues</span>
-          </a>
+        <MenuItem href="https://github.com/accordproject/template-playground/issues">
+          <InfoOutlined />
+          <span>Issues</span>
         </MenuItem>
       </MenuItemGroup>
       <MenuItemGroup title="Documentation">
-        <MenuItem>
-          <a
-            href="https://github.com/accordproject/template-engine/blob/main/README.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2"
-          >
-            <BookOutlined />
-            <span>Documentation</span>
-          </a>
+        <MenuItem href="https://github.com/accordproject/template-engine/blob/main/README.md">
+          <BookOutlined />
+          <span>Documentation</span>
         </MenuItem>
       </MenuItemGroup>
     </Menu>
@@ -412,7 +384,7 @@ function Navbar() {
             <GithubOutlined className={`text-xl text-white ${
               screens.md ? "mr-1.5" : "mr-0"
             }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Github</span>
+            <span className={screens.md ? "inline" : "hidden"}>GitHub</span>
           </a>
         </div>
       </div>
