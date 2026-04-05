@@ -4,6 +4,7 @@ import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
 import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
 import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
+import { parseProviderError } from '../utils/helpers/errorUtils';
 
 export abstract class LLMProvider {
   protected config: AIConfig;
@@ -67,7 +68,13 @@ export class OpenAICompatibleProvider extends LLMProvider {
       
       onComplete();
     } catch (error) {
-      onError(error instanceof Error ? error : new Error(String(error)));
+      const parsedMessage = parseProviderError(error);
+      if (error instanceof Error) {
+        error.message = parsedMessage;
+        onError(error);
+      } else {
+        onError(new Error(parsedMessage));
+      }
     }
   }
 }
@@ -141,7 +148,13 @@ export class AnthropicProvider extends LLMProvider {
 
       onComplete();
     } catch (error) {
-      onError(error instanceof Error ? error : new Error('Unknown error'));
+      const parsedMessage = parseProviderError(error);
+      if (error instanceof Error) {
+        error.message = parsedMessage;
+        onError(error);
+      } else {
+        onError(new Error(parsedMessage));
+      }
     }
   }
 }
@@ -185,7 +198,13 @@ export class GoogleProvider extends LLMProvider {
 
       onComplete();
     } catch (error) {
-      onError(error instanceof Error ? error : new Error(String(error)));
+      const parsedMessage = parseProviderError(error);
+      if (error instanceof Error) {
+        error.message = parsedMessage;
+        onError(error);
+      } else {
+        onError(new Error(parsedMessage));
+      }
     }
   }
 
@@ -241,7 +260,13 @@ export class MistralProvider extends LLMProvider {
       
       onComplete();
     } catch (error) {
-      onError(error instanceof Error ? error : new Error(String(error)));
+      const parsedMessage = parseProviderError(error);
+      if (error instanceof Error) {
+        error.message = parsedMessage;
+        onError(error);
+      } else {
+        onError(new Error(parsedMessage));
+      }
     }
   }
 }

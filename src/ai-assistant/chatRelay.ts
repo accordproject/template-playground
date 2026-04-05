@@ -3,7 +3,7 @@ import { AIConfig, Message, editorsContent } from '../types/components/AIAssista
 import { prepareSystemPrompt } from "./prompts";
 import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
-import { extractErrorMessage } from '../utils/helpers/errorUtils';
+import { parseProviderError } from '../utils/helpers/errorUtils';
 import { loadAndDecryptApiKey } from '../utils/secureKeyStorage';
 
 export const loadConfigFromLocalStorage = async () => {
@@ -242,12 +242,18 @@ export const sendMessage = async (
             if (!signal.aborted) {
 
               if (onError) {
-                onError(error);
+                const parsedMessage = parseProviderError(error);
+                if (error instanceof Error) {
+                  error.message = parsedMessage;
+                  onError(error);
+                } else {
+                  onError(new Error(parsedMessage));
+                }
               } else if (addToChat) {
                 // Add error message to chat
                 const { chatState, setChatState } = useAppStore.getState();
                 const updatedMessages = [...chatState.messages];
-                const simpleErrorMessage = extractErrorMessage(error);
+                const simpleErrorMessage = parseProviderError(error);
                 const errorMessage = `[ERROR] ${simpleErrorMessage}`;
 
                 updatedMessages[updatedMessages.length - 1] = {
@@ -286,15 +292,20 @@ export const sendMessage = async (
     }
   } catch (error) {
     if (!newAbortController || !newAbortController.signal.aborted) {
-      const simpleErrorMessage = extractErrorMessage(error);
+      const parsedMessage = parseProviderError(error);
 
       if (onError) {
-        onError(error instanceof Error ? error : new Error(simpleErrorMessage));
+        if (error instanceof Error) {
+          error.message = parsedMessage;
+          onError(error);
+        } else {
+          onError(new Error(parsedMessage));
+        }
       } else if (addToChat) {
         // Add error message to chat
         const { chatState, setChatState } = useAppStore.getState();
         const updatedMessages = [...chatState.messages];
-        const formattedError = `[ERROR] ${simpleErrorMessage}`;
+        const formattedError = `[ERROR] ${parsedMessage}`;
 
         updatedMessages[updatedMessages.length - 1] = {
           ...updatedMessages[updatedMessages.length - 1],
