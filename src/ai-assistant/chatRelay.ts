@@ -243,12 +243,13 @@ export const sendMessage = async (
 
               if (onError) {
                 const parsedMessage = parseProviderError(error);
-                if (error instanceof Error) {
-                  error.message = parsedMessage;
-                  onError(error);
-                } else {
-                  onError(new Error(parsedMessage));
+                const normalizedError = new Error(parsedMessage);
+
+                if (error instanceof Error && error.stack) {
+                  normalizedError.stack = error.stack;
                 }
+
+                onError(normalizedError);
               } else if (addToChat) {
                 // Add error message to chat
                 const { chatState, setChatState } = useAppStore.getState();
@@ -295,12 +296,13 @@ export const sendMessage = async (
       const parsedMessage = parseProviderError(error);
 
       if (onError) {
-        if (error instanceof Error) {
-          error.message = parsedMessage;
-          onError(error);
-        } else {
-          onError(new Error(parsedMessage));
+        const normalizedError = new Error(parsedMessage);
+
+        if (error instanceof Error && error.stack) {
+          normalizedError.stack = error.stack;
         }
+
+        onError(normalizedError);
       } else if (addToChat) {
         // Add error message to chat
         const { chatState, setChatState } = useAppStore.getState();

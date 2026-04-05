@@ -222,7 +222,7 @@ export const parseProviderError = (error: unknown): string => {
 
   const normalizedMessage = (extractedMessage || originalMessage).trim() || 'An unknown error occurred';
 
-  if (/api key[\s\S]*(invalid|not valid)|invalid api key|unauthorized|authentication/i.test(normalizedMessage)) {
+  if (/api key.{0,20}(invalid|not valid)|invalid api key|api_key_invalid/i.test(normalizedMessage)) {
     return 'Invalid API key. Please check your AI configuration.';
   }
 
