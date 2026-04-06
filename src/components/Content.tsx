@@ -100,26 +100,41 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
 
   return (
     <ContentContainer>
-	  {currentIndex !== steps.length - 1 && (
-  		<div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
-    	  <Button
-			type="link"
-			onClick={handleExitLearning}
-			style={{
-    		  background: "transparent",
-			  border: "none",
-			  color: "#6b7280",
-			  cursor: "pointer",
-			  fontSize: "0.9rem",
-			  textDecoration: "underline",
-			  padding: 0,
-			  height: "auto"
-			}}
-		  >
-			Exit learning
-		  </Button>
-	    </div>
-	  )}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px", gap: "10px" }}>
+        {steps[currentIndex]?.sampleName && (
+          <Button
+            type="primary"
+            onClick={() => navigate(`/?sample=${encodeURIComponent(steps[currentIndex].sampleName!)}`)}
+            style={{
+              backgroundColor: "#19c6c7",
+              borderColor: "#19c6c7",
+              fontSize: "0.9rem",
+              height: "auto",
+              padding: "4px 12px"
+            }}
+          >
+            Open in Playground
+          </Button>
+        )}
+        {currentIndex !== steps.length - 1 && (
+          <Button
+            type="link"
+            onClick={handleExitLearning}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#6b7280",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              textDecoration: "underline",
+              padding: 0,
+              height: "auto"
+            }}
+          >
+            Exit learning
+          </Button>
+        )}
+      </div>
       {content && (
         <ReactMarkdown
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
@@ -152,14 +167,14 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
           <LeftOutlined /> Previous
         </NavigationButton>
         {currentIndex === steps.length - 1 ? (
-		  <NavigationButton onClick={handleExitLearning}>
-		  Finish
-		  </NavigationButton>
-		) : (
-		  <NavigationButton onClick={handleNext}>
-		  Next <RightOutlined />
-		  </NavigationButton>
-		)}
+          <NavigationButton onClick={handleExitLearning}>
+            Finish
+          </NavigationButton>
+        ) : (
+          <NavigationButton onClick={handleNext}>
+            Next <RightOutlined />
+          </NavigationButton>
+        )}
       </NavigationButtons>
     </ContentContainer>
   );

@@ -237,8 +237,11 @@ const useAppStore = create<AppState>()(
         init: async () => {
           const params = new URLSearchParams(window.location.search);
           const compressedData = params.get("data");
+          const sampleName = params.get("sample");
           if (compressedData) {
             await get().loadFromLink(compressedData);
+          } else if (sampleName) {
+            await get().loadSample(sampleName);
           } else {
             await get().rebuild();
           }
