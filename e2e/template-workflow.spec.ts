@@ -7,8 +7,8 @@ test.describe('Template Workflow', () => {
   });
 
   test('should have sample dropdown in navbar and change templates', async ({ page }) => {
-    // Find the sample dropdown button in navbar
-    const dropdown = page.getByRole('button', { name: /Samples/i });
+    // Find the sample dropdown button in navbar - it shows current sample name or "Samples"
+    const dropdown = page.locator('.samples-element button');
     await expect(dropdown).toBeVisible();
 
     // Click to open dropdown
@@ -28,15 +28,15 @@ test.describe('Template Workflow', () => {
   });
 
   test('should collapse and expand editor panels', async ({ page }) => {
-    // Find the Data Model collapse button
-    const modelCollapseBtn = page.locator('button[title="Collapse"]').first();
+    // Find the Data Model collapse button (title includes "Collapse Data Model panel")
+    const modelCollapseBtn = page.locator('button[title="Collapse Data Model panel"]');
     await expect(modelCollapseBtn).toBeVisible();
 
     // Click to collapse
     await modelCollapseBtn.click();
 
     // Button should now say Expand
-    await expect(page.locator('button[title="Expand"]').first()).toBeVisible();
+    await expect(page.locator('button[title="Expand Data Model panel"]')).toBeVisible();
   });
 
   test('should toggle Editor panel visibility', async ({ page }) => {
