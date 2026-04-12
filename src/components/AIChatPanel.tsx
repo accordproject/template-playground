@@ -1,20 +1,26 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
+import { message } from "antd";
 import useAppStore from "../store/store";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
+import { Attachment } from "../types/components/AIAssistant.types";
+import { v4 as uuidv4 } from 'uuid';
+import { getFileTypeCapabilities, getCompatibleModelsForFile } from "../ai-assistant/llmProviders";
 
 export const AIChatPanel = () => {
   const [promptPreset, setPromptPreset] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInput, setUserInput] = useState("");
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const editorsContent = useAppStore((state) => ({
     editorTemplateMark: state.editorValue,
     editorModelCto: state.editorModelCto,
     editorAgreementData: state.editorAgreementData,
   }));
-  
+
   const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
     chatState: state.chatState,
     resetChat: state.resetChat,
@@ -25,15 +31,14 @@ export const AIChatPanel = () => {
     textColor: state.textColor,
     backgroundColor: state.backgroundColor
   }));
-  
+
   const latestMessageRef = useRef<HTMLDivElement>(null);
 
   const theme = useMemo(() => {
     const isDarkMode = backgroundColor !== '#ffffff';
     return {
-      header: `h-10 -ml-4 -mr-4 -mt-1 p-2 border-gray-200 text-sm font-medium flex justify-between items-center ${
-        isDarkMode ? 'bg-gray-700 text-white' : 'bg-slate-100 text-gray-700'
-      }`,
+      header: `h-10 -ml-4 -mr-4 -mt-1 p-2 border-gray-200 text-sm font-medium flex justify-between items-center ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-slate-100 text-gray-700'
+        }`,
 
       welcomeMessage: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
       welcomeText: isDarkMode ? 'text-gray-300' : 'text-gray-600',
@@ -41,37 +46,34 @@ export const AIChatPanel = () => {
       messageUser: isDarkMode ? 'bg-gray-700' : 'bg-gray-100',
       thinkingText: isDarkMode ? 'text-gray-400' : 'text-gray-500',
 
-      inputContainer: isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-200',
+      inputContainer: isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-300',
+      inputBox: isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300',
       textarea: {
-        base: isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900',
+        base: isDarkMode ? 'bg-transparent text-white placeholder-gray-500' : 'bg-transparent text-gray-900 placeholder-gray-400',
         loading: isDarkMode ? 'bg-gray-600' : 'bg-gray-100'
       },
-      dropdownButton: isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-      dropdownMenu: isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200',
-      dropdownItem: isDarkMode ? 'hover:bg-gray-700 text-gray-100' : 'hover:bg-gray-50 text-gray-900',
+      controlButton: isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+      dropdownMenu: isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+      dropdownItem: isDarkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-50 text-gray-800',
 
-      contextButtons: {
-        templateMark: {
-          active: isDarkMode ? 'bg-blue-900 text-blue-300 border-blue-700' : 'bg-blue-100 text-blue-700 border-blue-200',
-          inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border-gray-600 line-through opacity-70 hover:bg-blue-900 hover:text-blue-300 hover:border-blue-700' : 'bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200',
-          cross: isDarkMode ? 'text-blue-300 hover:text-blue-100' : 'text-blue-700 hover:text-blue-900'
-        },
-        concerto: {
-          active: isDarkMode ? 'bg-green-900 text-green-300 border-green-700' : 'bg-green-100 text-green-700 border-green-200',
-          inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border-gray-600 line-through opacity-70 hover:bg-green-900 hover:text-green-300 hover:border-green-700' : 'bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-green-50 hover:text-green-700 hover:border-green-200',
-          cross: isDarkMode ? 'text-green-300 hover:text-green-100' : 'text-green-700 hover:text-green-900'
-        },
-        data: {
-          active: isDarkMode ? 'bg-yellow-900 text-yellow-300 border-yellow-700' : 'bg-yellow-100 text-yellow-700 border-yellow-200',
-          inactive: isDarkMode ? 'bg-gray-700 text-gray-400 border-gray-600 line-through opacity-70 hover:bg-yellow-900 hover:text-yellow-300 hover:border-yellow-700' : 'bg-gray-200 text-gray-500 border-gray-300 line-through opacity-70 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200',
-          cross: isDarkMode ? 'text-yellow-300 hover:text-yellow-100' : 'text-yellow-700 hover:text-yellow-900'
-        }
+      attachmentChip: isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600',
+      warningBanner: isDarkMode ? 'bg-amber-950/40 border-amber-800 text-amber-400' : 'bg-amber-50 border-amber-300 text-amber-700',
+
+      contextDot: {
+        active: isDarkMode ? 'bg-blue-500' : 'bg-blue-600',
+        inactive: isDarkMode ? 'bg-gray-700 border border-gray-600' : 'bg-gray-200 border border-gray-300'
       },
 
       inlineCode: isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
     };
   }, [backgroundColor]);
-  
+
+  // Memoize current model capabilities
+  const currentModelCapabilities = useMemo(() => {
+    if (!aiConfig) return getFileTypeCapabilities('default');
+    return getFileTypeCapabilities(aiConfig.model);
+  }, [aiConfig]);
+
   const [includeTemplateMarkContent, setIncludeTemplateMarkContent] = useState<boolean>(
     localStorage.getItem('aiIncludeTemplateMark') === 'true'
   );
@@ -81,71 +83,262 @@ export const AIChatPanel = () => {
   const [includeDataContent, setIncludeDataContent] = useState<boolean>(
     localStorage.getItem('aiIncludeData') === 'true'
   );
-  
+
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
-    
+
     if (!aiConfig) {
       setAIConfigOpen(true);
       return;
     }
-    
+
     const prompt = userInput;
-    
+    const currentAttachments = attachments;
+
     setUserInput("");
+    setAttachments([]);
     setIsDropdownOpen(false);
-    
+
     if (textareaRef.current) {
       textareaRef.current.scrollTop = 0;
     }
-    
-    await sendMessage(prompt, promptPreset, editorsContent);
+
+    await sendMessage(prompt, promptPreset, editorsContent, true, undefined, currentAttachments);
   };
-  
+
   const handleTemplateMarkToggle = (checked: boolean) => {
     setIncludeTemplateMarkContent(checked);
     localStorage.setItem('aiIncludeTemplateMark', checked.toString());
-    
+
     if (aiConfig) {
       const updatedConfig = {
         ...aiConfig,
         includeTemplateMarkContent: checked
       };
-      
+
       setAIConfig(updatedConfig);
     }
   };
-  
+
   const handleConcertoModelToggle = (checked: boolean) => {
     setIncludeConcertoModelContent(checked);
     localStorage.setItem('aiIncludeConcertoModel', checked.toString());
-    
+
     if (aiConfig) {
       const updatedConfig = {
         ...aiConfig,
         includeConcertoModelContent: checked
       };
-      
+
       setAIConfig(updatedConfig);
     }
   };
-  
+
   const handleDataToggle = (checked: boolean) => {
     setIncludeDataContent(checked);
     localStorage.setItem('aiIncludeData', checked.toString());
-    
+
     if (aiConfig) {
       const updatedConfig = {
         ...aiConfig,
         includeDataContent: checked
       };
-      
+
       setAIConfig(updatedConfig);
     }
   };
-  
+
   const handleStopMessage = () => {
     stopMessage();
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const maxFiles = 5;
+
+    if (attachments.length + files.length > maxFiles) {
+      message.error(`Maximum ${maxFiles} files allowed`);
+      return;
+    }
+
+    // Get current model capabilities
+    const currentModel = aiConfig?.model || 'default';
+    const capabilities = getFileTypeCapabilities(currentModel);
+
+    const newAttachments: Attachment[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileExtension = `.${file.name.split('.').pop()?.toLowerCase() || ''}`;
+
+      // Check file size
+      if (file.size > capabilities.maxSizeBytes) {
+        message.error(`File ${file.name} exceeds ${capabilities.maxSize} limit for ${currentModel}`);
+        continue;
+      }
+
+      // Check if file format is supported
+      if (!capabilities.formats.includes(fileExtension)) {
+        // Get compatible models for this file type
+        const compatibleModels = getCompatibleModelsForFile(fileExtension);
+
+        message.error({
+          content: (
+            <div>
+              <strong>{currentModel}</strong> doesn't support <strong>{fileExtension}</strong> files.
+              <br />
+              <span className="text-xs">✓ Current model supports: {capabilities.formats.join(', ')}</span>
+              {compatibleModels.length > 0 && (
+                <>
+                  <br />
+                  <span className="text-xs">💡 Try switching to: {compatibleModels.slice(0, 3).join(', ')}</span>
+                </>
+              )}
+            </div>
+          ),
+          duration: 6
+        });
+        continue;
+      }
+
+      // Additional validation for PDFs
+      if (fileExtension === '.pdf' && !capabilities.supportsPDFs) {
+        const compatibleModels = getCompatibleModelsForFile('.pdf');
+        message.error({
+          content: (
+            <div>
+              <strong>{currentModel}</strong> doesn't support PDFs.
+              <br />
+              <span className="text-xs">✓ Current model supports: {capabilities.formats.join(', ')}</span>
+              <br />
+              <span className="text-xs">💡 Try: {compatibleModels.filter(m => m.includes('claude')).slice(0, 3).join(', ')}</span>
+            </div>
+          ),
+          duration: 6
+        });
+        continue;
+      }
+
+      // Additional validation for images
+      if (file.type.startsWith('image/') && !capabilities.supportsImages) {
+        const compatibleModels = getCompatibleModelsForFile(fileExtension);
+        message.error({
+          content: (
+            <div>
+              <strong>{currentModel}</strong> doesn't support images.
+              <br />
+              <span className="text-xs">✓ Current model supports: {capabilities.formats.join(', ')}</span>
+              <br />
+              <span className="text-xs">💡 Try: {compatibleModels.slice(0, 3).join(', ')}</span>
+            </div>
+          ),
+          duration: 6
+        });
+        continue;
+      }
+
+      try {
+        const base64 = await fileToBase64(file);
+        const attachment: Attachment = {
+          id: uuidv4(),
+          fileName: file.name,
+          fileType: file.type.split('/')[0], // 'image', 'text', 'application'
+          mimeType: file.type,
+          size: file.size,
+          base64Content: base64
+        };
+        newAttachments.push(attachment);
+      } catch (error) {
+        console.error(`Error processing file ${file.name}:`, error);
+        message.error(`Failed to process ${file.name}`);
+      }
+    }
+
+    setAttachments(prev => [...prev, ...newAttachments]);
+
+    // Reset file input
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data URL prefix to get just base64
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(att => att.id !== id));
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const getFileIcon = (fileType: string) => {
+    switch (fileType) {
+      case 'image': return '📷';
+      case 'text': return '📝';
+      case 'application': return '📄';
+      default: return '📎';
+    }
+  };
+
+  const checkModelSupportsAttachments = (): { supportsVision: boolean; warning: string | null } => {
+    if (!aiConfig || attachments.length === 0) {
+      return { supportsVision: true, warning: null };
+    }
+
+    const capabilities = currentModelCapabilities;
+
+    const hasImages = attachments.some(att => att.fileType === 'image');
+    const hasPDFs = attachments.some(att => att.mimeType === 'application/pdf');
+
+    // Check for unsupported file types
+    const unsupportedFiles = attachments.filter(att => {
+      const ext = `.${att.fileName.split('.').pop()?.toLowerCase() || ''}`;
+      return !capabilities.formats.includes(ext);
+    });
+
+    if (unsupportedFiles.length > 0) {
+      const fileNames = unsupportedFiles.map(f => f.fileName).join(', ');
+      return {
+        supportsVision: false,
+        warning: `⚠️ ${aiConfig?.model || 'Model'} doesn't support: ${fileNames}`
+      };
+    }
+
+    // Check for images when model doesn't support them
+    if (hasImages && !capabilities.supportsImages) {
+      const compatibleModels = getCompatibleModelsForFile('.jpg');
+      return {
+        supportsVision: false,
+        warning: `⚠️ ${aiConfig?.model || 'Model'} doesn't support images. Try: ${compatibleModels.slice(0, 2).join(', ')}`
+      };
+    }
+
+    // Check for PDFs when model doesn't support them
+    if (hasPDFs && !capabilities.supportsPDFs) {
+      return {
+        supportsVision: false,
+        warning: `⚠️ ${aiConfig?.model || 'Model'} doesn't support PDFs. Claude models support PDFs.`
+      };
+    }
+
+    return { supportsVision: true, warning: null };
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -162,14 +355,14 @@ export const AIChatPanel = () => {
     // Detect error marker
     const isError = content.startsWith('[ERROR]');
     const displayContent = isError ? content.replace(/^\[ERROR\]\s*/, '') : content;
-    
+
     if (!displayContent || !displayContent.includes('```')) {
       return (
         <div className={`text-sm prose prose-sm break-all max-w-none ${isError ? 'text-red-700' : ''}`} style={isError ? {} : { color: textColor }}>
           <ReactMarkdown
             components={{
               code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className ?? ''}`}>{children}</code>,
-          }}>
+            }}>
             {displayContent}
           </ReactMarkdown>
         </div>
@@ -178,9 +371,9 @@ export const AIChatPanel = () => {
 
     const parts = [];
     let key = 0;
-    
+
     const segments = displayContent.split('```');
-    
+
     if (segments[0]) {
       parts.push(
         <div className="text-sm prose prose-sm max-w-none" key={key++} style={{ color: textColor }}>
@@ -190,16 +383,16 @@ export const AIChatPanel = () => {
         </div>
       );
     }
-    
+
     for (let i = 1; i < segments.length; i++) {
       if (i % 2 === 1 && segments[i]) {
         const firstLineBreak = segments[i].indexOf('\n');
         let code = segments[i];
-        
+
         if (firstLineBreak > -1) {
           code = segments[i].substring(firstLineBreak + 1);
         }
-        
+
         parts.push(
           <div key={key++} className="relative mt-2 mb-2">
             <pre className="bg-gray-800 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">
@@ -217,18 +410,18 @@ export const AIChatPanel = () => {
         );
       }
     }
-    
+
     return parts;
   };
 
   useEffect(() => {
     if (chatState.messages.length > 0 && latestMessageRef.current) {
       const messageContainer = latestMessageRef.current.closest('.overflow-y-auto');
-      
+
       if (messageContainer) {
         setTimeout(() => {
           const messageTop = latestMessageRef.current!.offsetTop;
-          
+
           messageContainer.scrollTop = messageTop - 50;
         }, 100);
       }
@@ -330,279 +523,314 @@ export const AIChatPanel = () => {
                     key={message.id}
                     className="w-full"
                     ref={
-                      ((index === chatState.messages.length - 1) || (index === chatState.messages.length - 2))  
-                      ? latestMessageRef 
-                      : null
+                      ((index === chatState.messages.length - 1) || (index === chatState.messages.length - 2))
+                        ? latestMessageRef
+                        : null
                     }
                   >
-                    <div className={`p-3 rounded-lg ${
-                      message.role === 'assistant'
+                    <div className={`p-3 rounded-lg ${message.role === 'assistant'
                         ? isError
                           ? 'bg-red-100 border border-red-300'
                           : theme.messageAssistant
                         : theme.messageUser
-                    }`}>
+                      }`}>
                       <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
-                          {message.role === 'assistant' ? 'Assistant' : 'You'}
+                        {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
+
+                      {/* Show attachments for user messages */}
+                      {message.role === 'user' && message.attachments && message.attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                          {message.attachments.map(att => (
+                            <div
+                              key={att.id}
+                              className="bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded text-xs flex items-center gap-1.5 border border-gray-200 dark:border-gray-600"
+                            >
+                              <span className="text-sm">{getFileIcon(att.fileType)}</span>
+                              <span className="max-w-[120px] truncate text-gray-800 dark:text-gray-200">{att.fileName}</span>
+                              <span className="text-gray-500 dark:text-gray-400 text-[10px]">({formatFileSize(att.size)})</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       {message.content && renderMessageContent(
-                        (message.role === 'user') 
+                        (message.role === 'user')
                           ? (aiConfig?.showFullPrompt ? (
-                            `**System message:** ${chatState.messages[index-1].content}\n**User message:** ${message.content}`
+                            `**System message:** ${chatState.messages[index - 1].content}\n**User message:** ${message.content}`
                           ) : message.content)
                           : message.content
                       )}
-                      {message.role === 'assistant' && 
-                          message.id === chatState.messages[chatState.messages.length - 1].id && 
-                          chatState.isLoading && (
+                      {message.role === 'assistant' &&
+                        message.id === chatState.messages[chatState.messages.length - 1].id &&
+                        chatState.isLoading && (
                           <p className={`text-sm mt-2 italic ${theme.thinkingText}`}>Thinking...</p>
                         )
                       }
                     </div>
                   </div>
-                )})
-              )}
+                )
+              })
+            )}
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-            {promptPreset && (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-600 bg-opacity-95 text-white rounded-lg self-start">
-                <span className="text-sm font-medium">
-                  {
-                    promptPreset === "textToTemplate" ? "Text to TemplateMark" : "Create Concerto Model"
-                  }
-                </span>
-                <button
+        <div className="flex flex-col gap-1.5 pb-1">
+          {promptPreset && (
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-indigo-600 bg-opacity-90 text-white rounded text-xs self-start">
+              <span className="font-medium">
+                {
+                  promptPreset === "textToTemplate" ? "Text to TemplateMark" : "Create Concerto Model"
+                }
+              </span>
+              <button
                 onClick={() => setPromptPreset(null)}
                 className="text-indigo-200 hover:text-white transition-colors"
                 aria-label="Clear preset"
-                >
+              >
                 <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-4 h-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-3 h-3"
                 >
-                    <path
+                  <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     d="M6 18L18 6M6 6l12 12"
-                    />
+                  />
                 </svg>
-                </button>
+              </button>
             </div>
-            )}
-            
-            {/* Context selection row */}
-            <div className="flex items-center justify-start px-2 gap-2">
-              <span className="text-xs text-gray-600 mr-1" style={{color: textColor}}>Context:</span>
-              {/* TemplateMark Button */}
-              <div
-                onClick={() => handleTemplateMarkToggle(!includeTemplateMarkContent)}
-                className={
-                  `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
-                  ${includeTemplateMarkContent
-                    ? theme.contextButtons.templateMark.active
-                    : theme.contextButtons.templateMark.inactive}`
-                }
-              >
-                <span>TemplateMark</span>
-                {includeTemplateMarkContent && (
+          )}
+
+          {/* Attachment warning banner */}
+          {(() => {
+            const { warning } = checkModelSupportsAttachments();
+            return warning ? (
+              <div className={`${theme.warningBanner} px-2 py-1 rounded text-xs border-l-2 flex items-center gap-1.5`}>
+                <span>{warning}</span>
+              </div>
+            ) : null;
+          })()}
+
+          {/* Attachment chips */}
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {attachments.map(att => (
+                <div
+                  key={att.id}
+                  className={`${theme.attachmentChip} px-2 py-0.5 rounded text-xs flex items-center gap-1.5 border`}
+                >
+                  <span className="text-sm">{getFileIcon(att.fileType)}</span>
+                  <span className="max-w-[100px] truncate">{att.fileName}</span>
+                  <span className="text-gray-500 text-[10px]">({formatFileSize(att.size)})</span>
                   <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleTemplateMarkToggle(false);
-                    }}
-                    className={`ml-1 focus:outline-none ${theme.contextButtons.templateMark.cross}`}
-                    tabIndex={-1}
-                    type="button"
-                    aria-label="Remove TemplateMark context"
+                    onClick={() => removeAttachment(att.id)}
+                    className="hover:text-red-500 transition-colors"
+                    title="Remove attachment"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
-                      strokeWidth={2}
+                      strokeWidth={2.5}
                       stroke="currentColor"
-                      className="w-3 h-3"
+                      className="w-2.5 h-2.5"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                )}
-              </div>
-              {/* Concerto Button */}
-              <div
-                onClick={() => handleConcertoModelToggle(!includeConcertoModelContent)}
-                className={
-                  `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
-                  ${includeConcertoModelContent
-                    ? theme.contextButtons.concerto.active
-                    : theme.contextButtons.concerto.inactive}`
-                }
-              >
-                <span>Concerto</span>
-                {includeConcertoModelContent && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleConcertoModelToggle(false);
-                    }}
-                    className={`ml-1 focus:outline-none ${theme.contextButtons.concerto.cross}`}
-                    tabIndex={-1}
-                    type="button"
-                    aria-label="Remove Concerto context"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-3 h-3"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-              {/* Data Button */}
-              <div
-                onClick={() => handleDataToggle(!includeDataContent)}
-                className={
-                  `px-1 py-0.5 text-xs rounded-full flex items-center cursor-pointer border transition-colors
-                  ${includeDataContent
-                    ? theme.contextButtons.data.active
-                    : theme.contextButtons.data.inactive}`
-                }
-              >
-                <span>Data</span>
-                {includeDataContent && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleDataToggle(false);
-                    }}
-                    className={`ml-1 focus:outline-none ${theme.contextButtons.data.cross}`}
-                    tabIndex={-1}
-                    type="button"
-                    aria-label="Remove Data context"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-3 h-3"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
-            
-            <div className={`flex gap-2 p-2 rounded-lg border ${theme.inputContainer}`}>
-              <textarea
-                  ref={textareaRef}
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={
-                    promptPreset === "textToTemplate"
-                      ? "Enter simple plain text of an agreement"
-                      : promptPreset === "createConcertoModel"
-                      ? "Describe the type of agreement for the Concerto Model"
-                      : chatState.isLoading 
-                        ? "Press 'Stop' to send another message..."
-                        : "Type your message..."
-                  }
-                  className={`flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[42px] max-h-[42px] overflow-y-hidden ${
-                    chatState.isLoading ? theme.textarea.loading : theme.textarea.base
-                  }`}
-                  rows={1}
-              />
-              <div className="relative">
-                  <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={`h-full px-3 rounded-lg flex items-center justify-center ${theme.dropdownButton} ${
-                    chatState.isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  title="Select Prompt Mode"
-                  disabled={chatState.isLoading}
-                  aria-label="Select Prompt Mode"
-              >
+          )}
+
+          {/* Context selection - compact with labels */}
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Context:</span>
+            <button
+              onClick={() => handleTemplateMarkToggle(!includeTemplateMarkContent)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${includeTemplateMarkContent
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${includeTemplateMarkContent ? 'bg-white' : 'bg-gray-500 dark:bg-gray-400'}`} />
+              Template
+            </button>
+            <button
+              onClick={() => handleConcertoModelToggle(!includeConcertoModelContent)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${includeConcertoModelContent
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${includeConcertoModelContent ? 'bg-white' : 'bg-gray-500 dark:bg-gray-400'}`} />
+              Concerto
+            </button>
+            <button
+              onClick={() => handleDataToggle(!includeDataContent)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${includeDataContent
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${includeDataContent ? 'bg-white' : 'bg-gray-500 dark:bg-gray-400'}`} />
+              Data
+            </button>
+          </div>
+
+          {/* Compact all-in-one input container */}
+          <div className={`relative rounded-lg border transition-all ${theme.inputBox} ${chatState.isLoading ? 'opacity-70' : 'focus-within:ring-1 focus-within:ring-blue-500/50 focus-within:border-blue-500'
+            }`}>
+            <textarea
+              ref={textareaRef}
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                promptPreset === "textToTemplate"
+                  ? "Enter text to convert..."
+                  : promptPreset === "createConcertoModel"
+                    ? "Describe the model..."
+                    : chatState.isLoading
+                      ? "Generating..."
+                      : "Ask anything..."
+              }
+              className={`w-full px-3 pt-2 pb-9 text-sm focus:outline-none resize-none min-h-[68px] max-h-[160px] overflow-y-auto ${theme.textarea.base
+                }`}
+              rows={1}
+              disabled={chatState.isLoading}
+            />
+
+            {/* Bottom control bar - minimal icons only */}
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 py-1.5">
+              {/* Left side controls */}
+              <div className="flex items-center gap-1">
+                {/* Attachment button with tooltip */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={chatState.isLoading || attachments.length >= 5}
+                  className={`p-2 rounded transition-colors ${theme.controlButton} disabled:opacity-40 disabled:cursor-not-allowed`}
+                  title={`Attach files (${currentModelCapabilities.description})\nMax: ${currentModelCapabilities.maxSize}\nFormats: ${currentModelCapabilities.formats.join(', ')}`}
+                >
                   <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-4 h-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5"
                   >
-                      <path
+                    <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M4.5 15.75l7.5-7.5 7.5 7.5"
-                      />
+                      d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"
+                    />
                   </svg>
+                </button>
+
+                {/* Preset dropdown button */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    disabled={chatState.isLoading}
+                    className={`p-2 rounded transition-colors ${theme.controlButton} disabled:opacity-40 disabled:cursor-not-allowed`}
+                    title="Presets"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                      />
+                    </svg>
                   </button>
                   {isDropdownOpen && !chatState.isLoading && (
-                  <div className={`absolute bottom-full mb-1 right-0 w-48 rounded-lg shadow-lg border py-1 ${theme.dropdownMenu}`}>
+                    <div className={`absolute bottom-full mb-1 left-0 w-44 rounded-md shadow-lg border ${theme.dropdownMenu}`}>
                       <button
-                      onClick={() => {
+                        onClick={() => {
                           setPromptPreset("textToTemplate");
                           setIsDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm ${theme.dropdownItem}`}
+                        }}
+                        className={`w-full px-3 py-1.5 text-left text-xs ${theme.dropdownItem} flex items-center gap-2`}
                       >
-                      Text to TemplateMark
+                        <span>📝</span> Text to TemplateMark
                       </button>
                       <button
-                      onClick={() => {
+                        onClick={() => {
                           setPromptPreset("createConcertoModel");
                           setIsDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm ${theme.dropdownItem}`}
+                        }}
+                        className={`w-full px-3 py-1.5 text-left text-xs ${theme.dropdownItem} flex items-center gap-2`}
                       >
-                      Create Concerto Model
+                        <span>🔧</span> Create Concerto Model
                       </button>
-                  </div>
+                    </div>
                   )}
+                </div>
               </div>
-              
-              {chatState.isLoading ? (
-                <button 
-                  onClick={handleStopMessage}
-                  className="bg-red-500 text-white px-2 py-2 rounded-lg hover:bg-red-600 flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    strokeWidth={1.5} 
-                    stroke="currentColor" 
-                    className="w-4 h-4 mr-1"
+
+              {/* Right side - Send/Stop button */}
+              <div>
+                {chatState.isLoading ? (
+                  <button
+                    onClick={handleStopMessage}
+                    className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                    title="Stop"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
-                  </svg>
-                  <span>Stop</span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => void handleSendMessage()}
-                  disabled={!userInput.trim()}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                  Send
-              </button>
-              )}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      className="w-5 h-5"
+                    >
+                      <rect x="6" y="6" width="12" height="12" rx="2" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => void handleSendMessage()}
+                    disabled={!userInput.trim()}
+                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                    title="Send"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              title={`Supported formats for ${aiConfig?.model || 'current model'}: ${currentModelCapabilities.formats.join(', ')}`}
+            />
+          </div>
         </div>
-    </div>
+      </div>
     </div>
   );
 }

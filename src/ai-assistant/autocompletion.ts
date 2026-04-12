@@ -118,6 +118,7 @@ const getInlineCompletions = async (
       editorsContent,
       false,
       language,
+      undefined,
       (chunk) => {
         completion += chunk;
       },
