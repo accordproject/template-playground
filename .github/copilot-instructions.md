@@ -21,7 +21,7 @@ This repository is the **Accord Project Template Playground** - a web-based IDE 
 - **Core Dependencies**: @accordproject/concerto-core, @accordproject/template-engine, @accordproject/markdown-template, @accordproject/markdown-transform
 
 ### File Structure
-```
+```text
 src/
   ├── components/        # Reusable React components
   ├── pages/            # Page-level route components
@@ -49,7 +49,7 @@ git commit --signoff -m "feat(scope): description"
 
 **Commit Message Format (REQUIRED):**
 Follow [Accord Project commit conventions](https://github.com/accordproject/techdocs/blob/master/DEVELOPERS.md#commit-message-format):
-```
+```text
 type(scope): description
 
 [optional body]
@@ -58,7 +58,7 @@ Signed-off-by: Your Name <your.email@example.com>
 ```
 
 **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`  
-**Scopes**: Component or area name (e.g., `ConcertoEditor`, `UI`, `CI`, `sharable`, `AI`)
+**Scopes**: Component or area name (e.g., `ConcertoEditor`, `UI`, `CI`, `shareable`, `AI`)
 
 **Examples from merged PRs:**
 - ✅ `feat(ConcertoEditor): Added Syntax Highlighting`
@@ -334,7 +334,7 @@ export const TEMPLATE = `Hello {{name}}!`;
 
 ### Provider Integration
 - **Supported**: OpenAI, Anthropic, Google Genai, Mistral AI
-- **Persistence**: API keys and config stored in localStorage (never committed)
+- **Persistence**: API keys are encrypted via WebAuthn PRF + AES-GCM before storage in localStorage (see `secureKeyStorage.ts`). Config settings are stored in plaintext localStorage. Never committed.
 - **Streaming**: Use abort controllers for cancellable requests
 - **Context**: Include template, model, and data in AI prompts for better suggestions
 
@@ -382,7 +382,7 @@ export const TEMPLATE = `Hello {{name}}!`;
 ### User Input
 - **Validation**: Validate all user input before processing with Template Engine
 - **Sanitization**: Sanitize HTML output from template generation (XSS prevention)
-- **API Keys**: Store securely in localStorage, never in URLs or logs
+- **API Keys**: Encrypt via `encryptAndStoreApiKey()` from `secureKeyStorage.ts` (WebAuthn PRF). Never store in plaintext, URLs, or logs.
 
 ### Dependencies
 - **Audit**: Run `npm audit` regularly for vulnerability scanning

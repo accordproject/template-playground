@@ -140,7 +140,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
         switch (provider) {
           case 'openai':
 		  case 'openai-compatible':
-			if (!apiKey) return;
+			if (!debouncedApiKey) return;
 
 			let endpoint = provider === 'openai-compatible' ? customEndpoint : 'https://api.openai.com/v1';
 			if (!endpoint) return;
@@ -148,7 +148,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			const url = `${endpoint}/models`;
 
 			const res = await fetch(url, {
-			  headers: { Authorization: `Bearer ${apiKey}` },
+			  headers: { Authorization: `Bearer ${debouncedApiKey}` },
 		  	  signal,
 			});
 
@@ -166,16 +166,17 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			break;
 
           case 'anthropic':
-			if (!apiKey) return;
-			{
-			  const res = await fetch('https://api.anthropic.com/v1/models', {
-			    headers: {
-				  'x-api-key': apiKey,
-				  'anthropic-version': '2023-06-01',
-				  'anthropic-dangerous-direct-browser-access': 'true',
-				},
-				signal,
-			  });
+            if (!debouncedApiKey) return;
+            {
+              const res = await fetch('https://api.anthropic.com/v1/models', {
+                headers: {
+                  'x-api-key': debouncedApiKey,
+                  'anthropic-version': '2023-06-01',
+                  'anthropic-dangerous-direct-browser-access': 'true',
+                  'content-type': 'application/json',
+                },
+                signal,
+              });
 			  if (!res.ok) {
 				console.error(`Fetch error (${res.status}): ${res.statusText}`);
 				return;
@@ -190,10 +191,10 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			break;
 
           case 'google':
-            if (!apiKey) return;
+            if (!debouncedApiKey) return;
             {
               const res = await fetch('https://generativelanguage.googleapis.com/v1beta2/models', {
-                headers: { 'x-goog-api-key': apiKey },
+                headers: { 'x-goog-api-key': debouncedApiKey },
                 signal,
               });
 			  if (!res.ok) {
@@ -210,10 +211,10 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
             break;
 
           case 'mistral':
-            if (!apiKey) return;
+            if (!debouncedApiKey) return;
             {
               const res = await fetch('https://api.mistral.ai/v1/models', {
-                headers: { Authorization: `Bearer ${apiKey}` },
+                headers: { Authorization: `Bearer ${debouncedApiKey}` },
                 signal,
               });
 			  if (!res.ok) {
@@ -246,10 +247,10 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 			break;
 
           case 'openrouter':
-            if (!apiKey) return;
+            if (!debouncedApiKey) return;
             {
               const res = await fetch('https://openrouter.ai/api/v1/models', {
-                headers: { Authorization: `Bearer ${apiKey}` },
+                headers: { Authorization: `Bearer ${debouncedApiKey}` },
                 signal,
               });
 			  if (!res.ok) {
@@ -290,71 +291,78 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
   }, [model, availableModels]);
 
   const handleSave = async () => {
-    localStorage.setItem('aiProvider', provider);
-    localStorage.setItem('aiModel', model);
+    setIsEncrypting(true);
+    try {
+      localStorage.setItem('aiProvider', provider);
+      localStorage.setItem('aiModel', model);
 
-    if (provider === 'openai-compatible') {
-      localStorage.setItem('aiCustomEndpoint', customEndpoint);
-    } else {
-      localStorage.removeItem('aiCustomEndpoint');
-    }
+      if (provider === 'openai-compatible') {
+        localStorage.setItem('aiCustomEndpoint', customEndpoint);
+      } else {
+        localStorage.removeItem('aiCustomEndpoint');
+      }
 
-    if (maxTokens) {
-      localStorage.setItem('aiResMaxTokens', maxTokens);
-    } else {
-      localStorage.removeItem('aiResMaxTokens');
-    }
+      if (maxTokens) {
+        localStorage.setItem('aiResMaxTokens', maxTokens);
+      } else {
+        localStorage.removeItem('aiResMaxTokens');
+      }
 
-    localStorage.setItem('aiShowFullPrompt', showFullPrompt.toString());
-    localStorage.setItem('aiEnableCodeSelectionMenu', enableCodeSelectionMenu.toString());
-    localStorage.setItem('aiEnableInlineSuggestions', enableInlineSuggestions.toString());
+      localStorage.setItem('aiShowFullPrompt', showFullPrompt.toString());
+      localStorage.setItem('aiEnableCodeSelectionMenu', enableCodeSelectionMenu.toString());
+      localStorage.setItem('aiEnableInlineSuggestions', enableInlineSuggestions.toString());
 
-    // Securely store the API key
-    let protectionLevel: KeyProtectionLevel = 'memory-only';
+      // Securely store the API key
+      let protectionLevel: KeyProtectionLevel = 'memory-only';
 
-    if (apiKey && provider !== 'ollama') {
-      if (webauthnAvailable) {
-        try {
-          const success = await encryptAndStoreApiKey(apiKey);
-          if (success) {
-            protectionLevel = 'webauthn';
-            // Only remove legacy plaintext key when encryption succeeds
-            localStorage.removeItem('aiApiKey');
+      if (apiKey && provider !== 'ollama') {
+        if (webauthnAvailable) {
+          try {
+            const success = await encryptAndStoreApiKey(apiKey);
+            if (success) {
+              protectionLevel = 'webauthn';
+              // Only remove legacy plaintext key when encryption succeeds
+              localStorage.removeItem('aiApiKey');
+            }
+          } catch {
+            // Encryption failed — fall through to memory-only
           }
-        } catch {
-          // Encryption failed — fall through to memory-only
         }
       }
+
+      // Build the config from the current form values and set it directly
+      // in the Zustand store. This avoids calling loadConfigFromLocalStorage()
+      // which would re-trigger a WebAuthn prompt to decrypt the key we just saved.
+      const config: AIConfig = {
+        provider,
+        model,
+        apiKey: provider === 'ollama' ? '' : apiKey,
+        includeTemplateMarkContent: localStorage.getItem('aiIncludeTemplateMark') === 'true',
+        includeConcertoModelContent: localStorage.getItem('aiIncludeConcertoModel') === 'true',
+        includeDataContent: localStorage.getItem('aiIncludeData') === 'true',
+        showFullPrompt,
+        enableCodeSelectionMenu,
+        enableInlineSuggestions,
+      };
+
+      if (provider === 'openai-compatible' && customEndpoint) {
+        config.customEndpoint = customEndpoint;
+      }
+
+      if (maxTokens) {
+        const parsed = parseInt(maxTokens, 10);
+        if (Number.isFinite(parsed) && parsed >= 1 && parsed <= 32000) {
+          config.maxTokens = parsed;
+        }
+      }
+
+      const { setAIConfig } = useAppStore.getState();
+      setAIConfig(config);
+      setKeyProtectionLevel(protectionLevel);
+      onClose();
+    } finally {
+      setIsEncrypting(false);
     }
-
-    // Build the config from the current form values and set it directly
-    // in the Zustand store. This avoids calling loadConfigFromLocalStorage()
-    // which would re-trigger a WebAuthn prompt to decrypt the key we just saved.
-    const config: AIConfig = {
-      provider,
-      model,
-      apiKey: provider === 'ollama' ? '' : apiKey,
-      includeTemplateMarkContent: localStorage.getItem('aiIncludeTemplateMark') === 'true',
-      includeConcertoModelContent: localStorage.getItem('aiIncludeConcertoModel') === 'true',
-      includeDataContent: localStorage.getItem('aiIncludeData') === 'true',
-      showFullPrompt,
-      enableCodeSelectionMenu,
-      enableInlineSuggestions,
-    };
-
-    if (provider === 'openai-compatible' && customEndpoint) {
-      config.customEndpoint = customEndpoint;
-    }
-
-    if (maxTokens) {
-      config.maxTokens = parseInt(maxTokens);
-    }
-
-    const { setAIConfig } = useAppStore.getState();
-    setAIConfig(config);
-    setKeyProtectionLevel(protectionLevel);
-    setIsEncrypting(false);
-    onClose();
   };
 
   const handleReset = () => {
@@ -477,6 +485,7 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
 				type="button"
 				onClick={() => setShowApiKey(!showApiKey)}
 				className={`ml-2 p-2 rounded ${theme.closeButton}`}
+				aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
 			  >
 				{showApiKey ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
 			  </button>
@@ -641,16 +650,27 @@ const AIConfigPopup = ({ isOpen, onClose }: AIConfigPopupProps) => {
             )}
           </div>
 
-          <button
-            onClick={() => { handleSave().catch(console.warn); }}
-            disabled={isEncrypting || !provider || !model || (availableModels.length > 0 && !availableModels.includes(model)) || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)}
-            className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${isEncrypting || !provider || !model || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint)
-              ? theme.saveButton.disabled
-              : theme.saveButton.enabled
-              }`}
-          >
-            {isEncrypting ? 'Encrypting & Saving...' : 'Save Configuration'}
-          </button>
+          {(() => {
+            const isSaveDisabled = isEncrypting || !provider || !model || (availableModels.length > 0 && !availableModels.includes(model)) || (provider !== 'ollama' && !apiKey) || (provider === 'openai-compatible' && !customEndpoint);
+            return (
+              <button
+                onClick={() => {
+                  setSecurityMessage('');
+                  handleSave().catch((err) => {
+                    console.warn(err);
+                    setSecurityMessage(`Save failed: ${err instanceof Error ? err.message : String(err)}`);
+                  });
+                }}
+                disabled={isSaveDisabled}
+                className={`w-full py-2 rounded-lg transition-colors disabled:cursor-not-allowed ${isSaveDisabled
+                  ? theme.saveButton.disabled
+                  : theme.saveButton.enabled
+                  }`}
+              >
+                {isEncrypting ? 'Encrypting & Saving...' : 'Save Configuration'}
+              </button>
+            );
+          })()}
 
           <button
             onClick={handleReset}

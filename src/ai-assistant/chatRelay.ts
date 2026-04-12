@@ -29,9 +29,12 @@ export const loadConfigFromLocalStorage = async () => {
     if (result) {
       savedApiKey = result.apiKey;
       setKeyProtectionLevel(result.protectionLevel);
+    } else {
+      setKeyProtectionLevel(null);
     }
   } catch {
     // WebAuthn decryption failed or was cancelled — key stays null
+    setKeyProtectionLevel(null);
     console.warn('Could not load encrypted API key. User will need to re-enter it.');
   }
 

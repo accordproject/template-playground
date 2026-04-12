@@ -22,6 +22,21 @@ const vitestConfig = defineVitestConfig({  test: {
     environment: "jsdom",
     setupFiles: "./src/utils/testing/setup.ts",
     exclude: [...configDefaults.exclude, "**/e2e/**"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      reportsDirectory: "./coverage",
+      exclude: [
+        "node_modules/**",
+        "**/e2e/**",
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}",
+        "**/tests/**",
+        "src/utils/testing/**",
+        "*.config.{js,ts}",
+        "vite.config.ts",
+      ],
+    },
     server: {
       deps: {
         inline: ["monaco-editor"],

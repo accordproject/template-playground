@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
 import {
     saveEncryptedKey,
     loadEncryptedKey,
@@ -20,9 +20,18 @@ const localStorageMock = (() => {
     };
 })();
 
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+let originalLocalStorage: Storage;
 
 describe('secureKeyStorage', () => {
+    beforeAll(() => {
+        originalLocalStorage = window.localStorage;
+        Object.defineProperty(window, 'localStorage', { value: localStorageMock, configurable: true });
+    });
+
+    afterAll(() => {
+        Object.defineProperty(window, 'localStorage', { value: originalLocalStorage, configurable: true });
+    });
+
     beforeEach(() => {
         localStorageMock.clear();
         vi.clearAllMocks();

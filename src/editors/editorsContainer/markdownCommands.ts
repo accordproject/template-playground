@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import { editor as MonacoEditorNS } from "monaco-editor";
 import {
   applyLinePrefixToggle,
@@ -11,7 +12,7 @@ import { MarkdownEditorCommands } from "../../contexts/MarkdownEditorContext";
  * Creates markdown editor commands bound to a specific editor instance
  */
 export function createMarkdownCommands(
-  editorRef: React.RefObject<MonacoEditorNS.IStandaloneCodeEditor | null>
+  editorRef: RefObject<MonacoEditorNS.IStandaloneCodeEditor | null>
 ): MarkdownEditorCommands {
   return {
     toggleBold: () => {

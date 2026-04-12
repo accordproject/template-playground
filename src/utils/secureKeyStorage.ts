@@ -110,8 +110,8 @@ export async function registerCredential(): Promise<string> {
     const prfResult = (credential.getClientExtensionResults() as Record<string, unknown>)?.prf as { enabled?: boolean } | undefined;
     if (!prfResult?.enabled) {
         throw new Error(
-            'Your authenticator does not support the PRF extension. ' +
-            'API key will be stored in memory only for this session.'
+            'Authenticator does not support PRF extension; operation aborted — ' +
+            'no API key was stored; caller must handle this exception.'
         );
     }
 
@@ -184,7 +184,7 @@ export async function deriveEncryptionKey(
         {
             name: 'HKDF',
             hash: 'SHA-256',
-            salt: salt.buffer as ArrayBuffer,
+            salt: new Uint8Array(salt).buffer as ArrayBuffer,
             info: HKDF_INFO,
         },
         hkdfKey,
