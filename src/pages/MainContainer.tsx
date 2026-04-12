@@ -5,7 +5,6 @@ import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
 import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
-import SampleDropdown from "../components/SampleDropdown";
 import ConcertoFormatButton from "../components/ConcertoFormatButton";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";

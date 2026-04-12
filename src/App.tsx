@@ -8,7 +8,6 @@ import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
-import AIConfigPopup from "./components/AIConfigPopup";
 import { colors } from './utils/theme';
 
 const LearnNow = lazy(() => import("./pages/LearnNow"));
