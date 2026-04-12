@@ -117,7 +117,7 @@ const MenuItem = ({
   return (
     <button
       type="button"
-      className={`w-full text-left ${baseClasses}`}
+      className={`w-full text-left bg-transparent border-none ${baseClasses}`}
       onClick={onClick}
     >
       {children}
