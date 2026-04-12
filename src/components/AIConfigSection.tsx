@@ -110,21 +110,25 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   }, [loadConfig]);
 
   useEffect(() => {
-    setAvailableModels([]);
-
-    if (!provider) return;
+    if (!provider) {
+      setAvailableModels([]);
+      return;
+    }
 
     // Only gate on API key for providers that require it (e.g., OpenAI, Anthropic, etc.).
     // Ollama does not require an API key, so allow it to proceed without debouncedApiKey.
     const requiresApiKey = provider !== 'ollama';
-    if (requiresApiKey && !debouncedApiKey) return;
+    if (requiresApiKey && !debouncedApiKey) {
+      setAvailableModels([]);
+      return;
+    }
 
     const controller = new AbortController();
 
     const runFetch = async () => {
       const models = await fetchModels({
         provider,
-        apiKey,
+        apiKey: debouncedApiKey,
         customEndpoint,
         signal: controller.signal,
       });
@@ -139,7 +143,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     return () => {
       controller.abort();
     };
-  }, [provider, debouncedApiKey, customEndpoint, apiKey]);
+  }, [provider, debouncedApiKey, customEndpoint]);
 
   useEffect(() => {
     if (availableModels.length > 0 && model && !availableModels.includes(model)) {

@@ -89,7 +89,7 @@ export async function fetchModels({
           return [];
         }
         const data = (await res.json()) as ModelListResponse;
-        return data.models?.map((m) => m.id).filter((id): id is string => Boolean(id)) ?? [];
+        return data.data?.map((m) => m.id).filter((id): id is string => Boolean(id)) ?? [];
       }
 
       case 'ollama': {

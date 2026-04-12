@@ -351,7 +351,7 @@ function Navbar() {
           >
             <Dropdown overlay={samplesMenu} trigger={["click"]}>
               <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
-                {sampleName || "Samples"}
+                Samples{sampleName ? `: ${sampleName}` : ''}
                 <CaretDownFilled className="text-xs ml-1.5" />
               </Button>
             </Dropdown>
