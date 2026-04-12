@@ -80,6 +80,9 @@
 
 .main-container-agreement {
   @apply flex-1;
+  font-family: var(--ap-font-family);
+  font-size: var(--ap-font-size-base);
+  line-height: 1.6;
 }
 
 .collapse-button {

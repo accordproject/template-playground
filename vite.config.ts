@@ -1,7 +1,7 @@
 import { defineConfig as defineViteConfig, mergeConfig } from "vite";
 import { defineConfig as defineVitestConfig, configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import nodePolyfills from "vite-plugin-node-stdlib-browser";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { visualizer } from "rollup-plugin-visualizer";
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
@@ -9,6 +9,9 @@ const viteConfig = defineViteConfig({
     emitFile: true,
     filename: "stats.html",
   })],
+  define: {
+    'process.browser': {},
+  },
   optimizeDeps: {
     include: ["immer"],
     needsInterop: ['@accordproject/template-engine'],
@@ -26,6 +29,11 @@ const vitestConfig = defineVitestConfig({  test: {
       deps: {
         inline: ["monaco-editor"],
       },
+    },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text'],
+      include: ['src/**/*.{ts,tsx}'],
     },
   },
   resolve: {
