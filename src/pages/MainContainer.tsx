@@ -5,6 +5,8 @@ import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
 import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
+import SampleDropdown from "../components/SampleDropdown";
+import ConcertoFormatButton from "../components/ConcertoFormatButton";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
@@ -29,6 +31,16 @@ const MainContainer = () => {
 
     try {
       setIsDownloading(true);
+      
+      // --- FIX START: Store original styles ---
+      const originalBg = element.style.backgroundColor;
+      const originalColor = element.style.color;
+      
+      // Force White Background / Black Text for PDF
+      element.style.backgroundColor = '#ffffff';
+      element.style.color = '#000000';
+      // --- FIX END ---
+
       const options = {
         margin: 10,
         filename: 'agreement.pdf',
@@ -43,6 +55,12 @@ const MainContainer = () => {
       } as const;
 
       await html2pdf().set(options).from(element).save();
+      
+      // --- FIX START: Restore original styles ---
+      element.style.backgroundColor = originalBg;
+      element.style.color = originalColor;
+      // --- FIX END ---
+
     } catch (error) {
       console.error("PDF generation failed:", error);
       void message.error("Failed to generate PDF. Please check the console.");
@@ -133,6 +151,7 @@ const MainContainer = () => {
                           </button>
                           <span>Data Model <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(Concerto)</span></span>
                         </div>
+                        <ConcertoFormatButton disabled={isModelCollapsed} />
                       </div>
                       {!isModelCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
@@ -281,3 +300,4 @@ const MainContainer = () => {
 };
 
 export default MainContainer;
+

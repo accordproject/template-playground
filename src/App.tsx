@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
-import LearnNow from "./pages/LearnNow";
 import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
-import MainContainer from "./pages/MainContainer";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
+import AIConfigPopup from "./components/AIConfigPopup";
+import { colors } from './utils/theme';
+
+const LearnNow = lazy(() => import("./pages/LearnNow"));
+const MainContainer = lazy(() => import("./pages/MainContainer"));
 
 const { Content } = Layout;
 
@@ -119,14 +122,23 @@ const App = () => {
                       </div>
                     ) : (
                       <div className="app-main-content">
-                        <MainContainer />
+                        <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
+                          <MainContainer />
+                        </Suspense>
                       </div>
                     )}
                   </Content>
                 </>
               }
             />
-            <Route path="/learn" element={<LearnNow />}>
+            <Route
+              path="/learn"
+              element={
+                <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
+                  <LearnNow />
+                </Suspense>
+              }
+            >
               <Route path="intro" element={<LearnContent file="intro.md" />} />
               <Route path="module1" element={<LearnContent file="module1.md" />} />
               <Route path="module2" element={<LearnContent file="module2.md" />} />
@@ -142,7 +154,7 @@ const App = () => {
 const Spinner = () => (
   <div className="app-spinner-container">
     <Spin
-      indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
+      indicator={<LoadingOutlined style={{ fontSize: 42, color: colors.primary }} spin />}
     />
   </div>
 );
