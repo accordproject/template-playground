@@ -11,7 +11,7 @@ import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
-import { Button, message } from "antd";
+import { Button, message, Tag } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 import DOMPurify from "dompurify";
@@ -23,6 +23,7 @@ const MainContainer = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
+  const useRichEditor = useAppStore((state) => state.useRichEditor);
 
   const handleDownloadPdf = async () => {
     const element = downloadRef.current;
@@ -184,9 +185,14 @@ const MainContainer = () => {
                             >
                               {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                             </button>
-                            <span>Template <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(TemplateMark)</span></span>
+                            <span>
+                              Template <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(TemplateMark)</span>
+                              {useRichEditor && (
+                                <Tag color="blue" style={{ marginLeft: 8, fontSize: 10 }}>Beta</Tag>
+                              )}
+                            </span>
                           </div>
-                          {!isTemplateCollapsed && <TemplateMarkdownToolbar />}
+                          {!isTemplateCollapsed && !useRichEditor && <TemplateMarkdownToolbar />}
                         </div>
                         {!isTemplateCollapsed && (
                           <div className="main-container-editor-content" style={{ backgroundColor }}>

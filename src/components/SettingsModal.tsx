@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Switch, Collapse, Space, Divider, Typography } from 'antd';
+import { Modal, Switch, Collapse, Space, Divider, Typography, Tag } from 'antd';
 import { BulbOutlined, MoonOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 import useAppStore from '../store/store';
 import AIConfigSection from './AIConfigSection';
@@ -12,6 +12,8 @@ const SettingsModal: React.FC = () => {
     setSettingsOpen, 
     showLineNumbers, 
     setShowLineNumbers,
+    useRichEditor,
+    setUseRichEditor,
     backgroundColor,
     toggleDarkMode
   } = useAppStore((state) => ({
@@ -19,6 +21,8 @@ const SettingsModal: React.FC = () => {
     setSettingsOpen: state.setSettingsOpen,
     showLineNumbers: state.showLineNumbers,
     setShowLineNumbers: state.setShowLineNumbers,
+    useRichEditor: state.useRichEditor,
+    setUseRichEditor: state.setUseRichEditor,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
   }));
@@ -69,6 +73,26 @@ const SettingsModal: React.FC = () => {
               checked={showLineNumbers}
               onChange={setShowLineNumbers}
               aria-label="Toggle line numbers"
+            />
+          </div>
+
+          <Divider style={{ margin: 0 }} />
+
+          {/* Rich Template Editor Toggle (Beta) */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1 }}>
+              <Text strong style={{ display: 'block' }}>
+                Rich Template Editor
+                <Tag color="blue" style={{ marginLeft: 8, fontSize: 10, verticalAlign: 'middle' }}>Beta</Tag>
+              </Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                Use an interactive WYSIWYG editor for TemplateMark
+              </Text>
+            </div>
+            <Switch
+              checked={useRichEditor}
+              onChange={setUseRichEditor}
+              aria-label="Toggle rich template editor"
             />
           </div>
         </Space>
