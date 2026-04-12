@@ -36,6 +36,47 @@ vi.mock('use-debounce', () => ({
   useDebounce: (value: unknown) => [value],
 }));
 
+// Mock antd Select to use a native <select> for simpler test interactions
+vi.mock('antd', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+
+  interface NativeSelectProps {
+    value?: string;
+    onChange?: (value: string) => void;
+    placeholder?: string;
+    options?: Array<{ value: string; label: string }>;
+    id?: string;
+    style?: React.CSSProperties;
+    notFoundContent?: React.ReactNode;
+  }
+
+  const NativeSelect = ({
+    value,
+    onChange,
+    placeholder,
+    options,
+    id,
+    style,
+    notFoundContent: _notFoundContent,
+  }: NativeSelectProps) => (
+    <select
+      id={id}
+      value={value ?? ''}
+      onChange={(e) => onChange?.(e.target.value)}
+      style={style}
+    >
+      <option value="">{placeholder}</option>
+      {options?.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  );
+
+  return { ...actual, Select: NativeSelect };
+});
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 import {
@@ -100,8 +141,8 @@ describe('AIConfigSection', () => {
     expect(screen.getByText('Provider')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Enter API key')).toBeInTheDocument();
     expect(screen.getByText('Model Name')).toBeInTheDocument();
-    expect(screen.getByText('Save Configuration')).toBeInTheDocument();
-    expect(screen.getByText('Reset Configuration')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Save Configuration/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Reset Configuration/i })).toBeInTheDocument();
   });
 
   it('save button is disabled when no provider or model is selected', async () => {
@@ -109,7 +150,7 @@ describe('AIConfigSection', () => {
       render(<AIConfigSection />);
     });
 
-    const saveBtn = screen.getByText('Save Configuration');
+    const saveBtn = screen.getByRole('button', { name: /Save Configuration/i });
     expect(saveBtn).toBeDisabled();
   });
 
@@ -181,7 +222,7 @@ describe('AIConfigSection', () => {
     });
 
     // No model selected yet → save still disabled
-    expect(screen.getByText('Save Configuration')).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Save Configuration/i })).toBeDisabled();
   });
 
   // ── localStorage loading on mount ─────────────────────────────────────────
@@ -281,7 +322,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Save Configuration'));
+      fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
     });
 
     await waitFor(() => {
@@ -319,7 +360,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Save Configuration'));
+      fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
     });
 
     await waitFor(() => {
@@ -354,7 +395,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Save Configuration'));
+      fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
     });
 
     await waitFor(() => {
@@ -374,7 +415,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Reset Configuration'));
+      fireEvent.click(screen.getByRole('button', { name: /Reset Configuration/i }));
     });
 
     expect(clearStoredKey).toHaveBeenCalled();
@@ -392,7 +433,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Reset Configuration'));
+      fireEvent.click(screen.getByRole('button', { name: /Reset Configuration/i }));
     });
 
     expect(clearStoredKey).not.toHaveBeenCalled();
@@ -452,7 +493,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Save Configuration'));
+      fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
     });
 
     await waitFor(() => {
@@ -470,7 +511,8 @@ describe('AIConfigSection', () => {
     const apiKeyInput = screen.getByPlaceholderText('Enter API key') as HTMLInputElement;
     expect(apiKeyInput.type).toBe('password');
 
-    const toggleBtn = screen.getByLabelText('Show API key');
+    // antd Input.Password renders the toggle as an icon with aria-label="eye-invisible" when hidden
+    const toggleBtn = screen.getByRole('img', { name: 'eye-invisible' });
     await act(async () => {
       fireEvent.click(toggleBtn);
     });
@@ -478,7 +520,7 @@ describe('AIConfigSection', () => {
     expect(apiKeyInput.type).toBe('text');
 
     await act(async () => {
-      fireEvent.click(screen.getByLabelText('Hide API key'));
+      fireEvent.click(screen.getByRole('img', { name: 'eye' }));
     });
 
     expect(apiKeyInput.type).toBe('password');

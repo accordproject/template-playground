@@ -20,19 +20,6 @@ vi.mock('../../store/store', () => {
   };
 });
 
-// Mock react-dark-mode-toggle
-vi.mock('react-dark-mode-toggle', () => ({
-  default: ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
-    <button 
-      data-testid="dark-mode-toggle" 
-      onClick={onChange}
-      aria-pressed={checked}
-    >
-      Dark Mode Toggle
-    </button>
-  ),
-}));
-
 // Mock AIConfigSection to isolate SettingsModal tests
 vi.mock('../../components/AIConfigSection', () => ({
   default: () => <div data-testid="ai-config-section">AI Configuration Content</div>,
@@ -87,7 +74,8 @@ describe('SettingsModal', () => {
   it('renders divider between settings', () => {
     render(<SettingsModal />);
     
-    const divider = document.querySelector('hr');
+    // Ant Design Divider renders as a separator element
+    const divider = document.querySelector('[role="separator"]');
     expect(divider).toBeInTheDocument();
   });
 
