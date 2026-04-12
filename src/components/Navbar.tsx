@@ -204,23 +204,21 @@ function Navbar() {
   const screens = useBreakpoint();
   const location = useLocation();
 
-  const { samples, loadSample } = useStoreWithEqualityFn(
+  const { samples, loadSample, sampleName } = useStoreWithEqualityFn(
     useAppStore,
     (state) => ({
       samples: state.samples,
       loadSample: state.loadSample as (key: string) => Promise<void>,
+      sampleName: state.sampleName,
     }),
     shallow
   );
 
-  const [selectedSample, setSelectedSample] = useState<string | null>(null);
-
   const handleSampleClick = useCallback(
-    async (sampleName: string) => {
+    async (name: string) => {
       try {
-        await loadSample(sampleName);
-        setSelectedSample(sampleName);
-        void message.info(`Loaded ${sampleName} sample`);
+        await loadSample(name);
+        void message.info(`Loaded ${name} sample`);
       } catch {
         void message.error("Failed to load sample");
       }
@@ -353,7 +351,7 @@ function Navbar() {
           >
             <Dropdown overlay={samplesMenu} trigger={["click"]}>
               <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
-                {selectedSample || "Samples"}
+                {sampleName || "Samples"}
                 <CaretDownFilled className="text-xs ml-1.5" />
               </Button>
             </Dropdown>

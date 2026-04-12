@@ -22,8 +22,8 @@ test.describe('App Loading', () => {
 
     // Check for editor panel headers
     await expect(page.getByText('Data Model')).toBeVisible();
-    await expect(page.getByText('Template')).toBeVisible();
-    await expect(page.getByText('Data')).toBeVisible();
+    await expect(page.getByText('Template (TemplateMark)')).toBeVisible();
+    await expect(page.getByText('Data (JSON)')).toBeVisible();
   });
 
   test('should display Preview panel with content', async ({ page }) => {

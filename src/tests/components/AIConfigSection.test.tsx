@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AIConfigSection from '../../components/AIConfigSection';
@@ -122,6 +122,8 @@ function makeFetchMock(models: string[], format: 'openai' | 'ollama' = 'openai')
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('AIConfigSection', () => {
+  const originalFetch = global.fetch;
+
   beforeEach(() => {
     localStorageMock.clear();
     vi.clearAllMocks();
@@ -129,6 +131,10 @@ describe('AIConfigSection', () => {
     vi.mocked(isWebAuthnPRFSupported).mockResolvedValue(false);
     vi.mocked(loadAndDecryptApiKey).mockResolvedValue(null);
     vi.mocked(encryptAndStoreApiKey).mockResolvedValue(true);
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
