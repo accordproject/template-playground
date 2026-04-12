@@ -17,7 +17,7 @@ vi.mock("../../utils/editorNavigation", async () => {
 describe("ProblemPanel", () => {
   beforeEach(() => {
     // Clear store state and reset mocks
-    useAppStore.setState({ error: undefined, backgroundColor: '#ffffff', textColor: '#000000' });
+    useAppStore.setState({ error: undefined, isDarkMode: false });
     vi.clearAllMocks();
   });
 
@@ -31,8 +31,7 @@ describe("ProblemPanel", () => {
   it("should render problems when error exists", () => {
     useAppStore.setState({ 
       error: "Error: Test error\nLine 10",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -44,8 +43,7 @@ describe("ProblemPanel", () => {
   it("should call navigateToLine when clicking a clickable problem", () => {
     useAppStore.setState({ 
       error: "Error: Test error\nLine 10",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -65,8 +63,7 @@ describe("ProblemPanel", () => {
   it("should not call navigateToLine for problems without line numbers", () => {
     useAppStore.setState({ 
       error: "Error: Test error without line",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -80,8 +77,7 @@ describe("ProblemPanel", () => {
   it("should not call navigateToLine for problems with invalid line numbers (line 0 or negative)", () => {
     useAppStore.setState({ 
       error: "Error: Test error\nLine 0",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -95,8 +91,7 @@ describe("ProblemPanel", () => {
   it("should trigger navigation on Enter key press", () => {
     useAppStore.setState({ 
       error: "Error: Test error\nLine 15",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -116,8 +111,7 @@ describe("ProblemPanel", () => {
   it("should trigger navigation on Space key press", () => {
     useAppStore.setState({ 
       error: "Error: Test error\nLine 20",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -137,8 +131,7 @@ describe("ProblemPanel", () => {
   it("should display correct source labels (Concerto, TemplateMark, JSON)", () => {
     useAppStore.setState({ 
       error: "c: Model error\nLine 5",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -149,8 +142,7 @@ describe("ProblemPanel", () => {
   it("should render clickable problems with correct role and tabIndex", () => {
     useAppStore.setState({ 
       error: "Error: Test error\nLine 10",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -163,8 +155,7 @@ describe("ProblemPanel", () => {
   it("should not render role or tabIndex for non-clickable problems", () => {
     useAppStore.setState({ 
       error: "Error: Test error without line",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);
@@ -176,8 +167,7 @@ describe("ProblemPanel", () => {
   it("should handle multiple problems correctly", () => {
     useAppStore.setState({ 
       error: "Error: First error\nLine 10\nError: Second error\nLine 20",
-      backgroundColor: '#ffffff',
-      textColor: '#000000'
+      isDarkMode: false
     });
 
     render(<ProblemPanel />);

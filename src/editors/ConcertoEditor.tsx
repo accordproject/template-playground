@@ -124,17 +124,17 @@ export default function ConcertoEditor({
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
-  const { error, backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
+  const { error, isDarkMode, aiConfig, showLineNumbers } = useAppStore((state) => ({
     error: state.error,
-    backgroundColor: state.backgroundColor,
+    isDarkMode: state.isDarkMode,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
   }));
   const ctoErr = error?.startsWith("c:") ? error : undefined;
 
   const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
+    () => (isDarkMode ? "darkTheme" : "lightTheme"),
+    [isDarkMode]
   );
 
   const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({

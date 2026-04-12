@@ -25,8 +25,7 @@ interface AppState {
   samples: Array<Sample>;
   sampleName: string;
   isAIChatOpen: boolean;
-  backgroundColor: string;
-  textColor: string;
+  isDarkMode: boolean;
   chatState: ChatState;
   aiConfig: AIConfig | null;
   chatAbortController: AbortController | null;
@@ -115,17 +114,14 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   return { html, modelManager };
 }
 
-const getInitialTheme = () => {
+const getInitialDarkMode = (): boolean => {
   if (typeof window !== 'undefined') {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      return { backgroundColor: '#121212', textColor: '#ffffff' };
-    } else if (savedTheme === 'light') {
-      return { backgroundColor: '#ffffff', textColor: '#121212' };
-    }
+    if (savedTheme === 'dark') return true;
+    if (savedTheme === 'light') return false;
   }
   // Default to light theme
-  return { backgroundColor: '#ffffff', textColor: '#121212' };
+  return false;
 };
 
 /* --- Helper to safely load panel state --- */
@@ -181,12 +177,11 @@ const getInitialRichEditor = () => {
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
-      const initialTheme = getInitialTheme();
+      const initialDarkMode = getInitialDarkMode();
       const initialPanels = getInitialPanelState(); // Load saved panels
 
       return {
-        backgroundColor: initialTheme.backgroundColor,
-        textColor: initialTheme.textColor,
+        isDarkMode: initialDarkMode,
         sampleName: playground.NAME,
         templateMarkdown: playground.TEMPLATE,
         editorValue: playground.TEMPLATE,
@@ -378,14 +373,10 @@ const useAppStore = create<AppState>()(
         },
         toggleDarkMode: () => {
           set((state) => {
-            const isDark = state.backgroundColor === '#121212';
-            const newTheme = {
-              backgroundColor: isDark ? '#ffffff' : '#121212',
-              textColor: isDark ? '#121212' : '#ffffff',
-            };
+            const newIsDark = !state.isDarkMode;
 
             if (typeof window !== 'undefined') {
-              const themeValue = isDark ? 'light' : 'dark';
+              const themeValue = newIsDark ? 'dark' : 'light';
               localStorage.setItem('theme', themeValue);
               try {
                 document.documentElement.setAttribute('data-theme', themeValue);
@@ -394,7 +385,7 @@ const useAppStore = create<AppState>()(
               }
             }
 
-            return newTheme;
+            return { isDarkMode: newIsDark };
           });
         },
         setAIChatOpen: (isOpen: boolean) => {

@@ -1,6 +1,20 @@
 /**
- * TemplateMark JSON types — mirrors the Concerto model from
- * @accordproject/template-engine org.accordproject.templatemark@0.5.0
+ * TemplateMark JSON types — TypeScript mirror of the Concerto models from
+ * @accordproject/template-engine (org.accordproject.templatemark@0.5.0)
+ * 
+ * These types are intentionally duplicated from Concerto models because:
+ * 1. TemplateMark types are not yet published in @accordproject/concerto-types
+ * 2. TypeScript types enable compile-time checking in the editor
+ * 3. Editor needs fine-grained control over optional/required fields
+ * 
+ * TODO: Once TemplateMark types are added to @accordproject/concerto-types,
+ * replace this file with re-exports from that package.
+ * 
+ * When updating, sync with:
+ * - https://models.accordproject.org/markdown/templatemark@0.5.0.cto
+ * - https://models.accordproject.org/markdown/commonmark@0.5.0.cto
+ * 
+ * @version commonmark@0.5.0, templatemark@0.5.0
  */
 
 export type TemplateMarkNodeType =

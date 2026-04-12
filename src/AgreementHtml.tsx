@@ -7,8 +7,6 @@ import DOMPurify from "dompurify";
 
 function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boolean }) {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const textColor = useAppStore((state) => state.textColor);
 
   return (
     <div
@@ -28,15 +26,14 @@ function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boole
           width: "100%",
           display: "flex",
           textAlign: "center",
-          color: textColor,
         }}
       >
-        <h2 style={{ flexGrow: 1, textAlign: "center", paddingLeft: "34px", color: textColor }}>
+        <h2 style={{ flexGrow: 1, textAlign: "center", paddingLeft: "34px" }}>
           Preview Output
         </h2>
         {!isModal && <FullScreenModal />}
       </div>
-      <p style={{ textAlign: "center", color: textColor }}>
+      <p style={{ textAlign: "center" }}>
         The result of merging the JSON data with the template.
       </p>
       {loading ? (
@@ -47,7 +44,7 @@ function AgreementHtml({ loading, isModal }: { loading: boolean; isModal?: boole
         <div
           className="agreement"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
-          style={{ flex: 1, color: textColor, backgroundColor: backgroundColor }}
+          style={{ flex: 1 }}
         />
       )}
     </div>

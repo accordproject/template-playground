@@ -59,7 +59,7 @@ export function parseMarkdownTemplate(
       const vars = extractVariableNames(tokens);
       const cto = synthesizeCto(vars);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      mm = new ModelManager({ strict: false });
+      mm = new ModelManager({ strict: true });
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       mm.addCTOModel(cto, 'generated.cto', true);
     }
@@ -78,8 +78,9 @@ export function parseMarkdownTemplate(
       return contractDef as unknown as TemplateMarkDocument;
     }
     return result as unknown as TemplateMarkDocument;
-  } catch (error) {
-    console.error(error)
+  } catch {
+    // Parse errors are expected during editing (e.g., incomplete syntax).
+    // Return null to signal failure without logging noise.
     return null;
   }
 }
