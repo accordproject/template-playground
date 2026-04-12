@@ -20,15 +20,15 @@ export default function JSONEditor({
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("json");
 
-  const { backgroundColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
-    backgroundColor: state.backgroundColor,
+  const { isDarkMode, aiConfig, showLineNumbers } = useAppStore((state) => ({
+    isDarkMode: state.isDarkMode,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
   }));
 
   const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
+    () => (isDarkMode ? "darkTheme" : "lightTheme"),
+    [isDarkMode]
   );
 
   const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({

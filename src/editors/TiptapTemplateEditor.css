@@ -1,0 +1,59 @@
+/**
+ * Styles for the TipTap Template Editor wrapper component.
+ * 
+ * These styles handle layout, error states, and loading states.
+ * Theme-specific colors use data-theme attribute for light/dark mode.
+ */
+
+.tiptap-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Error state */
+.tiptap-wrapper__error {
+  padding: 16px;
+  border-radius: 4px;
+  margin: 8px;
+}
+
+.tiptap-wrapper__error[data-theme="light"] {
+  color: #c0392b;
+  background-color: #ffeaea;
+}
+
+.tiptap-wrapper__error[data-theme="dark"] {
+  color: #ff6b6b;
+  background-color: #2d2d2d;
+}
+
+.tiptap-wrapper__error-title {
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.tiptap-wrapper__error-message {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.tiptap-wrapper__error-hint {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Loading state */
+.tiptap-wrapper__loading {
+  padding: 16px;
+}
+
+.tiptap-wrapper__loading[data-theme="light"] {
+  color: #666;
+}
+
+.tiptap-wrapper__loading[data-theme="dark"] {
+  color: #ccc;
+}

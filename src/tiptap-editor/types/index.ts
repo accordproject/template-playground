@@ -1,5 +1,6 @@
 import type React from 'react';
 export type { TemplateMarkDocument, TemplateMarkNode } from './TemplateMark';
+export * from './guards';
 import type { ModelManager } from '@accordproject/concerto-core';
 
 export interface ValidationError {

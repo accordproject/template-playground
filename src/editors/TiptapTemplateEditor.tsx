@@ -11,6 +11,8 @@ import type {
 import useAppStore from "../store/store";
 import { updateEditorActivity } from "../ai-assistant/activityTracker";
 import MarkdownEditor from "./MarkdownEditor";
+import { getThemeName } from "../constants/theme";
+import "./TiptapTemplateEditor.css";
 
 /**
  * Wrapper component for the TipTap-based TemplateEditor.
@@ -20,7 +22,7 @@ function TiptapTemplateEditor() {
   const editorValue = useAppStore((state) => state.editorValue);
   const setEditorValue = useAppStore((state) => state.setEditorValue);
   const setTemplateMarkdown = useAppStore((state) => state.setTemplateMarkdown);
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
   const modelManager = useAppStore((state) => state.modelManager);
 
   // Track whether we're currently syncing from store → editor to avoid loops
@@ -35,26 +37,30 @@ function TiptapTemplateEditor() {
   // Track parse errors to show warning
   const [parseError, setParseError] = useState<string | null>(null);
 
-  // Determine theme based on background color
-  const theme: "light" | "dark" = backgroundColor === "#121212" ? "dark" : "light";
+  // Determine theme based on isDarkMode
+  const theme = getThemeName(isDarkMode);
 
-  // Parse initial markdown after mount
+  // Capture initial values in refs to avoid re-running the initial parse effect
+  // when these values change (the sync effect handles subsequent changes)
+  const initialEditorValue = useRef(editorValue);
+  const initialModelManager = useRef(modelManager);
+
+  // Parse initial markdown after mount (runs once)
   useEffect(() => {
     if (doc === null && !parseError) {
-      try {
-        const parsed = parseMarkdownTemplate(editorValue, undefined, modelManager);
-        if (parsed) {
-          setDoc(parsed);
-          lastMarkdownRef.current = editorValue;
-        } else {
-          setParseError("Could not parse template markdown");
-        }
-      } catch (err) {
-        console.error("Error parsing template markdown:", err);
+      const parsed = parseMarkdownTemplate(
+        initialEditorValue.current,
+        undefined,
+        initialModelManager.current
+      );
+      if (parsed) {
+        setDoc(parsed);
+        lastMarkdownRef.current = initialEditorValue.current;
+      } else {
         setParseError("Could not parse template markdown");
       }
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [doc, parseError]);
 
   // Sync from store to editor when editorValue changes externally
   // (e.g., loading a sample, loading from shareable link)
@@ -64,16 +70,11 @@ function TiptapTemplateEditor() {
 
     // Only sync if the change came from outside (not from our own onChange)
     if (editorValue !== lastMarkdownRef.current && !isSyncingRef.current) {
-      try {
-        const parsed = parseMarkdownTemplate(editorValue, undefined, modelManager);
-        if (parsed) {
-          setDoc(parsed);
-          setParseError(null);
-        } else {
-          setParseError("Could not parse template markdown");
-        }
-      } catch (err) {
-        console.error("Error parsing template:", err);
+      const parsed = parseMarkdownTemplate(editorValue, undefined, modelManager);
+      if (parsed) {
+        setDoc(parsed);
+        setParseError(null);
+      } else {
         setParseError("Could not parse template markdown");
       }
       lastMarkdownRef.current = editorValue;
@@ -95,7 +96,13 @@ function TiptapTemplateEditor() {
       setEditorValue(markdown);
       void setTemplateMarkdown(markdown);
 
-      // Reset sync flag after microtask
+      // The queueMicrotask ensures the sync flag is reset AFTER the current
+      // React render cycle completes. This prevents an infinite loop:
+      // 1. Editor change → handleChange → setEditorValue (store update)
+      // 2. Store update → triggers useEffect that syncs store → editor
+      // 3. Without the flag, step 2 would trigger another handleChange
+      // By resetting in a microtask, we allow the store update to propagate
+      // before accepting new editor changes.
       queueMicrotask(() => {
         isSyncingRef.current = false;
       });
@@ -115,20 +122,10 @@ function TiptapTemplateEditor() {
   // If we couldn't parse the initial markdown, show an error state
   if (parseError) {
     return (
-      <div
-        style={{
-          padding: 16,
-          color: theme === "dark" ? "#ff6b6b" : "#c0392b",
-          backgroundColor: theme === "dark" ? "#2d2d2d" : "#ffeaea",
-          borderRadius: 4,
-          margin: 8,
-        }}
-      >
-        <strong>Unable to load editor</strong>
-        <p style={{ margin: "8px 0 0 0", fontSize: 14 }}>
-          {parseError}
-        </p>
-        <p style={{ margin: "8px 0 0 0", fontSize: 12, opacity: 0.8 }}>
+      <div className="tiptap-wrapper__error" data-theme={theme}>
+        <p className="tiptap-wrapper__error-title">Unable to load editor</p>
+        <p className="tiptap-wrapper__error-message">{parseError}</p>
+        <p className="tiptap-wrapper__error-hint">
           You can disable this feature in Settings and use the standard markdown editor.
         </p>
       </div>
@@ -138,21 +135,14 @@ function TiptapTemplateEditor() {
   // If doc is not ready, show loading
   if (!doc) {
     return (
-      <div style={{ padding: 16, color: theme === "dark" ? "#ccc" : "#666" }}>
+      <div className="tiptap-wrapper__loading" data-theme={theme}>
         Loading editor...
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
+    <div className="tiptap-wrapper">
       <TemplateEditor
         value={doc}
         onChange={handleChange}
@@ -162,7 +152,7 @@ function TiptapTemplateEditor() {
         showMarkdownToggle={true}
         theme={theme}
         placeholder="Start typing your template..."
-        className="template-playground-tiptap-editor h-full"
+        className="template-playground-tiptap-editor"
         modelManager={modelManager}
         renderMarkdownEditor={(value, onChange) => (
           <MarkdownEditor value={value} onChange={onChange} />

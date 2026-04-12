@@ -1,19 +1,18 @@
 import type { JSONContent } from '@tiptap/core';
 import type { TemplateMarkDocument, TemplateMarkNode } from '../types/TemplateMark';
 import { convertChildren } from './nodeConverters';
+import { CM, TM } from '../constants/nodeClasses';
 
 export function templateMarkToTipTap(doc: TemplateMarkDocument): JSONContent {
   const cls = doc.$class;
-  console.log(doc);
-  if (cls === 'org.accordproject.templatemark@0.5.0.ContractDefinition' ||
-      cls === 'org.accordproject.commonmark@0.5.0.Document') {
+  if (cls === TM.ContractDefinition || cls === CM.Document) {
     return {
       type: 'doc',
       content: convertChildren((doc.nodes ?? []) as TemplateMarkNode[]),
     };
   }
 
-  if (cls === 'org.accordproject.templatemark@0.5.0.ClauseDefinition') {
+  if (cls === TM.ClauseDefinition) {
     const n = doc as { $class: string; name: string; src?: string; elementType?: string; error?: string; parseable?: boolean; nodes?: TemplateMarkNode[] };
     return {
       type: 'doc',
@@ -27,7 +26,7 @@ export function templateMarkToTipTap(doc: TemplateMarkDocument): JSONContent {
             error: n.error ?? null,
             parseable: n.parseable ?? true,
           },
-          content: convertChildren(n.nodes ?? [{ $class: 'org.accordproject.commonmark@0.5.0.Paragraph', nodes: [] } as TemplateMarkNode]),
+          content: convertChildren(n.nodes ?? [{ $class: CM.Paragraph, nodes: [] } as TemplateMarkNode]),
         },
       ],
     };

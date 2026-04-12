@@ -10,7 +10,8 @@ const viteConfig = defineViteConfig({
     filename: "stats.html",
   })],
   define: {
-    'process.browser': {},
+    'process.browser': true,
+    'process.env': {},
   },
   optimizeDeps: {
     include: ["immer"],

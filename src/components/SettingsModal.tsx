@@ -14,7 +14,7 @@ const SettingsModal: React.FC = () => {
     setShowLineNumbers,
     useRichEditor,
     setUseRichEditor,
-    backgroundColor,
+    isDarkMode,
     toggleDarkMode
   } = useAppStore((state) => ({
     isSettingsOpen: state.isSettingsOpen,
@@ -23,11 +23,10 @@ const SettingsModal: React.FC = () => {
     setShowLineNumbers: state.setShowLineNumbers,
     useRichEditor: state.useRichEditor,
     setUseRichEditor: state.setUseRichEditor,
-    backgroundColor: state.backgroundColor,
+    isDarkMode: state.isDarkMode,
     toggleDarkMode: state.toggleDarkMode,
   }));
 
-  const isDarkMode = backgroundColor === '#121212';
   const [activeKey, setActiveKey] = useState<string | string[]>(['general']);
 
   const collapseItems = [

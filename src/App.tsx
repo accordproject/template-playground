@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import { App as AntdApp, Layout, Spin } from "antd";
+import { App as AntdApp, ConfigProvider, Layout, Spin, theme } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -19,8 +19,7 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const textColor = useAppStore((state) => state.textColor);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
@@ -54,26 +53,6 @@ const App = () => {
   }, [init, loadFromLink, searchParams, navigate]);
 
   useEffect(() => {
-    const style = document.createElement("style");
-    style.innerHTML = `
-      .ant-collapse-header {
-        color: ${textColor} !important;
-      }
-      .ant-collapse-content {
-        background-color: ${backgroundColor} !important;
-      }
-      .ant-collapse-content-active {
-        background-color: ${backgroundColor} !important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, [backgroundColor, textColor]);
-
-  useEffect(() => {
     const startTour = async () => {
       try {
         await tour.start();
@@ -91,23 +70,30 @@ const App = () => {
 
   // Set data-theme attribute on initial load and when theme changes
   useEffect(() => {
-    const theme = backgroundColor === "#121212" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [backgroundColor]);
+    document.documentElement.setAttribute("data-theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
 
   return (
-    <AntdApp>
-      <Layout style={{ height: "100vh" }}>
-        <Navbar />
-        <Layout
-          className="app-layout"
-          style={{
-            backgroundColor,
-            height: "calc(100vh - 64px)",
-            marginTop: "64px",
-            overflow: "hidden",
-          }}
-        >
+    <ConfigProvider
+      theme={{
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: {
+          colorPrimary: colors.primary,
+          fontFamily: 'Rubik, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        },
+      }}
+    >
+      <AntdApp>
+        <Layout style={{ height: "100vh" }}>
+          <Navbar />
+          <Layout
+            className="app-layout"
+            style={{
+              height: "calc(100vh - 64px)",
+              marginTop: "64px",
+              overflow: "hidden",
+            }}
+          >
           <Routes>
             <Route
               path="/"
@@ -147,6 +133,7 @@ const App = () => {
         </Layout>
       </Layout>
     </AntdApp>
+  </ConfigProvider>
   );
 };
 
