@@ -13,7 +13,7 @@ import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
 import { Button, message } from "antd";
 import * as monaco from "monaco-editor";
-import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
+import { MdFormatAlignLeft, MdChevronRight, MdExpandMore, MdAutoFixHigh } from "react-icons/md";
 import DOMPurify from "dompurify";
 
 const MainContainer = () => {
@@ -85,6 +85,7 @@ const MainContainer = () => {
     toggleModelCollapse,
     toggleTemplateCollapse,
     toggleDataCollapse,
+    generateSampleDataFromModel,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
     isEditorsVisible: state.isEditorsVisible,
@@ -96,6 +97,7 @@ const MainContainer = () => {
     toggleModelCollapse: state.toggleModelCollapse,
     toggleTemplateCollapse: state.toggleTemplateCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
+    generateSampleDataFromModel: state.generateSampleDataFromModel,
   }));
 
   // Calculate dynamic panel sizes based on collapse states
@@ -223,14 +225,28 @@ const MainContainer = () => {
                           </button>
                           <span>Data <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(JSON)</span></span>
                         </div>
-                        <button
-                          onClick={handleJsonFormat}
-                          className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
-                          disabled={!jsonEditorRef.current || isDataCollapsed}
-                          title="Format JSON"
-                        >
-                          <MdFormatAlignLeft size={16} />
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+                          <button
+                            onClick={handleJsonFormat}
+                            className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
+                            disabled={!jsonEditorRef.current || isDataCollapsed}
+                            title="Format JSON"
+                          >
+                            <MdFormatAlignLeft size={16} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              void generateSampleDataFromModel().then(() => {
+                                void message.success('Sample data generated!');
+                              });
+                            }}
+                            className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
+                            disabled={isDataCollapsed}
+                            title="Auto-generate sample data from Concerto model"
+                          >
+                            <MdAutoFixHigh size={16} />
+                          </button>
+                        </div>
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
