@@ -320,12 +320,12 @@ const useAppStore = create<AppState>()(
         setData: async (data: string) => {
           set(() => ({ data }));
           try {
-            const result = await rebuildDeBounce(
+            const { html, modelManager } = await rebuildDeBounce(
               get().templateMarkdown,
               get().modelCto,
               data
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: html, modelManager, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
