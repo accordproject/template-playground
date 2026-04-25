@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { describe, it, beforeEach, expect, vi } from "vitest";
+import { ModelManager } from "@accordproject/concerto-core";
 import TiptapTemplateEditor from "../../editors/TiptapTemplateEditor";
 import useAppStore from "../../store/store";
 
@@ -34,7 +35,7 @@ describe("TiptapTemplateEditor", () => {
 
   it("retries parsing when modelManager changes after an external markdown load", async () => {
     const loadedMarkdown = "Loaded sample markdown";
-    const modelManager = { id: "new-model-manager" };
+    const modelManager = new ModelManager({ strict: true });
     const parsedDoc = {
       $class: "org.accordproject.commonmark@0.5.0.Document",
       nodes: [],
