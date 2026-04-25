@@ -29,6 +29,9 @@ function TiptapTemplateEditor() {
   const isSyncingRef = useRef(false);
   // Track the last markdown we sent to the store to detect external changes
   const lastMarkdownRef = useRef(editorValue);
+  // External template loads can be parsed before rebuild provides the matching model.
+  const pendingModelRetryRef = useRef<string | null>(editorValue);
+  const lastModelManagerRef = useRef(modelManager);
 
   // Parse markdown into TemplateMarkDocument for the editor
   // Initialize as null - parsing is deferred to useEffect to ensure libraries are ready
@@ -40,45 +43,41 @@ function TiptapTemplateEditor() {
   // Determine theme based on isDarkMode
   const theme = getThemeName(isDarkMode);
 
-  // Capture initial values in refs to avoid re-running the initial parse effect
-  // when these values change (the sync effect handles subsequent changes)
-  const initialEditorValue = useRef(editorValue);
-  const initialModelManager = useRef(modelManager);
-
-  // Parse initial markdown after mount (runs once)
-  useEffect(() => {
-    if (doc === null && !parseError) {
-      const parsed = parseMarkdownTemplate(
-        initialEditorValue.current,
-        undefined,
-        initialModelManager.current
-      );
-      if (parsed) {
-        setDoc(parsed);
-        lastMarkdownRef.current = initialEditorValue.current;
-      } else {
-        setParseError("Could not parse template markdown");
-      }
-    }
-  }, [doc, parseError]);
-
   // Sync from store to editor when editorValue changes externally
   // (e.g., loading a sample, loading from shareable link)
   useEffect(() => {
-    // Skip if doc hasn't been initialized yet
-    if (doc === null) return;
+    if (isSyncingRef.current) return;
 
-    // Only sync if the change came from outside (not from our own onChange)
-    if (editorValue !== lastMarkdownRef.current && !isSyncingRef.current) {
-      const parsed = parseMarkdownTemplate(editorValue, undefined, modelManager);
-      if (parsed) {
-        setDoc(parsed);
-        setParseError(null);
-      } else {
-        setParseError("Could not parse template markdown");
+    const needsInitialParse = doc === null;
+    const markdownChanged = editorValue !== lastMarkdownRef.current;
+    const modelChanged = modelManager !== lastModelManagerRef.current;
+    const shouldRetryWithModel =
+      modelChanged && pendingModelRetryRef.current === editorValue;
+
+    if (!needsInitialParse && !markdownChanged && !shouldRetryWithModel) {
+      if (modelChanged) {
+        lastModelManagerRef.current = modelManager;
       }
-      lastMarkdownRef.current = editorValue;
+      return;
     }
+
+    const parsed = parseMarkdownTemplate(editorValue, undefined, modelManager);
+    if (parsed) {
+      setDoc(parsed);
+      setParseError(null);
+    } else {
+      setParseError("Could not parse template markdown");
+    }
+
+    if (markdownChanged || needsInitialParse) {
+      pendingModelRetryRef.current = editorValue;
+    }
+    if (shouldRetryWithModel) {
+      pendingModelRetryRef.current = null;
+    }
+
+    lastMarkdownRef.current = editorValue;
+    lastModelManagerRef.current = modelManager;
   }, [editorValue, doc, modelManager]);
 
   // Handle changes from the TipTap editor
@@ -90,6 +89,8 @@ function TiptapTemplateEditor() {
       // Serialize back to markdown
       const markdown = serializeToMarkdown(newDoc);
       lastMarkdownRef.current = markdown;
+      pendingModelRetryRef.current = null;
+      lastModelManagerRef.current = modelManager;
 
       // Update store (this triggers rebuild)
       isSyncingRef.current = true;
@@ -107,7 +108,7 @@ function TiptapTemplateEditor() {
         isSyncingRef.current = false;
       });
     },
-    [setEditorValue, setTemplateMarkdown]
+    [modelManager, setEditorValue, setTemplateMarkdown]
   );
 
   // Handle validation errors from the TipTap editor
