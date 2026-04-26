@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { Fab, Action } from "react-tiny-fab";
 import { MdExplore } from "react-icons/md";
 import { FaCircleQuestion } from "react-icons/fa6";
@@ -16,7 +17,7 @@ const FloatingFAB = () => {
         icon={<FaCircleQuestion />}
         alwaysShowTitle
         mainButtonStyles={{
-          backgroundColor: "#1B2540",
+          backgroundColor: colors.navy,
           color: "white",
           width: "50px",
           height: "50px",

@@ -25,11 +25,6 @@ export interface AIConfig {
   enableInlineSuggestions?: boolean;
 }
 
-export interface AIConfigPopupProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
 export interface editorsContent {
   editorTemplateMark: string,
   editorModelCto: string,

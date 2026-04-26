@@ -1,3 +1,4 @@
+import { colors } from '../../utils/theme';
 import styled from "styled-components";
 
 export const ContentContainer = styled.div`
@@ -23,7 +24,7 @@ export const ContentContainer = styled.div`
   }
 
   a {
-    color: #19c6c7;
+    color: ${colors.primary};
     text-decoration: none;
     &:hover {
       text-decoration: underline;
@@ -113,10 +114,10 @@ export const NavigationButtons = styled.div`
 
 export const NavigationButton = styled.button`
   padding: 0.625rem 1.25rem;
-  border: 0.125rem solid #19c6c7;
+  border: 0.125rem solid ${colors.primary};
   border-radius: 0.25rem;
   background-color: white;
-  color: #1b2540;
+  color: ${colors.navy};
   cursor: pointer;
   font-weight: 600;
   font-size: 1rem;
@@ -132,7 +133,7 @@ export const NavigationButton = styled.button`
   }
 
   &:hover:not(:disabled) {
-    background-color: #19c6c7;
+    background-color: ${colors.primary};
     color: white;
     text-decoration: underline;
   }
