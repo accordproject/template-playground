@@ -1,11 +1,5 @@
 // Simple template logic parser
-
-export interface TemplateLogicNode {
-  type: 'condition' | 'loop' | 'expression' | 'text';
-  content: string;
-  condition?: string;
-  iterator?: string;
-}
+import { TemplateLogicNode } from './types';
 
 export class TemplateLogicParser {
   /**

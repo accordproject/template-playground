@@ -1,10 +1,12 @@
-import { TemplateLogicNode } from './parser';
+import { TemplateLogicNode } from './types';
+import { TemplateLogicParser } from './parser';
 
 export class TemplateLogicEvaluator {
   /**
    * Evaluate parsed template nodes with data
    */
   evaluate(nodes: TemplateLogicNode[], data: Record<string, any>): string {
+    const parser = new TemplateLogicParser();
     let result = '';
 
     for (const node of nodes) {
@@ -14,27 +16,20 @@ export class TemplateLogicEvaluator {
           break;
 
         case 'expression':
-          // Simple expression evaluation
           try {
-            // Use Function instead of eval (safer)
-            const fn = new Function('data', `return (${node.content})`);
-            const value = fn(data);
-            result += String(value);
+            const expr = node.content.trim();
+            const fn = new Function('data', `with(data) { return (${expr}); }`);
+            result += String(fn(data) ?? '');
           } catch (error) {
             result += `[Error: ${(error as Error).message}]`;
           }
           break;
 
         case 'condition':
-          // Evaluate condition
           try {
-            const fn = new Function('data', `return (${node.condition})`);
-            const conditionMet = fn(data);
-            if (conditionMet) {
-              result += this.evaluate(
-                this.parse(node.content),
-                data
-              );
+            const fn = new Function('data', `with(data) { return (${node.condition}); }`);
+            if (fn(data)) {
+              result += this.evaluate(parser.parse(node.content), data);
             }
           } catch (error) {
             result += `[Error: ${(error as Error).message}]`;
@@ -42,17 +37,13 @@ export class TemplateLogicEvaluator {
           break;
 
         case 'loop':
-          // Evaluate loop
           try {
-            const fn = new Function('data', `return (${node.iterator})`);
+            const fn = new Function('data', `with(data) { return (${node.iterator}); }`);
             const items = fn(data);
             if (Array.isArray(items)) {
               for (const item of items) {
-                const loopData = { ...data, this: item };
-                result += this.evaluate(
-                  this.parse(node.content),
-                  loopData
-                );
+                const loopTemplate = node.content.replace(/\{\{this\}\}/g, String(item));
+                result += this.evaluate(parser.parse(loopTemplate), { ...data, ...item });
               }
             }
           } catch (error) {
@@ -63,10 +54,5 @@ export class TemplateLogicEvaluator {
     }
 
     return result;
-  }
-
-  private parse(template: string): TemplateLogicNode[] {
-    // Reuse parser logic
-    return []; // Placeholder
   }
 }
