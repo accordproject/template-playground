@@ -79,6 +79,12 @@ const viteConfig = defineViteConfig({
   resolve: {
     alias: {
       'zlib': '/src/zlib-patch.js',
+      // Defensive safeguard: forces axios to use the browser-safe XHR adapter
+      // instead of the Node http adapter (which pulls in zlib, crashing in browser builds).
+      // Primary fix is offline:true + removing updateExternalModels() in store.ts —
+      // this alias is an extra precaution for any indirect axios usage.
+      // Note: relies on axios internals — revisit if axios is upgraded.
+      './adapters/http.js': 'axios/lib/adapters/xhr.js',
     },
   },
 });
