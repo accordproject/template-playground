@@ -61,7 +61,7 @@
     "styled-components": "^6.1.12",
     "ts-debounce": "^4.0.0",
     "use-debounce": "^10.1.0",
-    "uuid": "^11.1.0",
+    "uuid": "^14.0.0",
     "zustand": "^4.3.9"
   },
   "devDependencies": {
