@@ -92,16 +92,31 @@ export const parseProviderError = (error: unknown): string => {
   if (!error) return 'An unknown error occurred';
 
   const err = error as Record<string, unknown>;
-  const rawCode = err?.status ?? err?.code ?? err?.statusCode ?? null;
 
+  // 1. Extract message first
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof err?.message === 'string'
+        ? err.message
+        : String(error);
+
+  // 2. Check for invalid API key patterns in the message before checking status codes
+  if (/api key/i.test(message) && /invalid/i.test(message)) {
+    return 'Invalid API key. Please check your AI configuration.';
+  }
+  // Handle Google's specific "INVALID_ARGUMENT" status in the message
+  if (message.includes('INVALID_ARGUMENT')) {
+    return 'Invalid API key. Please check your AI configuration.';
+  }
+
+  // 3. Then, check status codes as a fallback
+  const rawCode = err?.status ?? err?.code ?? err?.statusCode ?? null;
   let code: number | null = null;
   if (typeof rawCode === 'number' && Number.isFinite(rawCode)) {
     code = rawCode;
-  } else if (typeof rawCode === 'string') {
-    const trimmed = rawCode.trim();
-    if (/^\d+$/.test(trimmed)) {
-      code = Number(trimmed);
-    }
+  } else if (typeof rawCode === 'string' && /^\d+$/.test(rawCode.trim())) {
+    code = Number(rawCode.trim());
   }
 
   if (code === 401) return 'Invalid API key. Please check your AI configuration.';
@@ -109,11 +124,6 @@ export const parseProviderError = (error: unknown): string => {
   if (code === 429) return 'Rate limit exceeded. Please wait and try again.';
   if (code === 500) return 'Provider server error. Please try again later.';
 
-  const message = error instanceof Error
-    ? error.message
-    : typeof err?.message === 'string'
-      ? err.message
-      : String(error);
-
+  // 4. Return the original message if no specific pattern or code was matched
   return message || 'An unknown error occurred';
 };
