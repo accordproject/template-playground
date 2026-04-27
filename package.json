@@ -32,7 +32,7 @@
     "@types/styled-components": "^5.1.34",
     "antd": "^5.7.2",
     "core-js": "^3.37.1",
-    "dompurify": "^3.3.2",
+    "dompurify": "^3.4.1",
     "highlight.js": "^11.10.0",
     "html2pdf.js": "^0.14.0",
     "immer": "^10.1.1",
