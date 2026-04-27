@@ -38,7 +38,7 @@ interface AppState {
   setEditorAgreementData: (value: string) => void;
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
-  loadSample: (name: string) => Promise<void>;
+  loadSample: (name: string) => Promise<boolean>;
   generateShareableLink: () => string;
   loadFromLink: (compressedData: string) => Promise<void>;
   toggleDarkMode: () => void;
@@ -241,7 +241,10 @@ const useAppStore = create<AppState>()(
           if (compressedData) {
             await get().loadFromLink(compressedData);
           } else if (sampleName) {
-            await get().loadSample(sampleName);
+            const success = await get().loadSample(sampleName);
+            if (!success) {
+              await get().rebuild();
+            }
           } else {
             await get().rebuild();
           }
@@ -261,7 +264,9 @@ const useAppStore = create<AppState>()(
               editorAgreementData: JSON.stringify(sample.DATA, null, 2),
             }));
             await get().rebuild();
+            return true;
           }
+          return false;
         },
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();

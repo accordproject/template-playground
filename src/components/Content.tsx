@@ -17,7 +17,7 @@ import {
   CopyOutlined,
   CheckOutlined,
 } from "@ant-design/icons";
-import { Spin, message, Button } from "antd";
+import { Spin, message, Button, theme } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
@@ -29,6 +29,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { token } = theme.useToken();
 
   useEffect(() => {
     const loadContent = async () => {
@@ -106,8 +107,8 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
             type="primary"
             onClick={() => navigate(`/?sample=${encodeURIComponent(steps[currentIndex].sampleName!)}`)}
             style={{
-              backgroundColor: "#19c6c7",
-              borderColor: "#19c6c7",
+              backgroundColor: token.colorPrimary,
+              borderColor: token.colorPrimary,
               fontSize: "0.9rem",
               height: "auto",
               padding: "4px 12px"
