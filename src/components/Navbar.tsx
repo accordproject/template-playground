@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { colors } from '../utils/theme';
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -9,8 +10,13 @@ import {
   BookOutlined,
   CaretDownFilled,
   MenuOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
+import { message } from "antd";
+import useAppStore from "../store/store";
+import { shallow } from "zustand/shallow";
+import { useStoreWithEqualityFn } from "zustand/traditional";
 
 
 interface DropdownProps {
@@ -109,12 +115,13 @@ const MenuItem = ({
   }
 
   return (
-    <div
-      className={baseClasses}
+    <button
+      type="button"
+      className={`w-full text-left bg-transparent border-none ${baseClasses}`}
       onClick={onClick}
     >
       {children}
-    </div>
+    </button>
   );
 };
 
@@ -192,10 +199,32 @@ const useBreakpoint = () => {
 
 function Navbar() {
   const [hovered, setHovered] = useState<
-    null | "home" | "help" | "github" | "discord" | "join"
+    null | "home" | "help" | "samples" | "github" | "discord" | "join"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
+
+  const { samples, loadSample, sampleName } = useStoreWithEqualityFn(
+    useAppStore,
+    (state) => ({
+      samples: state.samples,
+      loadSample: state.loadSample as (key: string) => Promise<boolean>,
+      sampleName: state.sampleName,
+    }),
+    shallow
+  );
+
+  const handleSampleClick = useCallback(
+    async (name: string) => {
+      try {
+        await loadSample(name);
+        void message.info(`Loaded ${name} sample`);
+      } catch {
+        void message.error("Failed to load sample");
+      }
+    },
+    [loadSample]
+  );
 
   const props = useSpring({
     loop: true,
@@ -212,6 +241,14 @@ function Navbar() {
       <MenuItem to="/">
         <span>Template Playground</span>
       </MenuItem>
+      <MenuItemGroup title="Samples">
+        {samples?.map((s) => (
+          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
+            <FileTextOutlined />
+            <span>{s.NAME}</span>
+          </MenuItem>
+        ))}
+      </MenuItemGroup>
       <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
         <QuestionOutlined />
         <span>About</span>
@@ -256,6 +293,19 @@ function Navbar() {
     </Menu>
   );
 
+  const samplesMenu = (
+    <Menu>
+      <MenuItemGroup title="Load Sample">
+        {samples?.map((s) => (
+          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
+            <FileTextOutlined />
+            <span>{s.NAME}</span>
+          </MenuItem>
+        ))}
+      </MenuItemGroup>
+    </Menu>
+  );
+
   const menuItemClasses = (key: string, isLast: boolean) => {
     const baseClasses = "flex items-center h-16";
     const paddingClasses = screens.md ? "px-5" : "px-0";
@@ -268,9 +318,9 @@ function Navbar() {
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 bg-[#1b2540] h-16 flex items-center ${
+    <div className={`fixed top-0 left-0 right-0 z-50 h-16 flex items-center ${
       screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
-    }`}>
+    }`} style={{ backgroundColor: colors.navy }}>
       <div
         className={`cursor-pointer ${menuItemClasses("home", false)}`}
         onMouseEnter={() => setHovered("home")}
@@ -294,6 +344,18 @@ function Navbar() {
       
       {screens.md ? (
         <>
+          <div
+            className={`${menuItemClasses("samples", false)} cursor-pointer samples-element`}
+            onMouseEnter={() => setHovered("samples")}
+            onMouseLeave={() => setHovered(null)}
+          >
+            <Dropdown overlay={samplesMenu} trigger={["click"]}>
+              <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
+                Samples{sampleName ? `: ${sampleName}` : ''}
+                <CaretDownFilled className="text-xs ml-1.5" />
+              </Button>
+            </Dropdown>
+          </div>
           <div
             className={`${menuItemClasses("help", false)} cursor-pointer`}
             onMouseEnter={() => setHovered("help")}
@@ -331,9 +393,9 @@ function Navbar() {
           >
             <Link to="/learn/intro" className="learnNow-button">
               <animated.button
-                style={props}
-                className="px-[22px] py-[10px] bg-[#19c6c7] text-[#050c40] border-none rounded-md cursor-pointer"
-              >
+  style={{ ...props, backgroundColor: colors.primary, color: colors.darkNavy }}
+  className="px-[22px] py-[10px] border-none rounded-md cursor-pointer"
+>
                 Learn
               </animated.button>
             </Link>
