@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@accordproject/concerto-core": "^3.25.7",
+    "@accordproject/concerto-cto": "^3.25.7",
     "@accordproject/markdown-common": "^0.17.2",
     "@accordproject/markdown-template": "^0.17.2",
     "@accordproject/markdown-transform": "^0.17.2",
@@ -110,3 +111,4 @@
     "Safari >= 10"
   ]
 }
+
