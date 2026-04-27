@@ -36,10 +36,7 @@ function SampleDropdown({
         setLoading(true);
         try {
           await loadSample(e.key);
-          void message.success({
-            content: `Loaded ${e.key} sample`,
-            duration: 2,
-          });
+          void message.success(`Loaded ${e.key} sample`, 2);
           setSelectedSample(e.key);
         } catch (error) {
           void message.error("Failed to load sample");
