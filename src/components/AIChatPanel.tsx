@@ -15,12 +15,12 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, setAIConfig, setAIConfigOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
+  const { chatState, resetChat, aiConfig, setAIConfig, setSettingsOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
     chatState: state.chatState,
     resetChat: state.resetChat,
     aiConfig: state.aiConfig,
     setAIConfig: state.setAIConfig,
-    setAIConfigOpen: state.setAIConfigOpen,
+    setSettingsOpen: state.setSettingsOpen,
     setAIChatOpen: state.setAIChatOpen,
     textColor: state.textColor,
     backgroundColor: state.backgroundColor
@@ -86,7 +86,7 @@ export const AIChatPanel = () => {
     if (!userInput.trim()) return;
     
     if (!aiConfig) {
-      setAIConfigOpen(true);
+      setSettingsOpen(true);
       return;
     }
     
@@ -241,7 +241,7 @@ export const AIChatPanel = () => {
         <h2 className="text-lg font-bold" style={{ color: textColor }}>AI Assistant</h2>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setAIConfigOpen(true)}
+            onClick={() => setSettingsOpen(true)}
             className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             title="AI Settings"
             aria-label="AI Settings"

@@ -8,7 +8,7 @@ import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import "./styles/App.css";
-import AIConfigPopup from "./components/AIConfigPopup";
+import { colors } from './utils/theme';
 
 const LearnNow = lazy(() => import("./pages/LearnNow"));
 const MainContainer = lazy(() => import("./pages/MainContainer"));
@@ -19,11 +19,6 @@ const App = () => {
   const navigate = useNavigate();
   const init = useAppStore((state) => state.init);
   const loadFromLink = useAppStore((state) => state.loadFromLink);
-  const { isAIConfigOpen, setAIConfigOpen } =
-    useAppStore((state) => ({
-      isAIConfigOpen: state.isAIConfigOpen,
-      setAIConfigOpen: state.setAIConfigOpen,
-    }));
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);
@@ -132,10 +127,6 @@ const App = () => {
                       </div>
                     )}
                   </Content>
-                  <AIConfigPopup
-                    isOpen={isAIConfigOpen}
-                    onClose={() => setAIConfigOpen(false)}
-                  />
                 </>
               }
             />
@@ -162,7 +153,7 @@ const App = () => {
 const Spinner = () => (
   <div className="app-spinner-container">
     <Spin
-      indicator={<LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />}
+      indicator={<LoadingOutlined style={{ fontSize: 42, color: colors.primary }} spin />}
     />
   </div>
 );
