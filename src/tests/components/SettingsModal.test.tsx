@@ -3,6 +3,23 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SettingsModal from '../../components/SettingsModal';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'settings.title': 'Settings',
+        'settings.darkMode': 'Dark Mode',
+        'settings.darkModeDescription': 'Toggle between light and dark theme',
+        'settings.showLineNumbers': 'Show Line Numbers',
+        'settings.lineNumbersDescription': 'Display line numbers in code editors',
+      };
+      return translations[key] ?? key;
+    },
+    i18n: { changeLanguage: vi.fn() },
+  }),
+}));
+
 // Mock the store - use inline functions to avoid hoisting issues
 vi.mock('../../store/store', () => {
   return {

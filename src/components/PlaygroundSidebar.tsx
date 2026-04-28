@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
 import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
@@ -12,7 +13,8 @@ import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
 const PlaygroundSidebar = () => {
-  const { 
+  const { t } = useTranslation();
+  const {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
@@ -40,10 +42,10 @@ const PlaygroundSidebar = () => {
     try {
       const link = generateShareableLink();
       await navigator.clipboard.writeText(link);
-      void message.success('Link copied to clipboard!');
+      void message.success(t('sidebar.linkCopied'));
     } catch (err) {
       console.error('Error copying to clipboard:', err);
-      void message.error('Failed to copy link to clipboard');
+      void message.error(t('sidebar.linkCopyFailed'));
     }
   };
 
@@ -62,7 +64,7 @@ const PlaygroundSidebar = () => {
 
   const handleEditorToggle = () => {
     if (isEditorsVisible && !isPreviewVisible) {
-      void message.info('At least one panel must be visible');
+      void message.info(t('sidebar.panelWarning'));
       return;
     }
     setEditorsVisible(!isEditorsVisible);
@@ -70,7 +72,7 @@ const PlaygroundSidebar = () => {
 
   const handlePreviewToggle = () => {
     if (isPreviewVisible && !isEditorsVisible) {
-      void message.info('At least one panel must be visible');
+      void message.info(t('sidebar.panelWarning'));
       return;
     }
     setPreviewVisible(!isPreviewVisible);
@@ -78,6 +80,7 @@ const PlaygroundSidebar = () => {
 
   interface NavItem {
     title: string;
+    tourKey: string;
     icon?: React.ComponentType<{ size: number }>;
     component?: React.ReactNode;
     onClick?: () => void;
@@ -85,26 +88,30 @@ const PlaygroundSidebar = () => {
   }
 
   const navTop: NavItem[] = [
-    { 
-      title: "Editor", 
-      icon: IoCodeSlash, 
+    {
+      title: t('sidebar.editor'),
+      tourKey: 'editor',
+      icon: IoCodeSlash,
       onClick: handleEditorToggle,
       active: isEditorsVisible
     },
-    { 
-      title: "Preview", 
+    {
+      title: t('sidebar.preview'),
+      tourKey: 'preview',
       icon: VscOutput,
       onClick: handlePreviewToggle,
       active: isPreviewVisible
     },
-    { 
-      title: "Problems", 
+    {
+      title: t('sidebar.problems'),
+      tourKey: 'problems',
       icon: FiTerminal,
       onClick: () => setProblemPanelVisible(!isProblemPanelVisible),
       active: isProblemPanelVisible
     },
     {
-      title: "AI Assistant",
+      title: t('sidebar.aiAssistant'),
+      tourKey: 'ai-assistant',
       component: (
         <div className="flex items-center justify-center">
           <div className="relative w-6 h-6">
@@ -123,31 +130,36 @@ const PlaygroundSidebar = () => {
       onClick: () => setAIChatOpen(!isAIChatOpen),
       active: isAIChatOpen
     },
-    { 
-      title: "Fullscreen", 
+    {
+      title: t('sidebar.fullscreen'),
+      tourKey: 'fullscreen',
       component: <FullScreenModal />
     },
   ];
 
   interface NavBottomItem {
     title: string;
+    tourKey: string;
     icon: React.ComponentType<{ size: number }>;
     onClick: () => void;
   }
 
   const navBottom: NavBottomItem[] = [
-    { 
-      title: "Share", 
+    {
+      title: t('sidebar.share'),
+      tourKey: 'share',
       icon: FiShare2,
       onClick: () => void handleShare()
     },
-    { 
-      title: "Start Tour", 
+    {
+      title: t('sidebar.startTour'),
+      tourKey: 'start-tour',
       icon: FaCirclePlay,
       onClick: () => void handleStartTour()
     },
-    { 
-      title: "Settings", 
+    {
+      title: t('sidebar.settings'),
+      tourKey: 'settings',
       icon: FiSettings,
       onClick: handleSettings
     },
@@ -156,43 +168,42 @@ const PlaygroundSidebar = () => {
   return [
     <aside key="sidebar" className="playground-sidebar">
       <nav className="playground-sidebar-nav">
-        {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
-          <Tooltip key={title} title={title} placement="right">
-          <div
-            role="button"
-            aria-label={title}
-            tabIndex={0}
-            onClick={onClick}
-            className={`group playground-sidebar-nav-item ${
-              active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
-            } tour-${title.toLowerCase().replace(' ', '-')}`}
-          >
-            {component ? (
-              <div className="playground-sidebar-nav-item-icon-container">
-                {component}
-              </div>
-            ) : Icon ? (
-              <Icon size={20} />
-            ) : null}
-            <span className="playground-sidebar-nav-item-title">{title}</span>
-          </div>
+        {navTop.map(({ title, tourKey, icon: Icon, component, onClick, active }) => (
+          <Tooltip key={tourKey} title={title} placement="right">
+            <div
+              role="button"
+              aria-label={title}
+              tabIndex={0}
+              onClick={onClick}
+              className={`group playground-sidebar-nav-item ${active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
+                } tour-${tourKey}`}
+            >
+              {component ? (
+                <div className="playground-sidebar-nav-item-icon-container">
+                  {component}
+                </div>
+              ) : Icon ? (
+                <Icon size={20} />
+              ) : null}
+              <span className="playground-sidebar-nav-item-title">{title}</span>
+            </div>
           </Tooltip>
         ))}
       </nav>
 
       <nav className="playground-sidebar-nav-bottom">
-        {navBottom.map(({ title, icon: Icon, onClick }) => (
-          <Tooltip key={title} title={title} placement="right">
-          <div
-            role="button"
-            aria-label={title}
-            tabIndex={0}
-            onClick={onClick}
-            className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
-          >
-            <Icon size={18} />
-            <span className="playground-sidebar-nav-item-title">{title}</span>
-          </div>
+        {navBottom.map(({ title, tourKey, icon: Icon, onClick }) => (
+          <Tooltip key={tourKey} title={title} placement="right">
+            <div
+              role="button"
+              aria-label={title}
+              tabIndex={0}
+              onClick={onClick}
+              className={`group playground-sidebar-nav-bottom-item tour-${tourKey}`}
+            >
+              <Icon size={18} />
+              <span className="playground-sidebar-nav-item-title">{title}</span>
+            </div>
           </Tooltip>
         ))}
       </nav>

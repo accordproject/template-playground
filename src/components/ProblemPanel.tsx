@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import useAppStore from '../store/store';
 import { navigateToLine, EditorSource } from '../utils/editorNavigation';
 import '../styles/components/ProblemPanel.css';
@@ -14,6 +15,7 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { error, backgroundColor, textColor } = useAppStore((state) => ({
     error: state.error,
     backgroundColor: state.backgroundColor,
@@ -77,7 +79,7 @@ const ProblemPanel: React.FC = () => {
 
 
   const formatTimestamp = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString('en-US', {
+    return timestamp.toLocaleTimeString(i18n.language, {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
@@ -98,14 +100,14 @@ const ProblemPanel: React.FC = () => {
   return (
     <div className="problem-panel-container" style={{ backgroundColor }}>
       <div className={`problem-panel-header ${backgroundColor === '#ffffff' ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
-        <span className="problem-panel-title">Problems</span>
+        <span className="problem-panel-title">{t('problemPanel.problems')}</span>
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
         {problems.length === 0 ? (
           <div className="problem-panel-empty-state">
             <div className="problem-panel-empty-state-content">
               <div className="problem-panel-empty-state-icon">✨</div>
-              <div className="problem-panel-empty-state-text" style={{ color: textColor }}>No problems detected</div>
+              <div className="problem-panel-empty-state-text" style={{ color: textColor }}>{t('problemPanel.noProblems')}</div>
             </div>
           </div>
         ) : (
@@ -151,9 +153,9 @@ const ProblemPanel: React.FC = () => {
                         )}
                         {!isClickable(problem) && (problem.line || problem.column) && (
                           <span className="problem-panel-problem-location" style={{ color: textColor }}>
-                            {problem.line && `Line ${problem.line}`}
+                            {problem.line && `${t('problemPanel.line')} ${problem.line}`}
                             {problem.line && problem.column && ':'}
-                            {problem.column && `Col ${problem.column}`}
+                            {problem.column && `${t('problemPanel.col')} ${problem.column}`}
                           </span>
                         )}
                       </div>
@@ -178,4 +180,4 @@ const ProblemPanel: React.FC = () => {
   );
 };
 
-export default ProblemPanel; 
+export default ProblemPanel;

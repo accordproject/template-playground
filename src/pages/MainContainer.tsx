@@ -1,4 +1,5 @@
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { useTranslation } from 'react-i18next';
 import AgreementData from "../editors/editorsContainer/AgreementData";
 import TemplateModel from "../editors/editorsContainer/TemplateModel";
 import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
@@ -17,6 +18,7 @@ import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md"
 import DOMPurify from "dompurify";
 
 const MainContainer = () => {
+  const { t } = useTranslation();
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
   const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -30,11 +32,11 @@ const MainContainer = () => {
 
     try {
       setIsDownloading(true);
-      
+
       // --- FIX START: Store original styles ---
       const originalBg = element.style.backgroundColor;
       const originalColor = element.style.color;
-      
+
       // Force White Background / Black Text for PDF
       element.style.backgroundColor = '#ffffff';
       element.style.color = '#000000';
@@ -54,7 +56,7 @@ const MainContainer = () => {
       } as const;
 
       await html2pdf().set(options).from(element).save();
-      
+
       // --- FIX START: Restore original styles ---
       element.style.backgroundColor = originalBg;
       element.style.color = originalColor;
@@ -62,7 +64,7 @@ const MainContainer = () => {
 
     } catch (error) {
       console.error("PDF generation failed:", error);
-      void message.error("Failed to generate PDF. Please check the console.");
+      void message.error(t('mainContainer.pdfError'));
     } finally {
       setIsDownloading(false);
     }
@@ -103,16 +105,16 @@ const MainContainer = () => {
   const expandedCount = 3 - collapsedCount;
   const collapsedSize = 5;
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
-  
+
   // Create distinct preview background for better visual separation
-  const previewBackgroundColor = backgroundColor === '#ffffff' 
+  const previewBackgroundColor = backgroundColor === '#ffffff'
     ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
     : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
-  
+
   const previewHeaderColor = backgroundColor === '#ffffff'
     ? '#dbeafe'  // Slightly darker blue for header in light mode
     : '#0f172a';  // Even darker shade for header in dark mode
-  
+
   // Create a key that changes when collapse state changes to force panel re-layout
   const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
@@ -128,7 +130,6 @@ const MainContainer = () => {
                   <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-concerto-model">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        {/* Left side */}
                         <div className="main-container-editor-header-left">
                           <button
                             className="collapse-button"
@@ -143,7 +144,7 @@ const MainContainer = () => {
                               padding: '4px',
                               marginRight: '4px'
                             }}
-                            title={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
+                            title={isModelCollapsed ? t('mainContainer.expand') : t('mainContainer.collapse')}
                             aria-label={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
                           >
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
@@ -216,7 +217,7 @@ const MainContainer = () => {
                               padding: '4px',
                               marginRight: '4px'
                             }}
-                            title={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
+                            title={isDataCollapsed ? t('mainContainer.expand') : t('mainContainer.collapse')}
                             aria-label={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
                           >
                             {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
@@ -227,7 +228,7 @@ const MainContainer = () => {
                           onClick={handleJsonFormat}
                           className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
                           disabled={!jsonEditorRef.current || isDataCollapsed}
-                          title="Format JSON"
+                          title={t('mainContainer.formatJson')}
                         >
                           <MdFormatAlignLeft size={16} />
                         </button>
@@ -258,13 +259,13 @@ const MainContainer = () => {
             <Panel defaultSize={37.5} minSize={20}>
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
-                  <span>Preview</span>
+                  <span>{t('mainContainer.preview')}</span>
                   <Button
                     onClick={() => void handleDownloadPdf()}
                     loading={isDownloading}
                     style={{ marginLeft: "10px" }}
                   >
-                    Download PDF
+                    {t('mainContainer.downloadPdf')}
                   </Button>
                 </div>
                 <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor }}>
@@ -299,4 +300,3 @@ const MainContainer = () => {
 };
 
 export default MainContainer;
-

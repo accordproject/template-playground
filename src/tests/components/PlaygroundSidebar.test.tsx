@@ -3,6 +3,9 @@ import "@testing-library/jest-dom";
 import PlaygroundSidebar from "../../components/PlaygroundSidebar";
 import { vi } from "vitest";
 
+
+
+
 // Mock the store
 vi.mock("../../store/store", () => ({
     default: () => ({

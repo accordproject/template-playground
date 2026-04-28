@@ -28,15 +28,15 @@ test.describe('Template Workflow', () => {
   });
 
   test('should collapse and expand editor panels', async ({ page }) => {
-    // Find the Data Model collapse button (title includes "Collapse Data Model panel")
-    const modelCollapseBtn = page.locator('button[title="Collapse Data Model panel"]');
+    // Find the Data Model collapse button (using aria-label)
+    const modelCollapseBtn = page.locator('button[aria-label="Collapse Data Model panel"]');
     await expect(modelCollapseBtn).toBeVisible();
 
     // Click to collapse
     await modelCollapseBtn.click();
 
     // Button should now say Expand
-    await expect(page.locator('button[title="Expand Data Model panel"]')).toBeVisible();
+    await expect(page.locator('button[aria-label="Expand Data Model panel"]')).toBeVisible();
   });
 
   test('should toggle Editor panel visibility', async ({ page }) => {

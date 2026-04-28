@@ -23,22 +23,26 @@ const App = () => {
   const textColor = useAppStore((state) => state.textColor);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-
+  // Stringify search parameters to avoid infinite re-renders since the object reference changes
+  const searchParamsString = searchParams.toString();
 
   useEffect(() => {
+    let ignore = false;
+
     const initializeApp = async () => {
       try {
-        setLoading(true);
-        // Prioritize hash for new links, fallback to searchParams for old links
+        if (!ignore) setLoading(true);
         let compressedData: string | null = null;
         if (window.location.hash.startsWith("#data=")) {
           compressedData = window.location.hash.substring(6);
         } else {
-          compressedData = searchParams.get("data");
+          const currentParams = new URLSearchParams(searchParamsString);
+          compressedData = currentParams.get("data");
         }
+        
         if (compressedData) {
           await loadFromLink(compressedData);
-          if (window.location.pathname !== "/") {
+          if (window.location.pathname !== "/" && !ignore) {
             navigate("/", { replace: true });
           }
         } else {
@@ -47,11 +51,16 @@ const App = () => {
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
+    
     void initializeApp();
-  }, [init, loadFromLink, searchParams, navigate]);
+    
+    return () => {
+      ignore = true;
+    };
+  }, [init, loadFromLink, searchParamsString, navigate]);
 
   useEffect(() => {
     const style = document.createElement("style");
