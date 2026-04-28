@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -87,7 +88,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
       >
         <Spin
           indicator={
-            <LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />
+            <LoadingOutlined style={{ fontSize: 42, color: colors.primary }} spin />
           }
         />
       </div>
