@@ -28,4 +28,25 @@ npm i
 npm run dev
 ```
 
+### AI Assistant Proxy
+
+Hosted AI providers are routed through server-side proxy functions by default so provider API keys are never stored in, decrypted by, or sent from the browser. The browser sends provider, model, and prompt data to the proxy, and the proxy reads provider credentials from environment variables.
+
+Set these variables in the hosting environment as needed:
+
+```shell
+OPENAI_API_KEY=...
+ANTHROPIC_API_KEY=...
+GOOGLE_API_KEY=...
+MISTRAL_API_KEY=...
+OPENROUTER_API_KEY=...
+OPENAI_COMPATIBLE_API_KEY=...
+OPENAI_COMPATIBLE_BASE_URL=https://your-openai-compatible-endpoint/v1
+AI_PROXY_ALLOWED_ORIGIN=https://template-playground.example
+```
+
+The frontend calls `/.netlify/functions/ai-chat` and `/.netlify/functions/ai-models` by default. Override the function base path with `VITE_AI_PROXY_BASE_URL`.
+
+Production deployments that use the existing S3 + CloudFront pipeline should not rely on Netlify functions. The publish workflow now deploys an AWS Lambda + API Gateway proxy stack from [aws/ai-proxy-stack.yml](/Users/rishabhjain/Desktop/template-playground/aws/ai-proxy-stack.yml:1), reads the `AiProxyBaseUrl` CloudFormation output, and injects that into the frontend build as `VITE_AI_PROXY_BASE_URL`.
+
 [apdev]: https://github.com/accordproject/techdocs/blob/master/DEVELOPERS.md

@@ -28,6 +28,7 @@ import {
   clearStoredKey,
 } from '../utils/secureKeyStorage';
 import { fetchModels } from '../utils/fetchModels';
+import { isServerAIProxyEnabled } from '../ai-assistant/aiProxy';
 
 const { Text } = Typography;
 
@@ -55,6 +56,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   const [securityMessage, setSecurityMessage] = useState<string>('');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [debouncedApiKey] = useDebounce(apiKey, 1000);
+  const serverProxyEnabled = isServerAIProxyEnabled();
 
   // Check WebAuthn PRF support on mount
   useEffect(() => {
@@ -81,28 +83,33 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     setEnableCodeSelectionMenu(savedEnableCodeSelection);
     setEnableInlineSuggestions(savedEnableInlineSuggestions);
 
-    // Load API key: try WebAuthn-encrypted first, then in-memory (Zustand), then legacy plaintext
-    const storedConfig = useAppStore.getState().aiConfig;
-    if (storedConfig?.apiKey) {
-      // Key is already in memory (loaded previously this session)
-      setApiKey(storedConfig.apiKey);
+    if (serverProxyEnabled) {
+      setKeyProtectionLevel(null);
+      setApiKey('');
     } else {
-      // Try to load from encrypted storage or legacy
-      try {
-        const result = await loadAndDecryptApiKey();
-        if (result) {
-          setApiKey(result.apiKey);
-          setKeyProtectionLevel(result.protectionLevel);
-          if (result.protectionLevel === 'legacy-plaintext') {
-            setSecurityMessage('\u26a0\ufe0f Your API key was stored unencrypted. Save again to protect it with WebAuthn.');
+      // Load API key: try WebAuthn-encrypted first, then in-memory (Zustand), then legacy plaintext
+      const storedConfig = useAppStore.getState().aiConfig;
+      if (storedConfig?.apiKey) {
+        // Key is already in memory (loaded previously this session)
+        setApiKey(storedConfig.apiKey);
+      } else {
+        // Try to load from encrypted storage or legacy
+        try {
+          const result = await loadAndDecryptApiKey();
+          if (result) {
+            setApiKey(result.apiKey);
+            setKeyProtectionLevel(result.protectionLevel);
+            if (result.protectionLevel === 'legacy-plaintext') {
+              setSecurityMessage('\u26a0\ufe0f Your API key was stored unencrypted. Save again to protect it with WebAuthn.');
+            }
           }
+        } catch {
+          // Decryption failed (e.g. user cancelled WebAuthn prompt)
+          setSecurityMessage('Could not unlock stored API key. Please re-enter it.');
         }
-      } catch {
-        // Decryption failed (e.g. user cancelled WebAuthn prompt)
-        setSecurityMessage('Could not unlock stored API key. Please re-enter it.');
       }
     }
-  }, [setKeyProtectionLevel]);
+  }, [serverProxyEnabled, setKeyProtectionLevel]);
 
   useEffect(() => {
     setSecurityMessage('');
@@ -117,7 +124,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
 
     // Only gate on API key for providers that require it (e.g., OpenAI, Anthropic, etc.).
     // Ollama does not require an API key, so allow it to proceed without debouncedApiKey.
-    const requiresApiKey = provider !== 'ollama';
+    const requiresApiKey = provider !== 'ollama' && !serverProxyEnabled;
     if (requiresApiKey && !debouncedApiKey) {
       setAvailableModels([]);
       return;
@@ -128,8 +135,6 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     const runFetch = async () => {
       const models = await fetchModels({
         provider,
-        apiKey: debouncedApiKey,
-        customEndpoint,
         signal: controller.signal,
       });
       if (!controller.signal.aborted) {
@@ -143,7 +148,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     return () => {
       controller.abort();
     };
-  }, [provider, debouncedApiKey, customEndpoint]);
+  }, [provider, debouncedApiKey, customEndpoint, serverProxyEnabled]);
 
   useEffect(() => {
     if (availableModels.length > 0 && model && !availableModels.includes(model)) {
@@ -157,7 +162,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     localStorage.setItem('aiProvider', provider);
     localStorage.setItem('aiModel', model);
 
-    if (provider === 'openai-compatible') {
+    if (provider === 'openai-compatible' && !serverProxyEnabled) {
       localStorage.setItem('aiCustomEndpoint', customEndpoint);
     } else {
       localStorage.removeItem('aiCustomEndpoint');
@@ -173,10 +178,12 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     localStorage.setItem('aiEnableCodeSelectionMenu', enableCodeSelectionMenu.toString());
     localStorage.setItem('aiEnableInlineSuggestions', enableInlineSuggestions.toString());
 
-    // Securely store the API key
-    let protectionLevel: KeyProtectionLevel = 'memory-only';
+    // Securely store the API key when legacy browser-key mode is explicitly enabled.
+    let protectionLevel: KeyProtectionLevel | null = serverProxyEnabled || provider === 'ollama' ? null : 'memory-only';
 
-    if (apiKey && provider !== 'ollama') {
+    if (serverProxyEnabled) {
+      clearStoredKey();
+    } else if (apiKey && provider !== 'ollama') {
       if (webauthnAvailable) {
         try {
           const success = await encryptAndStoreApiKey(apiKey);
@@ -197,7 +204,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     const config: AIConfig = {
       provider,
       model,
-      apiKey: provider === 'ollama' ? '' : apiKey,
+      apiKey: provider === 'ollama' || serverProxyEnabled ? '' : apiKey,
       includeTemplateMarkContent: localStorage.getItem('aiIncludeTemplateMark') === 'true',
       includeConcertoModelContent: localStorage.getItem('aiIncludeConcertoModel') === 'true',
       includeDataContent: localStorage.getItem('aiIncludeData') === 'true',
@@ -206,7 +213,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       enableInlineSuggestions,
     };
 
-    if (provider === 'openai-compatible' && customEndpoint) {
+    if (provider === 'openai-compatible' && !serverProxyEnabled && customEndpoint) {
       config.customEndpoint = customEndpoint;
     }
 
@@ -227,7 +234,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     );
 
     if (confirmed) {
-      // Clear all AI-related localStorage items (including encrypted key data)
+      // Clear all AI-related stored items (including encrypted key data)
       clearStoredKey();
       const keysToRemove = [
         'aiProvider',
@@ -263,8 +270,8 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
 
   const isSaveDisabled = isEncrypting || !provider || !model ||
     (availableModels.length > 0 && !availableModels.includes(model)) ||
-    (provider !== 'ollama' && !apiKey) ||
-    (provider === 'openai-compatible' && !customEndpoint);
+    (provider !== 'ollama' && !serverProxyEnabled && !apiKey) ||
+    (provider === 'openai-compatible' && !serverProxyEnabled && !customEndpoint);
 
   const providerOptions = [
     { value: 'anthropic', label: 'Anthropic' },
@@ -369,7 +376,13 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         />
       </Form.Item>
 
-      {provider === 'openai-compatible' && (
+      {serverProxyEnabled && provider && provider !== 'ollama' && (
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+          Provider credentials are managed by the server.
+        </Text>
+      )}
+
+      {provider === 'openai-compatible' && !serverProxyEnabled && (
         <Form.Item
           label="API Endpoint"
           extra="Enter the full base URL of the OpenAI-compatible API"
@@ -383,40 +396,42 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         </Form.Item>
       )}
 
-      <Form.Item label="API Key">
-        <Input.Password
-          id="ai-api-key"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          placeholder="Enter API key"
-        />
-        {keyProtectionLevel === 'webauthn' && (
-          <Space size={4} style={{ marginTop: 4 }}>
-            <LockOutlined style={{ color: '#52c41a', fontSize: 12 }} />
-            <Text style={{ color: '#52c41a', fontSize: 12 }}>
-              Protected with Passkey (WebAuthn)
+      {!serverProxyEnabled && provider !== 'ollama' && (
+        <Form.Item label="API Key">
+          <Input.Password
+            id="ai-api-key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="Enter API key"
+          />
+          {keyProtectionLevel === 'webauthn' && (
+            <Space size={4} style={{ marginTop: 4 }}>
+              <LockOutlined style={{ color: '#52c41a', fontSize: 12 }} />
+              <Text style={{ color: '#52c41a', fontSize: 12 }}>
+                Protected with Passkey (WebAuthn)
+              </Text>
+            </Space>
+          )}
+          {keyProtectionLevel === 'memory-only' && (
+            <Space size={4} style={{ marginTop: 4 }}>
+              <WarningOutlined style={{ color: '#faad14', fontSize: 12 }} />
+              <Text style={{ color: '#faad14', fontSize: 12 }}>
+                Stored in memory only (cleared on refresh)
+              </Text>
+            </Space>
+          )}
+          {!webauthnAvailable && apiKey && provider !== 'ollama' && !keyProtectionLevel && (
+            <Text style={{ color: '#faad14', fontSize: 12, display: 'block', marginTop: 4 }}>
+              ⚠️ WebAuthn not available. Key will be stored in memory only.
             </Text>
-          </Space>
-        )}
-        {keyProtectionLevel === 'memory-only' && (
-          <Space size={4} style={{ marginTop: 4 }}>
-            <WarningOutlined style={{ color: '#faad14', fontSize: 12 }} />
-            <Text style={{ color: '#faad14', fontSize: 12 }}>
-              Stored in memory only (cleared on refresh)
+          )}
+          {securityMessage && (
+            <Text style={{ color: '#fa8c16', fontSize: 12, display: 'block', marginTop: 4 }}>
+              {securityMessage}
             </Text>
-          </Space>
-        )}
-        {!webauthnAvailable && apiKey && provider !== 'ollama' && !keyProtectionLevel && (
-          <Text style={{ color: '#faad14', fontSize: 12, display: 'block', marginTop: 4 }}>
-            ⚠️ WebAuthn not available. Key will be stored in memory only.
-          </Text>
-        )}
-        {securityMessage && (
-          <Text style={{ color: '#fa8c16', fontSize: 12, display: 'block', marginTop: 4 }}>
-            {securityMessage}
-          </Text>
-        )}
-      </Form.Item>
+          )}
+        </Form.Item>
+      )}
 
       <Form.Item
         label="Model Name"

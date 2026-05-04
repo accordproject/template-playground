@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
+    env:
+      AI_PROXY_STACK_NAME: template-playground-ai-proxy
 
     strategy:
       matrix:
@@ -35,10 +37,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: npm ci
 
-      - name: NPM Build
-        run: SERVER_ROOT=https://playground.accordproject.org NODE_OPTIONS=--max_old_space_size=8192 npm run build
-        if: github.ref == 'refs/heads/main'
-
       - name: Set S3 
         if: github.ref == 'refs/heads/main'
         run: |
@@ -49,6 +47,45 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Package AI Proxy Stack
+        if: github.ref == 'refs/heads/main'
+        run: |
+          aws cloudformation package \
+            --template-file aws/ai-proxy-stack.yml \
+            --s3-bucket "$AWS_S3_BUCKET" \
+            --s3-prefix ai-proxy \
+            --output-template-file packaged-ai-proxy-stack.yml
+
+      - name: Deploy AI Proxy Stack
+        if: github.ref == 'refs/heads/main'
+        run: |
+          aws cloudformation deploy \
+            --template-file packaged-ai-proxy-stack.yml \
+            --stack-name "$AI_PROXY_STACK_NAME" \
+            --capabilities CAPABILITY_IAM \
+            --parameter-overrides \
+              OpenAIApiKey="${{ secrets.OPENAI_API_KEY }}" \
+              AnthropicApiKey="${{ secrets.ANTHROPIC_API_KEY }}" \
+              GoogleApiKey="${{ secrets.GOOGLE_API_KEY }}" \
+              MistralApiKey="${{ secrets.MISTRAL_API_KEY }}" \
+              OpenRouterApiKey="${{ secrets.OPENROUTER_API_KEY }}" \
+              OpenAICompatibleApiKey="${{ secrets.OPENAI_COMPATIBLE_API_KEY }}" \
+              OpenAICompatibleBaseUrl="${{ secrets.OPENAI_COMPATIBLE_BASE_URL }}" \
+              AiProxyAllowedOrigin="https://playground.accordproject.org"
+
+      - name: Export AI Proxy Base URL
+        if: github.ref == 'refs/heads/main'
+        run: |
+          AI_PROXY_BASE_URL=$(aws cloudformation describe-stacks \
+            --stack-name "$AI_PROXY_STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='AiProxyBaseUrl'].OutputValue" \
+            --output text)
+          echo "VITE_AI_PROXY_BASE_URL=$AI_PROXY_BASE_URL" >> $GITHUB_ENV
+
+      - name: NPM Build
+        run: SERVER_ROOT=https://playground.accordproject.org NODE_OPTIONS=--max_old_space_size=8192 npm run build
+        if: github.ref == 'refs/heads/main'
 
       - name: Deploy to S3
         run: |

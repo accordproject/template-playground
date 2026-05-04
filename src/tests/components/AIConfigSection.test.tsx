@@ -126,6 +126,10 @@ describe('AIConfigSection', () => {
 
   beforeEach(() => {
     localStorageMock.clear();
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ models: [] }),
+    } as unknown as Response);
     vi.clearAllMocks();
     // Re-apply default mock implementations after clearAllMocks
     vi.mocked(isWebAuthnPRFSupported).mockResolvedValue(false);
@@ -139,13 +143,13 @@ describe('AIConfigSection', () => {
 
   // ── Rendering ──────────────────────────────────────────────────────────────
 
-  it('renders provider select, API key input, model select, and action buttons', async () => {
+  it('renders provider select, model select, and action buttons without an API key field', async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
     expect(screen.getByText('Provider')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter API key')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Enter API key')).not.toBeInTheDocument();
     expect(screen.getByText('Model Name')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Save Configuration/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Reset Configuration/i })).toBeInTheDocument();
@@ -162,40 +166,33 @@ describe('AIConfigSection', () => {
 
   // ── Provider selection impacts required fields ─────────────────────────────
 
-  it('shows API Endpoint field only when openai-compatible provider is selected', async () => {
+  it('does not expose custom API endpoint input for openai-compatible provider', async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
-    // Not shown initially
     expect(screen.queryByPlaceholderText('https://your-api-endpoint/v1')).not.toBeInTheDocument();
 
-    // Select openai-compatible
     await act(async () => {
       fireEvent.change(screen.getByDisplayValue('Select a provider'), {
         target: { value: 'openai-compatible' },
       });
     });
 
-    expect(screen.getByPlaceholderText('https://your-api-endpoint/v1')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('https://your-api-endpoint/v1')).not.toBeInTheDocument();
+    expect(screen.getByText(/Provider credentials are managed by the server/i)).toBeInTheDocument();
   });
 
-  it('hides API Endpoint field when switching away from openai-compatible', async () => {
+  it('shows server-managed credential message for hosted providers', async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
-    const providerSelect = screen.getByDisplayValue('Select a provider');
-
     await act(async () => {
-      fireEvent.change(providerSelect, { target: { value: 'openai-compatible' } });
+      fireEvent.change(screen.getByDisplayValue('Select a provider'), { target: { value: 'openai' } });
     });
-    expect(screen.getByPlaceholderText('https://your-api-endpoint/v1')).toBeInTheDocument();
 
-    await act(async () => {
-      fireEvent.change(providerSelect, { target: { value: 'openai' } });
-    });
-    expect(screen.queryByPlaceholderText('https://your-api-endpoint/v1')).not.toBeInTheDocument();
+    expect(screen.getByText(/Provider credentials are managed by the server/i)).toBeInTheDocument();
   });
 
   // ── Ollama-specific path ───────────────────────────────────────────────────
@@ -250,32 +247,7 @@ describe('AIConfigSection', () => {
     });
   });
 
-  it('loads in-memory API key from Zustand store when available', async () => {
-    vi.mocked(loadAndDecryptApiKey).mockResolvedValue(null);
-    // Simulate key already in Zustand in-memory store
-    const useAppStore = (await import('../../store/store')).default;
-    (useAppStore as unknown as { getState: () => object }).getState = () => ({
-      aiConfig: { apiKey: 'my-stored-key' },
-      setAIConfig: mockSetAIConfig,
-    });
-
-    await act(async () => {
-      render(<AIConfigSection />);
-    });
-
-    await waitFor(() => {
-      const apiKeyInput = screen.getByPlaceholderText('Enter API key') as HTMLInputElement;
-      expect(apiKeyInput.value).toBe('my-stored-key');
-    });
-
-    // Restore default
-    (useAppStore as unknown as { getState: () => object }).getState = () => ({
-      aiConfig: null,
-      setAIConfig: mockSetAIConfig,
-    });
-  });
-
-  it('shows security message when legacy-plaintext key is loaded', async () => {
+  it('does not load browser-stored API keys in server proxy mode', async () => {
     vi.mocked(loadAndDecryptApiKey).mockResolvedValue({
       apiKey: 'legacy-key',
       protectionLevel: 'legacy-plaintext',
@@ -285,17 +257,18 @@ describe('AIConfigSection', () => {
       render(<AIConfigSection />);
     });
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(/stored unencrypted/i)
-      ).toBeInTheDocument();
-    });
+    expect(loadAndDecryptApiKey).not.toHaveBeenCalled();
+    expect(screen.queryByPlaceholderText('Enter API key')).not.toBeInTheDocument();
+    expect(screen.queryByText(/stored unencrypted/i)).not.toBeInTheDocument();
   });
 
   // ── Save persistence ───────────────────────────────────────────────────────
 
   it('persists provider and model to localStorage on save', async () => {
-    global.fetch = makeFetchMock(['gpt-4', 'gpt-4o']);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ models: ['gpt-4', 'gpt-4o'] }),
+    } as unknown as Response);
 
     await act(async () => {
       render(<AIConfigSection />);
@@ -305,13 +278,6 @@ describe('AIConfigSection', () => {
     await act(async () => {
       fireEvent.change(screen.getByDisplayValue('Select a provider'), {
         target: { value: 'openai' },
-      });
-    });
-
-    // Enter API key (triggers model fetch via debounced effect)
-    await act(async () => {
-      fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
-        target: { value: 'test-key' },
       });
     });
 
@@ -339,7 +305,10 @@ describe('AIConfigSection', () => {
 
   it('removes aiCustomEndpoint from localStorage when provider is not openai-compatible', async () => {
     localStorageMock.setItem('aiCustomEndpoint', 'https://old-endpoint/v1');
-    global.fetch = makeFetchMock(['gpt-4']);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ models: ['gpt-4'] }),
+    } as unknown as Response);
 
     await act(async () => {
       render(<AIConfigSection />);
@@ -348,9 +317,6 @@ describe('AIConfigSection', () => {
     await act(async () => {
       fireEvent.change(screen.getByDisplayValue('Select a provider'), {
         target: { value: 'openai' },
-      });
-      fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
-        target: { value: 'test-key' },
       });
     });
 
@@ -446,33 +412,13 @@ describe('AIConfigSection', () => {
     expect(mockSetAIConfig).not.toHaveBeenCalled();
   });
 
-  // ── WebAuthn handling ──────────────────────────────────────────────────────
+  // ── Server proxy handling ─────────────────────────────────────────────────
 
-  it('shows WebAuthn unavailable warning when key is entered but WebAuthn is not supported', async () => {
-    vi.mocked(isWebAuthnPRFSupported).mockResolvedValue(false);
-
-    await act(async () => {
-      render(<AIConfigSection />);
-    });
-
-    await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
-        target: { value: 'openai' },
-      });
-      fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
-        target: { value: 'test-key' },
-      });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText(/WebAuthn not available/i)).toBeInTheDocument();
-    });
-  });
-
-  it('uses WebAuthn encryption when available during save', async () => {
-    vi.mocked(isWebAuthnPRFSupported).mockResolvedValue(true);
-    vi.mocked(encryptAndStoreApiKey).mockResolvedValue(true);
-    global.fetch = makeFetchMock(['gpt-4']);
+  it('uses server-managed credentials when saving hosted providers', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ models: ['gpt-4'] }),
+    } as unknown as Response);
 
     await act(async () => {
       render(<AIConfigSection />);
@@ -482,10 +428,10 @@ describe('AIConfigSection', () => {
       fireEvent.change(screen.getByDisplayValue('Select a provider'), {
         target: { value: 'openai' },
       });
-      fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
-        target: { value: 'my-api-key' },
-      });
     });
+
+    expect(screen.queryByPlaceholderText('Enter API key')).not.toBeInTheDocument();
+    expect(screen.getByText(/Provider credentials are managed by the server/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByRole('option', { name: 'gpt-4' })).toBeInTheDocument();
@@ -503,33 +449,12 @@ describe('AIConfigSection', () => {
     });
 
     await waitFor(() => {
-      expect(encryptAndStoreApiKey).toHaveBeenCalledWith('my-api-key');
+      expect(encryptAndStoreApiKey).not.toHaveBeenCalled();
+      expect(clearStoredKey).toHaveBeenCalled();
+      expect(mockSetAIConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', model: 'gpt-4', apiKey: '' })
+      );
     });
-  });
-
-  // ── API key visibility toggle ──────────────────────────────────────────────
-
-  it('toggles API key visibility when eye button is clicked', async () => {
-    await act(async () => {
-      render(<AIConfigSection />);
-    });
-
-    const apiKeyInput = screen.getByPlaceholderText('Enter API key') as HTMLInputElement;
-    expect(apiKeyInput.type).toBe('password');
-
-    // antd Input.Password renders the toggle as an icon with aria-label="eye-invisible" when hidden
-    const toggleBtn = screen.getByRole('img', { name: 'eye-invisible' });
-    await act(async () => {
-      fireEvent.click(toggleBtn);
-    });
-
-    expect(apiKeyInput.type).toBe('text');
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('img', { name: 'eye' }));
-    });
-
-    expect(apiKeyInput.type).toBe('password');
   });
 
   // ── Advanced Settings toggle ───────────────────────────────────────────────

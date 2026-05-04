@@ -5,9 +5,11 @@ import { getLLMProvider } from './llmProviders';
 import useAppStore from '../store/store';
 import { extractErrorMessage } from '../utils/helpers/errorUtils';
 import { loadAndDecryptApiKey } from '../utils/secureKeyStorage';
+import { isServerAIProxyEnabled } from './aiProxy';
 
 export const loadConfigFromLocalStorage = async () => {
   const { setAIConfig, setKeyProtectionLevel } = useAppStore.getState();
+  const serverProxyEnabled = isServerAIProxyEnabled();
 
   const savedProvider = localStorage.getItem('aiProvider');
   const savedModel = localStorage.getItem('aiModel');
@@ -22,24 +24,26 @@ export const loadConfigFromLocalStorage = async () => {
   const savedEnableCodeSelectionMenu = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
   const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
 
-  // Load API key via secure decryption (WebAuthn) or legacy fallback
+  // Load API key via secure decryption (WebAuthn) or legacy fallback when browser-key mode is enabled.
   let savedApiKey: string | null = null;
-  try {
-    const result = await loadAndDecryptApiKey();
-    if (result) {
-      savedApiKey = result.apiKey;
-      setKeyProtectionLevel(result.protectionLevel);
+  if (!serverProxyEnabled) {
+    try {
+      const result = await loadAndDecryptApiKey();
+      if (result) {
+        savedApiKey = result.apiKey;
+        setKeyProtectionLevel(result.protectionLevel);
+      }
+    } catch {
+      // WebAuthn decryption failed or was cancelled — key stays null
+      console.warn('Could not load encrypted API key. User will need to re-enter it.');
     }
-  } catch {
-    // WebAuthn decryption failed or was cancelled — key stays null
-    console.warn('Could not load encrypted API key. User will need to re-enter it.');
   }
 
-  if (savedProvider && savedModel && savedApiKey) {
+  if (savedProvider && savedModel && (savedApiKey || serverProxyEnabled || savedProvider === 'ollama')) {
     const config: AIConfig = {
       provider: savedProvider,
       model: savedModel,
-      apiKey: savedApiKey,
+      apiKey: savedApiKey ?? '',
       includeTemplateMarkContent: savedIncludeTemplateMark,
       includeConcertoModelContent: savedIncludeConcertoModel,
       includeDataContent: savedIncludeData,

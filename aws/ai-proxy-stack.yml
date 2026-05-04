@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Template Playground AI proxy API backed by Lambda and HTTP API Gateway
+
+Parameters:
+  OpenAIApiKey:
+    Type: String
+    NoEcho: true
+    Default: ''
+  AnthropicApiKey:
+    Type: String
+    NoEcho: true
+    Default: ''
+  GoogleApiKey:
+    Type: String
+    NoEcho: true
+    Default: ''
+  MistralApiKey:
+    Type: String
+    NoEcho: true
+    Default: ''
+  OpenRouterApiKey:
+    Type: String
+    NoEcho: true
+    Default: ''
+  OpenAICompatibleApiKey:
+    Type: String
+    NoEcho: true
+    Default: ''
+  OpenAICompatibleBaseUrl:
+    Type: String
+    Default: ''
+  AiProxyAllowedOrigin:
+    Type: String
+    Default: https://playground.accordproject.org
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    CodeUri: lambda/
+    Timeout: 30
+    Environment:
+      Variables:
+        OPENAI_API_KEY: !Ref OpenAIApiKey
+        ANTHROPIC_API_KEY: !Ref AnthropicApiKey
+        GOOGLE_API_KEY: !Ref GoogleApiKey
+        MISTRAL_API_KEY: !Ref MistralApiKey
+        OPENROUTER_API_KEY: !Ref OpenRouterApiKey
+        OPENAI_COMPATIBLE_API_KEY: !Ref OpenAICompatibleApiKey
+        OPENAI_COMPATIBLE_BASE_URL: !Ref OpenAICompatibleBaseUrl
+        AI_PROXY_ALLOWED_ORIGIN: !Ref AiProxyAllowedOrigin
+
+Resources:
+  AiProxyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref AiProxyAllowedOrigin
+        AllowHeaders:
+          - Content-Type
+        AllowMethods:
+          - POST
+          - OPTIONS
+
+  AiChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: template-playground-ai-chat
+      Handler: ai-chat.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        AiChatRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AiProxyApi
+            Method: POST
+            Path: /ai-chat
+
+  AiModelsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: template-playground-ai-models
+      Handler: ai-models.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        AiModelsRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AiProxyApi
+            Method: POST
+            Path: /ai-models
+
+Outputs:
+  AiProxyBaseUrl:
+    Description: Base URL for the AI proxy API
+    Value: !Sub https://${AiProxyApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/prod
