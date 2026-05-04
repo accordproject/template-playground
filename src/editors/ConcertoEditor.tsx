@@ -2,6 +2,7 @@ import { useMonaco } from "@monaco-editor/react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, MutableRefObject } from "react";
 import * as monaco from "monaco-editor";
 import useAppStore from "../store/store";
+import useThemeName from "../hooks/useThemeName";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
@@ -124,18 +125,14 @@ export default function ConcertoEditor({
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
-  const { error, isDarkMode, aiConfig, showLineNumbers } = useAppStore((state) => ({
+  const { error, aiConfig, showLineNumbers } = useAppStore((state) => ({
     error: state.error,
-    isDarkMode: state.isDarkMode,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
   }));
   const ctoErr = error?.startsWith("c:") ? error : undefined;
 
-  const themeName = useMemo(
-    () => (isDarkMode ? "darkTheme" : "lightTheme"),
-    [isDarkMode]
-  );
+  const themeName = useThemeName();
 
   const options: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },
