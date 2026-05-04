@@ -24,8 +24,7 @@ export default function MarkdownEditor({
   editorRef?: MutableRefObject<editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
-  const { isDarkMode, aiConfig, showLineNumbers } = useAppStore((state) => ({
-    isDarkMode: state.isDarkMode,
+  const { aiConfig, showLineNumbers } = useAppStore((state) => ({
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
   }));
@@ -52,7 +51,7 @@ export default function MarkdownEditor({
 
       monaco.editor.setTheme(themeName);
     }
-  }, [monaco, isDarkMode, themeName]);
+  }, [monaco, themeName]);
 
   const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },

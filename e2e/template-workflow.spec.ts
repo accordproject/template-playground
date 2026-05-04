@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Template Workflow', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
   });
 

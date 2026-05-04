@@ -14,7 +14,7 @@ test.describe('TipTap Template Editor', () => {
       localStorage.setItem('useRichEditor', 'true');
     });
     
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
   });
 
@@ -96,7 +96,7 @@ test.describe('TipTap Editor Disabled', () => {
       localStorage.setItem('useRichEditor', 'false');
     });
     
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
   });
 

@@ -12,6 +12,7 @@ export default defineConfig({
   define: {
     'process.browser': true,
     'process.env': {},
+  },
   resolve: {
     alias: {
       // Defensive safeguard: forces axios to use the browser-safe XHR adapter

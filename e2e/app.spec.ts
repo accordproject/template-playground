@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('App Loading', () => {
   test('should load the app and display main components', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Wait for loading to complete
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
@@ -17,7 +17,7 @@ test.describe('App Loading', () => {
   });
 
   test('should display editor panels', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Check for editor panel headers
@@ -27,7 +27,7 @@ test.describe('App Loading', () => {
   });
 
   test('should display Preview panel with content', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Preview header should be visible
@@ -44,7 +44,7 @@ test.describe('App Loading', () => {
 
 test.describe('Dark Mode', () => {
   test('should toggle dark mode via Settings modal', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Get initial theme
