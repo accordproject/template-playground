@@ -1,9 +1,11 @@
-import { lazy, Suspense, useMemo, useCallback, useEffect } from "react";
+import { lazy, Suspense, useMemo, useCallback, useEffect, MutableRefObject } from "react";
 import useAppStore from "../store/store";
+import useThemeName from "../hooks/useThemeName";
 import { useMonaco } from "@monaco-editor/react";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import type { editor } from "monaco-editor";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
+import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
 
 
 const MonacoEditor = lazy(() =>
@@ -14,10 +16,12 @@ export default function MarkdownEditor({
   value,
   onChange,
   onEditorReady,
+  editorRef,
 }: {
   value: string;
   onChange?: (value: string | undefined) => void;
   onEditorReady?: (editor: editor.IStandaloneCodeEditor) => void;
+  editorRef?: MutableRefObject<editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
   const { backgroundColor, textColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
@@ -28,10 +32,7 @@ export default function MarkdownEditor({
   }));
   const monaco = useMonaco();
 
-  const themeName = useMemo(
-    () => (backgroundColor ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
-  );
+  const themeName = useThemeName();
 
   useEffect(() => {
     if (monaco) {
@@ -81,6 +82,10 @@ export default function MarkdownEditor({
   }), [aiConfig?.enableInlineSuggestions, showLineNumbers]);
 
   const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor) => {
+    if (editorRef) {
+      editorRef.current = editorInstance;
+    }
+    registerEditor('template', editorInstance);
     editorInstance.onDidChangeCursorSelection(() => {
       handleSelection(editorInstance);
     });
@@ -93,6 +98,12 @@ export default function MarkdownEditor({
       onEditorReady(editorInstance);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      unregisterEditor('template');
+    };
+  }, []);
 
   const handleChange = useCallback(
     (val: string | undefined) => {

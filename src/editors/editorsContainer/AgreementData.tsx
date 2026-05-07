@@ -1,6 +1,5 @@
 import JSONEditor from "../JSONEditor";
 import useAppStore from "../../store/store";
-import useUndoRedo from "../../components/useUndoRedo";
 import { updateEditorActivity } from "../../ai-assistant/activityTracker";
 import * as monaco from "monaco-editor";
 
@@ -8,11 +7,6 @@ function AgreementData({ editorRef }: { editorRef?: React.MutableRefObject<monac
   const editorAgreementData = useAppStore((state) => state.editorAgreementData);
   const setEditorAgreementData = useAppStore((state) => state.setEditorAgreementData);
   const setData = useAppStore((state) => state.setData);
-  const { value, setValue } = useUndoRedo(
-    editorAgreementData,
-    setEditorAgreementData,
-    setData // Sync to main state and rebuild
-  );
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
@@ -22,7 +16,7 @@ function AgreementData({ editorRef }: { editorRef?: React.MutableRefObject<monac
   };
 
   return (
-    <JSONEditor value={value} onChange={handleChange} editorRef={editorRef} />
+    <JSONEditor value={editorAgreementData} onChange={handleChange} editorRef={editorRef} />
   );
 }
 
