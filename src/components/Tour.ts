@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import Shepherd from "shepherd.js";
 import "shepherd.js/dist/css/shepherd.css";
 
@@ -7,7 +8,7 @@ style.textContent = `
     background-color: #6c757d !important;
   }
   .shepherd-button {
-    background-color: #050c40 !important; 
+    background-color: ${colors.darkNavy} !important;
     color: white !important;
   }
 `;

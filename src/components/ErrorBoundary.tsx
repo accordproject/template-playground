@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import { Component, ErrorInfo, ReactNode } from 'react';
 import useAppStore from '../store/store';
 
@@ -57,7 +58,7 @@ class ErrorBoundary extends Component<Props, State> {
             style={{
               padding: '0.75rem 1.5rem',
               fontSize: '1rem',
-              backgroundColor: '#19c6c7',
+              backgroundColor: colors.primary,
               color: 'white',
               border: 'none',
               borderRadius: '4px',
