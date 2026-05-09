@@ -63,8 +63,8 @@ test.describe('Template Workflow', () => {
   test('should load sample directly without modal when there are no unsaved changes', async ({ page }) => {
     test.slow();
 
-    // Open dropdown and pick any sample without editing first
-    const dropdown = page.getByRole('button', { name: 'Load sample dropdown' });
+    // Open the navbar Samples dropdown and pick any sample without editing first
+    const dropdown = page.locator('.samples-element button');
     await expect(dropdown).toBeVisible({ timeout: 30000 });
     await dropdown.click();
 
@@ -84,14 +84,14 @@ test.describe('Template Workflow', () => {
   test('should show confirmation modal and keep edits when Cancel is clicked', async ({ page }) => {
     test.slow();
 
-    // Make an edit in the Concerto Model editor to create unsaved changes
+    // Make an edit in the Data Model (Concerto) editor to create unsaved changes
     const concertoEditor = page.locator('.monaco-editor').first();
     await expect(concertoEditor).toBeVisible({ timeout: 30000 });
     await concertoEditor.click();
     await page.keyboard.type(' ');
 
-    // Try to load a different sample
-    const dropdown = page.getByRole('button', { name: 'Load sample dropdown' });
+    // Try to load a different sample via the navbar dropdown
+    const dropdown = page.locator('.samples-element button');
     await expect(dropdown).toBeVisible({ timeout: 30000 });
     await dropdown.click();
     const helloWorldOption = page.getByText('Hello World', { exact: true });
@@ -109,22 +109,23 @@ test.describe('Template Workflow', () => {
     // Click Cancel
     await confirmModal.getByRole('button', { name: 'Cancel' }).click();
 
-    // Modal should close and the dropdown button should not show the new sample
+    // Modal should close and the agreement preview should not have switched
+    // to the Hello World sample (i.e. the cancelled sample never loaded)
     await expect(confirmModal).toBeHidden({ timeout: 3000 });
-    await expect(dropdown).not.toContainText('Hello World');
+    await expect(page.locator('.main-container-agreement')).not.toContainText('Hello World');
   });
 
   test('should load the new sample when Continue is clicked from the modal', async ({ page }) => {
     test.slow();
 
-    // Make an edit in the Concerto Model editor to create unsaved changes
+    // Make an edit in the Data Model (Concerto) editor to create unsaved changes
     const concertoEditor = page.locator('.monaco-editor').first();
     await expect(concertoEditor).toBeVisible({ timeout: 30000 });
     await concertoEditor.click();
     await page.keyboard.type(' ');
 
-    // Try to load a different sample
-    const dropdown = page.getByRole('button', { name: 'Load sample dropdown' });
+    // Try to load a different sample via the navbar dropdown
+    const dropdown = page.locator('.samples-element button');
     await expect(dropdown).toBeVisible({ timeout: 30000 });
     await dropdown.click();
     const helloWorldOption = page.getByText('Hello World', { exact: true });
