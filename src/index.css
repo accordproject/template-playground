@@ -40,8 +40,13 @@ html[data-theme="dark"] .ant-modal-confirm .ant-btn-default {
 
 html[data-theme="dark"] .ant-modal-confirm .ant-btn-default:hover {
     background-color: #444444;
-    color: #ffffff;
-    border-color: #666666;
+    color: #19c6c7;
+    border-color: #19c6c7;
+}
+
+.ant-modal-confirm .ant-btn-default:hover {
+    color: #19c6c7;
+    border-color: #19c6c7;
 }
 
 .ant-modal-confirm .ant-btn-primary {
