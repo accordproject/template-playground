@@ -11,9 +11,10 @@ import {
   CaretDownFilled,
   MenuOutlined,
   FileTextOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
-import { message } from "antd";
+import { message, Modal } from "antd";
 import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
@@ -204,17 +205,21 @@ function Navbar() {
   const screens = useBreakpoint();
   const location = useLocation();
 
-  const { samples, loadSample, sampleName } = useStoreWithEqualityFn(
-    useAppStore,
-    (state) => ({
-      samples: state.samples,
-      loadSample: state.loadSample as (key: string) => Promise<void>,
-      sampleName: state.sampleName,
-    }),
-    shallow
-  );
+  const { samples, loadSample, sampleName, editorValue, editorModelCto, editorAgreementData } =
+    useStoreWithEqualityFn(
+      useAppStore,
+      (state) => ({
+        samples: state.samples,
+        loadSample: state.loadSample as (key: string) => Promise<void>,
+        sampleName: state.sampleName,
+        editorValue: state.editorValue,
+        editorModelCto: state.editorModelCto,
+        editorAgreementData: state.editorAgreementData,
+      }),
+      shallow
+    );
 
-  const handleSampleClick = useCallback(
+  const performLoadSample = useCallback(
     async (name: string) => {
       try {
         await loadSample(name);
@@ -224,6 +229,33 @@ function Navbar() {
       }
     },
     [loadSample]
+  );
+
+  const handleSampleClick = useCallback(
+    (name: string) => {
+      const currentSample = samples.find((s) => s.NAME === sampleName);
+      const hasUnsavedChanges =
+        !currentSample ||
+        editorValue !== currentSample.TEMPLATE ||
+        editorModelCto !== currentSample.MODEL ||
+        editorAgreementData !== JSON.stringify(currentSample.DATA, null, 2);
+
+      if (hasUnsavedChanges) {
+        Modal.confirm({
+          title: "Load Sample Template",
+          icon: <ExclamationCircleOutlined />,
+          content:
+            "Loading a new sample will replace your current Concerto Model, TemplateMark, and JSON Data. Any unsaved changes will be lost. Do you want to continue?",
+          okText: "Continue",
+          cancelText: "Cancel",
+          maskClosable: true,
+          onOk: () => performLoadSample(name),
+        });
+      } else {
+        void performLoadSample(name);
+      }
+    },
+    [performLoadSample, samples, sampleName, editorValue, editorModelCto, editorAgreementData]
   );
 
   const props = useSpring({
