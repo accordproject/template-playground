@@ -82,8 +82,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // This fails fast on invalid JSON or CTO syntax without running network calls
   await validateBeforeRebuild(template, model, dataString);
   
-  // @ts-expect-error `offline` is supported at runtime but not yet in published typings
-  const modelManager = new ModelManager({ strict: true, offline: true });
+  const modelManager = new ModelManager({ offline: true });
   modelManager.addCTOModel(model, undefined, true);
   const engine = new TemplateMarkInterpreter(modelManager, {});
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call

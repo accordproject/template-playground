@@ -25,7 +25,7 @@ export async function validateBeforeRebuild(
   // 2. Validate CTO model syntax using ModelManager
   // This checks syntax but doesn't load external models (which would require network calls)
   try {
-    const modelManager = new ModelManager({ strict: true });
+    const modelManager = new ModelManager({ offline: true });
     modelManager.addCTOModel(model, undefined, true);
     // Note: We skip updateExternalModels() to avoid expensive network calls
     // We also skip template validation since it may require external models
