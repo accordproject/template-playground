@@ -17,6 +17,8 @@ describe("loadBundledModels", () => {
         "com.docusign.connect@0.4.0",
         "org.accordproject.binary@0.2.0",
         "org.accordproject.contract@0.2.0",
+        "org.accordproject.money@0.3.0",
+        "org.accordproject.obligation@0.2.0",
         "org.accordproject.runtime@0.2.0",
         "org.accordproject.signature@0.3.0",
         "org.accordproject.time@0.3.0",
