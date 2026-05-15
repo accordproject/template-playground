@@ -10,18 +10,45 @@ import docusignConnectCto from "../models/bundled/docusign.connect.cto?raw";
 import type { ModelManager } from "@accordproject/concerto-core";
 
 interface BundledModel {
+  namespace: string;
   fileName: string;
   source: string;
 }
 
 const BUNDLED_MODELS: BundledModel[] = [
-  { fileName: "@models.accordproject.org.accordproject.contract@0.2.0.cto", source: contractCto },
-  { fileName: "@models.accordproject.org.accordproject.runtime@0.2.0.cto", source: runtimeCto },
-  { fileName: "@models.accordproject.org.time@0.3.0.cto", source: timeCto },
-  { fileName: "@models.accordproject.org.binary@0.2.0.cto", source: binaryCto },
-  { fileName: "@models.accordproject.org.signature.signature@0.3.0.cto", source: signatureCto },
-  { fileName: "@models.accordproject.org.docusign.connect@0.4.0.cto", source: docusignConnectCto },
+  {
+    namespace: "org.accordproject.contract@0.2.0",
+    fileName: "@models.accordproject.org.accordproject.contract@0.2.0.cto",
+    source: contractCto,
+  },
+  {
+    namespace: "org.accordproject.runtime@0.2.0",
+    fileName: "@models.accordproject.org.accordproject.runtime@0.2.0.cto",
+    source: runtimeCto,
+  },
+  {
+    namespace: "org.accordproject.time@0.3.0",
+    fileName: "@models.accordproject.org.time@0.3.0.cto",
+    source: timeCto,
+  },
+  {
+    namespace: "org.accordproject.binary@0.2.0",
+    fileName: "@models.accordproject.org.binary@0.2.0.cto",
+    source: binaryCto,
+  },
+  {
+    namespace: "org.accordproject.signature@0.3.0",
+    fileName: "@models.accordproject.org.signature.signature@0.3.0.cto",
+    source: signatureCto,
+  },
+  {
+    namespace: "com.docusign.connect@0.4.0",
+    fileName: "@models.accordproject.org.docusign.connect@0.4.0.cto",
+    source: docusignConnectCto,
+  },
 ];
+
+const BUNDLED_NAMESPACES = new Set(BUNDLED_MODELS.map((m) => m.namespace));
 
 /**
  * Pre-populate a ModelManager with the bundled Accord Project standard models.
@@ -35,20 +62,48 @@ export function loadBundledModels(modelManager: ModelManager): void {
 }
 
 /**
- * A FileDownloader replacement passed to modelManager.updateExternalModels.
- * Any URL that wasn't already resolved by the bundle reaches this and is
- * rejected with a clear, user-facing error message. This keeps the playground
- * deterministic and prevents arbitrary remote `.cto` fetches at runtime.
+ * Strip the trailing `.TypeName` from a fully-qualified import declaration to
+ * recover the namespace. Handles versioned namespaces whose version part
+ * (e.g. `@0.2.0`) contains dots.
+ */
+function namespaceOf(importDeclaration: string): string {
+  const segments = importDeclaration.split(".");
+  segments.pop();
+  return segments.join(".");
+}
+
+interface ExternalDependencyFile {
+  getExternalImports?: () => Record<string, string>;
+}
+
+/**
+ * A FileDownloader replacement passed to `modelManager.updateExternalModels`.
+ *
+ * For every external import declared in the user's model, it checks whether
+ * the namespace was already preloaded from the bundle:
+ *   - If yes, the import is silently considered satisfied (no network).
+ *   - If no, the call rejects with a clear, user-facing error message.
+ *
+ * Returning an empty array of "downloaded" files is safe because the bundled
+ * namespaces are already in the ModelManager from `loadBundledModels`.
  */
 export const rejectingDownloader = {
-  // The signature is intentionally permissive — concerto-core's downloader API
-  // has shifted between versions; we only need to throw whenever it's invoked.
-  downloadExternalDependencies(): Promise<unknown> {
-    return Promise.reject(
-      new Error(
-        "External model imports are not allowed in the playground. " +
-          "Either remove the import or paste the model contents into the editor."
-      )
-    );
+  async downloadExternalDependencies(
+    files: ExternalDependencyFile[]
+  ): Promise<unknown[]> {
+    for (const file of files) {
+      const imports = file.getExternalImports?.() ?? {};
+      for (const [importDecl, url] of Object.entries(imports)) {
+        const ns = namespaceOf(importDecl);
+        if (!BUNDLED_NAMESPACES.has(ns)) {
+          throw new Error(
+            "External model imports are not allowed in the playground. " +
+              `Unresolved import: ${importDecl} from ${url}. ` +
+              "Either remove the import or paste the model contents into the editor."
+          );
+        }
+      }
+    }
+    return [];
   },
 };

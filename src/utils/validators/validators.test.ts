@@ -33,6 +33,22 @@ concept Person {
     ).rejects.toThrow('Invalid CTO model');
   });
 
-  // Note: Template validation is skipped in the fast validation
-  // because it requires external models to be loaded
+  it('accepts a model that imports a bundled Accord Project namespace', async () => {
+    const modelWithBundledImport = `namespace example@1.0.0
+
+import org.accordproject.contract@0.2.0.{Clause} from https://models.accordproject.org/accordproject/contract@0.2.0.cto
+
+@template
+asset TemplateModel extends Clause {
+  o String greeting
+}`;
+    const data = JSON.stringify({
+      $class: 'example@1.0.0.TemplateModel',
+      greeting: 'hello',
+      clauseId: '00000000-0000-0000-0000-000000000000',
+    });
+    await expect(
+      validateBeforeRebuild(validTemplate, modelWithBundledImport, data)
+    ).resolves.not.toThrow();
+  });
 });
