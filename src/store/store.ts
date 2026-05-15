@@ -11,6 +11,7 @@ import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { validateBeforeRebuild } from "../utils/validators";
+import { loadBundledModels } from "../utils/modelCache";
 
 interface AppState {
   templateMarkdown: string;
@@ -84,6 +85,12 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   
   // @ts-expect-error `offline` is supported at runtime but not yet in published typings
   const modelManager = new ModelManager({ strict: true, offline: true });
+  // Preload the bundled Accord Project models so imports like
+  // `https://models.accordproject.org/accordproject/contract@0.2.0.cto`
+  // resolve from the bundle without a network round-trip. Combined with
+  // offline:true, any namespace not in the bundle will fail validation
+  // rather than triggering a network fetch.
+  loadBundledModels(modelManager);
   modelManager.addCTOModel(model, undefined, true);
   const engine = new TemplateMarkInterpreter(modelManager, {});
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
