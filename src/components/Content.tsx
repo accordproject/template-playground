@@ -1,3 +1,4 @@
+import { colors } from '../utils/theme';
 import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -17,7 +18,7 @@ import {
   CopyOutlined,
   CheckOutlined,
 } from "@ant-design/icons";
-import { Spin, message } from "antd";
+import { Spin, message, Button } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
@@ -64,6 +65,10 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     }
   };
 
+  const handleExitLearning = () => {
+    navigate("/");
+  };
+
   const copyToClipboard = (code: string) => {
     void navigator.clipboard.writeText(code);
     setCopied(code);
@@ -83,7 +88,7 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
       >
         <Spin
           indicator={
-            <LoadingOutlined style={{ fontSize: 42, color: "#19c6c7" }} spin />
+            <LoadingOutlined style={{ fontSize: 42, color: colors.primary }} spin />
           }
         />
       </div>
@@ -96,6 +101,26 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
 
   return (
     <ContentContainer>
+	  {currentIndex !== steps.length - 1 && (
+  		<div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+    	  <Button
+			type="link"
+			onClick={handleExitLearning}
+			style={{
+    		  background: "transparent",
+			  border: "none",
+			  color: "#6b7280",
+			  cursor: "pointer",
+			  fontSize: "0.9rem",
+			  textDecoration: "underline",
+			  padding: 0,
+			  height: "auto"
+			}}
+		  >
+			Exit learning
+		  </Button>
+	    </div>
+	  )}
       {content && (
         <ReactMarkdown
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
@@ -127,12 +152,15 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
         >
           <LeftOutlined /> Previous
         </NavigationButton>
-        <NavigationButton
-          onClick={handleNext}
-          disabled={currentIndex === steps.length - 1}
-        >
-          Next <RightOutlined />
-        </NavigationButton>
+        {currentIndex === steps.length - 1 ? (
+		  <NavigationButton onClick={handleExitLearning}>
+		  Finish
+		  </NavigationButton>
+		) : (
+		  <NavigationButton onClick={handleNext}>
+		  Next <RightOutlined />
+		  </NavigationButton>
+		)}
       </NavigationButtons>
     </ContentContainer>
   );

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ModelManager } from "@accordproject/concerto-core";
-import { loadBundledModels, rejectingDownloader } from "./modelCache";
+import { loadBundledModels } from "./modelCache";
 
 describe("loadBundledModels", () => {
   it("preloads the standard Accord Project namespaces", () => {
@@ -24,8 +24,11 @@ describe("loadBundledModels", () => {
     );
   });
 
-  it("resolves a model importing a bundled namespace without network access", async () => {
-    const mm = new ModelManager({ strict: true });
+  it("resolves a user model importing a bundled namespace without network access", () => {
+    // Construct the manager with `offline: true` (the same way store.ts does)
+    // so this test would fail loudly if any code path attempted a fetch.
+    // @ts-expect-error `offline` is supported at runtime but not yet in published typings
+    const mm = new ModelManager({ strict: true, offline: true });
     loadBundledModels(mm);
     const userModel = `namespace example@1.0.0
 
@@ -35,41 +38,12 @@ import org.accordproject.contract@0.2.0.{Clause} from https://models.accordproje
 asset TemplateModel extends Clause {
   o String greeting
 }`;
-    mm.addCTOModel(userModel, "user.cto", true);
-    // The rejecting downloader would throw if any import still needed
-    // fetching. Passing it here proves the bundle satisfied everything.
-    await expect(
-      mm.updateExternalModels({}, rejectingDownloader as never)
-    ).resolves.not.toThrow();
-  });
-});
-
-describe("rejectingDownloader", () => {
-  it("rejects with the expected user-facing message for unbundled imports", async () => {
-    const fakeFile = {
-      getExternalImports: () => ({
-        "com.example.foo@1.0.0.Bar": "https://example.com/foo.cto",
-      }),
-    };
-    await expect(
-      rejectingDownloader.downloadExternalDependencies([fakeFile])
-    ).rejects.toThrow(/External model imports are not allowed in the playground/);
+    expect(() => mm.addCTOModel(userModel, "user.cto", false)).not.toThrow();
   });
 
-  it("returns an empty result when every import is satisfied by the bundle", async () => {
-    const fakeFile = {
-      getExternalImports: () => ({
-        "org.accordproject.contract@0.2.0.Clause":
-          "https://models.accordproject.org/accordproject/contract@0.2.0.cto",
-      }),
-    };
-    await expect(
-      rejectingDownloader.downloadExternalDependencies([fakeFile])
-    ).resolves.toEqual([]);
-  });
-
-  it("blocks a model that imports an unbundled external URL", async () => {
-    const mm = new ModelManager({ strict: true });
+  it("rejects a user model importing an unbundled external namespace", () => {
+    // @ts-expect-error `offline` is supported at runtime but not yet in published typings
+    const mm = new ModelManager({ strict: true, offline: true });
     loadBundledModels(mm);
     const userModel = `namespace example@1.0.0
 
@@ -78,9 +52,11 @@ import com.example.foo@1.0.0.Bar from https://example.com/foo.cto
 asset TemplateModel identified by id {
   o String id
 }`;
-    mm.addCTOModel(userModel, "user.cto", true);
-    await expect(
-      mm.updateExternalModels({}, rejectingDownloader as never)
-    ).rejects.toThrow(/External model imports are not allowed in the playground/);
+    // With offline:true and no network, an unbundled import fails validation
+    // rather than triggering a fetch. The error message names the missing
+    // namespace so the user can see what's wrong.
+    expect(() => mm.addCTOModel(userModel, "user.cto", false)).toThrow(
+      /com\.example\.foo@1\.0\.0/
+    );
   });
 });

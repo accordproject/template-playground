@@ -11,7 +11,7 @@ import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { validateBeforeRebuild } from "../utils/validators";
-import { loadBundledModels, rejectingDownloader } from "../utils/modelCache";
+import { loadBundledModels } from "../utils/modelCache";
 
 interface AppState {
   templateMarkdown: string;
@@ -24,7 +24,6 @@ interface AppState {
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
-  isAIConfigOpen: boolean;
   isAIChatOpen: boolean;
   backgroundColor: string;
   textColor: string;
@@ -43,7 +42,6 @@ interface AppState {
   generateShareableLink: () => string;
   loadFromLink: (compressedData: string) => Promise<void>;
   toggleDarkMode: () => void;
-  setAIConfigOpen: (visible: boolean) => void;
   setAIChatOpen: (visible: boolean) => void;
   setChatState: (state: ChatState) => void;
   updateChatState: (partial: Partial<ChatState>) => void;
@@ -85,15 +83,15 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // This fails fast on invalid JSON or CTO syntax without running network calls
   await validateBeforeRebuild(template, model, dataString);
   
-  const modelManager = new ModelManager({ strict: true });
+  // @ts-expect-error `offline` is supported at runtime but not yet in published typings
+  const modelManager = new ModelManager({ strict: true, offline: true });
   // Preload the bundled Accord Project models so imports like
   // `https://models.accordproject.org/accordproject/contract@0.2.0.cto`
-  // resolve offline without a network round-trip.
+  // resolve from the bundle without a network round-trip. Combined with
+  // offline:true, any namespace not in the bundle will fail validation
+  // rather than triggering a network fetch.
   loadBundledModels(modelManager);
   modelManager.addCTOModel(model, undefined, true);
-  // Anything still unresolved would be an arbitrary external URL — reject it
-  // rather than fetching untrusted .cto content from the network.
-  await modelManager.updateExternalModels({}, rejectingDownloader as never);
   const engine = new TemplateMarkInterpreter(modelManager, {});
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
@@ -191,7 +189,6 @@ const useAppStore = create<AppState>()(
         data: JSON.stringify(playground.DATA, null, 2),
         editorAgreementData: JSON.stringify(playground.DATA, null, 2),
         agreementHtml: "",
-        isAIConfigOpen: false,
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
         samples: SAMPLES,
@@ -386,7 +383,6 @@ const useAppStore = create<AppState>()(
             return newTheme;
           });
         },
-        setAIConfigOpen: (isOpen: boolean) => set(() => ({ isAIConfigOpen: isOpen })),
         setAIChatOpen: (isOpen: boolean) => {
           set(() => ({ isAIChatOpen: isOpen }));
           savePanelState({ ...get(), isAIChatOpen: isOpen }); // Save change

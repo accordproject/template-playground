@@ -48,62 +48,15 @@ const BUNDLED_MODELS: BundledModel[] = [
   },
 ];
 
-const BUNDLED_NAMESPACES = new Set(BUNDLED_MODELS.map((m) => m.namespace));
-
 /**
  * Pre-populate a ModelManager with the bundled Accord Project standard models.
- * Templates that import these namespaces resolve offline; templates importing
- * anything else hit the FileDownloader and get rejected (see rejectingDownloader).
+ * Templates that import these namespaces resolve from the bundle without any
+ * network access. The ModelManager is constructed with `offline: true` in the
+ * caller, so unbundled URL imports fail validation rather than triggering a
+ * fetch.
  */
 export function loadBundledModels(modelManager: ModelManager): void {
   for (const { fileName, source } of BUNDLED_MODELS) {
     modelManager.addCTOModel(source, fileName, true);
   }
 }
-
-/**
- * Strip the trailing `.TypeName` from a fully-qualified import declaration to
- * recover the namespace. Handles versioned namespaces whose version part
- * (e.g. `@0.2.0`) contains dots.
- */
-function namespaceOf(importDeclaration: string): string {
-  const segments = importDeclaration.split(".");
-  segments.pop();
-  return segments.join(".");
-}
-
-interface ExternalDependencyFile {
-  getExternalImports?: () => Record<string, string>;
-}
-
-/**
- * A FileDownloader replacement passed to `modelManager.updateExternalModels`.
- *
- * For every external import declared in the user's model, it checks whether
- * the namespace was already preloaded from the bundle:
- *   - If yes, the import is silently considered satisfied (no network).
- *   - If no, the call rejects with a clear, user-facing error message.
- *
- * Returning an empty array of "downloaded" files is safe because the bundled
- * namespaces are already in the ModelManager from `loadBundledModels`.
- */
-export const rejectingDownloader = {
-  async downloadExternalDependencies(
-    files: ExternalDependencyFile[]
-  ): Promise<unknown[]> {
-    for (const file of files) {
-      const imports = file.getExternalImports?.() ?? {};
-      for (const [importDecl, url] of Object.entries(imports)) {
-        const ns = namespaceOf(importDecl);
-        if (!BUNDLED_NAMESPACES.has(ns)) {
-          throw new Error(
-            "External model imports are not allowed in the playground. " +
-              `Unresolved import: ${importDecl} from ${url}. ` +
-              "Either remove the import or paste the model contents into the editor."
-          );
-        }
-      }
-    }
-    return [];
-  },
-};

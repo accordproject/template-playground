@@ -5,7 +5,7 @@ import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
 import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
-import SampleDropdown from "../components/SampleDropdown";
+import ConcertoFormatButton from "../components/ConcertoFormatButton";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
@@ -30,6 +30,16 @@ const MainContainer = () => {
 
     try {
       setIsDownloading(true);
+      
+      // --- FIX START: Store original styles ---
+      const originalBg = element.style.backgroundColor;
+      const originalColor = element.style.color;
+      
+      // Force White Background / Black Text for PDF
+      element.style.backgroundColor = '#ffffff';
+      element.style.color = '#000000';
+      // --- FIX END ---
+
       const options = {
         margin: 10,
         filename: 'agreement.pdf',
@@ -44,6 +54,12 @@ const MainContainer = () => {
       } as const;
 
       await html2pdf().set(options).from(element).save();
+      
+      // --- FIX START: Restore original styles ---
+      element.style.backgroundColor = originalBg;
+      element.style.color = originalColor;
+      // --- FIX END ---
+
     } catch (error) {
       console.error("PDF generation failed:", error);
       void message.error("Failed to generate PDF. Please check the console.");
@@ -67,6 +83,7 @@ const MainContainer = () => {
     isTemplateCollapsed,
     isDataCollapsed,
     toggleModelCollapse,
+    toggleTemplateCollapse,
     toggleDataCollapse,
   } = useAppStore((state) => ({
     isAIChatOpen: state.isAIChatOpen,
@@ -77,10 +94,9 @@ const MainContainer = () => {
     isTemplateCollapsed: state.isTemplateCollapsed,
     isDataCollapsed: state.isDataCollapsed,
     toggleModelCollapse: state.toggleModelCollapse,
+    toggleTemplateCollapse: state.toggleTemplateCollapse,
     toggleDataCollapse: state.toggleDataCollapse,
   }));
-
-  const [, setLoading] = useState(true);
 
   // Calculate dynamic panel sizes based on collapse states
   const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
@@ -127,13 +143,14 @@ const MainContainer = () => {
                               padding: '4px',
                               marginRight: '4px'
                             }}
-                            title={isModelCollapsed ? "Expand" : "Collapse"}
+                            title={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
+                            aria-label={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
                           >
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
-                          <span>Concerto Model</span>
-                          <SampleDropdown setLoading={setLoading} />
+                          <span>Data Model <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(Concerto)</span></span>
                         </div>
+                        <ConcertoFormatButton disabled={isModelCollapsed} />
                       </div>
                       {!isModelCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
@@ -144,16 +161,38 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={20}>
+                  <Panel minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
                     <MarkdownEditorProvider>
                       <div className="main-container-editor-section tour-template-mark">
                         <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                          <span>TemplateMark</span>
-                          <TemplateMarkdownToolbar />
+                          <div className="main-container-editor-header-left">
+                            <button
+                              className="collapse-button"
+                              onClick={toggleTemplateCollapse}
+                              style={{
+                                color: textColor,
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px',
+                                marginRight: '4px'
+                              }}
+                              title={isTemplateCollapsed ? "Expand Template panel" : "Collapse Template panel"}
+                              aria-label={isTemplateCollapsed ? "Expand Template panel" : "Collapse Template panel"}
+                            >
+                              {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
+                            </button>
+                            <span>Template <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(TemplateMark)</span></span>
+                          </div>
+                          {!isTemplateCollapsed && <TemplateMarkdownToolbar />}
                         </div>
-                        <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <TemplateMarkdown />
-                        </div>
+                        {!isTemplateCollapsed && (
+                          <div className="main-container-editor-content" style={{ backgroundColor }}>
+                            <TemplateMarkdown />
+                          </div>
+                        )}
                       </div>
                     </MarkdownEditorProvider>
                   </Panel>
@@ -177,11 +216,12 @@ const MainContainer = () => {
                               padding: '4px',
                               marginRight: '4px'
                             }}
-                            title={isDataCollapsed ? "Expand" : "Collapse"}
+                            title={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
+                            aria-label={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
                           >
                             {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
-                          <span>JSON Data</span>
+                          <span>Data <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(JSON)</span></span>
                         </div>
                         <button
                           onClick={handleJsonFormat}
@@ -259,3 +299,4 @@ const MainContainer = () => {
 };
 
 export default MainContainer;
+
