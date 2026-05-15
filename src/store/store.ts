@@ -11,6 +11,7 @@ import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { validateBeforeRebuild } from "../utils/validators";
+import { loadBundledModels, rejectingDownloader } from "../utils/modelCache";
 
 interface AppState {
   templateMarkdown: string;
@@ -85,8 +86,14 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   await validateBeforeRebuild(template, model, dataString);
   
   const modelManager = new ModelManager({ strict: true });
+  // Preload the bundled Accord Project models so imports like
+  // `https://models.accordproject.org/accordproject/contract@0.2.0.cto`
+  // resolve offline without a network round-trip.
+  loadBundledModels(modelManager);
   modelManager.addCTOModel(model, undefined, true);
-  await modelManager.updateExternalModels();
+  // Anything still unresolved would be an arbitrary external URL — reject it
+  // rather than fetching untrusted .cto content from the network.
+  await modelManager.updateExternalModels({}, rejectingDownloader as never);
   const engine = new TemplateMarkInterpreter(modelManager, {});
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
