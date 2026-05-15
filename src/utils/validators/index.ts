@@ -30,7 +30,10 @@ export async function validateBeforeRebuild(
     // @ts-expect-error `offline` is supported at runtime but not yet in published typings
     const modelManager = new ModelManager({ strict: true, offline: true });
     loadBundledModels(modelManager);
-    modelManager.addCTOModel(model, undefined, true);
+    // Validate the model against the preloaded bundle. With offline:true and
+    // validation enabled, an unbundled external import surfaces here as a
+    // missing-namespace error instead of slipping through to the full rebuild.
+    modelManager.addCTOModel(model, undefined, false);
   } catch (error) {
     throw new Error(`Invalid CTO model: ${error instanceof Error ? error.message : String(error)}`);
   }

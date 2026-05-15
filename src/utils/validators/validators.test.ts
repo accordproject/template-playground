@@ -33,6 +33,26 @@ concept Person {
     ).rejects.toThrow('Invalid CTO model');
   });
 
+  it('rejects a model that imports an unbundled external namespace', async () => {
+    const modelWithExternalImport = `namespace example@1.0.0
+
+import com.example.foo@1.0.0.Bar from https://example.com/foo.cto
+
+asset TemplateModel identified by id {
+  o String id
+}`;
+    const data = JSON.stringify({
+      $class: 'example@1.0.0.TemplateModel',
+      id: '00000000-0000-0000-0000-000000000000',
+    });
+    // The fast path runs offline; with the bundle preloaded, an unbundled
+    // namespace surfaces here as an "Invalid CTO model" error that names the
+    // missing namespace rather than slipping through to the full rebuild.
+    await expect(
+      validateBeforeRebuild(validTemplate, modelWithExternalImport, data)
+    ).rejects.toThrow(/Invalid CTO model.*com\.example\.foo@1\.0\.0/);
+  });
+
   it('accepts a model that imports a bundled Accord Project namespace', async () => {
     const modelWithBundledImport = `namespace example@1.0.0
 
