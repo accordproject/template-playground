@@ -12,6 +12,12 @@ import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { validateBeforeRebuild } from "../utils/validators";
 
+export interface ExecutionResults {
+  response?: unknown;
+  state?: unknown;
+  events?: unknown[];
+}
+
 interface AppState {
   templateMarkdown: string;
   editorValue: string;
@@ -19,6 +25,7 @@ interface AppState {
   editorModelCto: string;
   data: string;
   editorAgreementData: string;
+  executionResults: ExecutionResults;
   agreementHtml: string;
   error: string | undefined;
   samples: Array<Sample>;
@@ -35,6 +42,7 @@ interface AppState {
   setEditorModelCto: (value: string) => void;
   setData: (data: string) => Promise<void>;
   setEditorAgreementData: (value: string) => void;
+  setExecutionResults: (results: ExecutionResults) => void;
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
@@ -76,6 +84,43 @@ export interface DecompressedData {
 }
 
 const rebuildDeBounce = debounce(rebuild, 500);
+
+const createSuccessfulExecutionResults = (
+  template: string,
+  model: string,
+  data: string,
+): ExecutionResults => ({
+  response: {
+    success: true,
+    generated: true,
+    timestamp: new Date().toISOString(),
+  },
+  state: {
+    templateLength: template.length,
+    modelLength: model.length,
+    dataLength: data.length,
+  },
+  events: [
+    {
+      type: "REBUILD_SUCCESS",
+      message: "Template rebuilt successfully",
+    },
+  ],
+});
+
+const createFailedExecutionResults = (message: string): ExecutionResults => ({
+  response: {
+    success: false,
+    timestamp: new Date().toISOString(),
+  },
+  state: null,
+  events: [
+    {
+      type: "REBUILD_FAILED",
+      message,
+    },
+  ],
+});
 
 async function rebuild(template: string, model: string, dataString: string): Promise<string> {
   // Validate inputs before expensive operations
@@ -182,6 +227,11 @@ const useAppStore = create<AppState>()(
         data: JSON.stringify(playground.DATA, null, 2),
         editorAgreementData: JSON.stringify(playground.DATA, null, 2),
         agreementHtml: "",
+        executionResults: {
+          response: null,
+          state: null,
+          events: [],
+        },
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
         samples: SAMPLES,
@@ -261,10 +311,20 @@ const useAppStore = create<AppState>()(
           const { templateMarkdown, modelCto, data } = get();
           try {
             const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
-          } catch (error: unknown) {
             set(() => ({
-              error: formatError(error),
+              agreementHtml: result,
+              error: undefined,
+              executionResults: createSuccessfulExecutionResults(
+                templateMarkdown,
+                modelCto,
+                data,
+              ),
+            }));
+          } catch (error: unknown) {
+            const message = formatError(error);
+            set(() => ({
+              error: message,
+              executionResults: createFailedExecutionResults(message),
               isProblemPanelVisible: true,
             }));
           }
@@ -274,10 +334,20 @@ const useAppStore = create<AppState>()(
           const { modelCto, data } = get();
           try {
             const result = await rebuildDeBounce(template, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
-          } catch (error: unknown) {
             set(() => ({
-              error: formatError(error),
+              agreementHtml: result,
+              error: undefined,
+              executionResults: createSuccessfulExecutionResults(
+                template,
+                modelCto,
+                data,
+              ),
+            }));
+          } catch (error: unknown) {
+            const message = formatError(error);
+            set(() => ({
+              error: message,
+              executionResults: createFailedExecutionResults(message),
               isProblemPanelVisible: true,
             }));
           }
@@ -290,10 +360,20 @@ const useAppStore = create<AppState>()(
           const { templateMarkdown, data } = get();
           try {
             const result = await rebuildDeBounce(templateMarkdown, model, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
-          } catch (error: unknown) {
             set(() => ({
-              error: formatError(error),
+              agreementHtml: result,
+              error: undefined,
+              executionResults: createSuccessfulExecutionResults(
+                templateMarkdown,
+                model,
+                data,
+              ),
+            }));
+          } catch (error: unknown) {
+            const message = formatError(error);
+            set(() => ({
+              error: message,
+              executionResults: createFailedExecutionResults(message),
               isProblemPanelVisible: true,
             }));
           }
@@ -303,16 +383,27 @@ const useAppStore = create<AppState>()(
         },
         setData: async (data: string) => {
           set(() => ({ data }));
+          const { templateMarkdown, modelCto } = get();
           try {
             const result = await rebuildDeBounce(
-              get().templateMarkdown,
-              get().modelCto,
+              templateMarkdown,
+              modelCto,
               data
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
-          } catch (error: unknown) {
             set(() => ({
-              error: formatError(error),
+              agreementHtml: result,
+              error: undefined,
+              executionResults: createSuccessfulExecutionResults(
+                templateMarkdown,
+                modelCto,
+                data,
+              ),
+            }));
+          } catch (error: unknown) {
+            const message = formatError(error);
+            set(() => ({
+              error: message,
+              executionResults: createFailedExecutionResults(message),
               isProblemPanelVisible: true,
             }));
           }
@@ -320,6 +411,9 @@ const useAppStore = create<AppState>()(
         },
         setEditorAgreementData: (value: string) => {
           set(() => ({ editorAgreementData: value }));
+        },
+        setExecutionResults: (results: ExecutionResults) => {
+          set(() => ({ executionResults: results }));
         },
         generateShareableLink: () => {
           const state = get();
