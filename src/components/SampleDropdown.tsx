@@ -44,7 +44,7 @@ function SampleDropdown({
   );
 
   const handleMenuClick: MenuProps["onClick"] = useCallback(
-    (info) => {
+    (info: Parameters<NonNullable<MenuProps["onClick"]>>[0]) => {
       const { key } = info as { key: string };
       setOpen(false);
       if (key) {
