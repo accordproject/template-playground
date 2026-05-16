@@ -3,6 +3,7 @@ import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
 import { ModelManager } from "@accordproject/concerto-core";
+import { generateSampleData } from "../utils/generateSampleData";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
@@ -55,6 +56,7 @@ interface AppState {
   setPreviewVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
   startTour: () => void;
+  generateSampleDataFromModel: () => Promise<void>;
   isModelCollapsed: boolean;
   isTemplateCollapsed: boolean;
   isDataCollapsed: boolean;
@@ -407,6 +409,22 @@ const useAppStore = create<AppState>()(
         },
         startTour: () => {
           console.log('Starting tour...');
+        },
+        generateSampleDataFromModel: async () => {
+          try {
+            const sampleData = await generateSampleData(get().modelCto);
+            set(() => ({
+              data: sampleData,
+              editorAgreementData: sampleData,
+              error: undefined,
+            }));
+            await get().rebuild();
+          } catch (error: unknown) {
+            set(() => ({
+              error: formatError(error),
+              isProblemPanelVisible: true,
+            }));
+          }
         },
       }
     })
