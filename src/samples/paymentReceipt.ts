@@ -67,4 +67,8 @@ const DATA = {
 };
 
 const NAME = 'Payment Receipt';
-export { NAME, MODEL, DATA, TEMPLATE };
+const DESCRIPTION = "Payment receipt with party details, VAT, and computed total";
+const DIFFICULTY = "Hard";
+const TAGS = ["receipt", "payment", "formula"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

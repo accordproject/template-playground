@@ -31,4 +31,8 @@ const DATA = {
 };
 
 const NAME = 'Clause with Condition';
-export {NAME, MODEL,DATA,TEMPLATE};
+const DESCRIPTION = "Uses a conditional clause for optional nested data";
+const DIFFICULTY = "Hard";
+const TAGS = ["clause", "condition", "optional"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

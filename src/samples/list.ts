@@ -27,4 +27,8 @@ const DATA = {
 };
 
 const NAME = 'List';
-export {NAME, MODEL,DATA,TEMPLATE};
+const DESCRIPTION = "Expands array data into ordered and unordered lists";
+const DIFFICULTY = "Easy";
+const TAGS = ["list", "array", "markdown"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

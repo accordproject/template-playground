@@ -44,4 +44,8 @@ const DATA = {
 };
 
 const NAME = "Invitation";
-export { NAME, MODEL, DATA, TEMPLATE };
+const DESCRIPTION = "Event invitation with date formatting and location details";
+const DIFFICULTY = "Medium";
+const TAGS = ["invitation", "event", "clause"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

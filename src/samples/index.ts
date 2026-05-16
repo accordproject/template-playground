@@ -20,6 +20,10 @@ export type Sample = {
   MODEL: string;
   TEMPLATE: string;
   DATA: object;
+
+  DESCRIPTION?: string;
+  DIFFICULTY?: "Easy" | "Medium" | "Hard";
+  TAGS?: string[];
 };
 
 export const SAMPLES: Array<Sample> = [

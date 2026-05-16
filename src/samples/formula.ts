@@ -18,4 +18,8 @@ const DATA = {
 };
 
 const NAME = 'Formula';
-export {NAME, MODEL,DATA,TEMPLATE};
+const DESCRIPTION = "Demonstrates inline TypeScript formula evaluation";
+const DIFFICULTY = "Medium";
+const TAGS = ["formula", "typescript", "computed"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

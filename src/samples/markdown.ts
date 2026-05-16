@@ -104,4 +104,8 @@ const DATA = {
 };
 
 const NAME = 'Markdown';
-export {NAME, MODEL,DATA,TEMPLATE};
+const DESCRIPTION = "Markdown syntax reference rendered through a template";
+const DIFFICULTY = "Easy";
+const TAGS = ["markdown", "formatting", "reference"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

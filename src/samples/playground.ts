@@ -101,5 +101,8 @@ const DATA = {
 };
 
 const NAME = 'Service Agreement';
+const DESCRIPTION = "Service agreement with nested compensation and calculated total";
+const DIFFICULTY = "Hard";
+const TAGS = ["service", "agreement", "formula"];
 
-export { NAME, MODEL, DATA, TEMPLATE };
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

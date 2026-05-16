@@ -37,5 +37,8 @@ const DATA = {
   "durationInMonths": 24
 };
 const NAME = 'Non-Disclosure Agreement';
+const DESCRIPTION = "Legal NDA template with parties, purpose, and duration";
+const DIFFICULTY = "Medium";
+const TAGS = ["legal", "nda", "agreement"];
 
-export { NAME, MODEL, DATA, TEMPLATE };
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };
