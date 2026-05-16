@@ -1,7 +1,8 @@
-name: 'Close stale issues and PRs'
+name: Stale
 on:
   schedule:
     - cron: '30 1 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -9,113 +10,12 @@ permissions:
   pull-requests: write
 
 jobs:
-  # -----------------------------------------------------------------------
-  # Job 1: label-maintainer-engagement
-  # For every open issue and PR, check whether any comment or review was
-  # left by someone with author_association OWNER, MEMBER, or COLLABORATOR.
-  # These associations are provided by GitHub automatically — no PAT needed.
-  # -----------------------------------------------------------------------
-  label-maintainer-engagement:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Label items with maintainer-engaged
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-            const LABEL = 'maintainer-engaged';
-            const ENGAGED_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
-
-            // Ensure the label exists in this repo
-            try {
-              await github.rest.issues.getLabel({ owner, repo, name: LABEL });
-            } catch {
-              await github.rest.issues.createLabel({
-                owner, repo,
-                name: LABEL,
-                color: '0075ca',
-                description: 'A maintainer has commented or reviewed this item',
-              });
-            }
-
-            const openItems = await github.paginate(github.rest.issues.listForRepo, {
-              owner, repo, state: 'open', per_page: 100,
-            });
-
-            for (const item of openItems) {
-              const number = item.number;
-              const isPR = !!item.pull_request;
-              let hasMaintainer = false;
-
-              const comments = await github.paginate(github.rest.issues.listComments, {
-                owner, repo, issue_number: number, per_page: 100,
-              });
-              for (const c of comments) {
-                if (ENGAGED_ASSOCIATIONS.has(c.author_association)) {
-                  hasMaintainer = true;
-                  break;
-                }
-              }
-
-              if (!hasMaintainer && isPR) {
-                const reviews = await github.paginate(github.rest.pulls.listReviews, {
-                  owner, repo, pull_number: number, per_page: 100,
-                });
-                for (const r of reviews) {
-                  if (ENGAGED_ASSOCIATIONS.has(r.author_association)) {
-                    hasMaintainer = true;
-                    break;
-                  }
-                }
-              }
-
-              const hasLabel = item.labels.some(l => l.name === LABEL);
-
-              if (hasMaintainer && !hasLabel) {
-                await github.rest.issues.addLabels({
-                  owner, repo, issue_number: number, labels: [LABEL],
-                });
-                core.info(`#${number}: added '${LABEL}'`);
-              } else if (!hasMaintainer && hasLabel) {
-                await github.rest.issues.removeLabel({
-                  owner, repo, issue_number: number, name: LABEL,
-                });
-                core.info(`#${number}: removed '${LABEL}'`);
-              }
-            }
-
-  # -----------------------------------------------------------------------
-  # Job 2: stale
-  # Two-step approach:
-  #   Step 1 — Mark everything stale (unchanged timings). days-before-close
-  #             is -1 so NOTHING is ever closed in this step.
-  #   Step 2 — Close only items that carry both the 'Stale' label (set by
-  #             step 1) AND the 'maintainer-engaged' label (set by job 1).
-  #             days-before-stale is -1 so it never re-marks; it only
-  #             closes items whose stale clock has expired.
-  # -----------------------------------------------------------------------
   stale:
-    runs-on: ubuntu-latest
-    needs: label-maintainer-engagement
-    steps:
-      - name: Mark stale issues and PRs
-        uses: actions/stale@v9
-        with:
-          stale-issue-message: 'This issue is stale because it has been open 60 days with no activity. Remove stale label or comment to keep it active. Only items with maintainer engagement are auto-closed after 10 days.'
-          stale-pr-message: 'This PR is stale because it has been open 15 days with no activity. Remove stale label or comment to keep it active. Only items with maintainer engagement are auto-closed after 10 days.'
-          days-before-issue-stale: 60
-          days-before-pr-stale: 15
-          days-before-close: -1
-          exempt-milestones: 'v4.0'
-
-      - name: Close stale items that have had maintainer engagement
-        uses: actions/stale@v9
-        with:
-          stale-issue-message: ''
-          stale-pr-message: ''
-          days-before-issue-stale: -1
-          days-before-pr-stale: -1
-          days-before-close: 10
-          only-labels: 'Stale,maintainer-engaged'
-          exempt-milestones: 'v4.0'
+    uses: accordproject/.github/.github/workflows/stale.yml@main
+    # All inputs are optional. Override here to tune this repo only;
+    # change accordproject/.github to tune every repo at once.
+    # with:
+    #   enable-close: false
+    #   days-before-issue-stale: 60
+    #   days-before-pr-stale: 15
+    #   days-before-close: 10
