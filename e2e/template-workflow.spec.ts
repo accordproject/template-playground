@@ -60,6 +60,92 @@ test.describe('Template Workflow', () => {
     await expect(page.getByText('Data Model')).toBeVisible();
   });
 
+  test('should load sample directly without modal when there are no unsaved changes', async ({ page }) => {
+    test.slow();
+
+    // Open the navbar Samples dropdown and pick any sample without editing first
+    const dropdown = page.locator('.samples-element button');
+    await expect(dropdown).toBeVisible({ timeout: 30000 });
+    await dropdown.click();
+
+    const helloWorldOption = page.getByText('Hello World', { exact: true });
+    await expect(helloWorldOption).toBeVisible({ timeout: 5000 });
+    await helloWorldOption.click();
+
+    // No confirmation modal should appear
+    await expect(page.locator('.ant-modal-confirm')).toHaveCount(0);
+
+    // Sample should load
+    await expect(page.locator('.main-container-agreement')).toContainText(/Hello|hello/i, {
+      timeout: 10000,
+    });
+  });
+
+  test('should show confirmation modal and keep edits when Cancel is clicked', async ({ page }) => {
+    test.slow();
+
+    // Make an edit in the Data Model (Concerto) editor to create unsaved changes
+    const concertoEditor = page.locator('.monaco-editor').first();
+    await expect(concertoEditor).toBeVisible({ timeout: 30000 });
+    await concertoEditor.click();
+    await page.keyboard.type(' ');
+
+    // Try to load a different sample via the navbar dropdown
+    const dropdown = page.locator('.samples-element button');
+    await expect(dropdown).toBeVisible({ timeout: 30000 });
+    await dropdown.click();
+    const helloWorldOption = page.getByText('Hello World', { exact: true });
+    await expect(helloWorldOption).toBeVisible({ timeout: 5000 });
+    await helloWorldOption.click();
+
+    // Confirmation modal should appear
+    const confirmModal = page.locator('.ant-modal-confirm');
+    await expect(confirmModal).toBeVisible({ timeout: 5000 });
+    await expect(confirmModal.getByText('Load Sample Template')).toBeVisible();
+    await expect(
+      confirmModal.getByText(/Loading a new sample will replace your current/i)
+    ).toBeVisible();
+
+    // Click Cancel
+    await confirmModal.getByRole('button', { name: 'Cancel' }).click();
+
+    // Modal should close and the agreement preview should not have switched
+    // to the Hello World sample (i.e. the cancelled sample never loaded)
+    await expect(confirmModal).toBeHidden({ timeout: 3000 });
+    await expect(page.locator('.main-container-agreement')).not.toContainText('Hello World');
+  });
+
+  test('should load the new sample when Continue is clicked from the modal', async ({ page }) => {
+    test.slow();
+
+    // Make an edit in the Data Model (Concerto) editor to create unsaved changes
+    const concertoEditor = page.locator('.monaco-editor').first();
+    await expect(concertoEditor).toBeVisible({ timeout: 30000 });
+    await concertoEditor.click();
+    await page.keyboard.type(' ');
+
+    // Try to load a different sample via the navbar dropdown
+    const dropdown = page.locator('.samples-element button');
+    await expect(dropdown).toBeVisible({ timeout: 30000 });
+    await dropdown.click();
+    const helloWorldOption = page.getByText('Hello World', { exact: true });
+    await expect(helloWorldOption).toBeVisible({ timeout: 5000 });
+    await helloWorldOption.click();
+
+    // Confirmation modal should appear
+    const confirmModal = page.locator('.ant-modal-confirm');
+    await expect(confirmModal).toBeVisible({ timeout: 5000 });
+
+    // Click Continue
+    await confirmModal.getByRole('button', { name: 'Continue' }).click();
+
+    // Modal should close and the new sample should load
+    await expect(confirmModal).toBeHidden({ timeout: 5000 });
+    await expect(page.locator('.main-container-agreement')).toContainText(/Hello|hello/i, {
+      timeout: 10000,
+    });
+  });
+
   test('should toggle Preview panel visibility', async ({ page }) => {
     // Find Preview toggle button in sidebar
     const previewToggle = page.getByRole('button', { name: 'Preview' });
