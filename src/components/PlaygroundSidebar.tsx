@@ -1,7 +1,7 @@
 import React from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiDownload, FiUpload } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
@@ -12,6 +12,8 @@ import tour from "./Tour";
 import "../styles/components/PlaygroundSidebar.css";
 
 const PlaygroundSidebar = () => {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const { 
     isEditorsVisible,
     isPreviewVisible,
@@ -22,6 +24,8 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible,
     setAIChatOpen,
     generateShareableLink,
+    exportTemplate,
+    importTemplate,
     setSettingsOpen,
   } = useAppStore((state) => ({
     isEditorsVisible: state.isEditorsVisible,
@@ -33,6 +37,8 @@ const PlaygroundSidebar = () => {
     setProblemPanelVisible: state.setProblemPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
+    exportTemplate: state.exportTemplate,
+    importTemplate: state.importTemplate,
     setSettingsOpen: state.setSettingsOpen,
   }));
 
@@ -49,6 +55,25 @@ const PlaygroundSidebar = () => {
 
   const handleSettings = () => {
     setSettingsOpen(true);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        await importTemplate(file);
+        void message.success('Template imported successfully!');
+      } catch (error) {
+        console.error('Import failed:', error);
+        void message.error('Failed to import template');
+      } finally {
+        e.target.value = '';
+      }
+    }
   };
 
   const handleStartTour = async () => {
@@ -136,6 +161,16 @@ const PlaygroundSidebar = () => {
   }
 
   const navBottom: NavBottomItem[] = [
+    {
+      title: "Export",
+      icon: FiDownload,
+      onClick: () => void exportTemplate()
+    },
+    {
+      title: "Import",
+      icon: FiUpload,
+      onClick: handleImportClick
+    },
     { 
       title: "Share", 
       icon: FiShare2,
@@ -196,6 +231,13 @@ const PlaygroundSidebar = () => {
           </Tooltip>
         ))}
       </nav>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".cta"
+        onChange={(e) => void handleFileChange(e)}
+        style={{ display: 'none' }}
+      />
     </aside>,
     <SettingsModal key="settings-modal" />
   ];
