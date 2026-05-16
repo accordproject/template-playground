@@ -6,6 +6,7 @@ import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
+import { FONT_SIZE_OPTIONS, DEFAULT_FONT_SIZE } from "../constants/editorSettings";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
@@ -63,6 +64,10 @@ interface AppState {
   toggleDataCollapse: () => void;
   showLineNumbers: boolean;
   setShowLineNumbers: (value: boolean) => void;
+  editorFontSize: number;
+  setEditorFontSize: (value: number) => void;
+  editorWordWrap: boolean;
+  setEditorWordWrap: (value: boolean) => void;
   isSettingsOpen: boolean;
   setSettingsOpen: (value: boolean) => void;
   keyProtectionLevel: KeyProtectionLevel | null;
@@ -82,7 +87,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // Validate inputs before expensive operations
   // This fails fast on invalid JSON or CTO syntax without running network calls
   await validateBeforeRebuild(template, model, dataString);
-  
+
   // @ts-expect-error `offline` is supported at runtime but not yet in published typings
   const modelManager = new ModelManager({ strict: true, offline: true });
   // Preload the bundled Accord Project models so imports like
@@ -172,6 +177,27 @@ const getInitialLineNumbers = () => {
   return true; // Default to showing line numbers
 };
 
+const getInitialFontSize = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('editorFontSize');
+    if (saved !== null) {
+      const parsed = parseInt(saved, 10);
+      if (!isNaN(parsed) && (FONT_SIZE_OPTIONS as readonly number[]).includes(parsed)) return parsed;
+    }
+  }
+  return DEFAULT_FONT_SIZE;
+};
+
+const getInitialWordWrap = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('editorWordWrap');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+  }
+  return true; // Default to word wrap on
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
@@ -206,6 +232,8 @@ const useAppStore = create<AppState>()(
         isTemplateCollapsed: false,
         isDataCollapsed: false,
         showLineNumbers: getInitialLineNumbers(),
+        editorFontSize: getInitialFontSize(),
+        editorWordWrap: getInitialWordWrap(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
@@ -216,6 +244,19 @@ const useAppStore = create<AppState>()(
             localStorage.setItem('showLineNumbers', String(value));
           }
           set({ showLineNumbers: value });
+        },
+        setEditorFontSize: (value: number) => {
+          if (!FONT_SIZE_OPTIONS.includes(value as typeof FONT_SIZE_OPTIONS[number])) return;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('editorFontSize', String(value));
+          }
+          set({ editorFontSize: value });
+        },
+        setEditorWordWrap: (value: boolean) => {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('editorWordWrap', String(value));
+          }
+          set({ editorWordWrap: value });
         },
         setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
         setEditorsVisible: (value) => {
