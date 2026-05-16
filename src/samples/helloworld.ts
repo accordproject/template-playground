@@ -16,4 +16,8 @@ const DATA = {
 };
 
 const NAME = 'Hello World';
-export {NAME, MODEL,DATA,TEMPLATE};
+const DESCRIPTION = "Simple starter template";
+const DIFFICULTY = "Easy";
+const TAGS = ["beginner", "basic"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

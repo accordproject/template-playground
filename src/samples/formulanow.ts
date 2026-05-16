@@ -16,4 +16,8 @@ const DATA = {
 };
 
 const NAME = "Formula Now";
-export { NAME, MODEL, DATA, TEMPLATE };
+const DESCRIPTION = "Uses the implicit now variable inside a formula";
+const DIFFICULTY = "Medium";
+const TAGS = ["formula", "date", "now"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

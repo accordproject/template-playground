@@ -18,4 +18,8 @@ const DATA = {
 };
 
 const NAME = 'New (Blank)';
-export { NAME, MODEL, DATA, TEMPLATE };
+const DESCRIPTION = "Blank starter template for building from scratch";
+const DIFFICULTY = "Easy";
+const TAGS = ["blank", "starter", "custom"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

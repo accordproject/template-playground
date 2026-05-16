@@ -25,4 +25,8 @@ const DATA = {
 };
 
 const NAME = "Announcement";
-export { NAME, MODEL, DATA, TEMPLATE };
+const DESCRIPTION = "Product launch announcement with formatted release date";
+const DIFFICULTY = "Easy";
+const TAGS = ["announcement", "date", "marketing"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

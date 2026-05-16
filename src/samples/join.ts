@@ -71,4 +71,8 @@ const DATA = {
   };
 
 const NAME = 'Join';
-export {NAME, MODEL,DATA,TEMPLATE};
+const DESCRIPTION = "Shows locale-aware list joining formats";
+const DIFFICULTY = "Hard";
+const TAGS = ["join", "locale", "lists"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

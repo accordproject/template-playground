@@ -73,5 +73,8 @@ const DATA = {
   }
 };
 const NAME = 'Employment Offer Letter';
+const DESCRIPTION = "Employment offer with salary, start date, and probation details";
+const DIFFICULTY = "Medium";
+const TAGS = ["employment", "contract", "optional"];
 
-export { NAME, MODEL, DATA, TEMPLATE };
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

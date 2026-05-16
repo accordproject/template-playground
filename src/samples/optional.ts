@@ -25,4 +25,8 @@ const DATA = {
 };
 
 const NAME = "Optional";
-export { NAME, MODEL, DATA, TEMPLATE };
+const DESCRIPTION = "Uses optional content with an else branch";
+const DIFFICULTY = "Medium";
+const TAGS = ["optional", "conditional", "block"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };

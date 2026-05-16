@@ -35,4 +35,8 @@ const DATA = {
 };
 
 const NAME = 'Clause';
-export {NAME, MODEL,DATA,TEMPLATE};
+const DESCRIPTION = "Renders a nested object with a clause block";
+const DIFFICULTY = "Medium";
+const TAGS = ["clause", "nested-data", "address"];
+
+export { NAME, MODEL, DATA, TEMPLATE, DESCRIPTION, DIFFICULTY, TAGS };
