@@ -5,62 +5,27 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   # -----------------------------------------------------------------------
   # Job 1: label-maintainer-engagement
-  # For every open issue and PR, check whether any commenter or reviewer is
-  # a member of accordproject/maintainers.  Add the 'maintainer-engaged'
-  # label when yes, remove it when no.
-  #
-  # Requires a repository secret MAINTAINERS_READ_TOKEN whose classic PAT
-  # (or fine-grained token) has the `read:org` scope so it can call
-  # GET /orgs/accordproject/teams/maintainers/memberships/{username}.
-  # If the secret is absent the step emits a warning and skips labeling;
-  # the stale job then runs without closing anything (safe no-op).
+  # For every open issue and PR, check whether any comment or review was
+  # left by someone with author_association OWNER, MEMBER, or COLLABORATOR.
+  # These associations are provided by GitHub automatically — no PAT needed.
   # -----------------------------------------------------------------------
   label-maintainer-engagement:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
     steps:
       - name: Label items with maintainer-engaged
         uses: actions/github-script@v7
-        env:
-          MAINTAINERS_READ_TOKEN: ${{ secrets.MAINTAINERS_READ_TOKEN }}
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            if (!process.env.MAINTAINERS_READ_TOKEN) {
-              core.warning(
-                'MAINTAINERS_READ_TOKEN secret is not set — skipping ' +
-                'maintainer-engagement labeling. No items will be auto-closed ' +
-                'until the secret is configured (see PR description for details).'
-              );
-              return;
-            }
-
-            const token = process.env.MAINTAINERS_READ_TOKEN;
             const { owner, repo } = context.repo;
             const LABEL = 'maintainer-engaged';
-
-            const memberCache = {};
-            async function isMaintainer(username) {
-              if (!(username in memberCache)) {
-                const resp = await fetch(
-                  `https://api.github.com/orgs/accordproject/teams/maintainers/memberships/${encodeURIComponent(username)}`,
-                  {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                      Accept: 'application/vnd.github+json',
-                      'X-GitHub-Api-Version': '2022-11-28',
-                    },
-                  }
-                );
-                memberCache[username] = resp.ok;
-              }
-              return memberCache[username];
-            }
+            const ENGAGED_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
 
             // Ensure the label exists in this repo
             try {
@@ -87,7 +52,7 @@ jobs:
                 owner, repo, issue_number: number, per_page: 100,
               });
               for (const c of comments) {
-                if (c.user && await isMaintainer(c.user.login)) {
+                if (ENGAGED_ASSOCIATIONS.has(c.author_association)) {
                   hasMaintainer = true;
                   break;
                 }
@@ -98,7 +63,7 @@ jobs:
                   owner, repo, pull_number: number, per_page: 100,
                 });
                 for (const r of reviews) {
-                  if (r.user && await isMaintainer(r.user.login)) {
+                  if (ENGAGED_ASSOCIATIONS.has(r.author_association)) {
                     hasMaintainer = true;
                     break;
                   }
@@ -134,9 +99,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: label-maintainer-engagement
     if: always()
-    permissions:
-      issues: write
-      pull-requests: write
     steps:
       - name: Mark stale issues and PRs
         uses: actions/stale@v9
