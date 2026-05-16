@@ -7,17 +7,154 @@ permissions:
   contents: read
 
 jobs:
-  stale:
+  # -----------------------------------------------------------------------
+  # Job 1: label-maintainer-engagement
+  # For every open issue and PR, check whether any commenter or reviewer is
+  # a member of accordproject/maintainers.  Add the 'maintainer-engaged'
+  # label when yes, remove it when no.
+  #
+  # Requires a repository secret MAINTAINERS_READ_TOKEN whose classic PAT
+  # (or fine-grained token) has the `read:org` scope so it can call
+  # GET /orgs/accordproject/teams/maintainers/memberships/{username}.
+  # If the secret is absent the step emits a warning and skips labeling;
+  # the stale job then runs without closing anything (safe no-op).
+  # -----------------------------------------------------------------------
+  label-maintainer-engagement:
     runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/stale@v9
+      - name: Label items with maintainer-engaged
+        uses: actions/github-script@v7
+        env:
+          MAINTAINERS_READ_TOKEN: ${{ secrets.MAINTAINERS_READ_TOKEN }}
+        with:
+          script: |
+            if (!process.env.MAINTAINERS_READ_TOKEN) {
+              core.warning(
+                'MAINTAINERS_READ_TOKEN secret is not set — skipping ' +
+                'maintainer-engagement labeling. No items will be auto-closed ' +
+                'until the secret is configured (see PR description for details).'
+              );
+              return;
+            }
+
+            const token = process.env.MAINTAINERS_READ_TOKEN;
+            const { owner, repo } = context.repo;
+            const LABEL = 'maintainer-engaged';
+
+            const memberCache = {};
+            async function isMaintainer(username) {
+              if (!(username in memberCache)) {
+                const resp = await fetch(
+                  `https://api.github.com/orgs/accordproject/teams/maintainers/memberships/${encodeURIComponent(username)}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      Accept: 'application/vnd.github+json',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                    },
+                  }
+                );
+                memberCache[username] = resp.ok;
+              }
+              return memberCache[username];
+            }
+
+            // Ensure the label exists in this repo
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: LABEL });
+            } catch {
+              await github.rest.issues.createLabel({
+                owner, repo,
+                name: LABEL,
+                color: '0075ca',
+                description: 'A maintainer has commented or reviewed this item',
+              });
+            }
+
+            const openItems = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', per_page: 100,
+            });
+
+            for (const item of openItems) {
+              const number = item.number;
+              const isPR = !!item.pull_request;
+              let hasMaintainer = false;
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: number, per_page: 100,
+              });
+              for (const c of comments) {
+                if (c.user && await isMaintainer(c.user.login)) {
+                  hasMaintainer = true;
+                  break;
+                }
+              }
+
+              if (!hasMaintainer && isPR) {
+                const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                  owner, repo, pull_number: number, per_page: 100,
+                });
+                for (const r of reviews) {
+                  if (r.user && await isMaintainer(r.user.login)) {
+                    hasMaintainer = true;
+                    break;
+                  }
+                }
+              }
+
+              const hasLabel = item.labels.some(l => l.name === LABEL);
+
+              if (hasMaintainer && !hasLabel) {
+                await github.rest.issues.addLabels({
+                  owner, repo, issue_number: number, labels: [LABEL],
+                });
+                core.info(`#${number}: added '${LABEL}'`);
+              } else if (!hasMaintainer && hasLabel) {
+                await github.rest.issues.removeLabel({
+                  owner, repo, issue_number: number, name: LABEL,
+                });
+                core.info(`#${number}: removed '${LABEL}'`);
+              }
+            }
+
+  # -----------------------------------------------------------------------
+  # Job 2: stale
+  # Two-step approach:
+  #   Step 1 — Mark everything stale (unchanged timings). days-before-close
+  #             is -1 so NOTHING is ever closed in this step.
+  #   Step 2 — Close only items that carry both the 'Stale' label (set by
+  #             step 1) AND the 'maintainer-engaged' label (set by job 1).
+  #             days-before-stale is -1 so it never re-marks; it only
+  #             closes items whose stale clock has expired.
+  # -----------------------------------------------------------------------
+  stale:
+    runs-on: ubuntu-latest
+    needs: label-maintainer-engagement
+    if: always()
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Mark stale issues and PRs
+        uses: actions/stale@v9
         with:
           stale-issue-message: 'This issue is stale because it has been open 60 days with no activity. Remove stale label or comment or this will be closed in 10 days.'
           stale-pr-message: 'This PR is stale because it has been open 15 days with no activity. Remove stale label or comment or this will be closed in 10 days.'
           days-before-issue-stale: 60
           days-before-pr-stale: 15
+          days-before-close: -1
+          exempt-milestones: 'v4.0'
+
+      - name: Close stale items that have had maintainer engagement
+        uses: actions/stale@v9
+        with:
+          stale-issue-message: ''
+          stale-pr-message: ''
+          days-before-issue-stale: -1
+          days-before-pr-stale: -1
           days-before-close: 10
+          only-labels: 'Stale,maintainer-engaged'
           exempt-milestones: 'v4.0'
