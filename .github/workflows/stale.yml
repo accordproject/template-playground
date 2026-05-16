@@ -98,13 +98,12 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     needs: label-maintainer-engagement
-    if: always()
     steps:
       - name: Mark stale issues and PRs
         uses: actions/stale@v9
         with:
-          stale-issue-message: 'This issue is stale because it has been open 60 days with no activity. Remove stale label or comment or this will be closed in 10 days.'
-          stale-pr-message: 'This PR is stale because it has been open 15 days with no activity. Remove stale label or comment or this will be closed in 10 days.'
+          stale-issue-message: 'This issue is stale because it has been open 60 days with no activity. Remove stale label or comment to keep it active. Only items with maintainer engagement are auto-closed after 10 days.'
+          stale-pr-message: 'This PR is stale because it has been open 15 days with no activity. Remove stale label or comment to keep it active. Only items with maintainer engagement are auto-closed after 10 days.'
           days-before-issue-stale: 60
           days-before-pr-stale: 15
           days-before-close: -1
