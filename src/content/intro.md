@@ -1,9 +1,32 @@
 # Introduction
 
-In this tutorial we will learn to draft an Accord Project smart contract template. We will draft a Hello World Accord Project Template.
+## _Learn to create Accord Project smart contract templates_
 
-This tutorial has the following modules:
+Welcome to the Accord Project Template Playground! In this tutorial, you'll learn how to create smart contract templates that combine natural language text with structured data and computable logic.
 
-- [Module 1](https://playground.accordproject.org/learn/module1): Create a Concerto model for your template.
-- [Module 2](https://playground.accordproject.org/learn/module2): Draft a TemplateMark template.
-- [Module 3](https://playground.accordproject.org/learn/module3): Pass some data to the TemplateMark template conforming to the shape defined by the Concerto Model
+### What is an Accord Project Template?
+
+An Accord Project template is a reusable document pattern that consists of three interconnected components:
+
+1. **Concerto Model** — Defines the *data structure* (schema) for your template. Written in the [Concerto](https://concerto.accordproject.org) modeling language, it specifies what information your template needs: names, dates, amounts, lists, and more.
+
+2. **TemplateMark Template** — The *natural language text* of your document with placeholders for dynamic data. Uses [TemplateMark](https://docs.accordproject.org/docs/markup-templatemark) syntax to bind text to your data model.
+
+3. **JSON Data** — The *actual values* that fill in the template placeholders. Must conform to the structure defined by your Concerto model.
+
+### Why Use Templates?
+
+- **Consistency**: Generate documents with guaranteed structure and validation
+- **Reusability**: Create once, use many times with different data
+- **Type Safety**: Catch errors early with schema validation
+- **Automation**: Integrate with systems via JSON APIs
+
+### Tutorial Modules
+
+This tutorial walks you through creating a simple "Hello World" template:
+
+- [Module 1: Concerto Model](https://playground.accordproject.org/learn/module1) — Define the data structure using Concerto's object-oriented syntax
+- [Module 2: TemplateMark Template](https://playground.accordproject.org/learn/module2) — Write the template text with variable placeholders and formatting
+- [Module 3: JSON Data](https://playground.accordproject.org/learn/module3) — Provide data values and understand how they serialize to JSON
+
+Let's get started!

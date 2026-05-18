@@ -22,9 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+coverage
 
 # Playwright
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db

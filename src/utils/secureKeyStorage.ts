@@ -29,6 +29,12 @@ function base64UrlToArrayBuffer(base64url: string): ArrayBuffer {
     return bytes.buffer;
 }
 
+function uint8ArrayToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+    const buffer = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(buffer).set(bytes);
+    return buffer;
+}
+
 // ─── WebAuthn PRF Support Detection ─────────────────────────────────────────
 
 /**
@@ -168,7 +174,7 @@ export async function deriveEncryptionKey(
         throw new Error('PRF extension did not return results. Authentication failed.');
     }
 
-    const ikm = prfResults.first as ArrayBuffer;
+    const ikm = prfResults.first;
 
     // Import the PRF output as raw key material for HKDF
     const hkdfKey = await crypto.subtle.importKey(
@@ -184,7 +190,7 @@ export async function deriveEncryptionKey(
         {
             name: 'HKDF',
             hash: 'SHA-256',
-            salt: salt.buffer as ArrayBuffer,
+            salt: uint8ArrayToArrayBuffer(salt),
             info: HKDF_INFO,
         },
         hkdfKey,
@@ -210,14 +216,14 @@ export async function encryptApiKey(
     const encoded = new TextEncoder().encode(apiKey);
 
     const ciphertext = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: iv.buffer as ArrayBuffer },
+        { name: 'AES-GCM', iv: uint8ArrayToArrayBuffer(iv) },
         encryptionKey,
         encoded
     );
 
     return {
         ciphertext: arrayBufferToBase64Url(ciphertext),
-        iv: arrayBufferToBase64Url(iv.buffer as ArrayBuffer),
+        iv: arrayBufferToBase64Url(uint8ArrayToArrayBuffer(iv)),
     };
 }
 
@@ -244,27 +250,47 @@ export async function decryptApiKey(
 // ─── Storage Helpers ────────────────────────────────────────────────────────
 
 /**
- * Saves encrypted key data to localStorage.
+ * Saves encrypted key data to sessionStorage.
  */
 export function saveEncryptedKey(data: EncryptedKeyData): void {
-    localStorage.setItem(ENCRYPTED_KEY_STORAGE_KEY, JSON.stringify(data));
-    // Remove any legacy plaintext key
+    sessionStorage.setItem(ENCRYPTED_KEY_STORAGE_KEY, JSON.stringify(data));
+    // Remove any persistent encrypted or legacy plaintext key
+    localStorage.removeItem(ENCRYPTED_KEY_STORAGE_KEY);
     localStorage.removeItem(LEGACY_KEY_STORAGE_KEY);
 }
 
 /**
- * Loads encrypted key data from localStorage.
+ * Loads encrypted key data from sessionStorage.
+ * Falls back to localStorage once to migrate previously persisted encrypted data.
  */
 export function loadEncryptedKey(): EncryptedKeyData | null {
-    const raw = localStorage.getItem(ENCRYPTED_KEY_STORAGE_KEY);
+    const sessionData = parseEncryptedKeyData(sessionStorage.getItem(ENCRYPTED_KEY_STORAGE_KEY));
+    if (sessionData) {
+        return sessionData;
+    }
+
+    const persistentRaw = localStorage.getItem(ENCRYPTED_KEY_STORAGE_KEY);
+    if (!persistentRaw) {
+        return null;
+    }
+
+    const persistentData = parseEncryptedKeyData(persistentRaw);
+    if (!persistentData) {
+        return null;
+    }
+
+    sessionStorage.setItem(ENCRYPTED_KEY_STORAGE_KEY, persistentRaw);
+    localStorage.removeItem(ENCRYPTED_KEY_STORAGE_KEY);
+
+    return persistentData;
+}
+
+function parseEncryptedKeyData(raw: string | null): EncryptedKeyData | null {
     if (!raw) return null;
 
     try {
         const data = JSON.parse(raw) as EncryptedKeyData;
-        if (data.credentialId && data.ciphertext && data.iv && data.salt) {
-            return data;
-        }
-        return null;
+        return data.credentialId && data.ciphertext && data.iv && data.salt ? data : null;
     } catch {
         return null;
     }
@@ -278,9 +304,10 @@ export function getLegacyPlaintextKey(): string | null {
 }
 
 /**
- * Clears all stored key data (both encrypted and legacy plaintext).
+ * Clears all stored key data (session encrypted, persistent encrypted, and legacy plaintext).
  */
 export function clearStoredKey(): void {
+    sessionStorage.removeItem(ENCRYPTED_KEY_STORAGE_KEY);
     localStorage.removeItem(ENCRYPTED_KEY_STORAGE_KEY);
     localStorage.removeItem(LEGACY_KEY_STORAGE_KEY);
 }
@@ -311,7 +338,7 @@ export async function encryptAndStoreApiKey(apiKey: string): Promise<boolean> {
             credentialId,
             ciphertext,
             iv,
-            salt: arrayBufferToBase64Url(salt.buffer as ArrayBuffer),
+            salt: arrayBufferToBase64Url(uint8ArrayToArrayBuffer(salt)),
         });
 
         return true;

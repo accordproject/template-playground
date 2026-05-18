@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Navigation', () => {
   test('should navigate to Learn page', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Find and click the Learn button
@@ -18,7 +18,7 @@ test.describe('Navigation', () => {
   });
 
   test('should navigate back to playground from Learn page', async ({ page }) => {
-    await page.goto('/learn/intro');
+    await page.goto('/learn/intro', { waitUntil: 'domcontentloaded' });
 
     // Wait for any loading to complete
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
@@ -33,7 +33,7 @@ test.describe('Navigation', () => {
   });
 
   test('should have Help dropdown menu', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // Find Help button (visible on desktop)
@@ -51,7 +51,7 @@ test.describe('Navigation', () => {
   });
 
   test('should have external links in navbar', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
 
     // GitHub link should be present

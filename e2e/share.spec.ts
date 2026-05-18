@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Share Functionality', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });
   });
 
@@ -61,7 +61,7 @@ test.describe('Share Functionality', () => {
     ).toBeTruthy();
 
     // Navigate to the shareable link using the hash
-    await page.goto(`/#data=${dataParam}`);
+    await page.goto(`/#data=${dataParam}`, { waitUntil: 'domcontentloaded' });
 
     // Wait for app to load
     await expect(page.locator('.app-spinner-container')).toBeHidden({ timeout: 30000 });

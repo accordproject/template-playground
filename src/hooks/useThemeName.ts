@@ -2,15 +2,15 @@ import { useMemo } from "react";
 import useAppStore from "../store/store";
 
 /**
- * Custom hook that derives the editor theme name from the current background color.
- * Returns "darkTheme" when the background is dark (#121212), otherwise "lightTheme".
+ * Custom hook that derives the Monaco editor theme from the branch's boolean theme state.
+ * Returns "darkTheme" when dark mode is enabled, otherwise "lightTheme".
  */
 export default function useThemeName(): string {
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
 
   const themeName = useMemo(
-    () => (backgroundColor === "#121212" ? "darkTheme" : "lightTheme"),
-    [backgroundColor]
+    () => (isDarkMode ? "darkTheme" : "lightTheme"),
+    [isDarkMode]
   );
 
   return themeName;

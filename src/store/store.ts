@@ -17,6 +17,7 @@ interface AppState {
   templateMarkdown: string;
   editorValue: string;
   modelCto: string;
+  modelManager: ModelManager | undefined;
   editorModelCto: string;
   data: string;
   editorAgreementData: string;
@@ -25,8 +26,7 @@ interface AppState {
   samples: Array<Sample>;
   sampleName: string;
   isAIChatOpen: boolean;
-  backgroundColor: string;
-  textColor: string;
+  isDarkMode: boolean;
   chatState: ChatState;
   aiConfig: AIConfig | null;
   chatAbortController: AbortController | null;
@@ -67,6 +67,8 @@ interface AppState {
   setSettingsOpen: (value: boolean) => void;
   keyProtectionLevel: KeyProtectionLevel | null;
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
+  useRichEditor: boolean;
+  setUseRichEditor: (value: boolean) => void;
 }
 
 export interface DecompressedData {
@@ -78,7 +80,7 @@ export interface DecompressedData {
 
 const rebuildDeBounce = debounce(rebuild, 500);
 
-async function rebuild(template: string, model: string, dataString: string): Promise<string> {
+async function rebuild(template: string, model: string, dataString: string): Promise<{ html: string; modelManager: ModelManager }> {
   // Validate inputs before expensive operations
   // This fails fast on invalid JSON or CTO syntax without running network calls
   await validateBeforeRebuild(template, model, dataString);
@@ -109,27 +111,24 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   const ciceroMarkJson = ciceroMark.toJSON() as unknown;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  const result = await transform(
+  const html = await transform(
     ciceroMarkJson,
     "ciceromark_parsed",
     ["html"],
     {},
     { verbose: false }
   ) as string;
-  return result;
+  return { html, modelManager };
 }
 
-const getInitialTheme = () => {
+const getInitialDarkMode = (): boolean => {
   if (typeof window !== 'undefined') {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      return { backgroundColor: '#121212', textColor: '#ffffff' };
-    } else if (savedTheme === 'light') {
-      return { backgroundColor: '#ffffff', textColor: '#121212' };
-    }
+    if (savedTheme === 'dark') return true;
+    if (savedTheme === 'light') return false;
   }
   // Default to light theme
-  return { backgroundColor: '#ffffff', textColor: '#121212' };
+  return false;
 };
 
 /* --- Helper to safely load panel state --- */
@@ -172,20 +171,30 @@ const getInitialLineNumbers = () => {
   return true; // Default to showing line numbers
 };
 
+const getInitialRichEditor = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('useRichEditor');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+  }
+  return false; // Default to Monaco editor (rich editor is opt-in beta)
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
-      const initialTheme = getInitialTheme();
+      const initialDarkMode = getInitialDarkMode();
       const initialPanels = getInitialPanelState(); // Load saved panels
 
       return {
-        backgroundColor: initialTheme.backgroundColor,
-        textColor: initialTheme.textColor,
+        isDarkMode: initialDarkMode,
         sampleName: playground.NAME,
         templateMarkdown: playground.TEMPLATE,
         editorValue: playground.TEMPLATE,
         modelCto: playground.MODEL,
         editorModelCto: playground.MODEL,
+        modelManager: undefined,
         data: JSON.stringify(playground.DATA, null, 2),
         editorAgreementData: JSON.stringify(playground.DATA, null, 2),
         agreementHtml: "",
@@ -208,6 +217,7 @@ const useAppStore = create<AppState>()(
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
+        useRichEditor: getInitialRichEditor(),
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
         toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
@@ -216,6 +226,12 @@ const useAppStore = create<AppState>()(
             localStorage.setItem('showLineNumbers', String(value));
           }
           set({ showLineNumbers: value });
+        },
+        setUseRichEditor: (value: boolean) => {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('useRichEditor', String(value));
+          }
+          set({ useRichEditor: value });
         },
         setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
         setEditorsVisible: (value) => {
@@ -267,8 +283,8 @@ const useAppStore = create<AppState>()(
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();
           try {
-            const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            const { html, modelManager } = await rebuildDeBounce(templateMarkdown, modelCto, data);
+            set(() => ({ agreementHtml: html, modelManager, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -280,8 +296,8 @@ const useAppStore = create<AppState>()(
           set(() => ({ templateMarkdown: template }));
           const { modelCto, data } = get();
           try {
-            const result = await rebuildDeBounce(template, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            const { html, modelManager } = await rebuildDeBounce(template, modelCto, data);
+            set(() => ({ agreementHtml: html, modelManager, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -296,8 +312,8 @@ const useAppStore = create<AppState>()(
           set(() => ({ modelCto: model }));
           const { templateMarkdown, data } = get();
           try {
-            const result = await rebuildDeBounce(templateMarkdown, model, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            const { html, modelManager } = await rebuildDeBounce(templateMarkdown, model, data);
+            set(() => ({ agreementHtml: html, modelManager, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -311,12 +327,12 @@ const useAppStore = create<AppState>()(
         setData: async (data: string) => {
           set(() => ({ data }));
           try {
-            const result = await rebuildDeBounce(
+            const { html, modelManager } = await rebuildDeBounce(
               get().templateMarkdown,
               get().modelCto,
               data
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: html, modelManager, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -364,14 +380,10 @@ const useAppStore = create<AppState>()(
         },
         toggleDarkMode: () => {
           set((state) => {
-            const isDark = state.backgroundColor === '#121212';
-            const newTheme = {
-              backgroundColor: isDark ? '#ffffff' : '#121212',
-              textColor: isDark ? '#121212' : '#ffffff',
-            };
+            const newIsDark = !state.isDarkMode;
 
             if (typeof window !== 'undefined') {
-              const themeValue = isDark ? 'light' : 'dark';
+              const themeValue = newIsDark ? 'dark' : 'light';
               localStorage.setItem('theme', themeValue);
               try {
                 document.documentElement.setAttribute('data-theme', themeValue);
@@ -380,7 +392,7 @@ const useAppStore = create<AppState>()(
               }
             }
 
-            return newTheme;
+            return { isDarkMode: newIsDark };
           });
         },
         setAIChatOpen: (isOpen: boolean) => {

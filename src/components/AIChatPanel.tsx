@@ -15,21 +15,19 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, setAIConfig, setSettingsOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
+  const { chatState, resetChat, aiConfig, setAIConfig, setSettingsOpen, setAIChatOpen, isDarkMode } = useAppStore((state) => ({
     chatState: state.chatState,
     resetChat: state.resetChat,
     aiConfig: state.aiConfig,
     setAIConfig: state.setAIConfig,
     setSettingsOpen: state.setSettingsOpen,
     setAIChatOpen: state.setAIChatOpen,
-    textColor: state.textColor,
-    backgroundColor: state.backgroundColor
+    isDarkMode: state.isDarkMode
   }));
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
 
   const theme = useMemo(() => {
-    const isDarkMode = backgroundColor !== '#ffffff';
     return {
       header: `h-10 -ml-4 -mr-4 -mt-1 p-2 border-gray-200 text-sm font-medium flex justify-between items-center ${
         isDarkMode ? 'bg-gray-700 text-white' : 'bg-slate-100 text-gray-700'
@@ -70,7 +68,7 @@ export const AIChatPanel = () => {
 
       inlineCode: isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'
     };
-  }, [backgroundColor]);
+  }, [isDarkMode]);
   
   const [includeTemplateMarkContent, setIncludeTemplateMarkContent] = useState<boolean>(
     localStorage.getItem('aiIncludeTemplateMark') === 'true'
@@ -165,7 +163,7 @@ export const AIChatPanel = () => {
     
     if (!displayContent || !displayContent.includes('```')) {
       return (
-        <div className={`text-sm prose prose-sm break-all max-w-none ${isError ? 'text-red-700' : ''}`} style={isError ? {} : { color: textColor }}>
+        <div className={`text-sm prose prose-sm break-all max-w-none ${isError ? 'text-red-700' : ''}`}>
           <ReactMarkdown
             components={{
               code: ({ children, className }) => <code className={`${theme.inlineCode} p-1 rounded-md before:content-[''] after:content-[''] ${className ?? ''}`}>{children}</code>,
@@ -183,7 +181,7 @@ export const AIChatPanel = () => {
     
     if (segments[0]) {
       parts.push(
-        <div className="text-sm prose prose-sm max-w-none" key={key++} style={{ color: textColor }}>
+        <div className="text-sm prose prose-sm max-w-none" key={key++}>
           <ReactMarkdown>
             {segments[0]}
           </ReactMarkdown>
@@ -209,7 +207,7 @@ export const AIChatPanel = () => {
         );
       } else if (i % 2 === 0 && segments[i]) {
         parts.push(
-          <div className="text-sm prose prose-sm max-w-none" key={key++} style={{ color: textColor }}>
+          <div className="text-sm prose prose-sm max-w-none" key={key++}>
             <ReactMarkdown>
               {segments[i]}
             </ReactMarkdown>
@@ -238,7 +236,7 @@ export const AIChatPanel = () => {
   return (
     <div className="twp pl-4 pr-4 -mr-1 flex flex-col border rounded-md h-full">
       <div className={theme.header}>
-        <h2 className="text-lg font-bold" style={{ color: textColor }}>AI Assistant</h2>
+        <h2 className="text-lg font-bold">AI Assistant</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSettingsOpen(true)}
@@ -317,7 +315,7 @@ export const AIChatPanel = () => {
               <div className="w-full">
                 <div className={`${theme.welcomeMessage} p-3 rounded-lg`}>
                   <p className={`text-xs font-semibold mb-1 ${theme.welcomeText}`}>Assistant</p>
-                  <p className="text-sm" style={{ color: textColor }}>Hello! How can I help you today?</p>
+                  <p className="text-sm">Hello! How can I help you today?</p>
                 </div>
               </div>
             ) : (
@@ -342,7 +340,7 @@ export const AIChatPanel = () => {
                           : theme.messageAssistant
                         : theme.messageUser
                     }`}>
-                      <p className="text-xs font-semibold mb-1" style={{ color: isError ? '#991b1b' : textColor }}>
+                      <p className={`text-xs font-semibold mb-1 ${isError ? 'text-red-800' : ''}`}>
                           {message.role === 'assistant' ? 'Assistant' : 'You'}
                       </p>
                       {message.content && renderMessageContent(
@@ -397,7 +395,7 @@ export const AIChatPanel = () => {
             
             {/* Context selection row */}
             <div className="flex items-center justify-start px-2 gap-2">
-              <span className="text-xs text-gray-600 mr-1" style={{color: textColor}}>Context:</span>
+              <span className="text-xs text-gray-600 mr-1">Context:</span>
               {/* TemplateMark Button */}
               <div
                 onClick={() => handleTemplateMarkToggle(!includeTemplateMarkContent)}

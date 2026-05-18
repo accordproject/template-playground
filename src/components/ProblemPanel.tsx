@@ -14,10 +14,9 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
-  const { error, backgroundColor, textColor } = useAppStore((state) => ({
+  const { error, isDarkMode } = useAppStore((state) => ({
     error: state.error,
-    backgroundColor: state.backgroundColor,
-    textColor: state.textColor
+    isDarkMode: state.isDarkMode
   }));
 
   const parseError = (errorMessage: string) => {
@@ -96,16 +95,16 @@ const ProblemPanel: React.FC = () => {
   };
 
   return (
-    <div className="problem-panel-container" style={{ backgroundColor }}>
-      <div className={`problem-panel-header ${backgroundColor === '#ffffff' ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
+    <div className="problem-panel-container">
+      <div className={`problem-panel-header ${!isDarkMode ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
         <span className="problem-panel-title">Problems</span>
       </div>
-      <div className="problem-panel-content" style={{ backgroundColor }}>
+      <div className="problem-panel-content">
         {problems.length === 0 ? (
           <div className="problem-panel-empty-state">
             <div className="problem-panel-empty-state-content">
               <div className="problem-panel-empty-state-icon">✨</div>
-              <div className="problem-panel-empty-state-text" style={{ color: textColor }}>No problems detected</div>
+              <div className="problem-panel-empty-state-text">No problems detected</div>
             </div>
           </div>
         ) : (
@@ -113,7 +112,7 @@ const ProblemPanel: React.FC = () => {
             {problems.map((problem) => (
               <div
                 key={problem.id}
-                className={`problem-panel-problem-item ${backgroundColor === '#ffffff' ? 'problem-panel-problem-item-light' : 'problem-panel-problem-item-dark'
+                className={`problem-panel-problem-item ${!isDarkMode ? 'problem-panel-problem-item-light' : 'problem-panel-problem-item-dark'
                   } ${problem.type === 'error' ? 'problem-panel-problem-item-error' :
                     problem.type === 'warning' ? 'problem-panel-problem-item-warning' :
                       'problem-panel-problem-item-info'
@@ -134,11 +133,11 @@ const ProblemPanel: React.FC = () => {
                   <div className="problem-panel-problem-details">
                     <div className="problem-panel-problem-meta">
                       <div className="problem-panel-problem-tags">
-                        <span className="problem-panel-problem-type-badge" style={{ color: textColor }}>
+                        <span className="problem-panel-problem-type-badge">
                           {problem.type.toUpperCase()}
                         </span>
                         {problem.source && (
-                          <span className="problem-panel-problem-source" style={{ color: textColor }}>
+                          <span className="problem-panel-problem-source">
                             {problem.source}
                           </span>
                         )}
@@ -150,20 +149,20 @@ const ProblemPanel: React.FC = () => {
                           </span>
                         )}
                         {!isClickable(problem) && (problem.line || problem.column) && (
-                          <span className="problem-panel-problem-location" style={{ color: textColor }}>
+                          <span className="problem-panel-problem-location">
                             {problem.line && `Line ${problem.line}`}
                             {problem.line && problem.column && ':'}
                             {problem.column && `Col ${problem.column}`}
                           </span>
                         )}
                       </div>
-                      <span className="problem-panel-problem-timestamp" style={{ color: textColor }}>
+                      <span className="problem-panel-problem-timestamp">
                         {formatTimestamp(problem.timestamp)}
                       </span>
                     </div>
 
                     <div className="problem-panel-problem-message-container">
-                      <p className="problem-panel-problem-message" style={{ color: textColor }}>
+                      <p className="problem-panel-problem-message">
                         {problem.message}
                       </p>
                     </div>

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import useAppStore from '../store/store';
 
 interface ResizableContainerProps {
   leftPane: React.ReactNode;
@@ -58,7 +57,6 @@ const ResizableContainer: React.FC<ResizableContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingLeft = useRef(false);
   const isDraggingRight = useRef(false);
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
   const [leftDividerHovered, setLeftDividerHovered] = useState(false);
   const [rightDividerHovered, setRightDividerHovered] = useState(false);
 
@@ -265,7 +263,6 @@ const ResizableContainer: React.FC<ResizableContainerProps> = ({
         display: 'flex',
         width: '100%',
         position: 'relative',
-        backgroundColor,
         flexDirection: isMobile ? 'column' : 'row',
         height: '100%',
         overflow: isMobile ? 'auto' : 'hidden'

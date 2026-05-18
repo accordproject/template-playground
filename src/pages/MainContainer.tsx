@@ -11,7 +11,7 @@ import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
-import { Button, message } from "antd";
+import { Button, message, Tag } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 import DOMPurify from "dompurify";
@@ -21,8 +21,8 @@ const MainContainer = () => {
   const downloadRef = useRef<HTMLDivElement>(null);
   const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const backgroundColor = useAppStore((state) => state.backgroundColor);
-  const textColor = useAppStore((state) => state.textColor);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
+  const useRichEditor = useAppStore((state) => state.useRichEditor);
 
   const handleDownloadPdf = async () => {
     const element = downloadRef.current;
@@ -105,11 +105,11 @@ const MainContainer = () => {
   const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
   
   // Create distinct preview background for better visual separation
-  const previewBackgroundColor = backgroundColor === '#ffffff' 
+  const previewBackgroundColor = !isDarkMode
     ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
     : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
   
-  const previewHeaderColor = backgroundColor === '#ffffff'
+  const previewHeaderColor = !isDarkMode
     ? '#dbeafe'  // Slightly darker blue for header in light mode
     : '#0f172a';  // Even darker shade for header in dark mode
   
@@ -117,24 +117,23 @@ const MainContainer = () => {
   const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
   return (
-    <div className="main-container" style={{ backgroundColor }}>
+    <div className="main-container">
       <PanelGroup direction="horizontal" className="main-container-panel-group"
         style={{ position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)" }}>
         {isEditorsVisible && (
           <>
             <Panel defaultSize={62.5} minSize={30}>
-              <div className="main-container-editors-panel" style={{ backgroundColor }}>
+              <div className="main-container-editors-panel">
                 <PanelGroup key={panelKey} direction="vertical" className="main-container-editors-panel-group">
                   <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-concerto-model">
-                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
+                      <div className={`main-container-editor-header ${!isDarkMode ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         {/* Left side */}
                         <div className="main-container-editor-header-left">
                           <button
                             className="collapse-button"
                             onClick={toggleModelCollapse}
                             style={{
-                              color: textColor,
                               background: 'transparent',
                               border: 'none',
                               cursor: 'pointer',
@@ -153,7 +152,7 @@ const MainContainer = () => {
                         <ConcertoFormatButton disabled={isModelCollapsed} />
                       </div>
                       {!isModelCollapsed && (
-                        <div className="main-container-editor-content" style={{ backgroundColor }}>
+                        <div className="main-container-editor-content">
                           <TemplateModel />
                         </div>
                       )}
@@ -164,13 +163,12 @@ const MainContainer = () => {
                   <Panel minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
                     <MarkdownEditorProvider>
                       <div className="main-container-editor-section tour-template-mark">
-                        <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
+                        <div className={`main-container-editor-header ${!isDarkMode ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                           <div className="main-container-editor-header-left">
                             <button
                               className="collapse-button"
                               onClick={toggleTemplateCollapse}
                               style={{
-                                color: textColor,
                                 background: 'transparent',
                                 border: 'none',
                                 cursor: 'pointer',
@@ -184,12 +182,17 @@ const MainContainer = () => {
                             >
                               {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                             </button>
-                            <span>Template <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(TemplateMark)</span></span>
+                            <span>
+                              Template <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(TemplateMark)</span>
+                              {useRichEditor && (
+                                <Tag color="blue" style={{ marginLeft: 8, fontSize: 10 }}>Beta</Tag>
+                              )}
+                            </span>
                           </div>
-                          {!isTemplateCollapsed && <TemplateMarkdownToolbar />}
+                          {!isTemplateCollapsed && !useRichEditor && <TemplateMarkdownToolbar />}
                         </div>
                         {!isTemplateCollapsed && (
-                          <div className="main-container-editor-content" style={{ backgroundColor }}>
+                          <div className="main-container-editor-content">
                             <TemplateMarkdown />
                           </div>
                         )}
@@ -201,13 +204,12 @@ const MainContainer = () => {
 
                   <Panel minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-json-data">
-                      <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
+                      <div className={`main-container-editor-header ${!isDarkMode ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         <div className="main-container-editor-header-left">
                           <button
                             className="collapse-button"
                             onClick={toggleDataCollapse}
                             style={{
-                              color: textColor,
                               background: 'transparent',
                               border: 'none',
                               cursor: 'pointer',
@@ -233,7 +235,7 @@ const MainContainer = () => {
                         </button>
                       </div>
                       {!isDataCollapsed && (
-                        <div className="main-container-editor-content" style={{ backgroundColor }}>
+                        <div className="main-container-editor-content">
                           <AgreementData editorRef={jsonEditorRef} />
                         </div>
                       )}
@@ -257,7 +259,7 @@ const MainContainer = () => {
           <>
             <Panel defaultSize={37.5} minSize={20}>
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
-                <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
+                <div className={`main-container-preview-header ${!isDarkMode ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
                   <Button
                     onClick={() => void handleDownloadPdf()}
@@ -274,7 +276,6 @@ const MainContainer = () => {
                       className="main-container-agreement"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
                       style={{
-                        color: textColor,
                         backgroundColor: previewBackgroundColor,
                         padding: "20px"
                       }}

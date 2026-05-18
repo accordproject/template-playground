@@ -24,9 +24,7 @@ export default function MarkdownEditor({
   editorRef?: MutableRefObject<editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
-  const { backgroundColor, textColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
-    backgroundColor: state.backgroundColor,
-    textColor: state.textColor,
+  const { aiConfig, showLineNumbers } = useAppStore((state) => ({
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
   }));
@@ -42,8 +40,6 @@ export default function MarkdownEditor({
           inherit: true,
           rules: [],
           colors: {
-            "editor.background": backgroundColor,
-            "editor.foreground": textColor,
             "editor.lineHighlightBorder": "#EDE8DC",
             "editorGhostText.foreground": "#9c9a9a"
           },
@@ -55,7 +51,7 @@ export default function MarkdownEditor({
 
       monaco.editor.setTheme(themeName);
     }
-  }, [monaco, backgroundColor, textColor, themeName]);
+  }, [monaco, themeName]);
 
   const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },
