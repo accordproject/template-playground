@@ -48,29 +48,16 @@ export default function LogicEditor() {
   const typeStubsRegistered = useRef(false);
   const modelStubDisposable = useRef<monacoNS.IDisposable | null>(null);
 
-  const {
-    editorLogicTs,
-    logicTs,
-    setEditorLogicTs,
-    setLogicTs,
-    modelCto,
-    backgroundColor,
-    showLineNumbers,
-    isCompiling,
-    compilationErrors,
-    compiledLogicJs
-  } = useAppStore((s) => ({
-    editorLogicTs: s.editorLogicTs,
-    logicTs: s.logicTs,
-    setEditorLogicTs: s.setEditorLogicTs,
-    setLogicTs: s.setLogicTs,
-    modelCto: s.modelCto,
-    backgroundColor: s.backgroundColor,
-    showLineNumbers: s.showLineNumbers,
-    isCompiling: s.isCompiling,
-    compilationErrors: s.compilationErrors,
-    compiledLogicJs: s.compiledLogicJs
-  }));
+  const editorLogicTs = useAppStore((s) => s.editorLogicTs);
+  const logicTs = useAppStore((s) => s.logicTs);
+  const setEditorLogicTs = useAppStore((s) => s.setEditorLogicTs);
+  const setLogicTs = useAppStore((s) => s.setLogicTs);
+  const modelCto = useAppStore((s) => s.modelCto);
+  const backgroundColor = useAppStore((s) => s.backgroundColor);
+  const showLineNumbers = useAppStore((s) => s.showLineNumbers);
+  const isCompiling = useAppStore((s) => s.isCompiling);
+  const compilationErrors = useAppStore((s) => s.compilationErrors);
+  const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
 
   const isDark = backgroundColor === '#121212';
   const themeName = isDark ? 'darkTheme' : 'lightTheme';

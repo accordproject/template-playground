@@ -59,34 +59,25 @@ const MainContainer = () => {
     }
   };
 
-  const {
-    isAIChatOpen,
-    isEditorsVisible,
-    isPreviewVisible,
-    isProblemPanelVisible,
-    isModelCollapsed,
-    isTemplateCollapsed,
-    isDataCollapsed,
-    toggleModelCollapse,
-    toggleDataCollapse,
-  } = useAppStore((state) => ({
-    isAIChatOpen: state.isAIChatOpen,
-    isEditorsVisible: state.isEditorsVisible,
-    isPreviewVisible: state.isPreviewVisible,
-    isProblemPanelVisible: state.isProblemPanelVisible,
-    isModelCollapsed: state.isModelCollapsed,
-    isTemplateCollapsed: state.isTemplateCollapsed,
-    isDataCollapsed: state.isDataCollapsed,
-    toggleModelCollapse: state.toggleModelCollapse,
-    toggleDataCollapse: state.toggleDataCollapse,
-  }));
+  const isAIChatOpen = useAppStore((s) => s.isAIChatOpen);
+  const isEditorsVisible = useAppStore((s) => s.isEditorsVisible);
+  const isPreviewVisible = useAppStore((s) => s.isPreviewVisible);
+  const isProblemPanelVisible = useAppStore((s) => s.isProblemPanelVisible);
+  const isModelCollapsed = useAppStore((s) => s.isModelCollapsed);
+  const isTemplateCollapsed = useAppStore((s) => s.isTemplateCollapsed);
+  const isDataCollapsed = useAppStore((s) => s.isDataCollapsed);
+  const toggleModelCollapse = useAppStore((s) => s.toggleModelCollapse);
+  const toggleDataCollapse = useAppStore((s) => s.toggleDataCollapse);
 
-  const sampleName = useAppStore((s) => s.sampleName);
-  const samples = useAppStore((s) => s.samples);
-  const editorLogicTs = useAppStore((s) => s.editorLogicTs);
-  // Show Logic Editor and Contract Runner whenever the session has logic content
-  const hasLogic = editorLogicTs.trim().length > 0 ||
-    !!(samples.find((s) => s.NAME === sampleName)?.LOGIC);
+  const isLogicFeatureEnabled = useAppStore((s) => s.isLogicFeatureEnabled);
+  
+  // Select the boolean directly to prevent MainContainer from re-rendering on every keystroke
+  const hasLogicContent = useAppStore((s) => 
+    s.editorLogicTs.trim().length > 0 || !!(s.samples.find((sample) => sample.NAME === s.sampleName)?.LOGIC)
+  );
+  
+  // Show Logic Editor only if the feature flag is enabled AND there is logic content
+  const hasLogic = isLogicFeatureEnabled && hasLogicContent;
 
   const [, setLoading] = useState(true);
 
@@ -109,7 +100,8 @@ const MainContainer = () => {
     ? '#dbeafe'  // Slightly darker blue for header in light mode
     : '#0f172a';  // Even darker shade for header in dark mode
 
-  const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
+
+  const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}-${String(hasLogic)}`;
 
   return (
     <div className="main-container" style={{ backgroundColor, height: "calc(100vh - 64px)", overflow: "hidden" }}>
@@ -120,7 +112,7 @@ const MainContainer = () => {
             <Panel defaultSize={62.5} minSize={30}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
                 <PanelGroup key={panelKey} direction="vertical" className="main-container-editors-panel-group">
-                  <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
+                  <Panel id="panel-model" order={1} minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-concerto-model">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         <div className="main-container-editor-header-left">
@@ -154,7 +146,7 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={10} defaultSize={expandedSize}>
+                  <Panel id="panel-template" order={2} minSize={10} defaultSize={expandedSize}>
                     <MarkdownEditorProvider>
                       <div className="main-container-editor-section tour-template-mark">
                         <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
@@ -170,7 +162,7 @@ const MainContainer = () => {
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
+                  <Panel id="panel-data" order={3} minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-json-data">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         <div className="main-container-editor-header-left">
@@ -212,7 +204,7 @@ const MainContainer = () => {
                   {hasLogic && (
                     <>
                       <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
-                      <Panel defaultSize={expandedSize} minSize={10}>
+                      <Panel id="panel-logic" order={4} defaultSize={expandedSize} minSize={10}>
                         <div className="main-container-editor-section">
                           <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                             <span style={{ color: textColor }}>TypeScript Logic</span>
@@ -227,7 +219,7 @@ const MainContainer = () => {
                   {isProblemPanelVisible && (
                     <>
                       <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
-                      <Panel defaultSize={25} minSize={15}>
+                      <Panel id="panel-problem" order={5} defaultSize={25} minSize={15}>
                         <ProblemPanel />
                       </Panel>
                     </>

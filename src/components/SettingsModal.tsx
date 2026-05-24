@@ -7,11 +7,13 @@ const SettingsModal: React.FC = () => {
   const { 
     isSettingsOpen, 
     setSettingsOpen, 
-    showLineNumbers, 
+    showLineNumbers,
     setShowLineNumbers,
     textColor,
     backgroundColor,
-    toggleDarkMode
+    toggleDarkMode,
+    isLogicFeatureEnabled,
+    setLogicFeatureEnabled
   } = useAppStore((state) => ({
     isSettingsOpen: state.isSettingsOpen,
     setSettingsOpen: state.setSettingsOpen,
@@ -20,6 +22,8 @@ const SettingsModal: React.FC = () => {
     textColor: state.textColor,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
+    isLogicFeatureEnabled: state.isLogicFeatureEnabled,
+    setLogicFeatureEnabled: state.setLogicFeatureEnabled,
   }));
 
   const isDarkMode = backgroundColor === '#121212';
@@ -71,6 +75,27 @@ const SettingsModal: React.FC = () => {
               checked={showLineNumbers}
               onChange={setShowLineNumbers}
               aria-label="Toggle line numbers"
+            />
+          </div>
+        </div>
+
+        <hr className={isDarkMode ? 'border-gray-600' : 'border-gray-200'} />
+
+        {/* Logic Feature Flag Toggle */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm sm:text-base" style={{ color: textColor }}>
+              Enable Template Logic (Experimental)
+            </h4>
+            <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Turn on the experimental TypeScript logic editor and compilation features (GSoC Project).
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Switch
+              checked={isLogicFeatureEnabled}
+              onChange={setLogicFeatureEnabled}
+              aria-label="Toggle template logic"
             />
           </div>
         </div>

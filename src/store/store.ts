@@ -97,6 +97,8 @@ interface AppState {
   setSettingsOpen: (value: boolean) => void;
   keyProtectionLevel: KeyProtectionLevel | null;
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
+  isLogicFeatureEnabled: boolean;
+  setLogicFeatureEnabled: (value: boolean) => void;
 
   // ── Logic action signatures (NEW) ─────────────────────────────────────
   /** Update live editor value without compiling */
@@ -244,6 +246,8 @@ const useAppStore = create<AppState>()(
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
+        isLogicFeatureEnabled: false,
+        setLogicFeatureEnabled: (value: boolean) => set({ isLogicFeatureEnabled: value }),
         // ── Logic initial state ────────────────────────────────────────────
         logicTs: '',
         editorLogicTs: '',
