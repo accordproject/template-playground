@@ -14,22 +14,28 @@ import * as blank from "./blank";
 import * as paymentReceipt from './paymentReceipt';
 import * as employmentOffer from "./employmentOffer";
 import * as nda from "./nda";
+import * as counterLogic from "./counterLogic";
 
 export type Sample = {
   NAME: string;
   MODEL: string;
   TEMPLATE: string;
   DATA: object;
+  /** Optional TypeScript logic string. When present, the Logic Editor and Contract Runner panels are activated. */
+  LOGIC?: string;
+  /** Default request JSON shown in the Contract Runner request editor (only used when LOGIC is set). */
+  DEFAULT_REQUEST?: string;
 };
 
 export const SAMPLES: Array<Sample> = [
   playground,
+  counterLogic,   // Logic sample — listed first to showcase the new feature
   helloworld,
   employmentOffer,
   formula,
   formulanow,
   join,
-  nda, 
+  nda,
   clause,
   clausecondition,
   invitation,

@@ -9,10 +9,24 @@ import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
+import { compileLogicTs } from '../utils/logicCompiler';
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { validateBeforeRebuild } from "../utils/validators";
 
+/** A single trigger execution result, stored in history */
+export interface LogicExecutionResult {
+  response: object;
+  stateBefore: object;
+  stateAfter: object;
+  events: object[];
+  executedAt: string; // ISO timestamp
+}
+
 interface AppState {
+  activeTab: "build" | "simulate";
+  setActiveTab: (tab: "build" | "simulate") => void;
+
+  // ── Existing template / model / data fields ────────────────────────────
   templateMarkdown: string;
   editorValue: string;
   modelCto: string;
@@ -30,6 +44,21 @@ interface AppState {
   chatState: ChatState;
   aiConfig: AIConfig | null;
   chatAbortController: AbortController | null;
+
+  // ── Logic / execution fields (NEW) ────────────────────────────────────
+  /** Committed TypeScript logic source (triggers compilation) */
+  logicTs: string;
+  /** Live editor value — not committed until user clicks Apply */
+  editorLogicTs: string;
+  /** Resulting JS payload encoded as a Base64 module, null if compiled logic is stale/failed */
+  compiledLogicJs: string | null;
+  /** True while transpileModule runs */
+  isCompiling: boolean;
+  /** Structured errors from the TS compiler (syntax/type errors stripped during transpile) */
+  compilationErrors: { message: string; line?: number; column?: number }[];
+
+
+  // ── Existing action signatures ─────────────────────────────────────────
   setTemplateMarkdown: (template: string) => Promise<void>;
   setEditorValue: (value: string) => void;
   setModelCto: (model: string) => Promise<void>;
@@ -68,6 +97,15 @@ interface AppState {
   setSettingsOpen: (value: boolean) => void;
   keyProtectionLevel: KeyProtectionLevel | null;
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
+
+  // ── Logic action signatures (NEW) ─────────────────────────────────────
+  /** Update live editor value without compiling */
+  setEditorLogicTs: (ts: string) => void;
+  /** Commit logic — applies editorLogicTs, compiles to JS, resets execution state */
+  setLogicTs: (ts: string) => Promise<void>;
+  /** Force a recompilation of the committed logicTs */
+  compileLogic: () => Promise<void>;
+
 }
 
 export interface DecompressedData {
@@ -83,7 +121,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // Validate inputs before expensive operations
   // This fails fast on invalid JSON or CTO syntax without running network calls
   await validateBeforeRebuild(template, model, dataString);
-  
+
   const modelManager = new ModelManager({ strict: true });
   modelManager.addCTOModel(model, undefined, true);
   await modelManager.updateExternalModels();
@@ -174,6 +212,8 @@ const useAppStore = create<AppState>()(
       const initialPanels = getInitialPanelState(); // Load saved panels
 
       return {
+        activeTab: "build",
+        setActiveTab: (tab: "build" | "simulate") => set({ activeTab: tab }),
         backgroundColor: initialTheme.backgroundColor,
         textColor: initialTheme.textColor,
         sampleName: playground.NAME,
@@ -204,6 +244,14 @@ const useAppStore = create<AppState>()(
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
+        // ── Logic initial state ────────────────────────────────────────────
+        logicTs: '',
+        editorLogicTs: '',
+        compiledLogicJs: null,
+        isCompiling: false,
+        compilationErrors: [],
+
+
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
         toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
@@ -246,6 +294,7 @@ const useAppStore = create<AppState>()(
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
           if (sample) {
+            const logicTs = sample.LOGIC ?? '';
             set(() => ({
               sampleName: sample.NAME,
               agreementHtml: undefined,
@@ -256,10 +305,17 @@ const useAppStore = create<AppState>()(
               editorModelCto: sample.MODEL,
               data: JSON.stringify(sample.DATA, null, 2),
               editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+              // Reset logic state when switching samples
+              logicTs,
+              editorLogicTs: logicTs,
+              compiledLogicJs: null,
+              compilationErrors: [],
+              isCompiling: false,
             }));
             await get().rebuild();
           }
         },
+
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();
           try {
@@ -404,6 +460,46 @@ const useAppStore = create<AppState>()(
         },
         startTour: () => {
           console.log('Starting tour...');
+        },
+
+        // ── Logic actions (NEW) ────────────────────────────────────────────
+
+        setEditorLogicTs: (ts: string) => {
+          set(() => ({ editorLogicTs: ts }));
+        },
+
+        setLogicTs: async (ts: string) => {
+          set(() => ({ logicTs: ts, editorLogicTs: ts }));
+          await get().compileLogic();
+        },
+
+        compileLogic: async () => {
+          const { logicTs } = get();
+          if (!logicTs.trim()) {
+            set(() => ({
+              compiledLogicJs: null,
+              compilationErrors: [],
+              isCompiling: false,
+            }));
+            return;
+          }
+
+          set(() => ({ isCompiling: true }));
+
+          try {
+            const result = await compileLogicTs(logicTs);
+            set(() => ({
+              compiledLogicJs: result.jsCode,
+              compilationErrors: result.errors,
+              isCompiling: false,
+            }));
+          } catch (e: unknown) {
+            set(() => ({
+              compiledLogicJs: null,
+              compilationErrors: [{ message: e instanceof Error ? e.message : String(e) }],
+              isCompiling: false,
+            }));
+          }
         },
       }
     })

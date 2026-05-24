@@ -2,6 +2,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import AgreementData from "../editors/editorsContainer/AgreementData";
 import TemplateModel from "../editors/editorsContainer/TemplateModel";
 import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
+import LogicEditor from "../editors/LogicEditor";
 import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
@@ -80,28 +81,38 @@ const MainContainer = () => {
     toggleDataCollapse: state.toggleDataCollapse,
   }));
 
+  const sampleName = useAppStore((s) => s.sampleName);
+  const samples = useAppStore((s) => s.samples);
+  const editorLogicTs = useAppStore((s) => s.editorLogicTs);
+  // Show Logic Editor and Contract Runner whenever the session has logic content
+  const hasLogic = editorLogicTs.trim().length > 0 ||
+    !!(samples.find((s) => s.NAME === sampleName)?.LOGIC);
+
   const [, setLoading] = useState(true);
 
-  // Calculate dynamic panel sizes based on collapse states
-  const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
-  const expandedCount = 3 - collapsedCount;
+  // Calculate dynamic panel sizes based on visible editors and collapse states.
+  // This keeps initial editor heights equal (4 editors => 25% each, 3 editors => 33.33% each).
   const collapsedSize = 5;
-  const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
-  
+  const totalEditorPanels = hasLogic ? 4 : 3;
+  const collapsedCount = [isModelCollapsed, isDataCollapsed].filter(Boolean).length;
+  const nonCollapsedCount = totalEditorPanels - collapsedCount;
+  const expandedSize = nonCollapsedCount > 0
+    ? (100 - (collapsedCount * collapsedSize)) / nonCollapsedCount
+    : 100 / totalEditorPanels;
+
   // Create distinct preview background for better visual separation
-  const previewBackgroundColor = backgroundColor === '#ffffff' 
+  const previewBackgroundColor = backgroundColor === '#ffffff'
     ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
     : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
-  
+
   const previewHeaderColor = backgroundColor === '#ffffff'
     ? '#dbeafe'  // Slightly darker blue for header in light mode
     : '#0f172a';  // Even darker shade for header in dark mode
-  
-  // Create a key that changes when collapse state changes to force panel re-layout
+
   const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
   return (
-    <div className="main-container" style={{ backgroundColor }}>
+    <div className="main-container" style={{ backgroundColor, height: "calc(100vh - 64px)", overflow: "hidden" }}>
       <PanelGroup direction="horizontal" className="main-container-panel-group"
         style={{ position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)" }}>
         {isEditorsVisible && (
@@ -112,7 +123,6 @@ const MainContainer = () => {
                   <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-concerto-model">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        {/* Left side */}
                         <div className="main-container-editor-header-left">
                           <button
                             className="collapse-button"
@@ -131,7 +141,7 @@ const MainContainer = () => {
                           >
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
-                          <span>Concerto Model</span>
+                          <span>Data Model <span style={{fontSize: '0.8em', color: '#6b7280'}}>(Concerto)</span></span>
                           <SampleDropdown setLoading={setLoading} />
                         </div>
                       </div>
@@ -144,11 +154,11 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={20}>
+                  <Panel minSize={10} defaultSize={expandedSize}>
                     <MarkdownEditorProvider>
                       <div className="main-container-editor-section tour-template-mark">
                         <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                          <span>TemplateMark</span>
+                          <span>Template <span style={{fontSize: '0.8em', color: '#6b7280'}}>(TemplateMark)</span></span>
                           <TemplateMarkdownToolbar />
                         </div>
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
@@ -181,7 +191,7 @@ const MainContainer = () => {
                           >
                             {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
-                          <span>JSON Data</span>
+                          <span>Data <span style={{fontSize: '0.8em', color: '#6b7280'}}>(JSON)</span></span>
                         </div>
                         <button
                           onClick={handleJsonFormat}
@@ -199,6 +209,21 @@ const MainContainer = () => {
                       )}
                     </div>
                   </Panel>
+                  {hasLogic && (
+                    <>
+                      <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
+                      <Panel defaultSize={expandedSize} minSize={10}>
+                        <div className="main-container-editor-section">
+                          <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
+                            <span style={{ color: textColor }}>TypeScript Logic</span>
+                          </div>
+                          <div className="main-container-editor-content" style={{ backgroundColor }}>
+                            <LogicEditor />
+                          </div>
+                        </div>
+                      </Panel>
+                    </>
+                  )}
                   {isProblemPanelVisible && (
                     <>
                       <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
@@ -216,7 +241,7 @@ const MainContainer = () => {
         {isPreviewVisible && (
           <>
             <Panel defaultSize={37.5} minSize={20}>
-              <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
+              <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor, height: "100%" }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
                   <Button
@@ -227,23 +252,19 @@ const MainContainer = () => {
                     Download PDF
                   </Button>
                 </div>
-                <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor }}>
+                <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor, height: "calc(100% - 40px)", overflow: "auto" }}>
                   <div className="main-container-preview-text">
                     <div
                       ref={downloadRef}
                       className="main-container-agreement"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
-                      style={{
-                        color: textColor,
-                        backgroundColor: previewBackgroundColor,
-                        padding: "20px"
-                      }}
+                      style={{ color: textColor, backgroundColor: previewBackgroundColor, padding: "20px" }}
                     />
                   </div>
                 </div>
               </div>
             </Panel>
-            <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
+            {isAIChatOpen && <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />}
           </>
         )}
         {isAIChatOpen && (

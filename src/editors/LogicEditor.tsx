@@ -1,0 +1,200 @@
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useMonaco } from '@monaco-editor/react';
+import * as monacoNS from 'monaco-editor';
+import useAppStore from '../store/store';
+import { ACCORD_TYPE_STUBS, generateModelTypeStubs } from '../utils/logicTypeStubs';
+import '../styles/components/LogicEditor.css';
+
+const MonacoEditor = lazy(() =>
+  import('@monaco-editor/react').then((mod) => ({ default: mod.Editor }))
+);
+
+const DEFAULT_LOGIC_BOILERPLATE = `// Write your contract logic here.
+// TemplateLogic, IRequest, IState, IResponse are available as global types.
+
+class ContractLogic extends TemplateLogic<any> {
+
+  // Optional: initialize contract state
+  async init(data: any) {
+    return {
+      state: {
+        $identifier: 'contract-state',
+        // add your initial state fields here
+      },
+    };
+  }
+
+  // Required: execute business logic for each request
+  async trigger(data: any, request: any, state: any) {
+    return {
+      result: {
+        $class: 'org.example.Response',
+        $timestamp: new Date().toISOString(),
+        // add your response fields here
+      },
+      state: {
+        ...state,
+        // update state fields here
+      },
+    };
+  }
+}
+
+export default ContractLogic;
+`;
+
+export default function LogicEditor() {
+  const monaco = useMonaco();
+  const typeStubsRegistered = useRef(false);
+  const modelStubDisposable = useRef<monacoNS.IDisposable | null>(null);
+
+  const {
+    editorLogicTs,
+    logicTs,
+    setEditorLogicTs,
+    setLogicTs,
+    modelCto,
+    backgroundColor,
+    showLineNumbers,
+    isCompiling,
+    compilationErrors,
+    compiledLogicJs
+  } = useAppStore((s) => ({
+    editorLogicTs: s.editorLogicTs,
+    logicTs: s.logicTs,
+    setEditorLogicTs: s.setEditorLogicTs,
+    setLogicTs: s.setLogicTs,
+    modelCto: s.modelCto,
+    backgroundColor: s.backgroundColor,
+    showLineNumbers: s.showLineNumbers,
+    isCompiling: s.isCompiling,
+    compilationErrors: s.compilationErrors,
+    compiledLogicJs: s.compiledLogicJs
+  }));
+
+  const isDark = backgroundColor === '#121212';
+  const themeName = isDark ? 'darkTheme' : 'lightTheme';
+
+  // Register global Accord type stubs once Monaco is ready
+  useEffect(() => {
+    if (!monaco || typeStubsRegistered.current) return;
+    typeStubsRegistered.current = true;
+
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      ACCORD_TYPE_STUBS,
+      'accord-project-types.d.ts'
+    );
+
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.ES2020,
+      module: monaco.languages.typescript.ModuleKind.ESNext,
+      strict: false,
+      noEmit: true,
+      allowNonTsExtensions: true,
+    });
+  }, [monaco]);
+
+  // Re-generate model type stubs whenever the Concerto model changes
+  useEffect(() => {
+    if (!monaco || !modelCto) return;
+
+    void generateModelTypeStubs(modelCto).then((stubs: string) => {
+      if (!stubs) return;
+      // Dispose previous model stubs before adding new ones
+      modelStubDisposable.current?.dispose();
+      modelStubDisposable.current =
+        monaco.languages.typescript.typescriptDefaults.addExtraLib(
+          stubs,
+          'generated-model-types.d.ts'
+        );
+    });
+  }, [monaco, modelCto]);
+
+  const editorOptions: monacoNS.editor.IStandaloneEditorConstructionOptions = useMemo(
+    () => ({
+      minimap: { enabled: false },
+      wordWrap: 'on' as const,
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
+      lineNumbers: showLineNumbers ? ('on' as const) : ('off' as const),
+      bracketPairColorization: { enabled: true },
+      autoClosingBrackets: 'languageDefined' as const,
+      quickSuggestions: { other: true, comments: false, strings: false },
+      suggestOnTriggerCharacters: true,
+    }),
+    [showLineNumbers]
+  );
+
+  const handleChange = useCallback(
+    (value: string | undefined) => {
+      setEditorLogicTs(value ?? '');
+    },
+    [setEditorLogicTs]
+  );
+
+  const handleApply = useCallback(() => {
+    void setLogicTs(editorLogicTs || DEFAULT_LOGIC_BOILERPLATE);
+  }, [setLogicTs, editorLogicTs]);
+
+  
+
+  // Has the editor content diverged from committed logic?
+  const isDirty = editorLogicTs !== logicTs;
+  const hasErrors = compilationErrors && compilationErrors.length > 0;
+
+  return (
+    <div className="logic-editor-root">
+      <div className="logic-editor-toolbar">
+        <span className="logic-editor-status">
+          {isDirty ? (
+            <span style={{ color: '#f59e0b' }}>Unsaved changes</span>
+          ) : isCompiling ? (
+            <span style={{ color: '#3b82f6' }}>Compiling...</span>
+          ) : hasErrors ? (
+            <span style={{ color: '#ef4444' }}>❌ Compilation Failed</span>
+          ) : compiledLogicJs ? (
+            <span style={{ color: '#22c55e' }}>✅ Compiled Successfully</span>
+          ) : logicTs ? (
+            <span style={{ color: '#6b7280' }}>Not compiled yet</span>
+          ) : (
+            <span style={{ color: '#6b7280' }}>Nothing to compile</span>
+          )}
+        </span>
+        <button
+          className={`logic-editor-apply-btn${isDirty ? ' logic-editor-apply-btn--dirty' : ''}`}
+          onClick={handleApply}
+          title="Save and compile logic (Ctrl+Enter)"
+          disabled={isCompiling}
+        >
+          {isCompiling ? 'Compiling...' : isDirty ? 'Apply & Compile*' : 'Apply & Compile'}
+        </button>
+      </div>
+
+      <div className="logic-editor-monaco-wrapper">
+        <Suspense fallback={<div className="logic-editor-loading">Loading editor...</div>}>
+          <MonacoEditor
+            language="typescript"
+            height="100%"
+            value={editorLogicTs || DEFAULT_LOGIC_BOILERPLATE}
+            theme={themeName}
+            options={editorOptions}
+            onChange={handleChange}
+          />
+        </Suspense>
+      </div>
+      
+      {hasErrors && (
+        <div className="logic-editor-errors" style={{ padding: '8px', backgroundColor: '#fee2e2', color: '#991b1b', fontSize: '12px', overflowY: 'auto', maxHeight: '150px', borderTop: '1px solid #fca5a5' }}>
+          <strong>Compilation Errors:</strong>
+          <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px' }}>
+            {compilationErrors.map((err, idx) => (
+              <li key={idx}>
+                {err.line ? `[Line ${err.line}] ` : ''}{err.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
