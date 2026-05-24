@@ -84,7 +84,7 @@ function SampleDropdown({
   return (
     <Space>
       <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={["click"]}>
-        <div className="samples-element">
+        <div>
           <Button aria-label="Load sample dropdown">
             {selectedSample ? selectedSample : "Load Sample"} <DownOutlined />
           </Button>
