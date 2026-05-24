@@ -85,8 +85,10 @@ export default function LogicEditor() {
   useEffect(() => {
     if (!monaco || !modelCto) return;
 
+    let cancelled = false;
+
     void generateModelTypeStubs(modelCto).then((stubs: string) => {
-      if (!stubs) return;
+      if (cancelled || !stubs) return;
       // Dispose previous model stubs before adding new ones
       modelStubDisposable.current?.dispose();
       modelStubDisposable.current =
@@ -95,6 +97,12 @@ export default function LogicEditor() {
           'generated-model-types.d.ts'
         );
     });
+
+    return () => {
+      cancelled = true;
+      modelStubDisposable.current?.dispose();
+      modelStubDisposable.current = null;
+    };
   }, [monaco, modelCto]);
 
   const editorOptions: monacoNS.editor.IStandaloneEditorConstructionOptions = useMemo(
@@ -123,7 +131,7 @@ export default function LogicEditor() {
     void setLogicTs(editorLogicTs || DEFAULT_LOGIC_BOILERPLATE);
   }, [setLogicTs, editorLogicTs]);
 
-  
+
 
   // Has the editor content diverged from committed logic?
   const isDirty = editorLogicTs !== logicTs;
@@ -150,7 +158,7 @@ export default function LogicEditor() {
         <button
           className={`logic-editor-apply-btn${isDirty ? ' logic-editor-apply-btn--dirty' : ''}`}
           onClick={handleApply}
-          title="Save and compile logic (Ctrl+Enter)"
+          title="Save and compile logic"
           disabled={isCompiling}
         >
           {isCompiling ? 'Compiling...' : isDirty ? 'Apply & Compile*' : 'Apply & Compile'}
@@ -169,7 +177,7 @@ export default function LogicEditor() {
           />
         </Suspense>
       </div>
-      
+
       {hasErrors && (
         <div className="logic-editor-errors" style={{ padding: '8px', backgroundColor: '#fee2e2', color: '#991b1b', fontSize: '12px', overflowY: 'auto', maxHeight: '150px', borderTop: '1px solid #fca5a5' }}>
           <strong>Compilation Errors:</strong>
