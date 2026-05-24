@@ -128,8 +128,12 @@ export default function LogicEditor() {
   );
 
   const handleApply = useCallback(() => {
-    void setLogicTs(editorLogicTs || DEFAULT_LOGIC_BOILERPLATE);
-  }, [setLogicTs, editorLogicTs]);
+    const nextSource = 
+      editorLogicTs.trim() === '' && logicTs.trim() === ''
+        ? DEFAULT_LOGIC_BOILERPLATE
+        : editorLogicTs;
+    void setLogicTs(nextSource);
+  }, [setLogicTs, editorLogicTs, logicTs]);
 
 
 

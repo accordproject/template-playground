@@ -412,6 +412,11 @@ const useAppStore = create<AppState>()(
               editorAgreementData: data,
               agreementHtml,
               error: undefined,
+              logicTs: '',
+              editorLogicTs: '',
+              compiledLogicJs: null,
+              compilationErrors: [],
+              isCompiling: false,
             }));
             await get().rebuild();
           } catch (error) {

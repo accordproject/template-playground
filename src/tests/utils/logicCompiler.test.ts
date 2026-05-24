@@ -18,7 +18,9 @@ export default DemoLogic;
     
     // The compiler outputs a Data URI, so we must extract and decode the base64 part
     const base64Data = result.jsCode!.split(',')[1];
-    const decodedJs = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const binary = atob(base64Data);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    const decodedJs = new TextDecoder().decode(bytes);
 
     expect(decodedJs).toContain('class TemplateLogic');
     expect(decodedJs).toContain('class DemoLogic extends TemplateLogic');
