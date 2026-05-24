@@ -17,7 +17,7 @@ export default DemoLogic;
     expect(result.hasError).toBe(false);
     
     // The compiler outputs a Data URI, so we must extract and decode the base64 part
-    const base64Data = result.jsCode.split(',')[1];
+    const base64Data = result.jsCode!.split(',')[1];
     const decodedJs = Buffer.from(base64Data, 'base64').toString('utf-8');
 
     expect(decodedJs).toContain('class TemplateLogic');
