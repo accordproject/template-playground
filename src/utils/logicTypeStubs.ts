@@ -87,15 +87,18 @@ export async function generateModelTypeStubs(modelCto: string): Promise<string> 
       return ''; // package structure mismatch — degrade gracefully
     }
 
-    const modelManager = new ModelManager({ strict: true });
-    modelManager.addCTOModel(modelCto, undefined, true);
+    // @ts-expect-error `offline` is supported at runtime but not yet in published typings
+    const modelManager = new ModelManager({ strict: true, offline: true });
 
-    // Fetch external model dependencies (e.g. org.accordproject.contract)
+    // Load bundled standard models so common URL imports resolve without network access
     try {
-      await modelManager.updateExternalModels();
+      const { loadBundledModels } = await import('./modelCache');
+      loadBundledModels(modelManager);
     } catch {
-      // Offline or failed fetch — proceed without external models
+      // ignore - stubs will be generated only from the local model
     }
+
+    modelManager.addCTOModel(modelCto, undefined, true);
 
     // Accumulate generated TypeScript into a string
     let result = '';

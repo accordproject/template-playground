@@ -490,12 +490,16 @@ const useAppStore = create<AppState>()(
             return;
           }
 
-          set(() => ({ isCompiling: true }));
+          set(() => ({ 
+            isCompiling: true,
+            compiledLogicJs: null,
+            compilationErrors: [],
+          }));
 
           try {
             const result = await compileLogicTs(logicTs);
             set(() => ({
-              compiledLogicJs: result.jsCode,
+              compiledLogicJs: result.hasError ? null : result.jsCode,
               compilationErrors: result.errors,
               isCompiling: false,
             }));

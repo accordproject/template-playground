@@ -90,9 +90,10 @@ const MainContainer = () => {
   const isLogicFeatureEnabled = useAppStore((s) => s.isLogicFeatureEnabled);
   
   // Select the boolean directly to prevent MainContainer from re-rendering on every keystroke
-  const hasLogicContent = useAppStore((s) => 
-    s.editorLogicTs.trim().length > 0 || !!(s.samples.find((sample) => sample.NAME === s.sampleName)?.LOGIC)
-  );
+  const hasLogicContent = useAppStore((s) => {
+    const sampleHasLogic = !!s.samples.find((sample) => sample.NAME === s.sampleName)?.LOGIC;
+    return sampleHasLogic || s.logicTs.trim().length > 0 || s.editorLogicTs.trim().length > 0;
+  });
   
   // Show Logic Editor only if the feature flag is enabled AND there is logic content
   const hasLogic = isLogicFeatureEnabled && hasLogicContent;

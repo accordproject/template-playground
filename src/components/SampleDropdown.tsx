@@ -10,7 +10,7 @@ function SampleDropdown({
 }: {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element {
-  const { samples, loadSample, sampleName, editorValue, editorModelCto, editorAgreementData } =
+  const { samples, loadSample, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs, isLogicFeatureEnabled } =
     useStoreWithEqualityFn(
       useAppStore,
       (state) => ({
@@ -20,6 +20,8 @@ function SampleDropdown({
         editorValue: state.editorValue,
         editorModelCto: state.editorModelCto,
         editorAgreementData: state.editorAgreementData,
+        editorLogicTs: state.editorLogicTs,
+        isLogicFeatureEnabled: state.isLogicFeatureEnabled,
       }),
       shallow
     );
@@ -59,14 +61,15 @@ function SampleDropdown({
           !currentSample ||
           editorValue !== currentSample.TEMPLATE ||
           editorModelCto !== currentSample.MODEL ||
-          editorAgreementData !== JSON.stringify(currentSample.DATA, null, 2);
+          editorAgreementData !== JSON.stringify(currentSample.DATA, null, 2) ||
+          (isLogicFeatureEnabled && editorLogicTs !== (currentSample.LOGIC ?? ''));
 
         if (hasUnsavedChanges) {
           Modal.confirm({
             title: "Load Sample Template",
             icon: <ExclamationCircleOutlined />,
             content:
-              "Loading a new sample will replace your current Concerto Model, TemplateMark, and JSON Data. Any unsaved changes will be lost. Do you want to continue?",
+              "Loading a new sample will replace your current Concerto Model, TemplateMark, JSON Data, and Logic. Any unsaved changes will be lost. Do you want to continue?",
             okText: "Continue",
             cancelText: "Cancel",
             maskClosable: true,
@@ -77,7 +80,7 @@ function SampleDropdown({
         }
       }
     },
-    [performLoadSample, samples, sampleName, editorValue, editorModelCto, editorAgreementData]
+    [performLoadSample, samples, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs, isLogicFeatureEnabled]
   );
 
 
