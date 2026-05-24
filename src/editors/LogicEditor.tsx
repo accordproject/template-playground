@@ -170,7 +170,7 @@ export default function LogicEditor() {
           <MonacoEditor
             language="typescript"
             height="100%"
-            value={editorLogicTs || DEFAULT_LOGIC_BOILERPLATE}
+            value={editorLogicTs}
             theme={themeName}
             options={editorOptions}
             onChange={handleChange}
