@@ -91,7 +91,13 @@ export async function compileLogicTs(tsSource: string): Promise<CompileResult> {
 
     if (transpiled) {
       const fullCode = `${RUNTIME_SHIM}\n${transpiled}`;
-      const encoded = btoa(unescape(encodeURIComponent(fullCode)));
+      const bytes = new TextEncoder().encode(fullCode);
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      const encoded = btoa(binary);
       jsCode = `data:text/javascript;base64,${encoded}`;
     }
 
