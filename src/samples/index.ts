@@ -29,7 +29,7 @@ export type Sample = {
 
 export const SAMPLES: Array<Sample> = [
   playground,
-  counterLogic,   // Logic sample — listed first to showcase the new feature
+  counterLogic,   // Logic sample — listed near the top to showcase the new feature
   helloworld,
   employmentOffer,
   formula,

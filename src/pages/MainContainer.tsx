@@ -7,7 +7,6 @@ import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
 import ConcertoFormatButton from "../components/ConcertoFormatButton";
-import SampleDropdown from "../components/SampleDropdown";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
@@ -98,8 +97,6 @@ const MainContainer = () => {
   // Show Logic Editor only if the feature flag is enabled AND there is logic content
   const hasLogic = isLogicFeatureEnabled && hasLogicContent;
 
-  const [, setLoading] = useState(true);
-
   // Calculate dynamic panel sizes based on visible editors and collapse states.
   // This keeps initial editor heights equal (4 editors => 25% each, 3 editors => 33.33% each).
   const collapsedSize = 5;
@@ -154,7 +151,6 @@ const MainContainer = () => {
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
                           <span>Data Model <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(Concerto)</span></span>
-                          <SampleDropdown setLoading={setLoading} />
                         </div>
                         <ConcertoFormatButton disabled={isModelCollapsed} />
                       </div>
