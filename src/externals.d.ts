@@ -14,3 +14,44 @@
 declare module '@accordproject/markdown-common'
 declare module '@accordproject/markdown-template'
 declare module '@accordproject/markdown-transform'
+
+declare module 'vc-signer' {
+  export function verifyCredential(
+    credential: object,
+    options?: {
+      expectedSubject?: Record<string, unknown>;
+      fetcher?: (url: string) => Promise<Response>;
+    },
+  ): Promise<{
+    verified: true;
+    issuer: string;
+    verificationMethodId: string;
+    subject: Record<string, unknown>;
+  }>;
+
+  export function signCredential(opts: {
+    type: string[];
+    context?: string[];
+    id?: string;
+    subject: object | object[];
+    validFrom?: string;
+    validUntil?: string;
+    proofPurpose?: string;
+    signer: {
+      keyInfo: { algo: string; privateJwk: object; publicJwk: object; keyObject?: unknown };
+      issuerDid?: string;
+      verificationMethodId?: string;
+    };
+  }): Promise<Record<string, unknown>>;
+
+  export function deriveDidKey(publicJwk: object): {
+    did: string;
+    verificationMethodId: string;
+  };
+
+  export function resolveIssuerKey(
+    issuerDid: string,
+    verificationMethodId: string,
+    options?: { fetcher?: (url: string) => Promise<Response> },
+  ): Promise<{ publicJwk: object; algo: string }>;
+}

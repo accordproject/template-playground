@@ -277,7 +277,14 @@ function Navbar() {
         {samples?.map((s) => (
           <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
             <FileTextOutlined />
-            <span>{s.NAME}</span>
+            <span>
+              {s.NAME}
+              {s.isVerified && (
+                <span style={{ marginLeft: 6, fontSize: 11, color: "#52c41a" }}>
+                  verified
+                </span>
+              )}
+            </span>
           </MenuItem>
         ))}
       </MenuItemGroup>
@@ -331,7 +338,14 @@ function Navbar() {
         {samples?.map((s) => (
           <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
             <FileTextOutlined />
-            <span>{s.NAME}</span>
+            <span>
+              {s.NAME}
+              {s.isVerified && (
+                <span style={{ marginLeft: 6, fontSize: 11, color: "#52c41a" }}>
+                  verified
+                </span>
+              )}
+            </span>
           </MenuItem>
         ))}
       </MenuItemGroup>

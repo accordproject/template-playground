@@ -31,6 +31,7 @@
     "@monaco-editor/react": "^4.6.0",
     "@types/styled-components": "^5.1.34",
     "antd": "^5.7.2",
+    "canonicalize": "^3.0.0",
     "core-js": "^3.37.1",
     "dompurify": "^3.4.1",
     "highlight.js": "^11.10.0",
@@ -62,6 +63,7 @@
     "ts-debounce": "^4.0.0",
     "use-debounce": "^10.1.0",
     "uuid": "^11.1.0",
+    "vc-signer": "0.1.2",
     "zustand": "^4.3.9"
   },
   "devDependencies": {
