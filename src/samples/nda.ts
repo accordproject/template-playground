@@ -37,5 +37,33 @@ const DATA = {
   "durationInMonths": 24
 };
 const NAME = 'Non-Disclosure Agreement';
+// --- BEGIN VC-SIGNED BLOCK (generated) ---
+const HASH = 'bc26e7a2a7a4a4641ffa1d8c9948807e544c7ffb5fce5775e822398fabd5cc2e';
+const VC = {
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://w3id.org/security/data-integrity/v2"
+  ],
+  "type": [
+    "VerifiableCredential",
+    "TemplateAuthorshipCredential"
+  ],
+  "issuer": "did:key:z6MkhgEjPbjK8pCFRHQuvqy9MDg1vJzn47ZUyfpakZtZSVjW",
+  "validFrom": "2026-05-28T14:34:56.420Z",
+  "credentialSubject": {
+    "id": "ap-template:non-disclosure-agreement",
+    "templateHash": "bc26e7a2a7a4a4641ffa1d8c9948807e544c7ffb5fce5775e822398fabd5cc2e",
+    "templateName": "Non-Disclosure Agreement"
+  },
+  "proof": {
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
+    "created": "2026-05-28T14:34:56.420Z",
+    "verificationMethod": "did:key:z6MkhgEjPbjK8pCFRHQuvqy9MDg1vJzn47ZUyfpakZtZSVjW#z6MkhgEjPbjK8pCFRHQuvqy9MDg1vJzn47ZUyfpakZtZSVjW",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "z46oXnu2PcDgNUTJ6iYEJGhbndiZcHAfBcUR6DH86kV1roWGaqFyC9STkuU5wEvEk1twWBwEEQ9mPgp679Bxpi61R"
+  }
+};
 
-export { NAME, MODEL, DATA, TEMPLATE };
+export { NAME, MODEL, DATA, TEMPLATE, HASH, VC };
+// --- END VC-SIGNED BLOCK (generated) ---

@@ -6,7 +6,7 @@ import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
-import { SAMPLES, Sample } from "../samples";
+import { loadSamples, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
@@ -92,6 +92,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // rather than triggering a network fetch.
   loadBundledModels(modelManager);
   modelManager.addCTOModel(model, undefined, true);
+  // @ts-ignore
   const engine = new TemplateMarkInterpreter(modelManager, {});
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
@@ -191,7 +192,7 @@ const useAppStore = create<AppState>()(
         agreementHtml: "",
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
-        samples: SAMPLES,
+        samples: [],
         chatState: {
           messages: [],
           isLoading: false,
@@ -239,6 +240,8 @@ const useAppStore = create<AppState>()(
           savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
         },
         init: async () => {
+          const samples = await loadSamples();
+          set({ samples });
           const params = new URLSearchParams(window.location.search);
           const compressedData = params.get("data");
           if (compressedData) {
@@ -248,7 +251,7 @@ const useAppStore = create<AppState>()(
           }
         },
         loadSample: async (name: string) => {
-          const sample = SAMPLES.find((s) => s.NAME === name);
+          const sample = get().samples.find((s) => s.NAME === name);
           if (sample) {
             set(() => ({
               sampleName: sample.NAME,

@@ -73,5 +73,33 @@ const DATA = {
   }
 };
 const NAME = 'Employment Offer Letter';
+// --- BEGIN VC-SIGNED BLOCK (generated) ---
+const HASH = '9a2da34bfca2bb6d9339e1af31c98f0d08a78dd4bcb29d365d06831e77acdfd5';
+const VC = {
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://w3id.org/security/data-integrity/v2"
+  ],
+  "type": [
+    "VerifiableCredential",
+    "TemplateAuthorshipCredential"
+  ],
+  "issuer": "did:key:z6MkhgEjPbjK8pCFRHQuvqy9MDg1vJzn47ZUyfpakZtZSVjW",
+  "validFrom": "2026-05-28T14:34:56.406Z",
+  "credentialSubject": {
+    "id": "ap-template:employment-offer-letter",
+    "templateHash": "9a2da34bfca2bb6d9339e1af31c98f0d08a78dd4bcb29d365d06831e77acdfd5",
+    "templateName": "Employment Offer Letter"
+  },
+  "proof": {
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
+    "created": "2026-05-28T14:34:56.406Z",
+    "verificationMethod": "did:key:z6MkhgEjPbjK8pCFRHQuvqy9MDg1vJzn47ZUyfpakZtZSVjW#z6MkhgEjPbjK8pCFRHQuvqy9MDg1vJzn47ZUyfpakZtZSVjW",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "z3XkViBmdvdDjwvA7s5vKxp1RMXXxMkVqMuymhjzk2RDCUBT66LiBjPnDctaRXVgEczYnsmsptjDimXfetT2hdWrP"
+  }
+};
 
-export { NAME, MODEL, DATA, TEMPLATE };
+export { NAME, MODEL, DATA, TEMPLATE, HASH, VC };
+// --- END VC-SIGNED BLOCK (generated) ---
