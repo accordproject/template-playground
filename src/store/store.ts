@@ -92,6 +92,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // rather than triggering a network fetch.
   loadBundledModels(modelManager);
   modelManager.addCTOModel(model, undefined, true);
+  // @ts-ignore
   const engine = new TemplateMarkInterpreter(modelManager, {});
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
