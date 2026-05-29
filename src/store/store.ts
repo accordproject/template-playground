@@ -9,7 +9,7 @@ import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
-import { compileLogicTs } from '../utils/logicCompiler';
+// Import removed: compileLogicTs is now a no-op
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { validateBeforeRebuild } from "../utils/validators";
 import { loadBundledModels } from "../utils/modelCache";
@@ -485,36 +485,13 @@ const useAppStore = create<AppState>()(
         },
 
         compileLogic: async () => {
-          const { logicTs } = get();
-          if (!logicTs.trim()) {
-            set(() => ({
-              compiledLogicJs: null,
-              compilationErrors: [],
-              isCompiling: false,
-            }));
-            return;
-          }
-
-          set(() => ({ 
-            isCompiling: true,
+          // NO-OP stub operation: Parallel compilation path is disabled.
+          // This will be handled by the template-engine in the future.
+          set(() => ({
             compiledLogicJs: null,
             compilationErrors: [],
+            isCompiling: false,
           }));
-
-          try {
-            const result = await compileLogicTs(logicTs);
-            set(() => ({
-              compiledLogicJs: result.hasError ? null : result.jsCode,
-              compilationErrors: result.errors,
-              isCompiling: false,
-            }));
-          } catch (e: unknown) {
-            set(() => ({
-              compiledLogicJs: null,
-              compilationErrors: [{ message: e instanceof Error ? e.message : String(e) }],
-              isCompiling: false,
-            }));
-          }
         },
       }
     })
