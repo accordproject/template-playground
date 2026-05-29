@@ -72,3 +72,24 @@
   font-size: 13px;
   opacity: 0.5;
 }
+
+.logic-editor-status-unsaved { color: #f59e0b; }
+.logic-editor-status-compiling { color: #3b82f6; }
+.logic-editor-status-error { color: #ef4444; }
+.logic-editor-status-success { color: #22c55e; }
+.logic-editor-status-pending { color: #6b7280; }
+
+.logic-editor-errors {
+  padding: 8px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-size: 12px;
+  overflow-y: auto;
+  max-height: 150px;
+  border-top: 1px solid #fca5a5;
+}
+
+.logic-editor-errors ul {
+  margin: 4px 0 0 0;
+  padding-left: 20px;
+}

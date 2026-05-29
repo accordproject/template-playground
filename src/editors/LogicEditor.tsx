@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useMonaco } from '@monaco-editor/react';
 import * as monacoNS from 'monaco-editor';
 import useAppStore from '../store/store';
+import useThemeName from '../hooks/useThemeName';
 import { ACCORD_TYPE_STUBS, generateModelTypeStubs } from '../utils/logicTypeStubs';
 import '../styles/components/LogicEditor.css';
 
@@ -53,14 +54,12 @@ export default function LogicEditor() {
   const setEditorLogicTs = useAppStore((s) => s.setEditorLogicTs);
   const setLogicTs = useAppStore((s) => s.setLogicTs);
   const modelCto = useAppStore((s) => s.modelCto);
-  const backgroundColor = useAppStore((s) => s.backgroundColor);
   const showLineNumbers = useAppStore((s) => s.showLineNumbers);
   const isCompiling = useAppStore((s) => s.isCompiling);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
 
-  const isDark = backgroundColor === '#121212';
-  const themeName = isDark ? 'darkTheme' : 'lightTheme';
+  const themeName = useThemeName();
 
   // Register global Accord type stubs once Monaco is ready
   useEffect(() => {
@@ -141,23 +140,20 @@ export default function LogicEditor() {
   const isDirty = editorLogicTs !== logicTs;
   const hasErrors = compilationErrors && compilationErrors.length > 0;
 
+  const renderStatus = () => {
+    if (isDirty) return <span className="logic-editor-status-unsaved">Unsaved changes</span>;
+    if (isCompiling) return <span className="logic-editor-status-compiling">Compiling...</span>;
+    if (hasErrors) return <span className="logic-editor-status-error">❌ Compilation Failed</span>;
+    if (compiledLogicJs) return <span className="logic-editor-status-success">✅ Compiled Successfully</span>;
+    if (logicTs) return <span className="logic-editor-status-pending">Not compiled yet</span>;
+    return <span className="logic-editor-status-pending">Nothing to compile</span>;
+  };
+
   return (
     <div className="logic-editor-root">
       <div className="logic-editor-toolbar">
         <span className="logic-editor-status">
-          {isDirty ? (
-            <span style={{ color: '#f59e0b' }}>Unsaved changes</span>
-          ) : isCompiling ? (
-            <span style={{ color: '#3b82f6' }}>Compiling...</span>
-          ) : hasErrors ? (
-            <span style={{ color: '#ef4444' }}>❌ Compilation Failed</span>
-          ) : compiledLogicJs ? (
-            <span style={{ color: '#22c55e' }}>✅ Compiled Successfully</span>
-          ) : logicTs ? (
-            <span style={{ color: '#6b7280' }}>Not compiled yet</span>
-          ) : (
-            <span style={{ color: '#6b7280' }}>Nothing to compile</span>
-          )}
+          {renderStatus()}
         </span>
         <button
           className={`logic-editor-apply-btn${isDirty ? ' logic-editor-apply-btn--dirty' : ''}`}
@@ -183,9 +179,9 @@ export default function LogicEditor() {
       </div>
 
       {hasErrors && (
-        <div className="logic-editor-errors" style={{ padding: '8px', backgroundColor: '#fee2e2', color: '#991b1b', fontSize: '12px', overflowY: 'auto', maxHeight: '150px', borderTop: '1px solid #fca5a5' }}>
+        <div className="logic-editor-errors">
           <strong>Compilation Errors:</strong>
-          <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px' }}>
+          <ul>
             {compilationErrors.map((err, idx) => (
               <li key={idx}>
                 {err.line ? `[Line ${err.line}] ` : ''}{err.message}
