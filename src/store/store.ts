@@ -249,8 +249,16 @@ const useAppStore = create<AppState>()(
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
-        isLogicFeatureEnabled: false,
-        setLogicFeatureEnabled: (value: boolean) => set({ isLogicFeatureEnabled: value }),
+        isLogicFeatureEnabled:
+          typeof window !== 'undefined'
+            ? localStorage.getItem('isLogicFeatureEnabled') === 'true'
+            : false,
+        setLogicFeatureEnabled: (value: boolean) => {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('isLogicFeatureEnabled', String(value));
+          }
+          set({ isLogicFeatureEnabled: value });
+        },
         // ── Logic initial state ────────────────────────────────────────────
         logicTs: '',
         editorLogicTs: '',

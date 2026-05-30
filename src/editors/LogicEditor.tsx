@@ -3,7 +3,6 @@ import { useMonaco } from '@monaco-editor/react';
 import * as monacoNS from 'monaco-editor';
 import useAppStore from '../store/store';
 import useThemeName from '../hooks/useThemeName';
-import { ACCORD_TYPE_STUBS, generateModelTypeStubs } from '../utils/logicTypeStubs';
 import '../styles/components/LogicEditor.css';
 
 const MonacoEditor = lazy(() =>
@@ -46,8 +45,7 @@ export default ContractLogic;
 
 export default function LogicEditor() {
   const monaco = useMonaco();
-  const typeStubsRegistered = useRef(false);
-  const modelStubDisposable = useRef<monacoNS.IDisposable | null>(null);
+  const compilerConfigured = useRef(false);
 
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
   const logicTs = useAppStore((s) => s.logicTs);
@@ -61,15 +59,10 @@ export default function LogicEditor() {
 
   const themeName = useThemeName();
 
-  // Register global Accord type stubs once Monaco is ready
+  // Configure TS compiler options once Monaco is ready
   useEffect(() => {
-    if (!monaco || typeStubsRegistered.current) return;
-    typeStubsRegistered.current = true;
-
-    monaco.languages.typescript.typescriptDefaults.addExtraLib(
-      ACCORD_TYPE_STUBS,
-      'accord-project-types.d.ts'
-    );
+    if (!monaco || compilerConfigured.current) return;
+    compilerConfigured.current = true;
 
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       target: monaco.languages.typescript.ScriptTarget.ES2020,
@@ -79,30 +72,6 @@ export default function LogicEditor() {
       allowNonTsExtensions: true,
     });
   }, [monaco]);
-
-  // Re-generate model type stubs whenever the Concerto model changes
-  useEffect(() => {
-    if (!monaco || !modelCto) return;
-
-    let cancelled = false;
-
-    void generateModelTypeStubs(modelCto).then((stubs: string) => {
-      if (cancelled || !stubs) return;
-      // Dispose previous model stubs before adding new ones
-      modelStubDisposable.current?.dispose();
-      modelStubDisposable.current =
-        monaco.languages.typescript.typescriptDefaults.addExtraLib(
-          stubs,
-          'generated-model-types.d.ts'
-        );
-    });
-
-    return () => {
-      cancelled = true;
-      modelStubDisposable.current?.dispose();
-      modelStubDisposable.current = null;
-    };
-  }, [monaco, modelCto]);
 
   const editorOptions: monacoNS.editor.IStandaloneEditorConstructionOptions = useMemo(
     () => ({
