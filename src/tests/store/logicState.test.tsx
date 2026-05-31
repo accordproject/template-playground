@@ -39,7 +39,7 @@ describe('useAppStore - Logic State', () => {
       
       expect(useAppStore.getState().isLogicVisible).toBe(true);
       // Ensure the panel state object is saved to local storage
-      expect(localStorage.getItem('playgroundPanelState')).toContain('"isLogicVisible":true');
+      expect(localStorage.getItem('ui-panels')).toContain('"isLogicVisible":true');
     });
   });
 
