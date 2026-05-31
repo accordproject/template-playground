@@ -51,7 +51,6 @@ export default function LogicEditor() {
   const logicTs = useAppStore((s) => s.logicTs);
   const setEditorLogicTs = useAppStore((s) => s.setEditorLogicTs);
   const setLogicTs = useAppStore((s) => s.setLogicTs);
-  const modelCto = useAppStore((s) => s.modelCto);
   const showLineNumbers = useAppStore((s) => s.showLineNumbers);
   const isCompiling = useAppStore((s) => s.isCompiling);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
