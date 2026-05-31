@@ -84,6 +84,7 @@ export default function LogicEditor() {
       autoClosingBrackets: 'languageDefined' as const,
       quickSuggestions: { other: true, comments: false, strings: false },
       suggestOnTriggerCharacters: true,
+      fixedOverflowWidgets: true,
     }),
     [showLineNumbers]
   );

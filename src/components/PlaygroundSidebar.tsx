@@ -1,7 +1,7 @@
 import React from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiCpu } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
@@ -16,10 +16,13 @@ const PlaygroundSidebar = () => {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
+    isLogicVisible,
+    isLogicFeatureEnabled,
     isAIChatOpen,
     setEditorsVisible,
     setPreviewVisible,
     setProblemPanelVisible,
+    setLogicVisible,
     setAIChatOpen,
     generateShareableLink,
     setSettingsOpen,
@@ -27,14 +30,22 @@ const PlaygroundSidebar = () => {
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
+    isLogicVisible: state.isLogicVisible,
+    isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     isAIChatOpen: state.isAIChatOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
+    setLogicVisible: state.setLogicVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
   }));
+
+  const hasLogicContent = useAppStore((s) => {
+    const sampleHasLogic = !!s.samples.find((sample) => sample.NAME === s.sampleName)?.LOGIC;
+    return sampleHasLogic || s.logicTs.trim().length > 0 || s.editorLogicTs.trim().length > 0;
+  });
 
   const handleShare = async () => {
     try {
@@ -91,6 +102,12 @@ const PlaygroundSidebar = () => {
       onClick: handleEditorToggle,
       active: isEditorsVisible
     },
+    ...(isLogicFeatureEnabled && hasLogicContent ? [{
+      title: "Logic", 
+      icon: FiCpu,
+      onClick: () => setLogicVisible(!isLogicVisible),
+      active: isLogicVisible
+    }] : []),
     { 
       title: "Preview", 
       icon: VscOutput,

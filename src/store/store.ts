@@ -80,16 +80,26 @@ interface AppState {
   isEditorsVisible: boolean;
   isPreviewVisible: boolean;
   isProblemPanelVisible: boolean;
+  isLogicVisible: boolean;
   setEditorsVisible: (value: boolean) => void;
   setPreviewVisible: (value: boolean) => void;
+  setLogicVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
   startTour: () => void;
   isModelCollapsed: boolean;
   isTemplateCollapsed: boolean;
   isDataCollapsed: boolean;
+  isLogicTsCollapsed: boolean;
+  isRequestCollapsed: boolean;
+  isResponseCollapsed: boolean;
+  isStateCollapsed: boolean;
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
+  toggleLogicTsCollapse: () => void;
+  toggleRequestCollapse: () => void;
+  toggleResponseCollapse: () => void;
+  toggleStateCollapse: () => void;
   showLineNumbers: boolean;
   setShowLineNumbers: (value: boolean) => void;
   isSettingsOpen: boolean;
@@ -177,6 +187,7 @@ const getInitialPanelState = () => {
     isEditorsVisible: true,
     isPreviewVisible: true,
     isProblemPanelVisible: false,
+    isLogicVisible: false,
     isAIChatOpen: false,
   };
   if (typeof window !== 'undefined') {
@@ -195,6 +206,7 @@ const savePanelState = (state: Partial<AppState>) => {
       isEditorsVisible: state.isEditorsVisible,
       isPreviewVisible: state.isPreviewVisible,
       isProblemPanelVisible: state.isProblemPanelVisible,
+      isLogicVisible: state.isLogicVisible,
       isAIChatOpen: state.isAIChatOpen,
     };
     localStorage.setItem('ui-panels', JSON.stringify(panels));
@@ -243,9 +255,14 @@ const useAppStore = create<AppState>()(
         isEditorsVisible: initialPanels.isEditorsVisible,
         isPreviewVisible: initialPanels.isPreviewVisible,
         isProblemPanelVisible: initialPanels.isProblemPanelVisible,
+        isLogicVisible: initialPanels.isLogicVisible,
         isModelCollapsed: false,
         isTemplateCollapsed: false,
         isDataCollapsed: false,
+        isLogicTsCollapsed: false,
+        isRequestCollapsed: false,
+        isResponseCollapsed: false,
+        isStateCollapsed: false,
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
@@ -270,6 +287,10 @@ const useAppStore = create<AppState>()(
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
         toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () => set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
+        toggleLogicTsCollapse: () => set((state) => ({ isLogicTsCollapsed: !state.isLogicTsCollapsed })),
+        toggleRequestCollapse: () => set((state) => ({ isRequestCollapsed: !state.isRequestCollapsed })),
+        toggleResponseCollapse: () => set((state) => ({ isResponseCollapsed: !state.isResponseCollapsed })),
+        toggleStateCollapse: () => set((state) => ({ isStateCollapsed: !state.isStateCollapsed })),
         setShowLineNumbers: (value: boolean) => {
           if (typeof window !== 'undefined') {
             localStorage.setItem('showLineNumbers', String(value));
@@ -296,6 +317,10 @@ const useAppStore = create<AppState>()(
         setProblemPanelVisible: (value) => {
           set({ isProblemPanelVisible: value });
           savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
+        },
+        setLogicVisible: (value) => {
+          set({ isLogicVisible: value });
+          savePanelState({ ...get(), isLogicVisible: value }); // Save change
         },
         init: async () => {
           const params = new URLSearchParams(window.location.search);
