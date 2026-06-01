@@ -67,6 +67,7 @@ export default function LogicEditor() {
       target: monaco.languages.typescript.ScriptTarget.ES2020,
       module: monaco.languages.typescript.ModuleKind.ESNext,
       strict: false,
+      strictNullChecks: true,
       noEmit: true,
       allowNonTsExtensions: true,
     });
