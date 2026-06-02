@@ -13,7 +13,7 @@ describe('useAppStore - Logic State', () => {
       compiledLogicJs: null,
       compilationErrors: [],
       isCompiling: false,
-      isLogicVisible: false,
+      isLogicPanelVisible: false,
     });
   });
 
@@ -32,14 +32,14 @@ describe('useAppStore - Logic State', () => {
     });
   });
 
-  describe('Workspace Visibility (isLogicVisible)', () => {
-    it('should update isLogicVisible and trigger savePanelState', () => {
-      const store = useAppStore.getState();
-      store.setLogicVisible(true);
+  describe('Workspace Visibility (isLogicPanelVisible)', () => {
+    it('should update isLogicPanelVisible and trigger savePanelState', () => {
+      expect(useAppStore.getState().isLogicPanelVisible).toBe(false);
       
-      expect(useAppStore.getState().isLogicVisible).toBe(true);
-      // Ensure the panel state object is saved to local storage
-      expect(localStorage.getItem('ui-panels')).toContain('"isLogicVisible":true');
+      useAppStore.getState().setLogicPanelVisible(true);
+      expect(useAppStore.getState().isLogicPanelVisible).toBe(true);
+      
+      expect(localStorage.getItem('ui-panels')).toContain('"isLogicPanelVisible":true');
     });
   });
 

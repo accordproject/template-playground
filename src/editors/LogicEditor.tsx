@@ -111,12 +111,20 @@ export default function LogicEditor() {
   const hasErrors = compilationErrors && compilationErrors.length > 0;
 
   const renderStatus = () => {
-    if (isDirty) return <span className="logic-editor-status-unsaved">Unsaved changes</span>;
-    if (isCompiling) return <span className="logic-editor-status-compiling">Compiling...</span>;
-    if (hasErrors) return <span className="logic-editor-status-error">❌ Compilation Failed</span>;
-    if (compiledLogicJs) return <span className="logic-editor-status-success">✅ Compiled Successfully</span>;
-    if (logicTs) return <span className="logic-editor-status-pending">Not compiled yet</span>;
-    return <span className="logic-editor-status-pending">Nothing to compile</span>;
+    switch (true) {
+      case isDirty:
+        return <span className="logic-editor-status-unsaved">Unsaved changes</span>;
+      case isCompiling:
+        return <span className="logic-editor-status-compiling">Compiling...</span>;
+      case hasErrors:
+        return <span className="logic-editor-status-error">❌ Compilation Failed</span>;
+      case !!compiledLogicJs:
+        return <span className="logic-editor-status-success">✅ Compiled Successfully</span>;
+      case !!logicTs:
+        return <span className="logic-editor-status-pending">Not compiled yet</span>;
+      default:
+        return <span className="logic-editor-status-pending">Nothing to compile</span>;
+    }
   };
 
   return (

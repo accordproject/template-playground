@@ -79,7 +79,7 @@ const MainContainer = () => {
   const isEditorsVisible = useAppStore((s) => s.isEditorsVisible);
   const isPreviewVisible = useAppStore((s) => s.isPreviewVisible);
   const isProblemPanelVisible = useAppStore((s) => s.isProblemPanelVisible);
-  const isLogicVisible = useAppStore((s) => s.isLogicVisible);
+  const isLogicPanelVisible = useAppStore((s) => s.isLogicPanelVisible);
   const isModelCollapsed = useAppStore((s) => s.isModelCollapsed);
   const isTemplateCollapsed = useAppStore((s) => s.isTemplateCollapsed);
   const isDataCollapsed = useAppStore((s) => s.isDataCollapsed);
@@ -122,7 +122,7 @@ const MainContainer = () => {
 
   const logicPanelKey = `${String(isLogicTsCollapsed)}-${String(isRequestCollapsed)}-${String(isResponseCollapsed)}-${String(isStateCollapsed)}`;
 
-  const activeLogicWorkspace = isLogicVisible && isLogicFeatureEnabled && hasLogicContent;
+  const activeLogicWorkspace = isLogicPanelVisible && isLogicFeatureEnabled && hasLogicContent;
   const horizontalPanelKey = `${String(isEditorsVisible)}-${String(activeLogicWorkspace)}-${String(isPreviewVisible)}-${String(isAIChatOpen)}`;
 
   // Create distinct preview background for better visual separation

@@ -80,10 +80,10 @@ interface AppState {
   isEditorsVisible: boolean;
   isPreviewVisible: boolean;
   isProblemPanelVisible: boolean;
-  isLogicVisible: boolean;
+  isLogicPanelVisible: boolean;
   setEditorsVisible: (value: boolean) => void;
   setPreviewVisible: (value: boolean) => void;
-  setLogicVisible: (value: boolean) => void;
+  setLogicPanelVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
   startTour: () => void;
   isModelCollapsed: boolean;
@@ -187,7 +187,7 @@ const getInitialPanelState = () => {
     isEditorsVisible: true,
     isPreviewVisible: true,
     isProblemPanelVisible: false,
-    isLogicVisible: false,
+    isLogicPanelVisible: false,
     isAIChatOpen: false,
   };
   if (typeof window !== 'undefined') {
@@ -206,7 +206,7 @@ const savePanelState = (state: Partial<AppState>) => {
       isEditorsVisible: state.isEditorsVisible,
       isPreviewVisible: state.isPreviewVisible,
       isProblemPanelVisible: state.isProblemPanelVisible,
-      isLogicVisible: state.isLogicVisible,
+      isLogicPanelVisible: state.isLogicPanelVisible,
       isAIChatOpen: state.isAIChatOpen,
     };
     localStorage.setItem('ui-panels', JSON.stringify(panels));
@@ -255,7 +255,7 @@ const useAppStore = create<AppState>()(
         isEditorsVisible: initialPanels.isEditorsVisible,
         isPreviewVisible: initialPanels.isPreviewVisible,
         isProblemPanelVisible: initialPanels.isProblemPanelVisible,
-        isLogicVisible: initialPanels.isLogicVisible,
+        isLogicPanelVisible: initialPanels.isLogicPanelVisible,
         isModelCollapsed: false,
         isTemplateCollapsed: false,
         isDataCollapsed: false,
@@ -318,9 +318,9 @@ const useAppStore = create<AppState>()(
           set({ isProblemPanelVisible: value });
           savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
         },
-        setLogicVisible: (value) => {
-          set({ isLogicVisible: value });
-          savePanelState({ ...get(), isLogicVisible: value }); // Save change
+        setLogicPanelVisible: (value) => {
+          set({ isLogicPanelVisible: value });
+          savePanelState({ ...get(), isLogicPanelVisible: value }); // Save change
         },
         init: async () => {
           const params = new URLSearchParams(window.location.search);
@@ -536,13 +536,18 @@ export default useAppStore;
 
 function formatError(error: unknown): string {
   console.error(error);
-  if (typeof error === "string") return error;
-  if (Array.isArray(error)) return error.map((e) => formatError(e)).join("\n");
-  if (error && typeof error === "object" && "code" in error) {
-    const errorObj = error as { code?: unknown; errors?: unknown; renderedMessage?: unknown };
-    const sub = errorObj.errors ? formatError(errorObj.errors) : "";
-    const msg = String(errorObj.renderedMessage ?? "");
-    return `Error: ${String(errorObj.code ?? "")} ${sub} ${msg}`;
+  switch (true) {
+    case typeof error === "string":
+      return error as string;
+    case Array.isArray(error):
+      return (error as unknown[]).map((e) => formatError(e)).join("\n");
+    case Boolean(error && typeof error === "object" && "code" in error): {
+      const errorObj = error as { code?: unknown; errors?: unknown; renderedMessage?: unknown };
+      const sub = errorObj.errors ? formatError(errorObj.errors) : "";
+      const msg = String(errorObj.renderedMessage ?? "");
+      return `Error: ${String(errorObj.code ?? "")} ${sub} ${msg}`;
+    }
+    default:
+      return String(error);
   }
-  return String(error);
 }

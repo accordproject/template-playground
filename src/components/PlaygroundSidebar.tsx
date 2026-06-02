@@ -16,13 +16,13 @@ const PlaygroundSidebar = () => {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
-    isLogicVisible,
+    isLogicPanelVisible,
     isLogicFeatureEnabled,
     isAIChatOpen,
     setEditorsVisible,
     setPreviewVisible,
     setProblemPanelVisible,
-    setLogicVisible,
+    setLogicPanelVisible,
     setAIChatOpen,
     generateShareableLink,
     setSettingsOpen,
@@ -30,13 +30,13 @@ const PlaygroundSidebar = () => {
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
-    isLogicVisible: state.isLogicVisible,
+    isLogicPanelVisible: state.isLogicPanelVisible,
     isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     isAIChatOpen: state.isAIChatOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
-    setLogicVisible: state.setLogicVisible,
+    setLogicPanelVisible: state.setLogicPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
@@ -105,8 +105,8 @@ const PlaygroundSidebar = () => {
     ...(isLogicFeatureEnabled && hasLogicContent ? [{
       title: "Logic", 
       icon: FiCpu,
-      onClick: () => setLogicVisible(!isLogicVisible),
-      active: isLogicVisible
+      onClick: () => setLogicPanelVisible(!isLogicPanelVisible),
+      active: isLogicPanelVisible
     }] : []),
     { 
       title: "Preview", 
@@ -123,13 +123,25 @@ const PlaygroundSidebar = () => {
     {
       title: "AI Assistant",
       component: (
-        <div className="flex items-center justify-center">
-          <div className="relative w-6 h-6">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'relative', width: 24, height: 24 }}>
             <IoChatbubbleEllipsesOutline size={24} />
             <div
               className="absolute -top-3 -right-3.5 text-[12.5px] font-bold px-1 py-0 rounded bg-white text-transparent bg-gradient-to-r from-[#a78bfa] via-[#ec4899] to-[#ef4444] bg-clip-text shadow-sm"
               style={{
-                WebkitBackgroundClip: "text"
+                WebkitBackgroundClip: "text",
+                position: 'absolute',
+                top: -12,
+                right: -14,
+                fontSize: '12.5px',
+                fontWeight: 'bold',
+                padding: '0 4px',
+                borderRadius: '4px',
+                backgroundColor: 'white',
+                color: 'transparent',
+                backgroundImage: 'linear-gradient(to right, #a78bfa, #ec4899, #ef4444)',
+                backgroundClip: 'text',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               }}
             >
               AI
