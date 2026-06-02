@@ -300,7 +300,7 @@ const useAppStore = create<AppState>()(
         setSettingsOpen: (value: boolean) => set({ isSettingsOpen: value }),
         setEditorsVisible: (value) => {
           const state = get();
-          if (!value && !state.isPreviewVisible) {
+          if (!value && !state.isPreviewVisible && !state.isLogicPanelVisible) {
             return;
           }
           set({ isEditorsVisible: value });
@@ -308,7 +308,7 @@ const useAppStore = create<AppState>()(
         },
         setPreviewVisible: (value) => {
           const state = get();
-          if (!value && !state.isEditorsVisible) {
+          if (!value && !state.isEditorsVisible && !state.isLogicPanelVisible) {
             return;
           }
           set({ isPreviewVisible: value });
@@ -319,6 +319,10 @@ const useAppStore = create<AppState>()(
           savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
         },
         setLogicPanelVisible: (value) => {
+          const state = get();
+          if (!value && !state.isEditorsVisible && !state.isPreviewVisible) {
+            return;
+          }
           set({ isLogicPanelVisible: value });
           savePanelState({ ...get(), isLogicPanelVisible: value }); // Save change
         },
