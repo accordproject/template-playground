@@ -50,11 +50,11 @@ interface AppState {
   logicTs: string;
   /** Live editor value — not committed until user clicks Apply */
   editorLogicTs: string;
-  /** Resulting JS payload encoded as a Base64 module, null if compiled logic is stale/failed */
+  /** Resulting compiled JS payload (reserved for US-02). Null while compilation is unimplemented/stale/failed. */
   compiledLogicJs: string | null;
-  /** True while transpileModule runs */
+  /** True while compilation is running (reserved for US-02). */
   isCompiling: boolean;
-  /** Structured errors from the TS compiler (syntax/type errors stripped during transpile) */
+  /** Compilation diagnostics (reserved for US-02). */
   compilationErrors: { message: string; line?: number; column?: number }[];
 
 
