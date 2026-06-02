@@ -71,8 +71,10 @@ const PlaygroundSidebar = () => {
     }
   };
 
+  const isLogicActive = isLogicPanelVisible && isLogicFeatureEnabled && hasLogicContent;
+
   const handleEditorToggle = () => {
-    if (isEditorsVisible && !isPreviewVisible) {
+    if (isEditorsVisible && !isPreviewVisible && !isLogicActive) {
       void message.info('At least one panel must be visible');
       return;
     }
@@ -80,7 +82,7 @@ const PlaygroundSidebar = () => {
   };
 
   const handlePreviewToggle = () => {
-    if (isPreviewVisible && !isEditorsVisible) {
+    if (isPreviewVisible && !isEditorsVisible && !isLogicActive) {
       void message.info('At least one panel must be visible');
       return;
     }
@@ -105,7 +107,13 @@ const PlaygroundSidebar = () => {
     ...(isLogicFeatureEnabled && hasLogicContent ? [{
       title: "Logic", 
       icon: FiCpu,
-      onClick: () => setLogicPanelVisible(!isLogicPanelVisible),
+      onClick: () => {
+        if (isLogicPanelVisible && !isEditorsVisible && !isPreviewVisible) {
+          void message.info('At least one panel must be visible');
+          return;
+        }
+        setLogicPanelVisible(!isLogicPanelVisible);
+      },
       active: isLogicPanelVisible
     }] : []),
     { 
