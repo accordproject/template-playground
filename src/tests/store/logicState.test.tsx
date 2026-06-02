@@ -58,7 +58,7 @@ describe('useAppStore - Logic State', () => {
       // Dirty the state to ensure the compilation stub cleans it up
       useAppStore.setState({
         compiledLogicJs: 'old_js_code',
-        compilationErrors: [{ message: 'Old error' }] as any,
+        compilationErrors: [{ message: 'Old error' }],
       });
 
       await store.setLogicTs('const y = 2;');
@@ -78,7 +78,7 @@ describe('useAppStore - Logic State', () => {
       
       useAppStore.setState({
         compiledLogicJs: 'mock_js',
-        compilationErrors: [{ message: 'mock error' }] as any,
+        compilationErrors: [{ message: 'mock error' }],
         isCompiling: true,
       });
 
