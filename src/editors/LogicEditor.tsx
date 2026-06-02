@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useMonaco } from '@monaco-editor/react';
-import * as monacoNS from 'monaco-editor';
+import type * as monacoNS from 'monaco-editor';
 import useAppStore from '../store/store';
 import useThemeName from '../hooks/useThemeName';
 import '../styles/components/LogicEditor.css';
