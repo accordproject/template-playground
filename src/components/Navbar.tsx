@@ -241,7 +241,7 @@ function Navbar() {
         editorValue !== currentSample.TEMPLATE ||
         editorModelCto !== currentSample.MODEL ||
         editorAgreementData !== JSON.stringify(currentSample.DATA, null, 2) ||
-        (isLogicFeatureEnabled && editorLogicTs !== (currentSample.LOGIC ?? ''));
+        (editorLogicTs !== (currentSample.LOGIC ?? ''));
 
       if (hasUnsavedChanges) {
         Modal.confirm({
