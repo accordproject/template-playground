@@ -1,7 +1,7 @@
 import React from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiCpu } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
@@ -16,10 +16,13 @@ const PlaygroundSidebar = () => {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
+    isLogicPanelVisible,
+    isLogicFeatureEnabled,
     isAIChatOpen,
     setEditorsVisible,
     setPreviewVisible,
     setProblemPanelVisible,
+    setLogicPanelVisible,
     setAIChatOpen,
     generateShareableLink,
     setSettingsOpen,
@@ -27,14 +30,22 @@ const PlaygroundSidebar = () => {
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
+    isLogicPanelVisible: state.isLogicPanelVisible,
+    isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     isAIChatOpen: state.isAIChatOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
+    setLogicPanelVisible: state.setLogicPanelVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
   }));
+
+  const hasLogicContent = useAppStore((s) => {
+    const sampleHasLogic = !!s.samples.find((sample) => sample.NAME === s.sampleName)?.LOGIC;
+    return sampleHasLogic || s.logicTs.trim().length > 0 || s.editorLogicTs.trim().length > 0;
+  });
 
   const handleShare = async () => {
     try {
@@ -60,8 +71,10 @@ const PlaygroundSidebar = () => {
     }
   };
 
+  const isLogicActive = isLogicPanelVisible && isLogicFeatureEnabled && hasLogicContent;
+
   const handleEditorToggle = () => {
-    if (isEditorsVisible && !isPreviewVisible) {
+    if (isEditorsVisible && !isPreviewVisible && !isLogicActive) {
       void message.info('At least one panel must be visible');
       return;
     }
@@ -69,7 +82,7 @@ const PlaygroundSidebar = () => {
   };
 
   const handlePreviewToggle = () => {
-    if (isPreviewVisible && !isEditorsVisible) {
+    if (isPreviewVisible && !isEditorsVisible && !isLogicActive) {
       void message.info('At least one panel must be visible');
       return;
     }
@@ -91,6 +104,18 @@ const PlaygroundSidebar = () => {
       onClick: handleEditorToggle,
       active: isEditorsVisible
     },
+    ...(isLogicFeatureEnabled && hasLogicContent ? [{
+      title: "Logic", 
+      icon: FiCpu,
+      onClick: () => {
+        if (isLogicPanelVisible && !isEditorsVisible && !isPreviewVisible) {
+          void message.info('At least one panel must be visible');
+          return;
+        }
+        setLogicPanelVisible(!isLogicPanelVisible);
+      },
+      active: isLogicPanelVisible
+    }] : []),
     { 
       title: "Preview", 
       icon: VscOutput,
@@ -106,13 +131,25 @@ const PlaygroundSidebar = () => {
     {
       title: "AI Assistant",
       component: (
-        <div className="flex items-center justify-center">
-          <div className="relative w-6 h-6">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'relative', width: 24, height: 24 }}>
             <IoChatbubbleEllipsesOutline size={24} />
             <div
               className="absolute -top-3 -right-3.5 text-[12.5px] font-bold px-1 py-0 rounded bg-white text-transparent bg-gradient-to-r from-[#a78bfa] via-[#ec4899] to-[#ef4444] bg-clip-text shadow-sm"
               style={{
-                WebkitBackgroundClip: "text"
+                WebkitBackgroundClip: "text",
+                position: 'absolute',
+                top: -12,
+                right: -14,
+                fontSize: '12.5px',
+                fontWeight: 'bold',
+                padding: '0 4px',
+                borderRadius: '4px',
+                backgroundColor: 'white',
+                color: 'transparent',
+                backgroundImage: 'linear-gradient(to right, #a78bfa, #ec4899, #ef4444)',
+                backgroundClip: 'text',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               }}
             >
               AI

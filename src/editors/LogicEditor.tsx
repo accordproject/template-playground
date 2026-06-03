@@ -1,0 +1,173 @@
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useMonaco } from '@monaco-editor/react';
+import type * as monacoNS from 'monaco-editor';
+import useAppStore from '../store/store';
+import useThemeName from '../hooks/useThemeName';
+import '../styles/components/LogicEditor.css';
+
+const MonacoEditor = lazy(() =>
+  import('@monaco-editor/react').then((mod) => ({ default: mod.Editor }))
+);
+
+const DEFAULT_LOGIC_BOILERPLATE = `// Write your contract logic here.
+// TemplateLogic, IRequest, IState, IResponse are available as global types.
+
+class ContractLogic extends TemplateLogic<any> {
+
+  // Optional: initialize contract state
+  async init(data: any) {
+    return {
+      state: {
+        $identifier: 'contract-state',
+        // add your initial state fields here
+      },
+    };
+  }
+
+  // Required: execute business logic for each request
+  async trigger(data: any, request: any, state: any) {
+    return {
+      result: {
+        $class: 'org.example.Response',
+        $timestamp: new Date().toISOString(),
+        // add your response fields here
+      },
+      state: {
+        ...state,
+        // update state fields here
+      },
+    };
+  }
+}
+
+export default ContractLogic;
+`;
+
+export default function LogicEditor() {
+  const monaco = useMonaco();
+  const compilerConfigured = useRef(false);
+
+  const editorLogicTs = useAppStore((s) => s.editorLogicTs);
+  const logicTs = useAppStore((s) => s.logicTs);
+  const setEditorLogicTs = useAppStore((s) => s.setEditorLogicTs);
+  const setLogicTs = useAppStore((s) => s.setLogicTs);
+  const showLineNumbers = useAppStore((s) => s.showLineNumbers);
+  const isCompiling = useAppStore((s) => s.isCompiling);
+  const compilationErrors = useAppStore((s) => s.compilationErrors);
+  const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
+
+  const themeName = useThemeName();
+
+  // Configure TS compiler options once Monaco is ready
+  useEffect(() => {
+    if (!monaco || compilerConfigured.current) return;
+    compilerConfigured.current = true;
+
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.ES2020,
+      module: monaco.languages.typescript.ModuleKind.ESNext,
+      strict: false,
+      strictNullChecks: true,
+      noEmit: true,
+      allowNonTsExtensions: true,
+    });
+  }, [monaco]);
+
+  const editorOptions: monacoNS.editor.IStandaloneEditorConstructionOptions = useMemo(
+    () => ({
+      minimap: { enabled: false },
+      wordWrap: 'on' as const,
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
+      lineNumbers: showLineNumbers ? ('on' as const) : ('off' as const),
+      bracketPairColorization: { enabled: true },
+      autoClosingBrackets: 'languageDefined' as const,
+      quickSuggestions: { other: true, comments: false, strings: false },
+      suggestOnTriggerCharacters: true,
+      fixedOverflowWidgets: true,
+    }),
+    [showLineNumbers]
+  );
+
+  const handleChange = useCallback(
+    (value: string | undefined) => {
+      setEditorLogicTs(value ?? '');
+    },
+    [setEditorLogicTs]
+  );
+
+  const handleApply = useCallback(() => {
+    const nextSource = 
+      editorLogicTs.trim() === '' && logicTs.trim() === ''
+        ? DEFAULT_LOGIC_BOILERPLATE
+        : editorLogicTs;
+    void setLogicTs(nextSource);
+  }, [setLogicTs, editorLogicTs, logicTs]);
+
+
+
+  // Has the editor content diverged from committed logic?
+  const isDirty = editorLogicTs !== logicTs;
+  const hasErrors = compilationErrors && compilationErrors.length > 0;
+
+  const renderStatus = () => {
+    switch (true) {
+      case isDirty:
+        return <span className="logic-editor-status-unsaved">Unsaved changes</span>;
+      case isCompiling:
+        return <span className="logic-editor-status-compiling">Compiling...</span>;
+      case hasErrors:
+        return <span className="logic-editor-status-error">❌ Compilation Failed</span>;
+      case !!compiledLogicJs:
+        return <span className="logic-editor-status-success">✅ Compiled Successfully</span>;
+      case !!logicTs:
+        return <span className="logic-editor-status-pending">Not compiled yet</span>;
+      default:
+        return <span className="logic-editor-status-pending">Nothing to compile</span>;
+    }
+  };
+
+  return (
+    <div className="logic-editor-root">
+      <div className="logic-editor-toolbar">
+        <span className="logic-editor-status">
+          {renderStatus()}
+        </span>
+        <button
+          className={`logic-editor-apply-btn${isDirty ? ' logic-editor-apply-btn--dirty' : ''}`}
+          onClick={handleApply}
+          title="Save and compile logic"
+          disabled={isCompiling}
+        >
+          {isCompiling ? 'Compiling...' : isDirty ? 'Apply & Compile*' : 'Apply & Compile'}
+        </button>
+      </div>
+
+      <div className="logic-editor-monaco-wrapper">
+        <Suspense fallback={<div className="logic-editor-loading">Loading editor...</div>}>
+          <MonacoEditor
+            language="typescript"
+            height="100%"
+            value={editorLogicTs}
+            theme={themeName}
+            options={editorOptions}
+            onChange={handleChange}
+          />
+        </Suspense>
+      </div>
+
+      {hasErrors && (
+        <div className="logic-editor-errors">
+          <strong>Compilation Errors:</strong>
+          <ul>
+            {compilationErrors.map((err, idx) => (
+              <li key={idx}>
+                {err.line ? `[Line ${err.line}] ` : ''}{err.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
