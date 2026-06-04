@@ -132,7 +132,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // Validate inputs before expensive operations
   // This fails fast on invalid JSON or CTO syntax without running network calls
   await validateBeforeRebuild(template, model, dataString);
-  const modelManager = new ModelManager();
+  const modelManager = new ModelManager({ offline: true });
   // Preload the bundled Accord Project models so imports like
   // `https://models.accordproject.org/accordproject/contract@0.2.0.cto`
   // resolve from the bundle without a network round-trip. Combined with
