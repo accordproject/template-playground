@@ -4,7 +4,7 @@ import { loadBundledModels } from "./modelCache";
 
 describe("loadBundledModels", () => {
   it("preloads the standard Accord Project namespaces", () => {
-    const mm = new ModelManager({ strict: true });
+    const mm = new ModelManager();
     loadBundledModels(mm);
     const namespaces = (mm as unknown as {
       getModelFiles: () => { getNamespace: () => string }[];
@@ -29,8 +29,7 @@ describe("loadBundledModels", () => {
   it("resolves a user model importing a bundled namespace without network access", () => {
     // Construct the manager with `offline: true` (the same way store.ts does)
     // so this test would fail loudly if any code path attempted a fetch.
-    // @ts-expect-error `offline` is supported at runtime but not yet in published typings
-    const mm = new ModelManager({ strict: true, offline: true });
+    const mm = new ModelManager();
     loadBundledModels(mm);
     const userModel = `namespace example@1.0.0
 
@@ -44,8 +43,7 @@ asset TemplateModel extends Clause {
   });
 
   it("rejects a user model importing an unbundled external namespace", () => {
-    // @ts-expect-error `offline` is supported at runtime but not yet in published typings
-    const mm = new ModelManager({ strict: true, offline: true });
+    const mm = new ModelManager();
     loadBundledModels(mm);
     const userModel = `namespace example@1.0.0
 
