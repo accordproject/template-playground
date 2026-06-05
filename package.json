@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "commonjs",
   "engines": {
-    "node": ">=18",
+    "node": ">=22",
     "npm": ">=6"
   },
   "scripts": {
@@ -18,12 +18,12 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@accordproject/concerto-core": "^3.25.7",
-    "@accordproject/concerto-cto": "^3.25.7",
-    "@accordproject/markdown-common": "^0.17.2",
-    "@accordproject/markdown-template": "^0.17.2",
-    "@accordproject/markdown-transform": "^0.17.2",
-    "@accordproject/template-engine": "^2.8.0",
+    "@accordproject/concerto-core": "^4.1.4",
+    "@accordproject/concerto-cto": "^4.1.4",
+    "@accordproject/markdown-common": "^1.0.1",
+    "@accordproject/markdown-template": "^1.0.1",
+    "@accordproject/markdown-transform": "^1.0.1",
+    "@accordproject/template-engine": "^4.0.0",
     "@ant-design/icons": "^5.3.7",
     "@anthropic-ai/sdk": "^0.56.0",
     "@google/genai": "^1.8.0",

@@ -27,8 +27,7 @@ export async function validateBeforeRebuild(
   // Project models are preloaded so imports targeting them resolve without
   // any network call.
   try {
-    // @ts-expect-error `offline` is supported at runtime but not yet in published typings
-    const modelManager = new ModelManager({ strict: true, offline: true });
+    const modelManager = new ModelManager();
     loadBundledModels(modelManager);
     // Validate the model against the preloaded bundle. With offline:true and
     // validation enabled, an unbundled external import surfaces here as a
