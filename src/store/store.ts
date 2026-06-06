@@ -586,8 +586,10 @@ const useAppStore = create<AppState>()(
               });
             } else {
               // Encode as Base64 data module for dynamic import (US-02 Requirement)
-              const base64Encoded = btoa(unescape(encodeURIComponent(result.code)));
-              const dataModuleUrl = `data:text/javascript;base64,${base64Encoded}`;
+            const bytes = new TextEncoder().encode(result.code);
+            const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
+            const base64Encoded = btoa(binary);
+            const dataModuleUrl = `data:text/javascript;base64,${base64Encoded}`;
               
               set({ 
                 isCompiling: false, 
