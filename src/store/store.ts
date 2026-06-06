@@ -132,7 +132,8 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // Validate inputs before expensive operations
   // This fails fast on invalid JSON or CTO syntax without running network calls
   await validateBeforeRebuild(template, model, dataString);
-  const modelManager = new ModelManager({ offline: true });
+  // @ts-expect-error `offline` is supported at runtime but not yet in published typings
+  const modelManager = new ModelManager({ strict: true, offline: true });
   // Preload the bundled Accord Project models so imports like
   // `https://models.accordproject.org/accordproject/contract@0.2.0.cto`
   // resolve from the bundle without a network round-trip. Combined with
@@ -140,7 +141,7 @@ async function rebuild(template: string, model: string, dataString: string): Pro
   // rather than triggering a network fetch.
   loadBundledModels(modelManager);
   modelManager.addCTOModel(model, undefined, true);
-  const engine = new TemplateMarkInterpreter(modelManager, {});
+  const engine = new TemplateMarkInterpreter(modelManager as any, {});
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -521,13 +522,85 @@ const useAppStore = create<AppState>()(
         },
 
         compileLogic: async () => {
-          // NO-OP stub operation: Parallel compilation path is disabled.
-          // This will be handled by the template-engine in the future.
-          set(() => ({
-            compiledLogicJs: null,
-            compilationErrors: [],
-            isCompiling: false,
-          }));
+          set({ isCompiling: true, compilationErrors: [], compiledLogicJs: null });
+          try {
+            const state = get();
+            if (!state.logicTs || !state.modelCto || !state.data) {
+              set({ isCompiling: false, compilationErrors: [] });
+              return;
+            }
+
+            const { TemplateArchiveProcessor } = await import("@accordproject/template-engine");
+            const { ModelManager } = await import("@accordproject/concerto-core");
+            const { loadBundledModels } = await import("../utils/modelCache");
+            
+            // Build ModelManager from current CTO
+            // @ts-expect-error offline is supported
+            const modelManager = new ModelManager({ strict: true, offline: true });
+            loadBundledModels(modelManager);
+            modelManager.addCTOModel(get().modelCto, undefined, true);
+
+            // Determine Fully Qualified Name from current data gracefully
+            let fullyQualifiedName = "org.accordproject.contract.TemplateModel";
+            try {
+              const dataObj = JSON.parse(get().data);
+              if (dataObj["$class"]) {
+                fullyQualifiedName = dataObj["$class"];
+              }
+            } catch (e) {
+              // Ignore invalid JSON, default to base TemplateModel
+            }
+
+            // Duck-type a Template object to satisfy TemplateArchiveProcessor
+            const mockTemplate = {
+              getLogicManager: () => ({
+                getLanguage: () => 'typescript',
+                getScriptManager: () => ({
+                  getScriptsForTarget: () => [{
+                    getIdentifier: () => 'logic/logic.ts',
+                    getContents: () => get().logicTs
+                  }]
+                })
+              }),
+              getModelManager: () => modelManager,
+              getTemplateModel: () => ({
+                getFullyQualifiedName: () => fullyQualifiedName
+              })
+            };
+
+            const processor = new TemplateArchiveProcessor(mockTemplate as any);
+            const compiledCode = await processor.compileLogic();
+            const result = compiledCode['logic/logic.ts'];
+            
+            // Filter out bogus error 2391 caused by syntax errors in the engine's own shim (TemplateLogic.init)
+            const actualErrors = result.errors ? result.errors.filter((e: any) => e.code !== 2391) : [];
+
+            if (actualErrors.length > 0) {
+              set({ 
+                isCompiling: false, 
+                compilationErrors: actualErrors.map((e: any) => ({
+                  message: e.renderedMessage || e.text,
+                  line: e.line,
+                  column: e.character
+                }))
+              });
+            } else {
+              // Encode as Base64 data module for dynamic import (US-02 Requirement)
+              const base64Encoded = btoa(unescape(encodeURIComponent(result.code)));
+              const dataModuleUrl = `data:text/javascript;base64,${base64Encoded}`;
+              
+              set({ 
+                isCompiling: false, 
+                compiledLogicJs: dataModuleUrl,
+                compilationErrors: []
+              });
+            }
+          } catch (error: any) {
+            set({
+              isCompiling: false,
+              compilationErrors: [{ message: error.message || String(error) }]
+            });
+          }
         },
       }
     })

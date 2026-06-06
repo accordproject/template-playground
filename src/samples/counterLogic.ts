@@ -70,7 +70,7 @@ class CounterLogic extends TemplateLogic<any> {
         owner: data.owner,
       },
       events: [],
-    };
+    } as any;
   }
 
   // Called for each request — increments the counter
@@ -106,7 +106,7 @@ class CounterLogic extends TemplateLogic<any> {
           nextCount: newCount,
         },
       ],
-    };
+    } as any;
   }
 }
 

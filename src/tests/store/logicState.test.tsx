@@ -14,6 +14,7 @@ describe('useAppStore - Logic State', () => {
       compilationErrors: [],
       isCompiling: false,
       isLogicPanelVisible: false,
+      modelCto: '', // Empty modelCto to skip real compilation in tests
     });
   });
 
