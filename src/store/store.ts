@@ -525,7 +525,7 @@ const useAppStore = create<AppState>()(
           set({ isCompiling: true, compilationErrors: [], compiledLogicJs: null });
           try {
             const state = get();
-            if (!state.logicTs || !state.modelCto || !state.data) {
+            if (!state.logicTs || !state.modelCto) {
               set({ isCompiling: false, compilationErrors: [] });
               return;
             }
