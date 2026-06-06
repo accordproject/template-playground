@@ -595,10 +595,10 @@ const useAppStore = create<AppState>()(
                 compilationErrors: []
               });
             }
-          } catch (error: any) {
+          } catch (error: unknown) {
             set({
               isCompiling: false,
-              compilationErrors: [{ message: error.message || String(error) }]
+              compilationErrors: [{ message: error instanceof Error ? error.message : String(error) }]
             });
           }
         },
