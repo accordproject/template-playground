@@ -529,6 +529,7 @@ const useAppStore = create<AppState>()(
         },
 
         buildTemplateFromMemory: async () => {
+          set({ templateObject: null });
           try {
             const { Template: CiceroTemplate } = await import("@accordproject/cicero-core");
             const JSZip = (await import("jszip")).default;
