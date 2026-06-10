@@ -57,7 +57,7 @@ interface AppState {
   /** Compilation diagnostics (reserved for US-02). */
   compilationErrors: { message: string; line?: number; column?: number }[];
   /** Official Template object instance loaded from cicero-core */
-  templateObject: any | null;
+  templateObject: import("@accordproject/cicero-core").Template | null;
 
 
   // ── Existing action signatures ─────────────────────────────────────────
@@ -340,8 +340,7 @@ const useAppStore = create<AppState>()(
             await get().rebuild();
           }
 
-          // Build the official Template object from memory for the default sample
-          await get().buildTemplateFromMemory();
+
         },
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
@@ -365,7 +364,6 @@ const useAppStore = create<AppState>()(
               isCompiling: false,
             }));
             await get().rebuild();
-            await get().buildTemplateFromMemory();
           }
         },
 
@@ -374,7 +372,6 @@ const useAppStore = create<AppState>()(
           try {
             const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
             set(() => ({ agreementHtml: result, error: undefined }));
-            await get().buildTemplateFromMemory();
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -559,10 +556,11 @@ const useAppStore = create<AppState>()(
 
             // Generate buffer and load via fromArchive API
             const content = await zip.generateAsync({ type: "uint8array" });
+            const { Buffer } = await import("buffer");
             const template = await CiceroTemplate.fromArchive(Buffer.from(content));
 
             set({ templateObject: template });
-            console.log("Successfully built official Template object from JSZip archive!", template);
+            if (import.meta.env.DEV) console.log("Successfully built Template object from JSZip archive!", template);
           } catch (error) {
             console.error("Error building template from memory:", error);
           }
@@ -579,20 +577,15 @@ const useAppStore = create<AppState>()(
 
             const { TemplateArchiveProcessor } = await import("@accordproject/template-engine");
 
-            if (!state.templateObject) {
-              await get().buildTemplateFromMemory();
-            }
+            // Always rebuild the Template object from the latest in-memory sources
+            // to ensure the compiler has the most up-to-date grammar and model.
+            await get().buildTemplateFromMemory();
 
             const templateToCompile = get().templateObject;
             if (!templateToCompile) {
               set({ isCompiling: false, compilationErrors: [{ message: "Failed to initialize Template object from memory.", line: 0, column: 0 }] });
               return;
             }
-
-            // Synchronize the template object's in-memory logic script with the current state
-            // prior to triggering compilation.
-            const logicManager = templateToCompile.getLogicManager();
-            logicManager.addLogicFile(get().logicTs, 'logic/logic.ts');
 
             const processor = new TemplateArchiveProcessor(templateToCompile as any);
             const compiledCode = await processor.compileLogic();
