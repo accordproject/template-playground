@@ -56,6 +56,8 @@ interface AppState {
   isCompiling: boolean;
   /** Compilation diagnostics (reserved for US-02). */
   compilationErrors: { message: string; line?: number; column?: number }[];
+  /** Official Template object instance loaded from cicero-core */
+  templateObject: any | null;
 
 
   // ── Existing action signatures ─────────────────────────────────────────
@@ -116,6 +118,8 @@ interface AppState {
   setLogicTs: (ts: string) => Promise<void>;
   /** Force a recompilation of the committed logicTs */
   compileLogic: () => Promise<void>;
+  /** Build an official template archive from memory strings */
+  buildTemplateFromMemory: () => Promise<void>;
 
 }
 
@@ -282,6 +286,7 @@ const useAppStore = create<AppState>()(
         compiledLogicJs: null,
         isCompiling: false,
         compilationErrors: [],
+        templateObject: null,
 
 
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
@@ -334,6 +339,9 @@ const useAppStore = create<AppState>()(
           } else {
             await get().rebuild();
           }
+
+          // Build the official Template object from memory for the default sample
+          await get().buildTemplateFromMemory();
         },
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
@@ -357,6 +365,7 @@ const useAppStore = create<AppState>()(
               isCompiling: false,
             }));
             await get().rebuild();
+            await get().buildTemplateFromMemory();
           }
         },
 
@@ -365,6 +374,7 @@ const useAppStore = create<AppState>()(
           try {
             const result = await rebuildDeBounce(templateMarkdown, modelCto, data);
             set(() => ({ agreementHtml: result, error: undefined }));
+            await get().buildTemplateFromMemory();
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -510,7 +520,7 @@ const useAppStore = create<AppState>()(
           console.log('Starting tour...');
         },
 
-        // ── Logic actions (NEW) ────────────────────────────────────────────
+        // ── Logic actions ────────────────────────────────────────────
 
         setEditorLogicTs: (ts: string) => {
           set(() => ({ editorLogicTs: ts }));
@@ -519,6 +529,43 @@ const useAppStore = create<AppState>()(
         setLogicTs: async (ts: string) => {
           set(() => ({ logicTs: ts, editorLogicTs: ts }));
           await get().compileLogic();
+        },
+
+        buildTemplateFromMemory: async () => {
+          try {
+            const { Template: CiceroTemplate } = await import("@accordproject/cicero-core");
+            const JSZip = (await import("jszip")).default;
+            const { templateMarkdown, modelCto, logicTs } = get();
+
+            // Construct package.json required by the Template archive
+            const packageJson = {
+              name: "playground-template",
+              version: "1.0.0",
+              accordproject: {
+                template: "contract",
+                cicero: "^1.0.0"
+              }
+            };
+
+            // Build an in-memory zip file (.cta archive equivalent)
+            const zip = new JSZip();
+            zip.file("package.json", JSON.stringify(packageJson));
+            zip.file("text/grammar.tem.md", templateMarkdown);
+            zip.file("model/model.cto", modelCto);
+
+            if (logicTs) {
+              zip.file("logic/logic.ts", logicTs);
+            }
+
+            // Generate buffer and load via fromArchive API
+            const content = await zip.generateAsync({ type: "uint8array" });
+            const template = await CiceroTemplate.fromArchive(Buffer.from(content));
+
+            set({ templateObject: template });
+            console.log("Successfully built official Template object from JSZip archive!", template);
+          } catch (error) {
+            console.error("Error building template from memory:", error);
+          }
         },
 
         compileLogic: async () => {
@@ -531,53 +578,32 @@ const useAppStore = create<AppState>()(
             }
 
             const { TemplateArchiveProcessor } = await import("@accordproject/template-engine");
-            const { ModelManager } = await import("@accordproject/concerto-core");
-            const { loadBundledModels } = await import("../utils/modelCache");
-            
-            // Build ModelManager from current CTO
-            // @ts-expect-error offline is supported
-            const modelManager = new ModelManager({ strict: true, offline: true });
-            loadBundledModels(modelManager);
-            modelManager.addCTOModel(get().modelCto, undefined, true);
 
-            // Determine Fully Qualified Name from current data gracefully
-            let fullyQualifiedName = "org.accordproject.contract.TemplateModel";
-            try {
-              const dataObj = JSON.parse(get().data);
-              if (dataObj["$class"]) {
-                fullyQualifiedName = dataObj["$class"];
-              }
-            } catch (e) {
-              // Ignore invalid JSON, default to base TemplateModel
+            if (!state.templateObject) {
+              await get().buildTemplateFromMemory();
             }
 
-            // Duck-type a Template object to satisfy TemplateArchiveProcessor
-            const mockTemplate = {
-              getLogicManager: () => ({
-                getLanguage: () => 'typescript',
-                getScriptManager: () => ({
-                  getScriptsForTarget: () => [{
-                    getIdentifier: () => 'logic/logic.ts',
-                    getContents: () => get().logicTs
-                  }]
-                })
-              }),
-              getModelManager: () => modelManager,
-              getTemplateModel: () => ({
-                getFullyQualifiedName: () => fullyQualifiedName
-              })
-            };
+            const templateToCompile = get().templateObject;
+            if (!templateToCompile) {
+              set({ isCompiling: false, compilationErrors: [{ message: "Failed to initialize Template object from memory.", line: 0, column: 0 }] });
+              return;
+            }
 
-            const processor = new TemplateArchiveProcessor(mockTemplate as any);
+            // Synchronize the template object's in-memory logic script with the current state
+            // prior to triggering compilation.
+            const logicManager = templateToCompile.getLogicManager();
+            logicManager.addLogicFile(get().logicTs, 'logic/logic.ts');
+
+            const processor = new TemplateArchiveProcessor(templateToCompile as any);
             const compiledCode = await processor.compileLogic();
             const result = compiledCode['logic/logic.ts'];
-            
+
             // Filter out bogus error 2391 caused by syntax errors in the engine's own shim (TemplateLogic.init)
             const actualErrors = result.errors ? result.errors.filter((e: any) => e.code !== 2391) : [];
 
             if (actualErrors.length > 0) {
-              set({ 
-                isCompiling: false, 
+              set({
+                isCompiling: false,
                 compilationErrors: actualErrors.map((e: any) => ({
                   message: e.renderedMessage || e.text,
                   line: e.line,
@@ -585,14 +611,14 @@ const useAppStore = create<AppState>()(
                 }))
               });
             } else {
-              // Encode as Base64 data module for dynamic import (US-02 Requirement)
-            const bytes = new TextEncoder().encode(result.code);
-            const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
-            const base64Encoded = btoa(binary);
-            const dataModuleUrl = `data:text/javascript;base64,${base64Encoded}`;
-              
-              set({ 
-                isCompiling: false, 
+              // Encode as Base64 data module for dynamic import
+              const bytes = new TextEncoder().encode(result.code);
+              const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
+              const base64Encoded = btoa(binary);
+              const dataModuleUrl = `data:text/javascript;base64,${base64Encoded}`;
+
+              set({
+                isCompiling: false,
                 compiledLogicJs: dataModuleUrl,
                 compilationErrors: []
               });
