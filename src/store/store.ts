@@ -588,7 +588,7 @@ const useAppStore = create<AppState>()(
               return;
             }
 
-            const processor = new TemplateArchiveProcessor(templateToCompile as any);
+            const processor = new TemplateArchiveProcessor(templateToCompile);
             const compiledCode = await processor.compileLogic();
             const result = compiledCode['logic/logic.ts'];
 
