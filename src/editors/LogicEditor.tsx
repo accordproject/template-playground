@@ -1,6 +1,7 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMonaco } from '@monaco-editor/react';
 import type * as monacoNS from 'monaco-editor';
+import { Button, Badge, Alert, Modal } from 'antd';
 import useAppStore from '../store/store';
 import useThemeName from '../hooks/useThemeName';
 import '../styles/components/LogicEditor.css';
@@ -55,6 +56,8 @@ export default function LogicEditor() {
   const isCompiling = useAppStore((s) => s.isCompiling);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
+  const backgroundColor = useAppStore((s) => s.backgroundColor);
+  const textColor = useAppStore((s) => s.textColor);
 
   const themeName = useThemeName();
 
@@ -71,6 +74,18 @@ export default function LogicEditor() {
       noEmit: true,
       allowNonTsExtensions: true,
     });
+
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: false,
+    });
+
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(`
+      declare abstract class TemplateLogic<T> {
+        abstract init(data: any): Promise<any>;
+        abstract trigger(data: any, request: any, state: any): Promise<any>;
+      }
+    `, 'file:///node_modules/@types/accordproject/index.d.ts');
   }, [monaco]);
 
   const editorOptions: monacoNS.editor.IStandaloneEditorConstructionOptions = useMemo(
@@ -105,47 +120,99 @@ export default function LogicEditor() {
   }, [setLogicTs, editorLogicTs, logicTs]);
 
 
-
   // Has the editor content diverged from committed logic?
   const isDirty = editorLogicTs !== logicTs;
   const hasErrors = compilationErrors && compilationErrors.length > 0;
+  const [showErrorModal, setShowErrorModal] = useState(false);
+
+  // Close the modal if errors are cleared or the editor becomes dirty
+  useEffect(() => {
+    if (!hasErrors || isDirty) {
+      setShowErrorModal(false);
+    }
+  }, [hasErrors, isDirty]);
 
   const renderStatus = () => {
+    let statusProps: { status: 'warning' | 'processing' | 'error' | 'success' | 'default', text: string };
+    
     switch (true) {
       case isDirty:
-        return <span className="logic-editor-status-unsaved">Unsaved changes</span>;
+        statusProps = { status: 'warning', text: 'Unsaved changes' }; break;
       case isCompiling:
-        return <span className="logic-editor-status-compiling">Compiling...</span>;
+        statusProps = { status: 'processing', text: 'Compiling...' }; break;
       case hasErrors:
-        return <span className="logic-editor-status-error">❌ Compilation Failed</span>;
+        statusProps = { status: 'error', text: 'Compilation Failed' }; break;
       case !!compiledLogicJs:
-        return <span className="logic-editor-status-success">✅ Compiled Successfully</span>;
+        statusProps = { status: 'success', text: 'Compiled' }; break;
       case !!logicTs:
-        return <span className="logic-editor-status-pending">Not compiled yet</span>;
+        statusProps = { status: 'default', text: 'Not compiled yet' }; break;
       default:
-        return <span className="logic-editor-status-pending">Nothing to compile</span>;
+        statusProps = { status: 'default', text: 'Nothing to compile' }; break;
     }
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          height: '22px',
+          padding: '0 8px',
+          border: `1px solid ${backgroundColor === '#ffffff' ? '#d9d9d9' : '#424242'}`,
+          borderRadius: '4px',
+          backgroundColor: backgroundColor === '#ffffff' ? '#fafafa' : '#1f1f1f',
+        }}
+      >
+        <Badge status={statusProps.status} text={<span style={{ color: textColor, fontSize: '12px' }}>{statusProps.text}</span>} />
+      </div>
+    );
   };
 
   return (
-    <div className="logic-editor-root">
-      <div className="logic-editor-toolbar">
-        <span className="logic-editor-status">
+    <div className="logic-editor-badge-container" style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor }}>
+      <style>{`
+        .logic-editor-badge-container .ant-badge-status-dot {
+          width: 10px;
+          height: 10px;
+        }
+      `}</style>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '4px 8px',
+          borderBottom: `1px solid ${backgroundColor === '#ffffff' ? '#e8e8e8' : '#303030'}`,
+          backgroundColor
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {renderStatus()}
-        </span>
-        <button
-          className={`logic-editor-apply-btn${isDirty ? ' logic-editor-apply-btn--dirty' : ''}`}
+          {hasErrors && !isDirty && (
+            <Button 
+              size="small" 
+              danger 
+              onClick={() => setShowErrorModal(true)}
+              style={{ fontSize: '11px', height: '22px' }}
+            >
+              Show Errors
+            </Button>
+          )}
+        </div>
+        <Button
+          type={isDirty ? "primary" : "default"}
           onClick={handleApply}
-          title="Save and compile logic"
+          loading={isCompiling}
           disabled={isCompiling}
+          style={{ height: '22px', fontSize: '12px', padding: '0 8px', display: 'flex', alignItems: 'center' }}
         >
-          {isCompiling ? 'Compiling...' : isDirty ? 'Apply & Compile*' : 'Apply & Compile'}
-        </button>
+          {isDirty ? 'Apply & Compile*' : 'Apply & Compile'}
+        </Button>
       </div>
 
-      <div className="logic-editor-monaco-wrapper">
+      <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <Suspense fallback={<div className="logic-editor-loading">Loading editor...</div>}>
           <MonacoEditor
+            path="logic.ts"
             language="typescript"
             height="100%"
             value={editorLogicTs}
@@ -156,18 +223,33 @@ export default function LogicEditor() {
         </Suspense>
       </div>
 
-      {hasErrors && (
-        <div className="logic-editor-errors">
-          <strong>Compilation Errors:</strong>
-          <ul>
-            {compilationErrors.map((err, idx) => (
-              <li key={idx}>
-                {err.line ? `[Line ${err.line}] ` : ''}{err.message}
-              </li>
-            ))}
-          </ul>
+      <Modal
+        title="Compilation Errors"
+        open={showErrorModal}
+        onCancel={() => setShowErrorModal(false)}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setShowErrorModal(false)}>
+            Close
+          </Button>
+        ]}
+      >
+        <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+          <Alert
+            message="Compilation Failed"
+            type="error"
+            showIcon
+            description={
+              <ul style={{ margin: 0, paddingLeft: '20px', marginTop: '8px' }}>
+                {compilationErrors.map((err, idx) => (
+                  <li key={idx} style={{ wordBreak: 'break-word', marginBottom: '4px' }}>
+                    {err.message}
+                  </li>
+                ))}
+              </ul>
+            }
+          />
         </div>
-      )}
+      </Modal>
     </div>
   );
 }
