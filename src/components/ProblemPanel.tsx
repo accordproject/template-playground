@@ -65,16 +65,21 @@ const ProblemPanel: React.FC = () => {
   };
 
   const problems = useMemo((): ProblemItem[] => {
-    if (!error) return [];
+    const list: ProblemItem[] = [];
 
-    const parsedErrors = parseError(error);
-    return parsedErrors.map((parsedError, index) => ({
-      id: `error-${Date.now()}-${index}`,
-      timestamp: new Date(),
-      ...parsedError
-    }));
+    if (error) {
+      const parsedErrors = parseError(error);
+      parsedErrors.forEach((parsedError, index) => {
+        list.push({
+          id: `rebuild-error-${index}`,
+          timestamp: new Date(),
+          ...parsedError
+        });
+      });
+    }
+
+    return list;
   }, [error]);
-
 
   const formatTimestamp = (timestamp: Date) => {
     return timestamp.toLocaleTimeString('en-US', {
