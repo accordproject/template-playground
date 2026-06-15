@@ -86,7 +86,18 @@ const PlaygroundSidebar = () => {
       void message.info('At least one panel must be visible');
       return;
     }
+
     setPreviewVisible(!isPreviewVisible);
+  };
+
+  const handleKeyboardActivation = (
+    event: React.KeyboardEvent<HTMLElement>,
+    onClick: () => void
+  ) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClick();
+    }
   };
 
   interface NavItem {
@@ -198,11 +209,13 @@ const PlaygroundSidebar = () => {
         {navTop.map(({ title, icon: Icon, component, onClick, active }) => (
           <Tooltip key={title} title={title} placement="right">
             {onClick ? (
-              <button
-                type="button"
+              <div
+                role="button"
                 aria-label={title}
                 aria-pressed={active}
+                tabIndex={0}
                 onClick={onClick}
+                onKeyDown={(event) => handleKeyboardActivation(event, onClick)}
                 className={`group playground-sidebar-nav-item ${active
                     ? "playground-sidebar-nav-item-active"
                     : "playground-sidebar-nav-item-inactive"
@@ -216,7 +229,7 @@ const PlaygroundSidebar = () => {
                   Icon && <Icon size={20} />
                 )}
                 <span className="playground-sidebar-nav-item-title">{title}</span>
-              </button>
+              </div>
             ) : (
               component
             )}
@@ -227,15 +240,17 @@ const PlaygroundSidebar = () => {
       <nav className="playground-sidebar-nav-bottom">
         {navBottom.map(({ title, icon: Icon, onClick }) => (
           <Tooltip key={title} title={title} placement="right">
-            <button
-              type="button"
+            <div
+              role="button"
               aria-label={title}
+              tabIndex={0}
               onClick={onClick}
+              onKeyDown={(event) => handleKeyboardActivation(event, onClick)}
               className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
             >
               <Icon size={18} />
               <span className="playground-sidebar-nav-item-title">{title}</span>
-            </button>
+            </div>
           </Tooltip>
         ))}
       </nav>
