@@ -12,7 +12,7 @@ import { compress, decompress } from "../utils/compression/compression";
 // Import removed: compileLogicTs is now a no-op
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { validateBeforeRebuild } from "../utils/validators";
-import { loadBundledModels } from "../utils/modelCache";
+import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
 
 /** A single trigger execution result, stored in history */
 export interface LogicExecutionResult {
@@ -55,7 +55,7 @@ interface AppState {
   /** True while compilation is running (reserved for US-02). */
   isCompiling: boolean;
   /** Compilation diagnostics (reserved for US-02). */
-  compilationErrors: { message: string; line?: number; column?: number }[];
+  compilationErrors: { message: string; line?: number; column?: number; length?: number }[];
   /** Official Template object instance loaded from cicero-core */
   templateObject: import("@accordproject/cicero-core").Template | null;
 
@@ -550,6 +550,11 @@ const useAppStore = create<AppState>()(
             zip.file("text/grammar.tem.md", templateMarkdown);
             zip.file("model/model.cto", modelCto);
 
+            // Inject offline models so fromArchive resolves external imports locally
+            for (const bundledModel of BUNDLED_MODELS) {
+              zip.file(`model/${bundledModel.fileName}`, bundledModel.source);
+            }
+
             if (logicTs) {
               zip.file("logic/logic.ts", logicTs);
             }
@@ -557,7 +562,7 @@ const useAppStore = create<AppState>()(
             // Generate buffer and load via fromArchive API
             const content = await zip.generateAsync({ type: "uint8array" });
             const { Buffer } = await import("buffer");
-            const template = await CiceroTemplate.fromArchive(Buffer.from(content));
+            const template = await CiceroTemplate.fromArchive(Buffer.from(content), { offline: true });
 
             set({ templateObject: template });
             if (import.meta.env.DEV) console.log("Successfully built Template object from JSZip archive!", template);
@@ -597,10 +602,12 @@ const useAppStore = create<AppState>()(
             if (actualErrors.length > 0) {
               set({
                 isCompiling: false,
-                compilationErrors: actualErrors.map((e: any) => ({
+                isProblemPanelVisible: true,
+                compilationErrors: actualErrors.slice(0, 1).map((e: any) => ({
                   message: e.renderedMessage || e.text,
                   line: e.line,
-                  column: e.character
+                  column: e.character,
+                  length: e.length
                 }))
               });
             } else {
@@ -619,6 +626,7 @@ const useAppStore = create<AppState>()(
           } catch (error: unknown) {
             set({
               isCompiling: false,
+              isProblemPanelVisible: true,
               compilationErrors: [{ message: error instanceof Error ? error.message : String(error) }]
             });
           }

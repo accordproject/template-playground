@@ -93,3 +93,52 @@
   margin: 4px 0 0 0;
   padding-left: 20px;
 }
+
+.logic-editor-badge-wrapper {
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+}
+
+.logic-editor-badge-wrapper.light {
+  border: 1px solid #d9d9d9;
+  background-color: #fafafa;
+}
+
+.logic-editor-badge-wrapper.dark {
+  border: 1px solid #424242;
+  background-color: #1f1f1f;
+}
+
+.logic-editor-toolbar-header {
+  padding: 4px 8px;
+}
+
+.logic-editor-toolbar-header.light {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.logic-editor-toolbar-header.dark {
+  border-bottom: 1px solid #303030;
+}
+
+.logic-editor-badge-container .ant-badge-status-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.logic-editor-flex-row {
+  display: flex;
+  align-items: center;
+}
+
+.logic-editor-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.logic-editor-flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

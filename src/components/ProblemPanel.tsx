@@ -14,8 +14,9 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
-  const { error, backgroundColor, textColor } = useAppStore((state) => ({
+  const { error, compilationErrors, backgroundColor, textColor } = useAppStore((state) => ({
     error: state.error,
+    compilationErrors: state.compilationErrors,
     backgroundColor: state.backgroundColor,
     textColor: state.textColor
   }));
@@ -65,16 +66,36 @@ const ProblemPanel: React.FC = () => {
   };
 
   const problems = useMemo((): ProblemItem[] => {
-    if (!error) return [];
+    const list: ProblemItem[] = [];
 
-    const parsedErrors = parseError(error);
-    return parsedErrors.map((parsedError, index) => ({
-      id: `error-${Date.now()}-${index}`,
-      timestamp: new Date(),
-      ...parsedError
-    }));
-  }, [error]);
+    if (error) {
+      const parsedErrors = parseError(error);
+      parsedErrors.forEach((parsedError, index) => {
+        list.push({
+          id: `rebuild-error-${index}`,
+          timestamp: new Date(),
+          ...parsedError
+        });
+      });
+    }
 
+    if (compilationErrors && compilationErrors.length > 0) {
+      compilationErrors.forEach((compError, index) => {
+        list.push({
+          id: `compile-error-${index}`,
+          timestamp: new Date(),
+          type: 'error',
+          source: 'TypeScript Logic' as EditorSource, // Will be handled if navigation is implemented
+          message: compError.message,
+          // Omitting line and column until offset mapping is implemented (US-09)
+          line: undefined,
+          column: undefined,
+        });
+      });
+    }
+
+    return list;
+  }, [error, compilationErrors]);
 
   const formatTimestamp = (timestamp: Date) => {
     return timestamp.toLocaleTimeString('en-US', {
