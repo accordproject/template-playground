@@ -6,6 +6,7 @@ import LogicEditor from "../editors/LogicEditor";
 import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
+import SandboxFrame from "../components/SandboxFrame";
 import ConcertoFormatButton from "../components/ConcertoFormatButton";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
@@ -139,6 +140,7 @@ const MainContainer = () => {
 
   return (
     <div className="main-container" style={{ backgroundColor, height: "calc(100vh - 64px)", overflow: "hidden" }}>
+      <SandboxFrame />
       <PanelGroup key={horizontalPanelKey} direction="horizontal" className="main-container-panel-group"
         style={{ position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)" }}>
         {isEditorsVisible && (

@@ -59,6 +59,16 @@ interface AppState {
   /** Official Template object instance loaded from cicero-core */
   templateObject: import("@accordproject/cicero-core").Template | null;
 
+  // ── Sandbox fields ─────────────────────────────────────────────────────
+  /** Reference to the sandbox iframe element */
+  sandboxIframe: HTMLIFrameElement | null;
+  /** Whether the sandbox has signaled readiness */
+  isSandboxReady: boolean;
+  /** Whether logic execution is in progress */
+  isExecuting: boolean;
+  /** Monotonically increasing counter for deduplicating concurrent results */
+  executionId: number;
+
 
   // ── Existing action signatures ─────────────────────────────────────────
   setTemplateMarkdown: (template: string) => Promise<void>;
@@ -120,6 +130,14 @@ interface AppState {
   compileLogic: () => Promise<void>;
   /** Build an official template archive from memory strings */
   buildTemplateFromMemory: () => Promise<void>;
+
+  // ── Sandbox action signatures ──────────────────────────────────────────
+  /** Register the sandbox iframe reference */
+  setSandboxRef: (iframe: HTMLIFrameElement | null) => void;
+  /** Mark the sandbox as ready after receiving the ready signal */
+  setSandboxReady: (ready: boolean) => void;
+  /** Execute compiled logic inside the sandboxed iframe */
+  executeInSandbox: (code: string, method: string, args: unknown[]) => Promise<object>;
 
 }
 
@@ -286,6 +304,12 @@ const useAppStore = create<AppState>()(
         isCompiling: false,
         compilationErrors: [],
         templateObject: null,
+
+        // ── Sandbox initial state ──────────────────────────────────────────
+        sandboxIframe: null,
+        isSandboxReady: false,
+        isExecuting: false,
+        executionId: 0,
 
 
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
@@ -630,6 +654,52 @@ const useAppStore = create<AppState>()(
               compilationErrors: [{ message: error instanceof Error ? error.message : String(error) }]
             });
           }
+        },
+
+        // ── Sandbox actions ────────────────────────────────────────────
+
+        setSandboxRef: (iframe: HTMLIFrameElement | null) => {
+          set({ sandboxIframe: iframe });
+        },
+
+        setSandboxReady: (ready: boolean) => {
+          set({ isSandboxReady: ready });
+        },
+
+        executeInSandbox: (code: string, method: string, args: unknown[]): Promise<object> => {
+          const { sandboxIframe, isSandboxReady } = get();
+
+          if (!isSandboxReady || !sandboxIframe?.contentWindow) {
+            return Promise.reject(new Error('Sandbox is not ready. Please wait for initialization.'));
+          }
+
+          // Increment the execution counter to track this request
+          const nextId = get().executionId + 1;
+          set({ executionId: nextId, isExecuting: true });
+
+          return new Promise((resolve, reject) => {
+            // Register a resolver so SandboxFrame can route the response
+            if (!window.__sandboxResolvers) {
+              window.__sandboxResolvers = new Map();
+            }
+            window.__sandboxResolvers.set(nextId, (msg: { success?: boolean; result?: object; error?: string }) => {
+              set({ isExecuting: false });
+              if (msg.success) {
+                resolve(msg.result ?? {});
+              } else {
+                reject(new Error(msg.error || 'Execution failed'));
+              }
+            });
+
+            // Dispatch the execution request to the sandbox iframe
+            sandboxIframe.contentWindow!.postMessage({
+              type: 'execute',
+              code,
+              method,
+              args,
+              executionId: nextId,
+            }, '*');
+          });
         },
       }
     })
