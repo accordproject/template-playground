@@ -635,15 +635,21 @@ const useAppStore = create<AppState>()(
                 }))
               });
             } else {
-              // Encode as Base64 data module for dynamic import
-              const bytes = new TextEncoder().encode(result.code);
-              const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
-              const base64Encoded = btoa(binary);
-              const dataModuleUrl = `data:text/javascript;base64,${base64Encoded}`;
+              let code = result.code;
+              
+              // Strip export keywords so we can evaluate natively via new Function()
+              code = code.replace(/export\s+class/g, 'class');
+              code = code.replace(/export\s+default/g, '');
+              
+              // Append a return statement so new Function() yields the class constructor
+              const match = code.match(/class\s+(\w+)\s+extends\s+TemplateLogic/);
+              if (match) {
+                 code += `\nreturn ${match[1]};\n`;
+              }
 
               set({
                 isCompiling: false,
-                compiledLogicJs: dataModuleUrl,
+                compiledLogicJs: code,
                 compilationErrors: []
               });
             }
