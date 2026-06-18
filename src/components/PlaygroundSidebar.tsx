@@ -1,7 +1,7 @@
 import React from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings, FiCpu } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiCpu, FiPlayCircle } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
@@ -19,10 +19,12 @@ const PlaygroundSidebar = () => {
     isLogicPanelVisible,
     isLogicFeatureEnabled,
     isAIChatOpen,
+    isRunnerVisible,
     setEditorsVisible,
     setPreviewVisible,
     setProblemPanelVisible,
     setLogicPanelVisible,
+    setRunnerVisible,
     setAIChatOpen,
     generateShareableLink,
     setSettingsOpen,
@@ -31,12 +33,14 @@ const PlaygroundSidebar = () => {
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
     isLogicPanelVisible: state.isLogicPanelVisible,
+    isRunnerVisible: state.isRunnerVisible,
     isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     isAIChatOpen: state.isAIChatOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
     setLogicPanelVisible: state.setLogicPanelVisible,
+    setRunnerVisible: state.setRunnerVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
@@ -74,7 +78,7 @@ const PlaygroundSidebar = () => {
   const isLogicActive = isLogicPanelVisible && isLogicFeatureEnabled && hasLogicContent;
 
   const handleEditorToggle = () => {
-    if (isEditorsVisible && !isPreviewVisible && !isLogicActive) {
+    if (isEditorsVisible && !isPreviewVisible && !isLogicActive && !isRunnerVisible) {
       void message.info('At least one panel must be visible');
       return;
     }
@@ -82,11 +86,19 @@ const PlaygroundSidebar = () => {
   };
 
   const handlePreviewToggle = () => {
-    if (isPreviewVisible && !isEditorsVisible && !isLogicActive) {
+    if (isPreviewVisible && !isEditorsVisible && !isLogicActive && !isRunnerVisible) {
       void message.info('At least one panel must be visible');
       return;
     }
     setPreviewVisible(!isPreviewVisible);
+  };
+
+  const handleRunnerToggle = () => {
+    if (isRunnerVisible && !isEditorsVisible && !isPreviewVisible && !isLogicActive) {
+      void message.info('At least one panel must be visible');
+      return;
+    }
+    setRunnerVisible(!isRunnerVisible);
   };
 
   interface NavItem {
@@ -108,13 +120,19 @@ const PlaygroundSidebar = () => {
       title: "Logic", 
       icon: FiCpu,
       onClick: () => {
-        if (isLogicPanelVisible && !isEditorsVisible && !isPreviewVisible) {
+        if (isLogicPanelVisible && !isEditorsVisible && !isPreviewVisible && !isRunnerVisible) {
           void message.info('At least one panel must be visible');
           return;
         }
         setLogicPanelVisible(!isLogicPanelVisible);
       },
       active: isLogicPanelVisible
+    }] : []),
+    ...(isLogicFeatureEnabled && hasLogicContent ? [{
+      title: "Runner",
+      icon: FiPlayCircle,
+      onClick: handleRunnerToggle,
+      active: isRunnerVisible
     }] : []),
     { 
       title: "Preview", 
@@ -131,27 +149,10 @@ const PlaygroundSidebar = () => {
     {
       title: "AI Assistant",
       component: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ position: 'relative', width: 24, height: 24 }}>
+        <div className="playground-sidebar-ai-badge-container">
+          <div className="playground-sidebar-ai-badge-wrapper">
             <IoChatbubbleEllipsesOutline size={24} />
-            <div
-              className="absolute -top-3 -right-3.5 text-[12.5px] font-bold px-1 py-0 rounded bg-white text-transparent bg-gradient-to-r from-[#a78bfa] via-[#ec4899] to-[#ef4444] bg-clip-text shadow-sm"
-              style={{
-                WebkitBackgroundClip: "text",
-                position: 'absolute',
-                top: -12,
-                right: -14,
-                fontSize: '12.5px',
-                fontWeight: 'bold',
-                padding: '0 4px',
-                borderRadius: '4px',
-                backgroundColor: 'white',
-                color: 'transparent',
-                backgroundImage: 'linear-gradient(to right, #a78bfa, #ec4899, #ef4444)',
-                backgroundClip: 'text',
-                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              }}
-            >
+            <div className="playground-sidebar-ai-badge-text">
               AI
             </div>
           </div>
@@ -200,7 +201,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
-            className={`group playground-sidebar-nav-item ${
+            className={`playground-sidebar-nav-item ${
               active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
             } tour-${title.toLowerCase().replace(' ', '-')}`}
           >
@@ -225,7 +226,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
-            className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
+            className={`playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             <Icon size={18} />
             <span className="playground-sidebar-nav-item-title">{title}</span>

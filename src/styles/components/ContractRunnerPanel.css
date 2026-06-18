@@ -1,0 +1,51 @@
+.contract-runner-panel-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+}
+
+.contract-runner-panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.contract-runner-panel-top {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-bottom: 1px solid #333;
+}
+
+.contract-runner-panel-bottom {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.contract-runner-panel-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.contract-runner-panel-header {
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+}
+
+.contract-runner-panel-header-subtitle {
+  font-size: 0.75em;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+
+.contract-runner-panel-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+  padding-left: 12px;
+}
+
