@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import useAppStore from '../store/store';
+import { sandboxResolvers } from '../store/sandboxResolvers';
 import '../styles/components/SandboxFrame.css';
 
 /**
@@ -13,7 +14,7 @@ interface SandboxMessage {
   type: SandboxMessageType;
   executionId?: number;
   success?: boolean;
-  result?: object;
+  result?: unknown;
   error?: string;
 }
 
@@ -28,7 +29,7 @@ interface SandboxMessage {
  * This component:
  * 1. Mounts the iframe and registers its reference with the Zustand store
  * 2. Listens for postMessage events from the iframe
- * 3. Routes execution results to pending promise resolvers in the store
+ * 3. Routes execution results to pending promise resolvers via the module-scoped resolver map
  */
 export default function SandboxFrame() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -36,7 +37,10 @@ export default function SandboxFrame() {
   const setSandboxReady = useAppStore((s) => s.setSandboxReady);
 
   const handleMessage = useCallback((event: MessageEvent<SandboxMessage>) => {
-    // Sandboxed iframes post from origin "null" (the string)
+    // Sandboxed iframes (sandbox="allow-scripts" without allow-same-origin)
+    // are assigned an opaque origin by the browser, which serializes to the
+    // literal string "null". This is intentional and is NOT a bug — it is
+    // the standard way browsers represent opaque origins in postMessage events.
     if (event.origin !== 'null') return;
 
     const msg = event.data;
@@ -51,11 +55,11 @@ export default function SandboxFrame() {
         break;
 
       case 'execution-result': {
-        // Resolve the pending execution promise stored in the global resolver map
-        const resolver = window.__sandboxResolvers?.get(msg.executionId!);
+        // Resolve the pending execution promise from the module-scoped resolver map
+        const resolver = sandboxResolvers.get(msg.executionId!);
         if (resolver) {
           resolver(msg);
-          window.__sandboxResolvers.delete(msg.executionId!);
+          sandboxResolvers.delete(msg.executionId!);
         }
         break;
       }
@@ -63,16 +67,17 @@ export default function SandboxFrame() {
   }, [setSandboxRef, setSandboxReady]);
 
   useEffect(() => {
-    // Initialize the global resolver map for execution promises
-    if (!window.__sandboxResolvers) {
-      window.__sandboxResolvers = new Map();
-    }
-
     window.addEventListener('message', handleMessage);
     return () => {
       window.removeEventListener('message', handleMessage);
       setSandboxRef(null);
       setSandboxReady(false);
+
+      // Reject all pending resolvers on unmount to prevent stale promises
+      for (const [id, resolver] of sandboxResolvers) {
+        resolver({ type: 'execution-result', success: false, error: 'Sandbox iframe was unmounted' });
+        sandboxResolvers.delete(id);
+      }
     };
   }, [handleMessage, setSandboxRef, setSandboxReady]);
 
@@ -83,18 +88,7 @@ export default function SandboxFrame() {
       sandbox="allow-scripts"
       className="sandbox-frame-hidden"
       title="Logic Sandbox"
+      aria-hidden="true"
     />
   );
-}
-
-/**
- * Extend the Window interface to support the sandbox resolver map.
- * Each pending execution stores a resolver keyed by executionId,
- * allowing the SandboxFrame message handler to route results
- * back to the correct Promise in the store.
- */
-declare global {
-  interface Window {
-    __sandboxResolvers: Map<number, (msg: SandboxMessage) => void>;
-  }
 }

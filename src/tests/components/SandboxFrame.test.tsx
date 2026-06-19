@@ -1,7 +1,8 @@
-import { render } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
 import useAppStore from '../../store/store';
+import { sandboxResolvers } from '../../store/sandboxResolvers';
 import SandboxFrame from '../../components/SandboxFrame';
 
 describe('SandboxFrame', () => {
@@ -11,6 +12,12 @@ describe('SandboxFrame', () => {
       sandboxIframe: null,
       isSandboxReady: false,
     });
+    sandboxResolvers.clear();
+  });
+
+  afterEach(() => {
+    sandboxResolvers.clear();
+    cleanup();
   });
 
   it('should render a hidden iframe with correct sandbox attributes', () => {
@@ -21,6 +28,7 @@ describe('SandboxFrame', () => {
     expect(iframe).toHaveAttribute('sandbox', 'allow-scripts');
     expect(iframe).toHaveAttribute('src', '/logic-handler.html');
     expect(iframe).toHaveAttribute('title', 'Logic Sandbox');
+    expect(iframe).toHaveAttribute('aria-hidden', 'true');
     expect(iframe).toHaveClass('sandbox-frame-hidden');
   });
 
@@ -64,10 +72,9 @@ describe('SandboxFrame', () => {
   it('should route execution-result messages to resolvers', () => {
     render(<SandboxFrame />);
 
-    // Set up a mock resolver
+    // Set up a mock resolver in the module-scoped map
     const mockResolver = vi.fn();
-    window.__sandboxResolvers = new Map();
-    window.__sandboxResolvers.set(42, mockResolver);
+    sandboxResolvers.set(42, mockResolver);
 
     const resultEvent = new MessageEvent('message', {
       data: {
@@ -87,6 +94,30 @@ describe('SandboxFrame', () => {
       result: { count: 5 },
     });
     // Resolver should be cleaned up after use
-    expect(window.__sandboxResolvers.has(42)).toBe(false);
+    expect(sandboxResolvers.has(42)).toBe(false);
+  });
+
+  it('should reject pending resolvers and reset state on unmount', () => {
+    const { unmount } = render(<SandboxFrame />);
+
+    // Simulate a pending execution
+    const mockResolver = vi.fn();
+    sandboxResolvers.set(99, mockResolver);
+
+    // Unmount the component
+    unmount();
+
+    // The pending resolver should have been called with an error
+    expect(mockResolver).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: 'Sandbox iframe was unmounted',
+      })
+    );
+    // Resolver map should be cleared
+    expect(sandboxResolvers.size).toBe(0);
+    // Store should be reset
+    expect(useAppStore.getState().isSandboxReady).toBe(false);
+    expect(useAppStore.getState().sandboxIframe).toBeNull();
   });
 });

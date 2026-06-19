@@ -14,17 +14,18 @@
    * isolating it from the parent application's DOM, storage, and memory.
    *
    * Execution pipeline:
-   *   1. Parent sends compiled JS code (Data URL) + payload via postMessage
-   *   2. This handler spawns a Blob-based Web Worker (ES Module)
-   *   3. A timeout kill-switch terminates runaway executions
-   *   4. Results (or errors) are relayed back to the parent via postMessage
+   *   1. Parent sends compiled JS code (raw string) + payload via postMessage
+   *   2. This handler spawns a Blob-based Web Worker
+   *   3. The Worker evaluates the code via new Function() and invokes the requested method
+   *   4. A timeout kill-switch terminates runaway executions
+   *   5. Results (or errors) are relayed back to the parent via postMessage
    */
 
   'use strict';
 
-  var EXECUTION_TIMEOUT_MS = 5000;
+  const EXECUTION_TIMEOUT_MS = 5000;
 
-  function isValidExecutionMessage(data) {
+  const isValidExecutionMessage = (data) => {
     return (
       data !== null &&
       typeof data === 'object' &&
@@ -34,19 +35,19 @@
       typeof data.method === 'string' &&
       Array.isArray(data.args)
     );
-  }
+  };
 
-  window.addEventListener('message', function handleMessage(event) {
-    var msg = event.data;
+  window.addEventListener('message', (event) => {
+    const msg = event.data;
     if (!isValidExecutionMessage(msg)) return;
 
-    var executionId = msg.executionId;
-    var blobURL = null;
-    var worker = null;
-    var timeoutHandle = null;
-    var settled = false;
+    const executionId = msg.executionId;
+    let blobURL = null;
+    let worker = null;
+    let timeoutHandle = null;
+    let settled = false;
 
-    function cleanup() {
+    const cleanup = () => {
       if (timeoutHandle) {
         clearTimeout(timeoutHandle);
         timeoutHandle = null;
@@ -59,18 +60,23 @@
         URL.revokeObjectURL(blobURL);
         blobURL = null;
       }
-    }
+    };
 
-    function settle(response) {
+    const settle = (response) => {
       if (settled) return;
       settled = true;
       response.executionId = executionId;
+      // Post to parent with '*' because this iframe has a null origin
+      // (sandbox="allow-scripts" without allow-same-origin). A null-origin
+      // iframe cannot specify a concrete targetOrigin — '*' is the only
+      // viable option here. Security is enforced on the receiving side by
+      // checking event.origin === 'null'.
       window.parent.postMessage(response, '*');
       cleanup();
-    }
+    };
 
     try {
-      var workerScript = [
+      const workerScript = [
         'self.onmessage = async function(e) {',
         '  try {',
         '    const LogicClass = (new Function(e.data.code))();',
@@ -97,10 +103,10 @@
       blobURL = URL.createObjectURL(
         new Blob([workerScript], { type: 'application/javascript' })
       );
-      
+
       worker = new Worker(blobURL);
 
-      worker.onmessage = function(workerEvent) {
+      worker.onmessage = (workerEvent) => {
         settle({
           type: 'execution-result',
           success: workerEvent.data.success,
@@ -109,7 +115,7 @@
         });
       };
 
-      worker.onerror = function(errorEvent) {
+      worker.onerror = (errorEvent) => {
         errorEvent.preventDefault();
         settle({
           type: 'execution-result',
@@ -118,7 +124,7 @@
         });
       };
 
-      timeoutHandle = setTimeout(function() {
+      timeoutHandle = setTimeout(() => {
         settle({
           type: 'execution-result',
           success: false,
@@ -127,7 +133,7 @@
       }, EXECUTION_TIMEOUT_MS);
 
       worker.postMessage({
-        code: msg.code, // Expects data:text/javascript;base64,...
+        code: msg.code,
         method: msg.method,
         args: msg.args
       });
@@ -141,7 +147,9 @@
     }
   });
 
-  // Signal readiness to the parent application
+  // Signal readiness to the parent application.
+  // Uses '*' for the same reason as settle() above — null-origin iframes
+  // cannot specify a concrete targetOrigin.
   window.parent.postMessage({ type: 'sandbox-ready' }, '*');
 </script>
 </body>

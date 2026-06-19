@@ -13,6 +13,7 @@ import { compress, decompress } from "../utils/compression/compression";
 import { AIConfig, ChatState, KeyProtectionLevel } from '../types/components/AIAssistant.types';
 import { validateBeforeRebuild } from "../utils/validators";
 import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
+import { sandboxResolvers } from "./sandboxResolvers";
 
 /** A single trigger execution result, stored in history */
 export interface LogicExecutionResult {
@@ -137,7 +138,7 @@ interface AppState {
   /** Mark the sandbox as ready after receiving the ready signal */
   setSandboxReady: (ready: boolean) => void;
   /** Execute compiled logic inside the sandboxed iframe */
-  executeInSandbox: (code: string, method: string, args: unknown[]) => Promise<object>;
+  executeInSandbox: (code: string, method: string, args: unknown[]) => Promise<unknown>;
 
 }
 
@@ -310,7 +311,6 @@ const useAppStore = create<AppState>()(
         isSandboxReady: false,
         isExecuting: false,
         executionId: 0,
-
 
         toggleModelCollapse: () => set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
         toggleTemplateCollapse: () => set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
@@ -637,15 +637,25 @@ const useAppStore = create<AppState>()(
             } else {
               let code = result.code;
               
-              // Strip export keywords so we can evaluate natively via new Function()
+              // Strip export keywords so we can evaluate natively via new Function().
+              // This handles: export class Foo, export default class Foo, export default Foo.
               code = code.replace(/export\s+class/g, 'class');
               code = code.replace(/export\s+default/g, '');
               
-              // Append a return statement so new Function() yields the class constructor
+              // Append a return statement so new Function() yields the class constructor.
+              // Guard: if no class extending TemplateLogic is found, the compiled code
+              // is malformed — report a compilation error instead of silently producing
+              // code that would cause `new undefined()` at runtime.
               const match = code.match(/class\s+(\w+)\s+extends\s+TemplateLogic/);
-              if (match) {
-                 code += `\nreturn ${match[1]};\n`;
+              if (!match) {
+                set({
+                  isCompiling: false,
+                  isProblemPanelVisible: true,
+                  compilationErrors: [{ message: 'Compiled output does not contain a class extending TemplateLogic. Ensure your logic class extends TemplateLogic.' }]
+                });
+                return;
               }
+              code += `\nreturn ${match[1]};\n`;
 
               set({
                 isCompiling: false,
@@ -672,23 +682,39 @@ const useAppStore = create<AppState>()(
           set({ isSandboxReady: ready });
         },
 
-        executeInSandbox: (code: string, method: string, args: unknown[]): Promise<object> => {
-          const { sandboxIframe, isSandboxReady } = get();
+        executeInSandbox: (code: string, method: string, args: unknown[]): Promise<unknown> => {
+          const { sandboxIframe, isSandboxReady, isExecuting } = get();
 
           if (!isSandboxReady || !sandboxIframe?.contentWindow) {
             return Promise.reject(new Error('Sandbox is not ready. Please wait for initialization.'));
           }
 
-          // Increment the execution counter to track this request
-          const nextId = get().executionId + 1;
-          set({ executionId: nextId, isExecuting: true });
+          // Gate on isExecuting to prevent concurrent Worker spawns.
+          // If called while another execution is in flight, reject immediately.
+          if (isExecuting) {
+            return Promise.reject(new Error('An execution is already in progress. Please wait for it to complete.'));
+          }
+
+          // Use the updater form to avoid reading stale state for executionId
+          let nextId: number;
+          set((state) => { nextId = state.executionId + 1; return { executionId: nextId, isExecuting: true }; });
+
+          // Client-side fallback timeout — if the iframe itself fails to start
+          // a Worker (e.g. Blob URL creation fails), the internal 5s kill-switch
+          // never fires and the Promise would hang forever. This outer timeout
+          // ensures we always settle.
+          const CLIENT_TIMEOUT_MS = 6000;
 
           return new Promise((resolve, reject) => {
+            const clientTimeout = setTimeout(() => {
+              sandboxResolvers.delete(nextId!);
+              set({ isExecuting: false });
+              reject(new Error(`Execution timed out after ${CLIENT_TIMEOUT_MS}ms (client-side fallback)`));
+            }, CLIENT_TIMEOUT_MS);
+
             // Register a resolver so SandboxFrame can route the response
-            if (!window.__sandboxResolvers) {
-              window.__sandboxResolvers = new Map();
-            }
-            window.__sandboxResolvers.set(nextId, (msg: { success?: boolean; result?: object; error?: string }) => {
+            sandboxResolvers.set(nextId!, (msg: { success?: boolean; result?: unknown; error?: string }) => {
+              clearTimeout(clientTimeout);
               set({ isExecuting: false });
               if (msg.success) {
                 resolve(msg.result ?? {});
@@ -697,13 +723,15 @@ const useAppStore = create<AppState>()(
               }
             });
 
-            // Dispatch the execution request to the sandbox iframe
+            // Dispatch the execution request to the sandbox iframe.
+            // Uses '*' as targetOrigin because the iframe is sandboxed with a
+            // null origin. The iframe validates inbound messages structurally.
             sandboxIframe.contentWindow!.postMessage({
               type: 'execute',
               code,
               method,
               args,
-              executionId: nextId,
+              executionId: nextId!,
             }, '*');
           });
         },
