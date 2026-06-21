@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-/**
+/*
  * Tests for the regex-based code transformation that prepares compiled
  * TypeScript output for evaluation via `new Function()` inside the sandbox.
  *
@@ -13,62 +13,67 @@ import { describe, it, expect } from 'vitest';
 
 function transformCode(code: string): { code: string } | { error: string } {
   // Strip export keywords
-  code = code.replace(/export\s+class/g, 'class');
-  code = code.replace(/export\s+default/g, '');
+  code = code.replace(/export\s+class/g, "class");
+  code = code.replace(/export\s+default/g, "");
 
   // Find the class extending TemplateLogic
   const match = code.match(/class\s+(\w+)\s+extends\s+TemplateLogic/);
   if (!match) {
-    return { error: 'Compiled output does not contain a class extending TemplateLogic. Ensure your logic class extends TemplateLogic.' };
+    return {
+      error:
+        "Compiled output does not contain a class extending TemplateLogic. Ensure your logic class extends TemplateLogic.",
+    };
   }
   code += `\nreturn ${match[1]};\n`;
 
   return { code };
 }
 
-describe('Code Transformation (export stripping + return injection)', () => {
-  it('should strip export class and append return', () => {
+describe("Code Transformation (export stripping + return injection)", () => {
+  it("should strip export class and append return", () => {
     const input = `export class CounterLogic extends TemplateLogic<any> {
   async init(data) { return {}; }
   async trigger(data, req, state) { return {}; }
 }`;
     const result = transformCode(input);
-    expect('code' in result).toBe(true);
-    if ('code' in result) {
-      expect(result.code).not.toContain('export class');
-      expect(result.code).toContain('class CounterLogic');
-      expect(result.code).toContain('return CounterLogic;');
+    expect("code" in result).toBe(true);
+    if ("code" in result) {
+      expect(result.code).not.toContain("export class");
+      expect(result.code).toContain("class CounterLogic");
+      expect(result.code).toContain("return CounterLogic;");
     }
   });
 
-  it('should strip export default', () => {
+  it("should strip export default", () => {
     const input = `class MyLogic extends TemplateLogic<any> {}
 export default MyLogic;`;
     const result = transformCode(input);
-    expect('code' in result).toBe(true);
-    if ('code' in result) {
-      expect(result.code).not.toContain('export default');
-      expect(result.code).toContain('return MyLogic;');
+    expect("code" in result).toBe(true);
+    if ("code" in result) {
+      expect(result.code).not.toContain("export default");
+      expect(result.code).toContain("return MyLogic;");
     }
   });
 
-  it('should return an error when no class extends TemplateLogic', () => {
+  it("should return an error when no class extends TemplateLogic", () => {
     const input = `class SomeOtherClass {
   doStuff() { return 42; }
 }`;
     const result = transformCode(input);
-    expect('error' in result).toBe(true);
-    if ('error' in result) {
-      expect(result.error).toContain('does not contain a class extending TemplateLogic');
+    expect("error" in result).toBe(true);
+    if ("error" in result) {
+      expect(result.error).toContain(
+        "does not contain a class extending TemplateLogic",
+      );
     }
   });
 
-  it('should return an error for empty code', () => {
-    const result = transformCode('');
-    expect('error' in result).toBe(true);
+  it("should return an error for empty code", () => {
+    const result = transformCode("");
+    expect("error" in result).toBe(true);
   });
 
-  it('should handle export in a string/comment without breaking', () => {
+  it("should handle export in a string/comment without breaking", () => {
     const input = `// This has export class in a comment
 class RealLogic extends TemplateLogic<any> {
   async init(data) { return { state: {} }; }
@@ -78,9 +83,9 @@ class RealLogic extends TemplateLogic<any> {
   }
 }`;
     const result = transformCode(input);
-    expect('code' in result).toBe(true);
-    if ('code' in result) {
-      expect(result.code).toContain('return RealLogic;');
+    expect("code" in result).toBe(true);
+    if ("code" in result) {
+      expect(result.code).toContain("return RealLogic;");
     }
   });
 });

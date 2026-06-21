@@ -1,11 +1,12 @@
-import { render, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import '@testing-library/jest-dom';
-import useAppStore from '../../store/store';
-import { sandboxResolvers } from '../../store/sandboxResolvers';
-import SandboxFrame from '../../components/SandboxFrame';
+import { render, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import "@testing-library/jest-dom";
+import { SANDBOX_READY, EXECUTION_RESULT } from "../../constants/sandbox";
+import useAppStore from "../../store/store";
+import { sandboxResolvers } from "../../store/sandboxResolvers";
+import SandboxFrame from "../../components/SandboxFrame";
 
-describe('SandboxFrame', () => {
+describe("SandboxFrame", () => {
   beforeEach(() => {
     localStorage.clear();
     useAppStore.setState({
@@ -20,75 +21,75 @@ describe('SandboxFrame', () => {
     cleanup();
   });
 
-  it('should render a hidden iframe with correct sandbox attributes', () => {
+  it("should render a hidden iframe with correct sandbox attributes", () => {
     const { container } = render(<SandboxFrame />);
-    const iframe = container.querySelector('iframe');
+    const iframe = container.querySelector("iframe");
 
     expect(iframe).toBeInTheDocument();
-    expect(iframe).toHaveAttribute('sandbox', 'allow-scripts');
-    expect(iframe).toHaveAttribute('src', '/logic-handler.html');
-    expect(iframe).toHaveAttribute('title', 'Logic Sandbox');
-    expect(iframe).toHaveAttribute('aria-hidden', 'true');
-    expect(iframe).toHaveClass('sandbox-frame-hidden');
+    expect(iframe).toHaveAttribute("sandbox", "allow-scripts");
+    expect(iframe).toHaveAttribute("src", "/logic-handler.html");
+    expect(iframe).toHaveAttribute("title", "Logic Sandbox");
+    expect(iframe).toHaveAttribute("aria-hidden", "true");
+    expect(iframe).toHaveClass("sandbox-frame-hidden");
   });
 
-  it('should handle sandbox-ready message from iframe', () => {
+  it("should handle sandbox-ready message from iframe", () => {
     render(<SandboxFrame />);
 
     // Simulate the sandbox-ready message from a null-origin iframe
-    const readyEvent = new MessageEvent('message', {
-      data: { type: 'sandbox-ready' },
-      origin: 'null',
+    const readyEvent = new MessageEvent("message", {
+      data: { type: SANDBOX_READY },
+      origin: "null",
     });
     window.dispatchEvent(readyEvent);
 
     expect(useAppStore.getState().isSandboxReady).toBe(true);
   });
 
-  it('should ignore messages from non-null origins', () => {
+  it("should ignore messages from non-null origins", () => {
     render(<SandboxFrame />);
 
-    const maliciousEvent = new MessageEvent('message', {
-      data: { type: 'sandbox-ready' },
-      origin: 'https://malicious.com',
+    const maliciousEvent = new MessageEvent("message", {
+      data: { type: SANDBOX_READY },
+      origin: "https://malicious.com",
     });
     window.dispatchEvent(maliciousEvent);
 
     expect(useAppStore.getState().isSandboxReady).toBe(false);
   });
 
-  it('should ignore messages with unrecognized types', () => {
+  it("should ignore messages with unrecognized types", () => {
     render(<SandboxFrame />);
 
-    const unknownEvent = new MessageEvent('message', {
-      data: { type: 'unknown-type' },
-      origin: 'null',
+    const unknownEvent = new MessageEvent("message", {
+      data: { type: "unknown-type" },
+      origin: "null",
     });
     window.dispatchEvent(unknownEvent);
 
     expect(useAppStore.getState().isSandboxReady).toBe(false);
   });
 
-  it('should route execution-result messages to resolvers', () => {
+  it("should route execution-result messages to resolvers", () => {
     render(<SandboxFrame />);
 
     // Set up a mock resolver in the module-scoped map
     const mockResolver = vi.fn();
     sandboxResolvers.set(42, mockResolver);
 
-    const resultEvent = new MessageEvent('message', {
+    const resultEvent = new MessageEvent("message", {
       data: {
-        type: 'execution-result',
+        type: EXECUTION_RESULT,
         executionId: 42,
         success: true,
         result: { count: 5 },
       },
-      origin: 'null',
+      origin: "null",
     });
     window.dispatchEvent(resultEvent);
 
     expect(mockResolver).toHaveBeenCalledWith({
-      type: 'execution-result',
+      type: EXECUTION_RESULT,
       executionId: 42,
       success: true,
       result: { count: 5 },
@@ -97,7 +98,7 @@ describe('SandboxFrame', () => {
     expect(sandboxResolvers.has(42)).toBe(false);
   });
 
-  it('should reject pending resolvers and reset state on unmount', () => {
+  it("should reject pending resolvers and reset state on unmount", () => {
     const { unmount } = render(<SandboxFrame />);
 
     // Simulate a pending execution
@@ -111,8 +112,8 @@ describe('SandboxFrame', () => {
     expect(mockResolver).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Sandbox iframe was unmounted',
-      })
+        error: "Sandbox iframe was unmounted",
+      }),
     );
     // Resolver map should be cleared
     expect(sandboxResolvers.size).toBe(0);

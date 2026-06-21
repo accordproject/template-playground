@@ -1,156 +1,168 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Logic Sandbox</title>
-</head>
-<body>
-<script>
-  /**
-   * Logic Sandbox Handler
-   *
-   * This page runs inside a sandboxed iframe with "allow-scripts" only
-   * (no "allow-same-origin"). The browser assigns it a null origin,
-   * isolating it from the parent application's DOM, storage, and memory.
-   *
-   * Execution pipeline:
-   *   1. Parent sends compiled JS code (raw string) + payload via postMessage
-   *   2. This handler spawns a Blob-based Web Worker
-   *   3. The Worker evaluates the code via new Function() and invokes the requested method
-   *   4. A timeout kill-switch terminates runaway executions
-   *   5. Results (or errors) are relayed back to the parent via postMessage
-   */
+  <head>
+    <meta
+      charset="UTF-8"
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline' blob:"
+    />
+    <title>Logic Sandbox</title>
+  </head>
+  <body>
+    <script>
+      /*
+       * Logic Sandbox Handler
+       *
+       * This page runs inside a sandboxed iframe with "allow-scripts" only
+       * (no "allow-same-origin"). The browser assigns it a null origin,
+       * isolating it from the parent application's DOM, storage, and memory.
+       *
+       * Execution pipeline:
+       *   1. Parent sends compiled JS code (raw string) + payload via postMessage
+       *   2. This handler spawns a Blob-based Web Worker
+       *   3. The Worker evaluates the code via new Function() and invokes the requested method
+       *   4. A timeout kill-switch terminates runaway executions
+       *   5. Results (or errors) are relayed back to the parent via postMessage
+       */
 
-  'use strict';
+      "use strict";
 
-  const EXECUTION_TIMEOUT_MS = 5000;
+      const EXECUTION_TIMEOUT_MS = 5000;
 
-  const isValidExecutionMessage = (data) => {
-    return (
-      data !== null &&
-      typeof data === 'object' &&
-      data.type === 'execute' &&
-      typeof data.code === 'string' &&
-      typeof data.executionId === 'number' &&
-      typeof data.method === 'string' &&
-      Array.isArray(data.args)
-    );
-  };
-
-  window.addEventListener('message', (event) => {
-    const msg = event.data;
-    if (!isValidExecutionMessage(msg)) return;
-
-    const executionId = msg.executionId;
-    let blobURL = null;
-    let worker = null;
-    let timeoutHandle = null;
-    let settled = false;
-
-    const cleanup = () => {
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-        timeoutHandle = null;
-      }
-      if (worker) {
-        worker.terminate();
-        worker = null;
-      }
-      if (blobURL) {
-        URL.revokeObjectURL(blobURL);
-        blobURL = null;
-      }
-    };
-
-    const settle = (response) => {
-      if (settled) return;
-      settled = true;
-      response.executionId = executionId;
-      // Post to parent with '*' because this iframe has a null origin
-      // (sandbox="allow-scripts" without allow-same-origin). A null-origin
-      // iframe cannot specify a concrete targetOrigin — '*' is the only
-      // viable option here. Security is enforced on the receiving side by
-      // checking event.origin === 'null'.
-      window.parent.postMessage(response, '*');
-      cleanup();
-    };
-
-    try {
-      const workerScript = [
-        'self.onmessage = async function(e) {',
-        '  try {',
-        '    const LogicClass = (new Function(e.data.code))();',
-        '    const instance = typeof LogicClass === "function" ? new LogicClass() : LogicClass;',
-        '    const method = e.data.method;',
-        '    const args = e.data.args;',
-        '    if (typeof instance[method] !== "function") {',
-        '      throw new Error(`Method ${method} not found on Logic instance`);',
-        '    }',
-        '    const result = await Promise.resolve(instance[method].apply(instance, args));',
-        '    self.postMessage({',
-        '      success: true,',
-        '      result: JSON.parse(JSON.stringify(result !== undefined ? result : null))',
-        '    });',
-        '  } catch (err) {',
-        '    self.postMessage({',
-        '      success: false,',
-        '      error: err instanceof Error ? err.message : String(err)',
-        '    });',
-        '  }',
-        '};'
-      ].join('\n');
-
-      blobURL = URL.createObjectURL(
-        new Blob([workerScript], { type: 'application/javascript' })
-      );
-
-      worker = new Worker(blobURL);
-
-      worker.onmessage = (workerEvent) => {
-        settle({
-          type: 'execution-result',
-          success: workerEvent.data.success,
-          result: workerEvent.data.result,
-          error: workerEvent.data.error
-        });
+      const isValidExecutionMessage = (data) => {
+        return (
+          data !== null &&
+          typeof data === "object" &&
+          data.type === "execute" &&
+          typeof data.code === "string" &&
+          typeof data.executionId === "number" &&
+          typeof data.method === "string" &&
+          Array.isArray(data.args)
+        );
       };
 
-      worker.onerror = (errorEvent) => {
-        errorEvent.preventDefault();
-        settle({
-          type: 'execution-result',
-          success: false,
-          error: errorEvent.message || 'Worker encountered an unexpected error'
-        });
-      };
+      window.addEventListener("message", (event) => {
+        const msg = event.data;
+        if (!isValidExecutionMessage(msg)) return;
 
-      timeoutHandle = setTimeout(() => {
-        settle({
-          type: 'execution-result',
-          success: false,
-          error: 'Execution timed out after ' + EXECUTION_TIMEOUT_MS + 'ms'
-        });
-      }, EXECUTION_TIMEOUT_MS);
+        const executionId = msg.executionId;
+        let blobURL = null;
+        let worker = null;
+        let timeoutHandle = null;
+        let settled = false;
 
-      worker.postMessage({
-        code: msg.code,
-        method: msg.method,
-        args: msg.args
+        const cleanup = () => {
+          if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+            timeoutHandle = null;
+          }
+          if (worker) {
+            worker.terminate();
+            worker = null;
+          }
+          if (blobURL) {
+            URL.revokeObjectURL(blobURL);
+            blobURL = null;
+          }
+        };
+
+        const settle = (response) => {
+          if (settled) return;
+          settled = true;
+          response.executionId = executionId;
+          /*
+           * Post to parent with '*' because this iframe has a null origin
+           * (sandbox="allow-scripts" without allow-same-origin). A null-origin
+           * iframe cannot specify a concrete targetOrigin — '*' is the only
+           * viable option here. Security is enforced on the receiving side by
+           * checking event.origin === 'null'.
+           */
+          window.parent.postMessage(response, "*");
+          cleanup();
+        };
+
+        try {
+          const workerScript = [
+            "self.onmessage = async function(e) {",
+            "  try {",
+            "    const LogicClass = (new Function(e.data.code))();",
+            '    if (typeof LogicClass !== "function") {',
+            '      throw new Error("Compiled logic did not return a valid class/function");',
+            "    }",
+            "    const instance = new LogicClass();",
+            "    const method = e.data.method;",
+            "    const args = e.data.args;",
+            '    if (typeof instance[method] !== "function") {',
+            "      throw new Error(`Method ${method} not found on Logic instance`);",
+            "    }",
+            "    let result = await Promise.resolve(instance[method].apply(instance, args));",
+            "    result = result !== undefined ? result : null;",
+            "    self.postMessage({",
+            "      success: true,",
+            "      result",
+            "    });",
+            "  } catch (err) {",
+            "    self.postMessage({",
+            "      success: false,",
+            "      error: err instanceof Error ? err.message : String(err)",
+            "    });",
+            "  }",
+            "};",
+          ].join("\n");
+
+          blobURL = URL.createObjectURL(
+            new Blob([workerScript], { type: "application/javascript" }),
+          );
+
+          worker = new Worker(blobURL);
+
+          worker.onmessage = (workerEvent) => {
+            settle({
+              type: "execution-result",
+              success: workerEvent.data.success,
+              result: workerEvent.data.result,
+              error: workerEvent.data.error,
+            });
+          };
+
+          worker.onerror = (errorEvent) => {
+            errorEvent.preventDefault();
+            settle({
+              type: "execution-result",
+              success: false,
+              error:
+                errorEvent.message || "Worker encountered an unexpected error",
+            });
+          };
+
+          timeoutHandle = setTimeout(() => {
+            settle({
+              type: "execution-result",
+              success: false,
+              error: "Execution timed out after " + EXECUTION_TIMEOUT_MS + "ms",
+            });
+          }, EXECUTION_TIMEOUT_MS);
+
+          worker.postMessage({
+            code: msg.code,
+            method: msg.method,
+            args: msg.args,
+          });
+        } catch (err) {
+          settle({
+            type: "execution-result",
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
       });
 
-    } catch (err) {
-      settle({
-        type: 'execution-result',
-        success: false,
-        error: err instanceof Error ? err.message : String(err)
-      });
-    }
-  });
-
-  // Signal readiness to the parent application.
-  // Uses '*' for the same reason as settle() above — null-origin iframes
-  // cannot specify a concrete targetOrigin.
-  window.parent.postMessage({ type: 'sandbox-ready' }, '*');
-</script>
-</body>
+      /*
+       * Signal readiness to the parent application.
+       * Uses '*' for the same reason as settle() above — null-origin iframes
+       * cannot specify a concrete targetOrigin.
+       */
+      window.parent.postMessage({ type: "sandbox-ready" }, "*");
+    </script>
+  </body>
 </html>
