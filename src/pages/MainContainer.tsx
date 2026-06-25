@@ -13,11 +13,12 @@ import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
 import html2pdf from "html2pdf.js";
-import { Button, message } from "antd";
+import { message, Dropdown } from "antd";
+import type { MenuProps } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
+import { generateMarkdown, generateHtml } from "../utils/exportUtils";
 import DOMPurify from "dompurify";
-
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
@@ -69,6 +70,59 @@ const MainContainer = () => {
       setIsDownloading(false);
     }
   }
+
+  const triggerDownload = (content: string, mimeType: string, filename: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadText = () => {
+    const element = downloadRef.current;
+    if (!element) return;
+    triggerDownload(element.innerText, 'text/plain;charset=utf-8', 'agreement.txt');
+  };
+
+  const handleDownloadMarkdown = () => {
+    if (!agreementHtml) return;
+    try {
+      const markdown = generateMarkdown(agreementHtml);
+      triggerDownload(markdown, 'text/markdown;charset=utf-8', 'agreement.md');
+    } catch (error) {
+      console.error("Markdown generation failed:", error);
+      void message.error("Failed to generate Markdown. Please check the console.");
+    }
+  };
+
+  const handleDownloadHtml = () => {
+    if (!agreementHtml) return;
+    const fullHtml = generateHtml(agreementHtml);
+    triggerDownload(fullHtml, 'text/html;charset=utf-8', 'agreement.html');
+  };
+
+  const exportMenuItems: MenuProps['items'] = [
+    {
+      key: 'txt',
+      label: 'Download as Plain Text (.txt)',
+      onClick: handleDownloadText,
+    },
+    {
+      key: 'md',
+      label: 'Download as Markdown (.md)',
+      onClick: handleDownloadMarkdown,
+    },
+    {
+      key: 'html',
+      label: 'Download as HTML (.html)',
+      onClick: handleDownloadHtml,
+    },
+  ];
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
@@ -362,13 +416,16 @@ const MainContainer = () => {
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor, height: "100%" }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
-                  <Button
+                  <Dropdown.Button 
+                    type="primary"
+                    className="export-dropdown-btn"
                     onClick={() => void handleDownloadPdf()}
                     loading={isDownloading}
                     style={{ marginLeft: "10px" }}
+                    menu={{ items: exportMenuItems }}
                   >
                     Download PDF
-                  </Button>
+                  </Dropdown.Button>
                 </div>
                 <div className="main-container-preview-content" style={{ backgroundColor: previewBackgroundColor, height: "calc(100% - 40px)", overflow: "auto" }}>
                   <div className="main-container-preview-text">
