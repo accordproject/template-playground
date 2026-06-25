@@ -32,50 +32,53 @@ html[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-content {
     color: #ffffff;
 }
 
-html[data-theme="dark"] .ant-btn-default {
+html[data-theme="dark"] .ant-modal-confirm .ant-btn-default {
     background-color: #333333;
     color: #ffffff;
     border-color: #555555;
 }
 
-html[data-theme="dark"] .ant-btn-default:hover {
+html[data-theme="dark"] .ant-modal-confirm .ant-btn-default:hover {
     background-color: #444444;
     color: #19c6c7;
     border-color: #19c6c7;
 }
 
-.ant-btn-default:hover {
+.export-dropdown-btn.ant-btn-default:hover,
+.export-dropdown-btn .ant-btn-default:hover {
     color: #19c6c7;
     border-color: #19c6c7;
 }
 
-.ant-btn-primary {
+.export-dropdown-btn.ant-btn-primary,
+.export-dropdown-btn .ant-btn-primary {
     background-color: #19c6c7;
     border-color: #19c6c7;
     color: #050c40;
 }
 
-.ant-btn-primary:hover {
+.export-dropdown-btn.ant-btn-primary:hover,
+.export-dropdown-btn .ant-btn-primary:hover {
     background-color: #15b3b4;
     border-color: #15b3b4;
     color: #050c40;
 }
 
 /* Remove the default blue separator line in Button Groups (like Dropdown.Button) */
-.ant-btn-group .ant-btn-primary::before,
-.ant-btn-group .ant-btn-primary::after,
-.ant-dropdown-button .ant-btn-primary::before,
-.ant-dropdown-button .ant-btn-primary::after,
-.ant-space-compact .ant-btn-primary::before,
-.ant-space-compact .ant-btn-primary::after {
+.export-dropdown-btn.ant-btn-group .ant-btn-primary::before,
+.export-dropdown-btn.ant-btn-group .ant-btn-primary::after,
+.export-dropdown-btn.ant-dropdown-button .ant-btn-primary::before,
+.export-dropdown-btn.ant-dropdown-button .ant-btn-primary::after,
+.export-dropdown-btn.ant-space-compact .ant-btn-primary::before,
+.export-dropdown-btn.ant-space-compact .ant-btn-primary::after {
     display: none !important;
     background: transparent !important;
 }
 
 /* Fallback for border-left/right if Ant Design applies it directly */
-.ant-btn-group > .ant-btn-primary,
-.ant-dropdown-button > .ant-btn-primary,
-.ant-space-compact > .ant-btn-primary {
+.export-dropdown-btn.ant-btn-group > .ant-btn-primary,
+.export-dropdown-btn.ant-dropdown-button > .ant-btn-primary,
+.export-dropdown-btn.ant-space-compact > .ant-btn-primary {
     border-left-color: #19c6c7 !important;
     border-right-color: #19c6c7 !important;
     border-inline-start-color: #19c6c7 !important;

@@ -16,9 +16,8 @@ import html2pdf from "html2pdf.js";
 import { message, Dropdown } from "antd";
 import type { MenuProps } from "antd";
 import * as monaco from "monaco-editor";
-import TurndownService from "turndown";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
-import DOMPurify from "dompurify";
+import { generateMarkdown, generateHtml } from "../utils/exportUtils";
 
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
@@ -93,8 +92,7 @@ const MainContainer = () => {
   const handleDownloadMarkdown = () => {
     if (!agreementHtml) return;
     try {
-      const turndownService = new TurndownService();
-      const markdown = turndownService.turndown(agreementHtml);
+      const markdown = generateMarkdown(agreementHtml);
       triggerDownload(markdown, 'text/markdown;charset=utf-8', 'agreement.md');
     } catch (error) {
       console.error("Markdown generation failed:", error);
@@ -104,20 +102,7 @@ const MainContainer = () => {
 
   const handleDownloadHtml = () => {
     if (!agreementHtml) return;
-    const sanitizedHtml = DOMPurify.sanitize(agreementHtml);
-    const fullHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Agreement</title>
-  <style>
-    body { font-family: sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; }
-  </style>
-</head>
-<body>
-${sanitizedHtml}
-</body>
-</html>`;
+    const fullHtml = generateHtml(agreementHtml);
     triggerDownload(fullHtml, 'text/html;charset=utf-8', 'agreement.html');
   };
 
@@ -433,6 +418,7 @@ ${sanitizedHtml}
                   <span>Preview</span>
                   <Dropdown.Button 
                     type="primary"
+                    className="export-dropdown-btn"
                     onClick={() => void handleDownloadPdf()}
                     loading={isDownloading}
                     style={{ marginLeft: "10px" }}
