@@ -18,7 +18,7 @@ import type { MenuProps } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 import { generateMarkdown, generateHtml } from "../utils/exportUtils";
-
+import DOMPurify from "dompurify";
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
