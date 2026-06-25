@@ -390,8 +390,20 @@ const useAppStore = create<AppState>()(
             const sampleHasLogic = !!state.samples.find((sample) => sample.NAME === state.sampleName)?.LOGIC;
             const hasLogic = sampleHasLogic || state.logicTs.trim().length > 0 || state.editorLogicTs.trim().length > 0;
             
-            if (!hasLogic && !state.isPreviewVisible) {
-              set({ isPreviewVisible: true, isLogicPanelVisible: false, isContractRunnerVisible: false });
+            if (!hasLogic) {
+              set({ 
+                isEditorsVisible: true,
+                isPreviewVisible: true, 
+                isLogicPanelVisible: false, 
+                isContractRunnerVisible: false 
+              });
+              savePanelState({
+                ...get(),
+                isEditorsVisible: true,
+                isPreviewVisible: true, 
+                isLogicPanelVisible: false, 
+                isContractRunnerVisible: false 
+              });
             }
             await get().rebuild();
           }
