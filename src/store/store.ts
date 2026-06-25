@@ -98,8 +98,8 @@ interface AppState {
   setPreviewVisible: (value: boolean) => void;
   setLogicPanelVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
-  isRunnerVisible: boolean;
-  setRunnerVisible: (value: boolean) => void;
+  isContractRunnerVisible: boolean;
+  setContractRunnerVisible: (value: boolean) => void;
   startTour: () => void;
   isModelCollapsed: boolean;
   isTemplateCollapsed: boolean;
@@ -217,7 +217,7 @@ const getInitialPanelState = () => {
     isPreviewVisible: true,
     isProblemPanelVisible: false,
     isLogicPanelVisible: false,
-    isRunnerVisible: false,
+    isContractRunnerVisible: false,
     isAIChatOpen: false,
   };
   if (typeof window !== "undefined") {
@@ -240,7 +240,7 @@ const savePanelState = (state: Partial<AppState>) => {
       isPreviewVisible: state.isPreviewVisible,
       isProblemPanelVisible: state.isProblemPanelVisible,
       isLogicPanelVisible: state.isLogicPanelVisible,
-      isRunnerVisible: state.isRunnerVisible,
+      isContractRunnerVisible: state.isContractRunnerVisible,
       isAIChatOpen: state.isAIChatOpen,
     };
     localStorage.setItem("ui-panels", JSON.stringify(panels));
@@ -290,7 +290,7 @@ const useAppStore = create<AppState>()(
         isPreviewVisible: initialPanels.isPreviewVisible,
         isProblemPanelVisible: initialPanels.isProblemPanelVisible,
         isLogicPanelVisible: initialPanels.isLogicPanelVisible,
-        isRunnerVisible: initialPanels.isRunnerVisible,
+        isContractRunnerVisible: initialPanels.isContractRunnerVisible,
         isModelCollapsed: false,
         isTemplateCollapsed: false,
         isDataCollapsed: false,
@@ -360,9 +360,9 @@ const useAppStore = create<AppState>()(
           set({ isProblemPanelVisible: value });
           savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
         },
-        setRunnerVisible: (value) => {
+        setContractRunnerVisible: (value) => {
           const state = get();
-          const updates: Partial<AppState> = { isRunnerVisible: value };
+          const updates: Partial<AppState> = { isContractRunnerVisible: value };
           
           if (value && state.isPreviewVisible) {
             updates.isPreviewVisible = false;
@@ -391,7 +391,7 @@ const useAppStore = create<AppState>()(
             const hasLogic = sampleHasLogic || state.logicTs.trim().length > 0 || state.editorLogicTs.trim().length > 0;
             
             if (!hasLogic && !state.isPreviewVisible) {
-              set({ isPreviewVisible: true, isLogicPanelVisible: false, isRunnerVisible: false });
+              set({ isPreviewVisible: true, isLogicPanelVisible: false, isContractRunnerVisible: false });
             }
             await get().rebuild();
           }
@@ -420,7 +420,7 @@ const useAppStore = create<AppState>()(
               isCompiling: false,
               // Adapt layout based on whether template has logic
               isLogicPanelVisible: hasLogic,
-              isRunnerVisible: hasLogic,
+              isContractRunnerVisible: hasLogic,
               isPreviewVisible: !hasLogic,
             }));
             
@@ -428,7 +428,7 @@ const useAppStore = create<AppState>()(
             savePanelState({
               ...get(),
               isLogicPanelVisible: hasLogic,
-              isRunnerVisible: hasLogic,
+              isContractRunnerVisible: hasLogic,
               isPreviewVisible: !hasLogic,
             });
 

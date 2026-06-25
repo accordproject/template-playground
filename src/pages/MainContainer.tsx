@@ -82,7 +82,7 @@ const MainContainer = () => {
   const isPreviewVisible = useAppStore((s) => s.isPreviewVisible);
   const isProblemPanelVisible = useAppStore((s) => s.isProblemPanelVisible);
   const isLogicPanelVisible = useAppStore((s) => s.isLogicPanelVisible);
-  const isRunnerVisible = useAppStore((s) => s.isRunnerVisible);
+  const isContractRunnerVisible = useAppStore((s) => s.isContractRunnerVisible);
   const isModelCollapsed = useAppStore((s) => s.isModelCollapsed);
   const isTemplateCollapsed = useAppStore((s) => s.isTemplateCollapsed);
   const isDataCollapsed = useAppStore((s) => s.isDataCollapsed);
@@ -93,11 +93,7 @@ const MainContainer = () => {
 
   const isLogicFeatureEnabled = useAppStore((s) => s.isLogicFeatureEnabled);
   
-  // Select the boolean directly to prevent MainContainer from re-rendering on every keystroke
-  const hasLogicContent = useAppStore((s) => {
-    const sampleHasLogic = !!s.samples.find((sample) => sample.NAME === s.sampleName)?.LOGIC;
-    return sampleHasLogic || s.logicTs.trim().length > 0 || s.editorLogicTs.trim().length > 0;
-  });
+
   
   /*
    * Calculate dynamic panel sizes based on visible editors and collapse states.
@@ -112,8 +108,8 @@ const MainContainer = () => {
     : 100 / totalEditorPanels;
 
 
-  const activeLogicWorkspace = isLogicPanelVisible && isLogicFeatureEnabled && hasLogicContent;
-  const activeRunnerWorkspace = isRunnerVisible && isLogicFeatureEnabled && hasLogicContent;
+  const activeLogicWorkspace = isLogicPanelVisible && isLogicFeatureEnabled ;
+  const activeRunnerWorkspace = isContractRunnerVisible && isLogicFeatureEnabled ;
   const horizontalPanelKey = `${String(isEditorsVisible)}-${String(activeLogicWorkspace)}-${String(activeRunnerWorkspace)}-${String(isPreviewVisible)}-${String(isAIChatOpen)}`;
 
   // Create distinct preview background for better visual separation

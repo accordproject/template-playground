@@ -19,12 +19,12 @@ const PlaygroundSidebar = () => {
     isLogicPanelVisible,
     isLogicFeatureEnabled,
     isAIChatOpen,
-    isRunnerVisible,
+    isContractRunnerVisible,
     setEditorsVisible,
     setPreviewVisible,
     setProblemPanelVisible,
     setLogicPanelVisible,
-    setRunnerVisible,
+    setContractRunnerVisible,
     setAIChatOpen,
     generateShareableLink,
     setSettingsOpen,
@@ -33,23 +33,20 @@ const PlaygroundSidebar = () => {
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
     isLogicPanelVisible: state.isLogicPanelVisible,
-    isRunnerVisible: state.isRunnerVisible,
+    isContractRunnerVisible: state.isContractRunnerVisible,
     isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     isAIChatOpen: state.isAIChatOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
     setLogicPanelVisible: state.setLogicPanelVisible,
-    setRunnerVisible: state.setRunnerVisible,
+    setContractRunnerVisible: state.setContractRunnerVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
   }));
 
-  const hasLogicContent = useAppStore((s) => {
-    const sampleHasLogic = !!s.samples.find((sample) => sample.NAME === s.sampleName)?.LOGIC;
-    return sampleHasLogic || s.logicTs.trim().length > 0 || s.editorLogicTs.trim().length > 0;
-  });
+
 
   const handleShare = async () => {
     try {
@@ -75,10 +72,10 @@ const PlaygroundSidebar = () => {
     }
   };
 
-  const isLogicActive = isLogicPanelVisible && isLogicFeatureEnabled && hasLogicContent;
+  const isLogicActive = isLogicPanelVisible && isLogicFeatureEnabled ;
 
   const handleEditorToggle = () => {
-    if (isEditorsVisible && !isPreviewVisible && !isLogicActive && !isRunnerVisible) {
+    if (isEditorsVisible && !isPreviewVisible && !isLogicActive && !isContractRunnerVisible) {
       void message.info('At least one panel must be visible');
       return;
     }
@@ -86,7 +83,7 @@ const PlaygroundSidebar = () => {
   };
 
   const handlePreviewToggle = () => {
-    if (isPreviewVisible && !isEditorsVisible && !isLogicActive && !isRunnerVisible) {
+    if (isPreviewVisible && !isEditorsVisible && !isLogicActive && !isContractRunnerVisible) {
       void message.info('At least one panel must be visible');
       return;
     }
@@ -94,11 +91,11 @@ const PlaygroundSidebar = () => {
   };
 
   const handleRunnerToggle = () => {
-    if (isRunnerVisible && !isEditorsVisible && !isPreviewVisible && !isLogicActive) {
+    if (isContractRunnerVisible && !isEditorsVisible && !isPreviewVisible && !isLogicActive) {
       void message.info('At least one panel must be visible');
       return;
     }
-    setRunnerVisible(!isRunnerVisible);
+    setContractRunnerVisible(!isContractRunnerVisible);
   };
 
   interface NavItem {
@@ -116,11 +113,11 @@ const PlaygroundSidebar = () => {
       onClick: handleEditorToggle,
       active: isEditorsVisible
     },
-    ...(isLogicFeatureEnabled && hasLogicContent ? [{
+    ...(isLogicFeatureEnabled ? [{
       title: "Logic", 
       icon: FiCpu,
       onClick: () => {
-        if (isLogicPanelVisible && !isEditorsVisible && !isPreviewVisible && !isRunnerVisible) {
+        if (isLogicPanelVisible && !isEditorsVisible && !isPreviewVisible && !isContractRunnerVisible) {
           void message.info('At least one panel must be visible');
           return;
         }
@@ -128,11 +125,11 @@ const PlaygroundSidebar = () => {
       },
       active: isLogicPanelVisible
     }] : []),
-    ...(isLogicFeatureEnabled && hasLogicContent ? [{
-      title: "Runner",
+    ...(isLogicFeatureEnabled ? [{
+      title: "Execution",
       icon: FiPlayCircle,
       onClick: handleRunnerToggle,
-      active: isRunnerVisible
+      active: isContractRunnerVisible
     }] : []),
     { 
       title: "Preview", 
