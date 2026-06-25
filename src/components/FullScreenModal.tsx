@@ -4,7 +4,11 @@ import AgreementHtml from "../AgreementHtml";
 import { MdFullscreen } from "react-icons/md";
 import useAppStore from "../store/store";
 
-const FullScreenModal: React.FC = () => {
+interface FullScreenModalProps {
+  className?: string;
+}
+
+const FullScreenModal: React.FC<FullScreenModalProps> = ({ className }) => {
   const [open, setOpen] = useState<boolean>(false);
   const textColor = useAppStore((state) => state.textColor);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
@@ -36,11 +40,24 @@ const FullScreenModal: React.FC = () => {
 
   return (
     <>
-      <MdFullscreen
-        size={24}
-        style={{ cursor: "pointer" }}
+      <button
+        type="button"
+        aria-label="Open fullscreen output"
         onClick={() => setOpen(true)}
-      />
+        className={className}
+        style={{
+          background: "none",
+          border: "none",
+          padding: className ? undefined : 0,
+          cursor: "pointer",
+          color: "inherit",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <MdFullscreen size={24} />
+      </button>
       <Modal
         title="Output"
         centered
