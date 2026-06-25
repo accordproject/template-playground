@@ -151,7 +151,7 @@ const MainContainer = () => {
   return (
     <div className="main-container main-container-root" style={{ backgroundColor }}>
       <SandboxFrame />
-      <PanelGroup key={horizontalPanelKey} direction="horizontal" className="main-container-panel-group main-container-fixed-wrapper">
+      <PanelGroup key={horizontalPanelKey} direction="horizontal" className="main-container-panel-group">
         {isEditorsVisible && (
             <Panel id="panel-editors" order={1} defaultSize={getPanelDefaultSize('editors')} minSize={20}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>

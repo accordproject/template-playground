@@ -7,14 +7,16 @@
   overflow: hidden;
 }
 
-.main-container-fixed-wrapper {
-  position: fixed;
-  width: calc(100% - 64px);
-  height: calc(100% - 64px);
+.main-container-root,
+.main-container-root *,
+.main-container-root *::before,
+.main-container-root *::after {
+  box-sizing: border-box;
 }
 
 .main-container-panel-group {
   height: 100%;
+  width: 100%;
 }
 
 .main-container-editors-panel {
