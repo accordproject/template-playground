@@ -98,18 +98,18 @@ interface AppState {
   setPreviewVisible: (value: boolean) => void;
   setLogicPanelVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
+  isContractRunnerVisible: boolean;
+  setContractRunnerVisible: (value: boolean) => void;
   startTour: () => void;
   isModelCollapsed: boolean;
   isTemplateCollapsed: boolean;
   isDataCollapsed: boolean;
-  isLogicTsCollapsed: boolean;
   isRequestCollapsed: boolean;
   isResponseCollapsed: boolean;
   isStateCollapsed: boolean;
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
-  toggleLogicTsCollapse: () => void;
   toggleRequestCollapse: () => void;
   toggleResponseCollapse: () => void;
   toggleStateCollapse: () => void;
@@ -217,6 +217,7 @@ const getInitialPanelState = () => {
     isPreviewVisible: true,
     isProblemPanelVisible: false,
     isLogicPanelVisible: false,
+    isContractRunnerVisible: false,
     isAIChatOpen: false,
   };
   if (typeof window !== "undefined") {
@@ -239,6 +240,7 @@ const savePanelState = (state: Partial<AppState>) => {
       isPreviewVisible: state.isPreviewVisible,
       isProblemPanelVisible: state.isProblemPanelVisible,
       isLogicPanelVisible: state.isLogicPanelVisible,
+      isContractRunnerVisible: state.isContractRunnerVisible,
       isAIChatOpen: state.isAIChatOpen,
     };
     localStorage.setItem("ui-panels", JSON.stringify(panels));
@@ -288,10 +290,10 @@ const useAppStore = create<AppState>()(
         isPreviewVisible: initialPanels.isPreviewVisible,
         isProblemPanelVisible: initialPanels.isProblemPanelVisible,
         isLogicPanelVisible: initialPanels.isLogicPanelVisible,
+        isContractRunnerVisible: initialPanels.isContractRunnerVisible,
         isModelCollapsed: false,
         isTemplateCollapsed: false,
         isDataCollapsed: false,
-        isLogicTsCollapsed: false,
         isRequestCollapsed: false,
         isResponseCollapsed: false,
         isStateCollapsed: false,
@@ -325,8 +327,6 @@ const useAppStore = create<AppState>()(
           set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () =>
           set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
-        toggleLogicTsCollapse: () =>
-          set((state) => ({ isLogicTsCollapsed: !state.isLogicTsCollapsed })),
         toggleRequestCollapse: () =>
           set((state) => ({ isRequestCollapsed: !state.isRequestCollapsed })),
         toggleResponseCollapse: () =>
@@ -360,6 +360,17 @@ const useAppStore = create<AppState>()(
           set({ isProblemPanelVisible: value });
           savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
         },
+        setContractRunnerVisible: (value) => {
+          const state = get();
+          const updates: Partial<AppState> = { isContractRunnerVisible: value };
+          
+          if (value && state.isPreviewVisible) {
+            updates.isPreviewVisible = false;
+          }
+          
+          set(updates);
+          savePanelState({ ...state, ...updates });
+        },
         setLogicPanelVisible: (value) => {
           const state = get();
           if (!value && !state.isEditorsVisible && !state.isPreviewVisible) {
@@ -374,13 +385,35 @@ const useAppStore = create<AppState>()(
           if (compressedData) {
             await get().loadFromLink(compressedData);
           } else {
+            // Ensure layout is valid for the initial template if recovering from a logic-based session
+            const state = get();
+            const sampleHasLogic = !!state.samples.find((sample) => sample.NAME === state.sampleName)?.LOGIC;
+            const hasLogic = sampleHasLogic || state.logicTs.trim().length > 0 || state.editorLogicTs.trim().length > 0;
+            
+            if (!hasLogic) {
+              set({ 
+                isEditorsVisible: true,
+                isPreviewVisible: true, 
+                isLogicPanelVisible: false, 
+                isContractRunnerVisible: false 
+              });
+              savePanelState({
+                ...get(),
+                isEditorsVisible: true,
+                isPreviewVisible: true, 
+                isLogicPanelVisible: false, 
+                isContractRunnerVisible: false 
+              });
+            }
             await get().rebuild();
           }
         },
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
           if (sample) {
+            const state = get();
             const logicTs = sample.LOGIC ?? "";
+            const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
             set(() => ({
               sampleName: sample.NAME,
               agreementHtml: undefined,
@@ -397,7 +430,20 @@ const useAppStore = create<AppState>()(
               compiledLogicJs: null,
               compilationErrors: [],
               isCompiling: false,
+              // Adapt layout based on whether template has logic
+              isLogicPanelVisible: hasLogic,
+              isContractRunnerVisible: hasLogic,
+              isPreviewVisible: !hasLogic,
             }));
+            
+            // Persist the adaptive layout state
+            savePanelState({
+              ...get(),
+              isLogicPanelVisible: hasLogic,
+              isContractRunnerVisible: hasLogic,
+              isPreviewVisible: !hasLogic,
+            });
+
             await get().rebuild();
           }
         },

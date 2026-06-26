@@ -1,6 +1,15 @@
 /* PlaygroundSidebar Component Styles */
 .playground-sidebar {
-  @apply w-16 bg-[#1B2540] text-white flex flex-col justify-between items-center py-4 shadow-md;
+  width: 4rem;
+  background-color: #1B2540;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   position: fixed;
   top: 64px;
   left: 0;
@@ -9,61 +18,123 @@
 }
 
 .playground-sidebar-nav {
-  @apply flex flex-col gap-4;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .playground-sidebar-nav-item {
-  @apply p-[8px] flex flex-col items-center justify-center cursor-pointer transition-colors;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .playground-sidebar-nav-item-active {
-  @apply text-cyan-400;
+  color: #22d3ee;
 }
 
 .playground-sidebar-nav-item-inactive {
-  @apply text-white hover:text-cyan-400;
+  color: white;
+}
+.playground-sidebar-nav-item-inactive:hover {
+  color: #22d3ee;
 }
 
 .playground-sidebar-nav-item-icon-container {
-  @apply flex items-center justify-center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .playground-sidebar-nav-item-title {
-  @apply sr-only;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 .playground-sidebar-nav-bottom {
-  @apply flex flex-col gap-4;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .playground-sidebar-nav-bottom-item {
-  @apply p-[8px] flex flex-col items-center justify-center text-white hover:text-cyan-400 cursor-pointer transition-colors;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.playground-sidebar-nav-bottom-item:hover {
+  color: #22d3ee;
 }
 
 /* Responsive styles for smaller screens */
 @media (max-height: 500px) {
   .playground-sidebar {
-    @apply py-1;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
   }
   
   .playground-sidebar-nav,
   .playground-sidebar-nav-bottom {
-    @apply gap-1;
+    gap: 0.25rem;
   }
   
   .playground-sidebar-nav-item,
   .playground-sidebar-nav-bottom-item {
-    @apply p-1;
+    padding: 0.25rem;
   }
 }
 
 @media (max-width: 768px) {
   .playground-sidebar {
-    @apply w-12;
+    width: 3rem;
   }
   
   .playground-sidebar-nav-item,
   .playground-sidebar-nav-bottom-item {
-    @apply p-1;
+    padding: 0.25rem;
   }
+}
+
+.playground-sidebar-ai-badge-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playground-sidebar-ai-badge-wrapper {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.playground-sidebar-ai-badge-text {
+  -webkit-background-clip: text;
+  position: absolute;
+  top: -12px;
+  right: -14px;
+  font-size: 12.5px;
+  font-weight: bold;
+  padding: 0 4px;
+  border-radius: 4px;
+  background-color: white;
+  color: transparent;
+  background-image: linear-gradient(to right, #a78bfa, #ec4899, #ef4444);
+  background-clip: text;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
