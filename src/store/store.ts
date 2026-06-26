@@ -139,6 +139,9 @@ interface AppState {
     method: string,
     args: unknown[],
   ) => Promise<unknown>;
+  executionState: string;
+  executionEvents: string;
+  initContract: () => Promise<void>;
 }
 
 export interface DecompressedData {
@@ -320,6 +323,9 @@ const useAppStore = create<AppState>()(
         isSandboxReady: false,
         isExecuting: false,
         executionId: 0,
+        
+        executionState: '',
+        executionEvents: '',
 
         toggleModelCollapse: () =>
           set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
@@ -870,6 +876,29 @@ const useAppStore = create<AppState>()(
               "*",
             );
           });
+        },
+        
+        initContract: async () => {
+          const { compiledLogicJs, data } = get();
+          if (!compiledLogicJs) {
+            return;
+          }
+          
+          try {
+            const parsedData = JSON.parse(data);
+            const output = await get().executeInSandbox(compiledLogicJs, 'init', [parsedData]) as { state?: unknown; events?: unknown[] };
+            
+            set({
+              executionState: output.state ? JSON.stringify(output.state, null, 2) : '',
+              executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              compilationErrors: []
+            });
+          } catch (err: unknown) {
+            set({ 
+              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
+              isProblemPanelVisible: true
+            });
+          }
         },
       };
     }),
