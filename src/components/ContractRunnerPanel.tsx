@@ -1,13 +1,26 @@
 import React, { useState } from 'react';
-import { Tabs, Button, Space } from 'antd';
+import { Tabs, Button, Space, Badge } from 'antd';
 import { FaPlay, FaRocket } from 'react-icons/fa6';
 import useAppStore from '../store/store';
 import '../styles/components/ContractRunnerPanel.css';
 
 const ContractRunnerPanel: React.FC = () => {
-  const { backgroundColor, textColor } = useAppStore(s => ({
+  const { 
+    backgroundColor, 
+    textColor,
+    executionState,
+    isExecuting,
+    initContract,
+    logicTs,
+    compiledLogicJs
+  } = useAppStore(s => ({
     backgroundColor: s.backgroundColor,
-    textColor: s.textColor
+    textColor: s.textColor,
+    executionState: s.executionState,
+    isExecuting: s.isExecuting,
+    initContract: s.initContract,
+    logicTs: s.logicTs,
+    compiledLogicJs: s.compiledLogicJs
   }));
 
   const [activeTab, setActiveTab] = useState('response');
@@ -56,11 +69,22 @@ const ContractRunnerPanel: React.FC = () => {
             backgroundColor: panelHeaderBg
           }}
         >
-          <div className="main-container-editor-header-left">
-            <span>Request <span className="contract-runner-panel-header-subtitle">(JSON)</span></span>
+          <div className="contract-runner-panel-header-left">
+            <span className="contract-runner-panel-title">Request <span className="contract-runner-panel-header-subtitle">(JSON)</span></span>
+            {logicTs && (
+              <span className="contract-runner-panel-badge-container">
+                {!compiledLogicJs ? (
+                  <Badge status="warning" text={<span className="contract-runner-panel-badge-text">Requires Compilation</span>} />
+                ) : executionState ? (
+                  <Badge status="success" text={<span className="contract-runner-panel-badge-text">Initialized</span>} />
+                ) : null}
+              </span>
+            )}
           </div>
           <Space>
-            <Button size="small" type="default" icon={<FaRocket />}>Init Contract</Button>
+            <span title={!compiledLogicJs ? 'Please compile the contract logic first' : ''} className="contract-runner-panel-button-wrapper" data-disabled={!compiledLogicJs}>
+              <Button size="small" type="default" icon={<FaRocket />} onClick={initContract} loading={isExecuting} disabled={!compiledLogicJs || isExecuting} className="contract-runner-panel-button" data-disabled={!compiledLogicJs}>Init Contract</Button>
+            </span>
             <Button size="small" type="primary" icon={<FaPlay />}>Send Request</Button>
           </Space>
         </div>
