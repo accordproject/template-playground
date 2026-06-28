@@ -89,3 +89,9 @@
 .contract-runner-panel-button[data-disabled="true"] {
   pointer-events: none;
 }
+
+.contract-runner-panel-editor-container {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}

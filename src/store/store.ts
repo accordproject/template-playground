@@ -141,7 +141,11 @@ interface AppState {
   ) => Promise<unknown>;
   executionState: string;
   executionEvents: string;
+  executionResponse: string;
+  requestJson: string;
+  setRequestJson: (json: string) => void;
   initContract: () => Promise<void>;
+  triggerContract: () => Promise<void>;
 }
 
 export interface DecompressedData {
@@ -326,6 +330,10 @@ const useAppStore = create<AppState>()(
         
         executionState: '',
         executionEvents: '',
+        executionResponse: '',
+        
+        requestJson: '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
+        setRequestJson: (json: string) => set({ requestJson: json }),
 
         toggleModelCollapse: () =>
           set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
@@ -890,6 +898,44 @@ const useAppStore = create<AppState>()(
             
             set({
               executionState: output.state ? JSON.stringify(output.state, null, 2) : '',
+              executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              compilationErrors: []
+            });
+          } catch (err: unknown) {
+            set({ 
+              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
+              isProblemPanelVisible: true
+            });
+          }
+        },
+
+        triggerContract: async () => {
+          const { compiledLogicJs, data, requestJson, executionState, executeInSandbox } = get();
+          if (!compiledLogicJs) return;
+          
+          if (!executionState) {
+            set({ 
+              compilationErrors: [{ message: "Execution Error: Contract must be initialized before triggering." }],
+              isProblemPanelVisible: true 
+            });
+            return;
+          }
+          
+          try {
+            const parsedData = JSON.parse(data);
+            const parsedRequest = JSON.parse(requestJson);
+            const parsedState = JSON.parse(executionState);
+            
+            const output = (await executeInSandbox(compiledLogicJs, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] };
+            
+            /*
+             * Extract and store execution artifacts.
+             * The executionResponse holds the result payload, while state and events
+             * are updated for subsequent trigger operations or UI rendering.
+             */
+            set({
+              executionResponse: output.result ? JSON.stringify(output.result, null, 2) : '',
+              executionState: output.state ? JSON.stringify(output.state, null, 2) : executionState,
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
               compilationErrors: []
             });

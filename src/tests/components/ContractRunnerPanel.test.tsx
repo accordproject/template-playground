@@ -39,7 +39,6 @@ describe('ContractRunnerPanel', () => {
     render(<ContractRunnerPanel />);
     
     // Check main panel texts
-    expect(screen.getByText('Request Editor Coming Soon...')).toBeInTheDocument();
     
     // Check header text
     expect(screen.getByText('Request')).toBeInTheDocument();
@@ -63,7 +62,6 @@ describe('ContractRunnerPanel', () => {
     );
 
     render(<ContractRunnerPanel />);
-    
-    expect(screen.getByText('Request Editor Coming Soon...')).toBeInTheDocument();
+    expect(screen.getByText('Request')).toBeInTheDocument();
   });
 });
