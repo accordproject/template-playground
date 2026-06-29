@@ -42,7 +42,7 @@ const ContractRunnerPanel: React.FC = () => {
       children: (
         <div className="contract-runner-panel-editor-container">
           {executionResponse ? (
-            <JSONEditor value={executionResponse} readOnly={true} />
+            <JSONEditor id="response" value={executionResponse} readOnly={true} />
           ) : (
             <div
               className="contract-runner-panel-placeholder"
@@ -60,7 +60,7 @@ const ContractRunnerPanel: React.FC = () => {
       children: (
         <div className="contract-runner-panel-editor-container">
           {executionState ? (
-            <JSONEditor value={executionState} readOnly={true} />
+            <JSONEditor id="state" value={executionState} readOnly={true} />
           ) : (
             <div
               className="contract-runner-panel-placeholder"
@@ -78,7 +78,7 @@ const ContractRunnerPanel: React.FC = () => {
       children: (
         <div className="contract-runner-panel-editor-container">
           {executionEvents ? (
-            <JSONEditor value={executionEvents} readOnly={true} />
+            <JSONEditor id="events" value={executionEvents} readOnly={true} />
           ) : (
             <div
               className="contract-runner-panel-placeholder"
@@ -172,7 +172,7 @@ const ContractRunnerPanel: React.FC = () => {
               <Button
                 size="small"
                 type="default"
-                onClick={initContract}
+                onClick={() => { void initContract(); }}
                 loading={isExecuting}
                 disabled={!canInit || isExecuting}
                 className="contract-runner-panel-button"
@@ -189,7 +189,7 @@ const ContractRunnerPanel: React.FC = () => {
               <Button
                 size="small"
                 type="primary"
-                onClick={triggerContract}
+                onClick={() => { void triggerContract(); }}
                 loading={isExecuting}
                 disabled={!canTrigger || isExecuting}
                 className="contract-runner-panel-button"
@@ -202,6 +202,7 @@ const ContractRunnerPanel: React.FC = () => {
         </div>
         <div className="contract-runner-panel-editor-container">
           <JSONEditor
+            id="request"
             value={requestJson}
             onChange={(val) => setRequestJson(val || "")}
           />
