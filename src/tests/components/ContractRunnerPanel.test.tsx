@@ -51,8 +51,8 @@ describe('ContractRunnerPanel', () => {
     expect(screen.getByRole('tab', { name: /response/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /state/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /events/i })).toBeInTheDocument();
-    
-    // Default tab content is now a JSON editor, no need to check for placeholder
+    // Check empty state placeholders
+    expect(screen.getByText('No response generated yet.')).toBeInTheDocument();
   });
 
   it('renders correctly in dark mode', () => {

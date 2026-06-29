@@ -41,7 +41,16 @@ const ContractRunnerPanel: React.FC = () => {
       label: "Response",
       children: (
         <div className="contract-runner-panel-editor-container">
-          <JSONEditor value={executionResponse || ""} readOnly={true} />
+          {executionResponse ? (
+            <JSONEditor value={executionResponse} readOnly={true} />
+          ) : (
+            <div
+              className="contract-runner-panel-placeholder"
+              style={{ color: textColor }}
+            >
+              No response generated yet.
+            </div>
+          )}
         </div>
       ),
     },
@@ -50,7 +59,16 @@ const ContractRunnerPanel: React.FC = () => {
       label: "State",
       children: (
         <div className="contract-runner-panel-editor-container">
-          <JSONEditor value={executionState || ""} readOnly={true} />
+          {executionState ? (
+            <JSONEditor value={executionState} readOnly={true} />
+          ) : (
+            <div
+              className="contract-runner-panel-placeholder"
+              style={{ color: textColor }}
+            >
+              Contract state not initialized.
+            </div>
+          )}
         </div>
       ),
     },
@@ -59,7 +77,16 @@ const ContractRunnerPanel: React.FC = () => {
       label: "Events",
       children: (
         <div className="contract-runner-panel-editor-container">
-          <JSONEditor value={executionEvents || ""} readOnly={true} />
+          {executionEvents ? (
+            <JSONEditor value={executionEvents} readOnly={true} />
+          ) : (
+            <div
+              className="contract-runner-panel-placeholder"
+              style={{ color: textColor }}
+            >
+              No events emitted.
+            </div>
+          )}
         </div>
       ),
     },
