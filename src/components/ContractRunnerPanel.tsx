@@ -16,6 +16,8 @@ const ContractRunnerPanel: React.FC = () => {
     triggerContract,
     logicTs,
     compiledLogicJs,
+    executionResponse,
+    executionEvents,
   } = useAppStore((s) => ({
     backgroundColor: s.backgroundColor,
     textColor: s.textColor,
@@ -27,6 +29,8 @@ const ContractRunnerPanel: React.FC = () => {
     triggerContract: s.triggerContract,
     logicTs: s.logicTs,
     compiledLogicJs: s.compiledLogicJs,
+    executionResponse: s.executionResponse,
+    executionEvents: s.executionEvents,
   }));
 
   const [activeTab, setActiveTab] = useState("response");
@@ -36,11 +40,8 @@ const ContractRunnerPanel: React.FC = () => {
       key: "response",
       label: "Response",
       children: (
-        <div
-          className="contract-runner-panel-placeholder"
-          style={{ color: textColor }}
-        >
-          Response Output Coming Soon...
+        <div className="contract-runner-panel-editor-container">
+          <JSONEditor value={executionResponse || ""} readOnly={true} />
         </div>
       ),
     },
@@ -48,11 +49,8 @@ const ContractRunnerPanel: React.FC = () => {
       key: "state",
       label: "State",
       children: (
-        <div
-          className="contract-runner-panel-placeholder"
-          style={{ color: textColor }}
-        >
-          Contract State Coming Soon...
+        <div className="contract-runner-panel-editor-container">
+          <JSONEditor value={executionState || ""} readOnly={true} />
         </div>
       ),
     },
@@ -60,11 +58,8 @@ const ContractRunnerPanel: React.FC = () => {
       key: "events",
       label: "Events",
       children: (
-        <div
-          className="contract-runner-panel-placeholder"
-          style={{ color: textColor }}
-        >
-          Emitted Events Coming Soon...
+        <div className="contract-runner-panel-editor-container">
+          <JSONEditor value={executionEvents || ""} readOnly={true} />
         </div>
       ),
     },
