@@ -51,9 +51,8 @@ describe('ContractRunnerPanel', () => {
     expect(screen.getByRole('tab', { name: /response/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /state/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /events/i })).toBeInTheDocument();
-    
-    // Default tab content
-    expect(screen.getByText('Response Output Coming Soon...')).toBeInTheDocument();
+    // Check empty state placeholders
+    expect(screen.getByText('No response generated yet.')).toBeInTheDocument();
   });
 
   it('renders correctly in dark mode', () => {
