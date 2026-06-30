@@ -17,7 +17,7 @@ interface BundledModel {
   source: string;
 }
 
-const BUNDLED_MODELS: BundledModel[] = [
+export const BUNDLED_MODELS: BundledModel[] = [
   {
     namespace: "org.accordproject.contract@0.2.0",
     fileName: "@models.accordproject.org.accordproject.contract@0.2.0.cto",
