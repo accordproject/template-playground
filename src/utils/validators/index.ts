@@ -1,4 +1,5 @@
 import { ModelManager } from "@accordproject/concerto-core";
+import { loadBundledModels } from "../modelCache";
 
 /**
  * Validates template inputs before running expensive rebuild operations.
@@ -22,18 +23,17 @@ export async function validateBeforeRebuild(
     throw new Error(`Invalid JSON data: ${error instanceof Error ? error.message : String(error)}`);
   }
 
-  // 2. Validate CTO model syntax using ModelManager
-  // This checks syntax but doesn't load external models (which would require network calls)
+  // 2. Validate CTO model syntax using ModelManager. The bundled Accord
+  // Project models are preloaded so imports targeting them resolve without
+  // any network call.
   try {
-    const modelManager = new ModelManager({ strict: true });
-    modelManager.addCTOModel(model, undefined, true);
-    // Note: We skip updateExternalModels() to avoid expensive network calls
-    // We also skip template validation since it may require external models
+    const modelManager = new ModelManager();
+    loadBundledModels(modelManager);
+    // Validate the model against the preloaded bundle. With offline:true and
+    // validation enabled, an unbundled external import surfaces here as a
+    // missing-namespace error instead of slipping through to the full rebuild.
+    modelManager.addCTOModel(model, undefined, false);
   } catch (error) {
     throw new Error(`Invalid CTO model: ${error instanceof Error ? error.message : String(error)}`);
   }
-
-  // Note: Template validation is skipped here because it requires external models
-  // to be loaded, which would require network calls. The full rebuild will
-  // validate the template after loading external models.
 }

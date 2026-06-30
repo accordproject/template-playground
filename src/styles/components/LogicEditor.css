@@ -1,0 +1,144 @@
+/* LogicEditor.css */
+
+.logic-editor-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.logic-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  gap: 8px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  min-height: 32px;
+}
+
+.logic-editor-status {
+  font-size: 11px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.logic-editor-apply-btn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(25, 198, 199, 0.5);
+  background: transparent;
+  color: #19c6c7;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.logic-editor-apply-btn:hover:not(:disabled) {
+  background: rgba(25, 198, 199, 0.12);
+  border-color: #19c6c7;
+}
+
+.logic-editor-apply-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.logic-editor-apply-btn--dirty {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.logic-editor-apply-btn--dirty:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: #f59e0b;
+}
+
+.logic-editor-monaco-wrapper {
+  flex: 1;
+  overflow: hidden;
+}
+
+.logic-editor-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 13px;
+  opacity: 0.5;
+}
+
+.logic-editor-status-unsaved { color: #f59e0b; }
+.logic-editor-status-compiling { color: #3b82f6; }
+.logic-editor-status-error { color: #ef4444; }
+.logic-editor-status-success { color: #22c55e; }
+.logic-editor-status-pending { color: #6b7280; }
+
+.logic-editor-errors {
+  padding: 8px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-size: 12px;
+  overflow-y: auto;
+  max-height: 150px;
+  border-top: 1px solid #fca5a5;
+}
+
+.logic-editor-errors ul {
+  margin: 4px 0 0 0;
+  padding-left: 20px;
+}
+
+.logic-editor-badge-wrapper {
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+}
+
+.logic-editor-badge-wrapper.light {
+  border: 1px solid #d9d9d9;
+  background-color: #fafafa;
+}
+
+.logic-editor-badge-wrapper.dark {
+  border: 1px solid #424242;
+  background-color: #1f1f1f;
+}
+
+.logic-editor-toolbar-header {
+  padding: 4px 8px;
+}
+
+.logic-editor-toolbar-header.light {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.logic-editor-toolbar-header.dark {
+  border-bottom: 1px solid #303030;
+}
+
+.logic-editor-badge-container .ant-badge-status-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.logic-editor-flex-row {
+  display: flex;
+  align-items: center;
+}
+
+.logic-editor-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.logic-editor-flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

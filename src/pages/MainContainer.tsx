@@ -2,9 +2,12 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import AgreementData from "../editors/editorsContainer/AgreementData";
 import TemplateModel from "../editors/editorsContainer/TemplateModel";
 import TemplateMarkdown from "../editors/editorsContainer/TemplateMarkdown";
+import LogicEditor from "../editors/LogicEditor";
 import useAppStore from "../store/store";
 import { AIChatPanel } from "../components/AIChatPanel";
 import ProblemPanel from "../components/ProblemPanel";
+import SandboxFrame from "../components/SandboxFrame";
+import ContractRunnerPanel from "../components/ContractRunnerPanel";
 import ConcertoFormatButton from "../components/ConcertoFormatButton";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
@@ -31,14 +34,15 @@ const MainContainer = () => {
     try {
       setIsDownloading(true);
       
-      // --- FIX START: Store original styles ---
+      /* 
+       * Store original styles and force white background / black text
+       * for PDF export to ensure readability.
+       */
       const originalBg = element.style.backgroundColor;
       const originalColor = element.style.color;
       
-      // Force White Background / Black Text for PDF
       element.style.backgroundColor = '#ffffff';
       element.style.color = '#000000';
-      // --- FIX END ---
 
       const options = {
         margin: 10,
@@ -55,10 +59,9 @@ const MainContainer = () => {
 
       await html2pdf().set(options).from(element).save();
       
-      // --- FIX START: Restore original styles ---
+      // Restore original styles
       element.style.backgroundColor = originalBg;
       element.style.color = originalColor;
-      // --- FIX END ---
 
     } catch (error) {
       console.error("PDF generation failed:", error);
@@ -74,81 +77,95 @@ const MainContainer = () => {
     }
   };
 
-  const {
-    isAIChatOpen,
-    isEditorsVisible,
-    isPreviewVisible,
-    isProblemPanelVisible,
-    isModelCollapsed,
-    isTemplateCollapsed,
-    isDataCollapsed,
-    toggleModelCollapse,
-    toggleTemplateCollapse,
-    toggleDataCollapse,
-  } = useAppStore((state) => ({
-    isAIChatOpen: state.isAIChatOpen,
-    isEditorsVisible: state.isEditorsVisible,
-    isPreviewVisible: state.isPreviewVisible,
-    isProblemPanelVisible: state.isProblemPanelVisible,
-    isModelCollapsed: state.isModelCollapsed,
-    isTemplateCollapsed: state.isTemplateCollapsed,
-    isDataCollapsed: state.isDataCollapsed,
-    toggleModelCollapse: state.toggleModelCollapse,
-    toggleTemplateCollapse: state.toggleTemplateCollapse,
-    toggleDataCollapse: state.toggleDataCollapse,
-  }));
+  const isAIChatOpen = useAppStore((s) => s.isAIChatOpen);
+  const isEditorsVisible = useAppStore((s) => s.isEditorsVisible);
+  const isPreviewVisible = useAppStore((s) => s.isPreviewVisible);
+  const isProblemPanelVisible = useAppStore((s) => s.isProblemPanelVisible);
+  const isLogicPanelVisible = useAppStore((s) => s.isLogicPanelVisible);
+  const isContractRunnerVisible = useAppStore((s) => s.isContractRunnerVisible);
+  const isModelCollapsed = useAppStore((s) => s.isModelCollapsed);
+  const isTemplateCollapsed = useAppStore((s) => s.isTemplateCollapsed);
+  const isDataCollapsed = useAppStore((s) => s.isDataCollapsed);
+  const toggleModelCollapse = useAppStore((s) => s.toggleModelCollapse);
+  const toggleTemplateCollapse = useAppStore((s) => s.toggleTemplateCollapse);
+  const toggleDataCollapse = useAppStore((s) => s.toggleDataCollapse);
 
-  // Calculate dynamic panel sizes based on collapse states
-  const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
-  const expandedCount = 3 - collapsedCount;
-  const collapsedSize = 5;
-  const expandedSize = expandedCount > 0 ? (100 - (collapsedCount * collapsedSize)) / expandedCount : 33;
+
+  const isLogicFeatureEnabled = useAppStore((s) => s.isLogicFeatureEnabled);
   
+
+  
+  /*
+   * Calculate dynamic panel sizes based on visible editors and collapse states.
+   * This keeps initial editor heights equal (4 editors => 25% each, 3 editors => 33.33% each).
+   */
+  const collapsedSize = 5;
+  const totalEditorPanels = 3;
+  const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
+  const nonCollapsedCount = totalEditorPanels - collapsedCount;
+  const expandedSize = nonCollapsedCount > 0
+    ? (100 - (collapsedCount * collapsedSize)) / nonCollapsedCount
+    : 100 / totalEditorPanels;
+
+
+  const activeLogicWorkspace = isLogicPanelVisible && isLogicFeatureEnabled ;
+  const activeRunnerWorkspace = isContractRunnerVisible && isLogicFeatureEnabled ;
+  const horizontalPanelKey = `${String(isEditorsVisible)}-${String(activeLogicWorkspace)}-${String(activeRunnerWorkspace)}-${String(isPreviewVisible)}-${String(isAIChatOpen)}`;
+
   // Create distinct preview background for better visual separation
-  const previewBackgroundColor = backgroundColor === '#ffffff' 
+  const previewBackgroundColor = backgroundColor === '#ffffff'
     ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
     : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
-  
+
   const previewHeaderColor = backgroundColor === '#ffffff'
     ? '#dbeafe'  // Slightly darker blue for header in light mode
     : '#0f172a';  // Even darker shade for header in dark mode
-  
-  // Create a key that changes when collapse state changes to force panel re-layout
+
+
   const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
 
+  const getPanelDefaultSize = (panelId: 'editors' | 'logic' | 'runner' | 'preview') => {
+    switch (panelId) {
+      case 'editors':
+        return activeLogicWorkspace 
+          ? (isPreviewVisible || activeRunnerWorkspace ? 35 : 50) 
+          : (isPreviewVisible || activeRunnerWorkspace ? 62.5 : 100);
+      case 'logic':
+        return isEditorsVisible 
+          ? (isPreviewVisible || activeRunnerWorkspace ? 35 : 50) 
+          : (isPreviewVisible || activeRunnerWorkspace ? 50 : 100);
+      case 'runner':
+      case 'preview':
+        return activeLogicWorkspace 
+          ? (isEditorsVisible ? 30 : 50) 
+          : (isEditorsVisible ? 37.5 : 100);
+      default:
+        return 100;
+    }
+  };
+
   return (
-    <div className="main-container" style={{ backgroundColor }}>
-      <PanelGroup direction="horizontal" className="main-container-panel-group"
-        style={{ position: "fixed", width: "calc(100% - 64px)", height: "calc(100% - 64px)" }}>
+    <div className="main-container main-container-root" style={{ backgroundColor }}>
+      <SandboxFrame />
+      <PanelGroup key={horizontalPanelKey} direction="horizontal" className="main-container-panel-group">
         {isEditorsVisible && (
-          <>
-            <Panel defaultSize={62.5} minSize={30}>
+            <Panel id="panel-editors" order={1} defaultSize={getPanelDefaultSize('editors')} minSize={20}>
               <div className="main-container-editors-panel" style={{ backgroundColor }}>
                 <PanelGroup key={panelKey} direction="vertical" className="main-container-editors-panel-group">
-                  <Panel minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
+                  <Panel id="panel-model" order={1} minSize={3} maxSize={isModelCollapsed ? collapsedSize : 100} defaultSize={isModelCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-concerto-model">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
-                        {/* Left side */}
                         <div className="main-container-editor-header-left">
                           <button
-                            className="collapse-button"
+                            className="collapse-button main-container-collapse-button"
                             onClick={toggleModelCollapse}
-                            style={{
-                              color: textColor,
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '4px',
-                              marginRight: '4px'
-                            }}
+                            style={{ color: textColor }}
                             title={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
                             aria-label={isModelCollapsed ? "Expand Data Model panel" : "Collapse Data Model panel"}
                           >
                             {isModelCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
-                          <span>Data Model <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(Concerto)</span></span>
+                          <span>Data Model <span className="main-container-subtitle">(Concerto)</span></span>
                         </div>
                         <ConcertoFormatButton disabled={isModelCollapsed} />
                       </div>
@@ -161,30 +178,21 @@ const MainContainer = () => {
                   </Panel>
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
+                  <Panel id="panel-template" order={2} minSize={3} maxSize={isTemplateCollapsed ? collapsedSize : 100} defaultSize={isTemplateCollapsed ? collapsedSize : expandedSize}>
                     <MarkdownEditorProvider>
                       <div className="main-container-editor-section tour-template-mark">
                         <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                           <div className="main-container-editor-header-left">
                             <button
-                              className="collapse-button"
+                              className="collapse-button main-container-collapse-button"
                               onClick={toggleTemplateCollapse}
-                              style={{
-                                color: textColor,
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '4px',
-                                marginRight: '4px'
-                              }}
+                              style={{ color: textColor }}
                               title={isTemplateCollapsed ? "Expand Template panel" : "Collapse Template panel"}
                               aria-label={isTemplateCollapsed ? "Expand Template panel" : "Collapse Template panel"}
                             >
                               {isTemplateCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                             </button>
-                            <span>Template <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(TemplateMark)</span></span>
+                            <span>Template <span className="main-container-subtitle">(TemplateMark)</span></span>
                           </div>
                           {!isTemplateCollapsed && <TemplateMarkdownToolbar />}
                         </div>
@@ -199,29 +207,20 @@ const MainContainer = () => {
 
                   <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
 
-                  <Panel minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
+                  <Panel id="panel-data" order={3} minSize={3} maxSize={isDataCollapsed ? collapsedSize : 100} defaultSize={isDataCollapsed ? collapsedSize : expandedSize}>
                     <div className="main-container-editor-section tour-json-data">
                       <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
                         <div className="main-container-editor-header-left">
                           <button
-                            className="collapse-button"
+                            className="collapse-button main-container-collapse-button"
                             onClick={toggleDataCollapse}
-                            style={{
-                              color: textColor,
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '4px',
-                              marginRight: '4px'
-                            }}
+                            style={{ color: textColor }}
                             title={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
                             aria-label={isDataCollapsed ? "Expand Data panel" : "Collapse Data panel"}
                           >
                             {isDataCollapsed ? <MdChevronRight size={20} /> : <MdExpandMore size={20} />}
                           </button>
-                          <span>Data <span style={{ fontSize: '0.75em', opacity: 0.6, fontWeight: 400 }}>(JSON)</span></span>
+                          <span>Data <span className="main-container-subtitle">(JSON)</span></span>
                         </div>
                         <button
                           onClick={handleJsonFormat}
@@ -242,7 +241,7 @@ const MainContainer = () => {
                   {isProblemPanelVisible && (
                     <>
                       <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
-                      <Panel defaultSize={25} minSize={15}>
+                      <Panel id="panel-problem" order={5} defaultSize={25} minSize={15}>
                         <ProblemPanel />
                       </Panel>
                     </>
@@ -250,19 +249,46 @@ const MainContainer = () => {
                 </PanelGroup>
               </div>
             </Panel>
+        )}
+        {isEditorsVisible && ( activeLogicWorkspace || activeRunnerWorkspace || isPreviewVisible || isAIChatOpen) && (
             <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
-          </>
+        )}
+        {activeLogicWorkspace && (
+            <Panel id="panel-logic-workspace" order={2} defaultSize={getPanelDefaultSize('logic')} minSize={20}>
+              <div className="main-container-editors-panel" style={{ backgroundColor }}>
+                <div className="main-container-editor-section">
+                  <div className={`main-container-editor-header ${backgroundColor === '#ffffff' ? 'main-container-editor-header-light' : 'main-container-editor-header-dark'}`}>
+                    <div className="main-container-editor-header-left">
+                      <span>Logic <span className="main-container-subtitle">(TypeScript)</span></span>
+                    </div>
+                  </div>
+                  <div className="main-container-editor-content main-container-editor-content-logic" style={{ backgroundColor }}>
+                    <LogicEditor />
+                  </div>
+                </div>
+              </div>
+            </Panel>
+        )}
+        {activeLogicWorkspace && (activeRunnerWorkspace || isPreviewVisible || isAIChatOpen) && (
+            <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
+        )}
+        {activeRunnerWorkspace && (
+            <Panel id="panel-runner-workspace" order={3} defaultSize={getPanelDefaultSize('runner')} minSize={20}>
+              <ContractRunnerPanel />
+            </Panel>
+        )}
+        {activeRunnerWorkspace && (isPreviewVisible || isAIChatOpen) && (
+            <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
         )}
         {isPreviewVisible && (
-          <>
-            <Panel defaultSize={37.5} minSize={20}>
+            <Panel id="panel-preview-workspace" order={4} defaultSize={getPanelDefaultSize('preview')} minSize={20}>
               <div className="main-container-preview-panel tour-preview-panel" style={{ backgroundColor: previewBackgroundColor }}>
                 <div className={`main-container-preview-header ${backgroundColor === '#ffffff' ? 'main-container-preview-header-light' : 'main-container-preview-header-dark'}`} style={{ backgroundColor: previewHeaderColor }}>
                   <span>Preview</span>
                   <Button
                     onClick={() => void handleDownloadPdf()}
                     loading={isDownloading}
-                    style={{ marginLeft: "10px" }}
+                    className="main-container-preview-badge"
                   >
                     Download PDF
                   </Button>
@@ -271,27 +297,22 @@ const MainContainer = () => {
                   <div className="main-container-preview-text">
                     <div
                       ref={downloadRef}
-                      className="main-container-agreement"
+                      className="main-container-agreement main-container-preview-agreement"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
-                      style={{
-                        color: textColor,
-                        backgroundColor: previewBackgroundColor,
-                        padding: "20px"
-                      }}
+                      style={{ color: textColor, backgroundColor: previewBackgroundColor }}
                     />
                   </div>
                 </div>
               </div>
             </Panel>
+        )}
+        {isPreviewVisible && isAIChatOpen && (
             <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
-          </>
         )}
         {isAIChatOpen && (
-          <>
-            <Panel defaultSize={30} minSize={20}>
+            <Panel id="panel-ai-chat" order={4} defaultSize={30} minSize={20}>
               <AIChatPanel />
             </Panel>
-          </>
         )}
       </PanelGroup>
     </div>
@@ -299,4 +320,3 @@ const MainContainer = () => {
 };
 
 export default MainContainer;
-

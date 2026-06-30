@@ -1,7 +1,7 @@
 import React from "react";
 import { IoCodeSlash } from "react-icons/io5";
 import { VscOutput } from "react-icons/vsc";
-import { FiTerminal, FiShare2, FiSettings } from "react-icons/fi";
+import { FiTerminal, FiShare2, FiSettings, FiCpu, FiPlayCircle } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import useAppStore from "../store/store";
@@ -16,10 +16,15 @@ const PlaygroundSidebar = () => {
     isEditorsVisible,
     isPreviewVisible,
     isProblemPanelVisible,
+    isLogicPanelVisible,
+    isLogicFeatureEnabled,
     isAIChatOpen,
+    isContractRunnerVisible,
     setEditorsVisible,
     setPreviewVisible,
     setProblemPanelVisible,
+    setLogicPanelVisible,
+    setContractRunnerVisible,
     setAIChatOpen,
     generateShareableLink,
     setSettingsOpen,
@@ -27,14 +32,21 @@ const PlaygroundSidebar = () => {
     isEditorsVisible: state.isEditorsVisible,
     isPreviewVisible: state.isPreviewVisible,
     isProblemPanelVisible: state.isProblemPanelVisible,
+    isLogicPanelVisible: state.isLogicPanelVisible,
+    isContractRunnerVisible: state.isContractRunnerVisible,
+    isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     isAIChatOpen: state.isAIChatOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
+    setLogicPanelVisible: state.setLogicPanelVisible,
+    setContractRunnerVisible: state.setContractRunnerVisible,
     setAIChatOpen: state.setAIChatOpen,
     generateShareableLink: state.generateShareableLink,
     setSettingsOpen: state.setSettingsOpen,
   }));
+
+
 
   const handleShare = async () => {
     try {
@@ -60,8 +72,10 @@ const PlaygroundSidebar = () => {
     }
   };
 
+  const isLogicActive = isLogicPanelVisible && isLogicFeatureEnabled ;
+
   const handleEditorToggle = () => {
-    if (isEditorsVisible && !isPreviewVisible) {
+    if (isEditorsVisible && !isPreviewVisible && !isLogicActive && !isContractRunnerVisible) {
       void message.info('At least one panel must be visible');
       return;
     }
@@ -69,11 +83,19 @@ const PlaygroundSidebar = () => {
   };
 
   const handlePreviewToggle = () => {
-    if (isPreviewVisible && !isEditorsVisible) {
+    if (isPreviewVisible && !isEditorsVisible && !isLogicActive && !isContractRunnerVisible) {
       void message.info('At least one panel must be visible');
       return;
     }
     setPreviewVisible(!isPreviewVisible);
+  };
+
+  const handleRunnerToggle = () => {
+    if (isContractRunnerVisible && !isEditorsVisible && !isPreviewVisible && !isLogicActive) {
+      void message.info('At least one panel must be visible');
+      return;
+    }
+    setContractRunnerVisible(!isContractRunnerVisible);
   };
 
   interface NavItem {
@@ -91,6 +113,24 @@ const PlaygroundSidebar = () => {
       onClick: handleEditorToggle,
       active: isEditorsVisible
     },
+    ...(isLogicFeatureEnabled ? [{
+      title: "Logic", 
+      icon: FiCpu,
+      onClick: () => {
+        if (isLogicPanelVisible && !isEditorsVisible && !isPreviewVisible && !isContractRunnerVisible) {
+          void message.info('At least one panel must be visible');
+          return;
+        }
+        setLogicPanelVisible(!isLogicPanelVisible);
+      },
+      active: isLogicPanelVisible
+    }] : []),
+    ...(isLogicFeatureEnabled ? [{
+      title: "Execution",
+      icon: FiPlayCircle,
+      onClick: handleRunnerToggle,
+      active: isContractRunnerVisible
+    }] : []),
     { 
       title: "Preview", 
       icon: VscOutput,
@@ -106,15 +146,10 @@ const PlaygroundSidebar = () => {
     {
       title: "AI Assistant",
       component: (
-        <div className="flex items-center justify-center">
-          <div className="relative w-6 h-6">
+        <div className="playground-sidebar-ai-badge-container">
+          <div className="playground-sidebar-ai-badge-wrapper">
             <IoChatbubbleEllipsesOutline size={24} />
-            <div
-              className="absolute -top-3 -right-3.5 text-[12.5px] font-bold px-1 py-0 rounded bg-white text-transparent bg-gradient-to-r from-[#a78bfa] via-[#ec4899] to-[#ef4444] bg-clip-text shadow-sm"
-              style={{
-                WebkitBackgroundClip: "text"
-              }}
-            >
+            <div className="playground-sidebar-ai-badge-text">
               AI
             </div>
           </div>
@@ -163,7 +198,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
-            className={`group playground-sidebar-nav-item ${
+            className={`playground-sidebar-nav-item ${
               active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
             } tour-${title.toLowerCase().replace(' ', '-')}`}
           >
@@ -188,7 +223,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
-            className={`group playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
+            className={`playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             <Icon size={18} />
             <span className="playground-sidebar-nav-item-title">{title}</span>

@@ -38,6 +38,23 @@ The Accord Project Playground is an open-source project, welcoming contributions
 - **Functionality Enhancements:** Improve existing features based on user feedback and project needs.
 - **Documentation and Tutorials:** Contribute to comprehensive documentation and tutorials that guide users through the platform effectively.
 
+## Local Development
+
+**Prerequisites:** Node.js >= 22 (required by the Accord Project dependencies —
+`@accordproject/template-engine` 4.x, `markdown-transform` / `concerto` 4.x).
+
+```bash
+npm install        # install dependencies
+npm run dev        # start the dev server (http://localhost:5173)
+npm run test:unit  # unit tests (vitest)
+npm run test:e2e   # browser end-to-end tests (Playwright)
+npm run build      # type-check + production build
+```
+
+The playground runs the [Template-Engine](https://github.com/accordproject/template-engine)
+**in the browser** — TemplateMark templates (including their TypeScript logic) are type-checked,
+compiled, and evaluated client-side to produce the live agreement preview.
+
 ## Demo
 
 The Template Playground is deployed at: [https://playground.accordproject.org](https://playground.accordproject.org)

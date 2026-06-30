@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Switch, Collapse, Space, Divider, Typography } from 'antd';
+import { Modal, Switch, Collapse, Space, Divider, Typography, Row, Col } from 'antd';
 import { BulbOutlined, MoonOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 import useAppStore from '../store/store';
 import AIConfigSection from './AIConfigSection';
@@ -10,10 +10,12 @@ const SettingsModal: React.FC = () => {
   const { 
     isSettingsOpen, 
     setSettingsOpen, 
-    showLineNumbers, 
+    showLineNumbers,
     setShowLineNumbers,
     backgroundColor,
-    toggleDarkMode
+    toggleDarkMode,
+    isLogicFeatureEnabled,
+    setLogicFeatureEnabled
   } = useAppStore((state) => ({
     isSettingsOpen: state.isSettingsOpen,
     setSettingsOpen: state.setSettingsOpen,
@@ -21,6 +23,8 @@ const SettingsModal: React.FC = () => {
     setShowLineNumbers: state.setShowLineNumbers,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
+    isLogicFeatureEnabled: state.isLogicFeatureEnabled,
+    setLogicFeatureEnabled: state.setLogicFeatureEnabled,
   }));
 
   const isDarkMode = backgroundColor === '#121212';
@@ -38,39 +42,62 @@ const SettingsModal: React.FC = () => {
       children: (
         <Space direction="vertical" size={16} style={{ width: '100%', paddingTop: 4, paddingBottom: 4 }}>
           {/* Dark Mode Toggle */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1 }}>
+          <Row justify="space-between" align="middle" style={{ width: '100%' }}>
+            <Col flex="auto">
               <Text strong style={{ display: 'block' }}>Dark Mode</Text>
               <Text type="secondary" style={{ fontSize: 13 }}>
                 Toggle between light and dark theme
               </Text>
-            </div>
-            <Switch
-              data-testid="dark-mode-toggle"
-              checked={isDarkMode}
-              onChange={toggleDarkMode}
-              checkedChildren={<MoonOutlined />}
-              unCheckedChildren={<BulbOutlined />}
-              aria-label="Toggle dark mode"
-            />
-          </div>
+            </Col>
+            <Col>
+              <Switch
+                data-testid="dark-mode-toggle"
+                checked={isDarkMode}
+                onChange={toggleDarkMode}
+                checkedChildren={<MoonOutlined />}
+                unCheckedChildren={<BulbOutlined />}
+                aria-label="Toggle dark mode"
+              />
+            </Col>
+          </Row>
 
           <Divider style={{ margin: 0 }} />
 
           {/* Line Numbers Toggle */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1 }}>
+          <Row justify="space-between" align="middle" style={{ width: '100%' }}>
+            <Col flex="auto">
               <Text strong style={{ display: 'block' }}>Show Line Numbers</Text>
               <Text type="secondary" style={{ fontSize: 13 }}>
                 Display line numbers in code editors
               </Text>
-            </div>
-            <Switch
-              checked={showLineNumbers}
-              onChange={setShowLineNumbers}
-              aria-label="Toggle line numbers"
-            />
-          </div>
+            </Col>
+            <Col>
+              <Switch
+                checked={showLineNumbers}
+                onChange={setShowLineNumbers}
+                aria-label="Toggle line numbers"
+              />
+            </Col>
+          </Row>
+
+          <Divider style={{ margin: 0 }} />
+
+          {/* Logic Feature Flag Toggle */}
+          <Row justify="space-between" align="middle" style={{ width: '100%' }}>
+            <Col flex="auto">
+              <Text strong style={{ display: 'block' }}>Enable Template Logic (Experimental)</Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                Turn on the experimental TypeScript logic editor and compilation features (GSoC Project).
+              </Text>
+            </Col>
+            <Col>
+              <Switch
+                checked={isLogicFeatureEnabled}
+                onChange={setLogicFeatureEnabled}
+                aria-label="Toggle template logic"
+              />
+            </Col>
+          </Row>
         </Space>
       ),
     },
