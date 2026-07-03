@@ -24,7 +24,7 @@ export type Sample = {
   /** Optional TypeScript logic string. When present, the Logic Editor and Contract Runner panels are activated. */
   LOGIC?: string;
   /** Default request JSON shown in the Contract Runner request editor (only used when LOGIC is set). */
-  DEFAULT_REQUEST?: string;
+  REQUEST?: object;
 };
 
 export const SAMPLES: Array<Sample> = [

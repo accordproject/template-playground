@@ -1,95 +1,166 @@
 .main-container {
-  @apply h-full;
+  height: 100%;
+}
+
+.main-container-root {
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.main-container-root,
+.main-container-root *,
+.main-container-root *::before,
+.main-container-root *::after {
+  box-sizing: border-box;
 }
 
 .main-container-panel-group {
-  @apply h-full;
+  height: 100%;
+  width: 100%;
 }
 
 .main-container-editors-panel {
-  @apply h-full border-r border-gray-200;
+  height: 100%;
+  border-right: 1px solid #e5e7eb;
 }
 
 .main-container-editors-panel-group {
-  @apply h-full;
+  height: 100%;
 }
 
 .main-container-editor-section {
-  @apply h-full flex flex-col;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-container-editor-header {
-  @apply border-b border-gray-200 px-4 py-2 text-sm font-medium flex items-center justify-between;
+  border-bottom: 1px solid #e5e7eb;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .main-container-editor-header-light {
-  @apply bg-slate-100 text-gray-700;
+  background-color: #f1f5f9;
+  color: #374151;
 }
 
 .main-container-editor-header-dark {
-  @apply bg-gray-700 text-white;
+  background-color: #374151;
+  color: white;
 }
 
 .main-container-editor-header-left {
-  @apply flex items-center gap-4;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.main-container-ai-assistant-button {
-  @apply flex cursor-pointer items-center justify-center px-4 py-1.5 h-8 text-sm bg-white border border-solid border-gray-300 rounded-md transition-all duration-300 ease-in-out hover:border-[#4096ff] hover:text-[#4096ff];
-}
-
-.main-container-ai-assistant-icon {
-  @apply size-8;
+.main-container-subtitle {
+  font-size: 0.75em;
+  opacity: 0.6;
+  font-weight: 400;
 }
 
 .main-container-editor-content {
-  @apply flex-1 overflow-hidden relative;
+  flex: 1 1 0%;
+  overflow: hidden;
+  position: relative;
+}
+
+.main-container-editor-content-logic {
+  height: calc(100% - 32px);
 }
 
 .main-container-panel-resize-handle-vertical {
-  @apply h-1 bg-gray-200 hover:bg-gray-300 transition-colors;
+  height: 0.25rem;
+  background-color: #e5e7eb;
+  transition: background-color 150ms;
+}
+.main-container-panel-resize-handle-vertical:hover {
+  background-color: #d1d5db;
 }
 
 .main-container-panel-resize-handle-horizontal {
-  @apply w-1 bg-gray-200 hover:bg-gray-300 transition-colors;
+  width: 0.25rem;
+  background-color: #e5e7eb;
+  transition: background-color 150ms;
+}
+.main-container-panel-resize-handle-horizontal:hover {
+  background-color: #d1d5db;
 }
 
 .main-container-preview-panel {
-  @apply h-full flex flex-col;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-container-preview-header {
-  @apply border-b border-gray-200 px-4 py-2 text-sm font-medium flex justify-between items-center;
+  border-bottom: 1px solid #e5e7eb;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .main-container-preview-header-light {
-  @apply bg-slate-100 text-gray-700;
+  background-color: #f1f5f9;
+  color: #374151;
 }
 
 .main-container-preview-header-dark {
-  @apply bg-gray-700 text-white;
+  background-color: #374151;
+  color: white;
 }
 
 .main-container-preview-content {
-  @apply flex-1 p-4 overflow-auto;
+  flex: 1 1 0%;
+  padding: 1rem;
+  overflow: auto;
+  height: calc(100% - 40px);
 }
 
 .main-container-preview-text {
-  @apply text-gray-500;
+  color: #6b7280;
 }
 
-.main-container-agreement {
-  @apply flex-1;
+.main-container-preview-agreement {
+  padding: 20px;
+}
+
+.main-container-preview-badge {
+  margin-left: 10px;
 }
 
 .collapse-button {
-  @apply transition-opacity duration-200;
+  transition: opacity 200ms;
 }
-
 .collapse-button:hover {
-  @apply opacity-70;
+  opacity: 0.7;
+}
+.collapse-button:active {
+  opacity: 0.5;
+}
+.main-container-collapse-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  margin-right: 4px;
 }
 
-.collapse-button:active {
-  @apply opacity-50;
-}
