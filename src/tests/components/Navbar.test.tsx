@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import Navbar from "../../components/Navbar";
+import Navbar from "../../components/NavBar/Navbar";
 import { MemoryRouter } from "react-router-dom";
 
 const renderNavbar = () => {
   render(
     <MemoryRouter>
       <Navbar />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };
 
