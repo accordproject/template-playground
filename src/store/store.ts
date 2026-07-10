@@ -153,6 +153,7 @@ export interface DecompressedData {
   modelCto: string;
   data: string;
   agreementHtml: string;
+  logicTs?: string;
 }
 
 const rebuildDeBounce = debounce(rebuild, 500);
@@ -536,16 +537,18 @@ const useAppStore = create<AppState>()(
             modelCto: state.modelCto,
             data: state.data,
             agreementHtml: state.agreementHtml,
+            ...(state.logicTs?.trim() ? { logicTs: state.logicTs } : {}),
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
         loadFromLink: async (compressedData: string) => {
           try {
-            const { templateMarkdown, modelCto, data, agreementHtml } =
+            const { templateMarkdown, modelCto, data, agreementHtml, logicTs } =
               decompress(compressedData);
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
             }
+            const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
             set(() => ({
               templateMarkdown,
               editorValue: templateMarkdown,
@@ -555,12 +558,18 @@ const useAppStore = create<AppState>()(
               editorAgreementData: data,
               agreementHtml,
               error: undefined,
-              logicTs: "",
-              editorLogicTs: "",
+              logicTs: logicTs || "",
+              editorLogicTs: logicTs || "",
               compiledLogicJs: null,
               compilationErrors: [],
               isCompiling: false,
+              isLogicPanelVisible: hasLogic,
             }));
+            if (hasLogic) {
+              get().setLogicFeatureEnabled(true);
+              savePanelState({ ...get(), isLogicPanelVisible: true });
+            }
+            
             await get().rebuild();
           } catch (error) {
             set(() => ({
