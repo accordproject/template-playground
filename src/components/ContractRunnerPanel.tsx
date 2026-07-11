@@ -11,6 +11,8 @@ const ContractRunnerPanel: React.FC = () => {
     requestJson,
     setRequestJson,
     executionState,
+    executionResponse,
+    executionEvents,
     isExecuting,
     initContract,
     triggerContract,
@@ -22,6 +24,8 @@ const ContractRunnerPanel: React.FC = () => {
     requestJson: s.requestJson,
     setRequestJson: s.setRequestJson,
     executionState: s.executionState,
+    executionResponse: s.executionResponse,
+    executionEvents: s.executionEvents,
     isExecuting: s.isExecuting,
     initContract: s.initContract,
     triggerContract: s.triggerContract,
@@ -35,36 +39,42 @@ const ContractRunnerPanel: React.FC = () => {
     {
       key: "response",
       label: "Response",
-      children: (
+      children: executionResponse ? (
+        <JSONEditor value={executionResponse} readOnly={true} />
+      ) : (
         <div
           className="contract-runner-panel-placeholder"
           style={{ color: textColor }}
         >
-          Response Output Coming Soon...
+          No response output yet. Trigger the contract to see the result.
         </div>
       ),
     },
     {
       key: "state",
       label: "State",
-      children: (
+      children: executionState ? (
+        <JSONEditor value={executionState} readOnly={true} />
+      ) : (
         <div
           className="contract-runner-panel-placeholder"
           style={{ color: textColor }}
         >
-          Contract State Coming Soon...
+          No contract state yet. Initialize the contract to view state.
         </div>
       ),
     },
     {
       key: "events",
       label: "Events",
-      children: (
+      children: executionEvents && executionEvents !== "[]" ? (
+        <JSONEditor value={executionEvents} readOnly={true} />
+      ) : (
         <div
           className="contract-runner-panel-placeholder"
           style={{ color: textColor }}
         >
-          Emitted Events Coming Soon...
+          No events emitted yet.
         </div>
       ),
     },

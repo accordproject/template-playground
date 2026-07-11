@@ -14,10 +14,12 @@ export default function JSONEditor({
   value,
   onChange,
   editorRef,
+  readOnly,
 }: {
   value: string;
   onChange?: (value: string | undefined) => void;
   editorRef?: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
+  readOnly?: boolean;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("json");
 
@@ -34,6 +36,7 @@ export default function JSONEditor({
     automaticLayout: true,
     scrollBeyondLastLine: false,
     lineNumbers: showLineNumbers ? 'on' : 'off',
+    readOnly: !!readOnly,
     inlineSuggest: {
       enabled: aiConfig?.enableInlineSuggestions !== false,
       mode: "prefix",
