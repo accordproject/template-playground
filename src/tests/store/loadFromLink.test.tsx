@@ -51,7 +51,7 @@ describe("useAppStore loadFromLink", () => {
 
     vi.mocked(decompress).mockReturnValue(mockData);
 
-    useAppStore.setState({ rebuild: vi.fn(), isLogicPanelVisible: false });
+    useAppStore.setState({ rebuild: vi.fn(), compileLogic: vi.fn(), isLogicPanelVisible: false });
 
     await useAppStore.getState().loadFromLink("some-compressed-data-with-logic");
 
