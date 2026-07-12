@@ -1,0 +1,121 @@
+.contract-runner-panel-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+}
+
+.contract-runner-panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.contract-runner-panel-top {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-bottom: 1px solid #333;
+}
+
+.contract-runner-panel-bottom {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.contract-runner-panel-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.contract-runner-panel-header {
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+}
+
+.contract-runner-panel-header-subtitle {
+  font-size: 0.75em;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+
+
+.contract-runner-panel-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+  padding-left: 12px;
+}
+
+.contract-runner-panel-badge-container {
+  display: block;
+  margin-top: 4px;
+}
+
+.contract-runner-panel-header-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.contract-runner-panel-title {
+  white-space: nowrap;
+}
+
+.contract-runner-panel-badge-text {
+  font-size: 12px;
+}
+
+.contract-runner-panel-button-wrapper {
+  display: inline-block;
+}
+
+.contract-runner-panel-button-wrapper[data-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.contract-runner-panel-button-wrapper[data-disabled="false"] {
+  cursor: pointer;
+}
+
+.contract-runner-panel-button {
+  pointer-events: auto;
+}
+
+.contract-runner-panel-button[data-disabled="true"] {
+  pointer-events: none;
+}
+
+.contract-runner-panel-tabs .ant-tabs-content-holder,
+.contract-runner-panel-tabs .ant-tabs-content,
+.contract-runner-panel-tabs .ant-tabs-tabpane {
+  height: 100%;
+}
+
+.contract-runner-panel-tabs .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden) {
+  display: flex;
+  flex-direction: column;
+}
+
+.contract-runner-panel-editor-container {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+.contract-runner-panel-json-display {
+  margin: 0;
+  padding: 12px;
+  height: 100%;
+  overflow: auto;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre;
+  border: none;
+  border-radius: 0;
+}

@@ -98,18 +98,18 @@ interface AppState {
   setPreviewVisible: (value: boolean) => void;
   setLogicPanelVisible: (value: boolean) => void;
   setProblemPanelVisible: (value: boolean) => void;
+  isContractRunnerVisible: boolean;
+  setContractRunnerVisible: (value: boolean) => void;
   startTour: () => void;
   isModelCollapsed: boolean;
   isTemplateCollapsed: boolean;
   isDataCollapsed: boolean;
-  isLogicTsCollapsed: boolean;
   isRequestCollapsed: boolean;
   isResponseCollapsed: boolean;
   isStateCollapsed: boolean;
   toggleModelCollapse: () => void;
   toggleTemplateCollapse: () => void;
   toggleDataCollapse: () => void;
-  toggleLogicTsCollapse: () => void;
   toggleRequestCollapse: () => void;
   toggleResponseCollapse: () => void;
   toggleStateCollapse: () => void;
@@ -139,6 +139,13 @@ interface AppState {
     method: string,
     args: unknown[],
   ) => Promise<unknown>;
+  executionState: string;
+  executionEvents: string;
+  executionResponse: string;
+  requestJson: string;
+  setRequestJson: (json: string) => void;
+  initContract: () => Promise<void>;
+  triggerContract: () => Promise<void>;
 }
 
 export interface DecompressedData {
@@ -217,6 +224,7 @@ const getInitialPanelState = () => {
     isPreviewVisible: true,
     isProblemPanelVisible: false,
     isLogicPanelVisible: false,
+    isContractRunnerVisible: false,
     isAIChatOpen: false,
   };
   if (typeof window !== "undefined") {
@@ -239,6 +247,7 @@ const savePanelState = (state: Partial<AppState>) => {
       isPreviewVisible: state.isPreviewVisible,
       isProblemPanelVisible: state.isProblemPanelVisible,
       isLogicPanelVisible: state.isLogicPanelVisible,
+      isContractRunnerVisible: state.isContractRunnerVisible,
       isAIChatOpen: state.isAIChatOpen,
     };
     localStorage.setItem("ui-panels", JSON.stringify(panels));
@@ -288,10 +297,10 @@ const useAppStore = create<AppState>()(
         isPreviewVisible: initialPanels.isPreviewVisible,
         isProblemPanelVisible: initialPanels.isProblemPanelVisible,
         isLogicPanelVisible: initialPanels.isLogicPanelVisible,
+        isContractRunnerVisible: initialPanels.isContractRunnerVisible,
         isModelCollapsed: false,
         isTemplateCollapsed: false,
         isDataCollapsed: false,
-        isLogicTsCollapsed: false,
         isRequestCollapsed: false,
         isResponseCollapsed: false,
         isStateCollapsed: false,
@@ -318,6 +327,13 @@ const useAppStore = create<AppState>()(
         isSandboxReady: false,
         isExecuting: false,
         executionId: 0,
+        
+        executionState: '',
+        executionEvents: '',
+        executionResponse: '',
+        
+        requestJson: '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
+        setRequestJson: (json: string) => set({ requestJson: json }),
 
         toggleModelCollapse: () =>
           set((state) => ({ isModelCollapsed: !state.isModelCollapsed })),
@@ -325,8 +341,6 @@ const useAppStore = create<AppState>()(
           set((state) => ({ isTemplateCollapsed: !state.isTemplateCollapsed })),
         toggleDataCollapse: () =>
           set((state) => ({ isDataCollapsed: !state.isDataCollapsed })),
-        toggleLogicTsCollapse: () =>
-          set((state) => ({ isLogicTsCollapsed: !state.isLogicTsCollapsed })),
         toggleRequestCollapse: () =>
           set((state) => ({ isRequestCollapsed: !state.isRequestCollapsed })),
         toggleResponseCollapse: () =>
@@ -360,6 +374,17 @@ const useAppStore = create<AppState>()(
           set({ isProblemPanelVisible: value });
           savePanelState({ ...get(), isProblemPanelVisible: value }); // Save change
         },
+        setContractRunnerVisible: (value) => {
+          const state = get();
+          const updates: Partial<AppState> = { isContractRunnerVisible: value };
+          
+          if (value && state.isPreviewVisible) {
+            updates.isPreviewVisible = false;
+          }
+          
+          set(updates);
+          savePanelState({ ...state, ...updates });
+        },
         setLogicPanelVisible: (value) => {
           const state = get();
           if (!value && !state.isEditorsVisible && !state.isPreviewVisible) {
@@ -374,13 +399,35 @@ const useAppStore = create<AppState>()(
           if (compressedData) {
             await get().loadFromLink(compressedData);
           } else {
+            // Ensure layout is valid for the initial template if recovering from a logic-based session
+            const state = get();
+            const sampleHasLogic = !!state.samples.find((sample) => sample.NAME === state.sampleName)?.LOGIC;
+            const hasLogic = sampleHasLogic || state.logicTs.trim().length > 0 || state.editorLogicTs.trim().length > 0;
+            
+            if (!hasLogic) {
+              set({ 
+                isEditorsVisible: true,
+                isPreviewVisible: true, 
+                isLogicPanelVisible: false, 
+                isContractRunnerVisible: false 
+              });
+              savePanelState({
+                ...get(),
+                isEditorsVisible: true,
+                isPreviewVisible: true, 
+                isLogicPanelVisible: false, 
+                isContractRunnerVisible: false 
+              });
+            }
             await get().rebuild();
           }
         },
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
           if (sample) {
+            const state = get();
             const logicTs = sample.LOGIC ?? "";
+            const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
             set(() => ({
               sampleName: sample.NAME,
               agreementHtml: undefined,
@@ -397,7 +444,20 @@ const useAppStore = create<AppState>()(
               compiledLogicJs: null,
               compilationErrors: [],
               isCompiling: false,
+              // Adapt layout based on whether template has logic
+              isLogicPanelVisible: hasLogic,
+              isContractRunnerVisible: hasLogic,
+              isPreviewVisible: !hasLogic,
             }));
+            
+            // Persist the adaptive layout state
+            savePanelState({
+              ...get(),
+              isLogicPanelVisible: hasLogic,
+              isContractRunnerVisible: hasLogic,
+              isPreviewVisible: !hasLogic,
+            });
+
             await get().rebuild();
           }
         },
@@ -824,6 +884,67 @@ const useAppStore = create<AppState>()(
               "*",
             );
           });
+        },
+        
+        initContract: async () => {
+          const { compiledLogicJs, data } = get();
+          if (!compiledLogicJs) {
+            return;
+          }
+          
+          try {
+            const parsedData = JSON.parse(data);
+            const output = await get().executeInSandbox(compiledLogicJs, 'init', [parsedData]) as { state?: unknown; events?: unknown[] };
+            
+            set({
+              executionState: output.state ? JSON.stringify(output.state, null, 2) : '',
+              executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              compilationErrors: []
+            });
+          } catch (err: unknown) {
+            set({ 
+              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
+              isProblemPanelVisible: true
+            });
+          }
+        },
+
+        triggerContract: async () => {
+          const { compiledLogicJs, data, requestJson, executionState, executeInSandbox } = get();
+          if (!compiledLogicJs) return;
+          
+          if (!executionState) {
+            set({ 
+              compilationErrors: [{ message: "Execution Error: Contract must be initialized before triggering." }],
+              isProblemPanelVisible: true 
+            });
+            return;
+          }
+          
+          try {
+            const parsedData = JSON.parse(data);
+            const parsedRequest = JSON.parse(requestJson);
+            const parsedState = JSON.parse(executionState);
+            
+            const output = (await executeInSandbox(compiledLogicJs, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] };
+            
+            /*
+             * Extract and store execution artifacts.
+             * The executionResponse holds the result payload, while state and events
+             * are updated for subsequent trigger operations or UI rendering.
+             */
+            set({
+              executionResponse: output.result ? JSON.stringify(output.result, null, 2) : '',
+              executionState: output.state ? JSON.stringify(output.state, null, 2) : executionState,
+              executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              compilationErrors: []
+            });
+          } catch (err: unknown) {
+            set({ 
+              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
+              isProblemPanelVisible: true
+            });
+          }
         },
       };
     }),

@@ -189,4 +189,124 @@ describe("useAppStore - Sandbox State", () => {
       vi.useRealTimers();
     });
   });
+
+  describe("initContract", () => {
+    it("should do nothing if compiledLogicJs is null", async () => {
+      useAppStore.setState({ compiledLogicJs: null });
+      await useAppStore.getState().initContract();
+      expect(useAppStore.getState().executionState).toBe("");
+    });
+
+    it("should populate executionState and executionEvents on success", async () => {
+      const executeInSandboxMock = vi.fn().mockResolvedValue({
+        state: { $class: "test", id: 123 },
+        events: [{ $class: "event", name: "test_event" }]
+      });
+
+      useAppStore.setState({
+        compiledLogicJs: "some_code",
+        data: '{"owner": "Alice"}',
+        executeInSandbox: executeInSandboxMock
+      });
+
+      await useAppStore.getState().initContract();
+
+      const state = useAppStore.getState();
+      expect(executeInSandboxMock).toHaveBeenCalledWith("some_code", "init", [{ owner: "Alice" }]);
+      expect(state.executionState).toContain('"id": 123');
+      expect(state.executionEvents).toContain('"name": "test_event"');
+      expect(state.compilationErrors).toEqual([]);
+    });
+
+    it("should catch errors, format them, and open the problems panel", async () => {
+      const executeInSandboxMock = vi.fn().mockRejectedValue(new Error("Init failed"));
+
+      useAppStore.setState({
+        compiledLogicJs: "some_code",
+        data: '{"owner": "Alice"}',
+        executeInSandbox: executeInSandboxMock,
+        compilationErrors: [],
+        isProblemPanelVisible: false
+      });
+
+      await useAppStore.getState().initContract();
+
+      const state = useAppStore.getState();
+      expect(state.compilationErrors.length).toBe(1);
+      expect(state.compilationErrors[0].message).toContain("Execution Error: Error: Init failed");
+      expect(state.isProblemPanelVisible).toBe(true);
+    });
+  });
+
+  describe("triggerContract", () => {
+    it("should do nothing if compiledLogicJs is null", async () => {
+      useAppStore.setState({ compiledLogicJs: null });
+      await useAppStore.getState().triggerContract();
+      expect(useAppStore.getState().executionResponse).toBe("");
+    });
+
+    it("should block execution and open Problems panel if contract is not initialized", async () => {
+      useAppStore.setState({
+        compiledLogicJs: "some_code",
+        executionState: "",
+        compilationErrors: [],
+        isProblemPanelVisible: false
+      });
+      await useAppStore.getState().triggerContract();
+      const state = useAppStore.getState();
+      expect(state.compilationErrors.length).toBe(1);
+      expect(state.compilationErrors[0].message).toContain("Execution Error: Contract must be initialized before triggering.");
+      expect(state.isProblemPanelVisible).toBe(true);
+    });
+
+    it("should successfully trigger the contract and update the executionResponse", async () => {
+      const executeInSandboxMock = vi.fn().mockResolvedValue({
+        result: { $class: "test_response", value: 42 },
+        state: { $class: "test_state", count: 2 },
+        events: []
+      });
+
+      useAppStore.setState({
+        compiledLogicJs: "some_code",
+        data: '{"owner": "Alice"}',
+        requestJson: '{"increment": 1}',
+        executionState: '{"count": 1}',
+        executeInSandbox: executeInSandboxMock
+      });
+
+      await useAppStore.getState().triggerContract();
+
+      const state = useAppStore.getState();
+      expect(executeInSandboxMock).toHaveBeenCalledWith("some_code", "trigger", [
+        { owner: "Alice" },
+        { increment: 1 },
+        { count: 1 }
+      ]);
+      expect(state.executionResponse).toContain('"value": 42');
+      expect(state.executionState).toContain('"count": 2');
+      expect(state.executionEvents).toBe("[]");
+      expect(state.compilationErrors).toEqual([]);
+    });
+
+    it("should handle runtime errors in trigger pipeline", async () => {
+      const executeInSandboxMock = vi.fn().mockRejectedValue(new Error("Trigger failed"));
+
+      useAppStore.setState({
+        compiledLogicJs: "some_code",
+        data: '{"owner": "Alice"}',
+        requestJson: '{}',
+        executionState: '{}',
+        executeInSandbox: executeInSandboxMock,
+        compilationErrors: [],
+        isProblemPanelVisible: false
+      });
+
+      await useAppStore.getState().triggerContract();
+
+      const state = useAppStore.getState();
+      expect(state.compilationErrors.length).toBe(1);
+      expect(state.compilationErrors[0].message).toContain("Execution Error: Error: Trigger failed");
+      expect(state.isProblemPanelVisible).toBe(true);
+    });
+  });
 });
