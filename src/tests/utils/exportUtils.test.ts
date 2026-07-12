@@ -5,14 +5,14 @@ describe('exportUtils', () => {
   const mockHtml = '<h1>Test Agreement</h1><p>This is a <strong>bold</strong> statement.</p><script>alert("hack");</script>';
 
   describe('generateMarkdown', () => {
-    it('should correctly convert HTML to Markdown', () => {
-      const result = generateMarkdown(mockHtml);
+    it('should correctly convert HTML to Markdown', async () => {
+      const result = await generateMarkdown(mockHtml);
       
-      // Expected markdown output based on Turndown defaults
-      expect(result).toContain('Test Agreement\n==============');
+      // Expected markdown output based on markdown-transform
+      expect(result).toContain('Test Agreement\n====');
       expect(result).toContain('This is a **bold** statement.');
       
-      // Turndown typically preserves or strips script tags, let's just make sure it's not executing and the text content matches
+      // Ensure the tag itself is stripped
       expect(result).not.toContain('<script>');
     });
   });

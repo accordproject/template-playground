@@ -63,7 +63,6 @@
     "shepherd.js": "^13.0.3",
     "styled-components": "^6.1.12",
     "ts-debounce": "^4.0.0",
-    "turndown": "^7.2.4",
     "use-debounce": "^10.1.0",
     "uuid": "^11.1.0",
     "zustand": "^4.3.9"
@@ -83,7 +82,6 @@
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@types/testing-library__jest-dom": "^5.14.9",
-    "@types/turndown": "^5.0.6",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vitejs/plugin-react": "^4.0.3",

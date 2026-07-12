@@ -89,10 +89,10 @@ const MainContainer = () => {
     triggerDownload(element.innerText, 'text/plain;charset=utf-8', 'agreement.txt');
   };
 
-  const handleDownloadMarkdown = () => {
+  const handleDownloadMarkdown = async () => {
     if (!agreementHtml) return;
     try {
-      const markdown = generateMarkdown(agreementHtml);
+      const markdown = await generateMarkdown(agreementHtml);
       triggerDownload(markdown, 'text/markdown;charset=utf-8', 'agreement.md');
     } catch (error) {
       console.error("Markdown generation failed:", error);
@@ -115,7 +115,7 @@ const MainContainer = () => {
     {
       key: 'md',
       label: 'Download as Markdown (.md)',
-      onClick: handleDownloadMarkdown,
+      onClick: () => { void handleDownloadMarkdown(); },
     },
     {
       key: 'html',

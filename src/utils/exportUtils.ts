@@ -1,12 +1,19 @@
-import TurndownService from "turndown";
+import { transform } from "@accordproject/markdown-transform";
 import DOMPurify from "dompurify";
 
 /**
  * Generates a Markdown representation of the provided HTML string.
  */
-export const generateMarkdown = (html: string): string => {
-  const turndownService = new TurndownService();
-  return turndownService.turndown(html);
+export const generateMarkdown = async (html: string): Promise<string> => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  const result = (await transform(
+    html,
+    "html",
+    ["markdown"],
+    {},
+    { verbose: false },
+  )) as string;
+  return result;
 };
 
 /**
