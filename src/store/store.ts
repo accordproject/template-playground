@@ -449,6 +449,7 @@ const useAppStore = create<AppState>()(
               isLogicPanelVisible: hasLogic,
               isContractRunnerVisible: hasLogic,
               isPreviewVisible: !hasLogic,
+              requestJson: sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : '{}',
             }));
 
             // Persist the adaptive layout state
