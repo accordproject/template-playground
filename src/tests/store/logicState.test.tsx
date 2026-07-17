@@ -78,6 +78,7 @@ describe('useAppStore - Logic State', () => {
       const store = useAppStore.getState();
       
       useAppStore.setState({
+        logicTs: 'const dummy = 1;',
         compiledLogicJs: 'mock_js',
         compilationErrors: [{ message: 'mock error' }],
         isCompiling: true,
