@@ -449,6 +449,7 @@ const useAppStore = create<AppState>()(
               isLogicPanelVisible: hasLogic,
               isContractRunnerVisible: hasLogic,
               isPreviewVisible: !hasLogic,
+              requestJson: sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : '{}',
             }));
 
             // Persist the adaptive layout state
@@ -699,7 +700,17 @@ const useAppStore = create<AppState>()(
           });
           try {
             const state = get();
-            if (!state.logicTs || !state.modelCto) {
+            if (!state.logicTs || !state.logicTs.trim()) {
+              set({
+                isCompiling: false,
+                compilationErrors: [{
+                  message: "Logic editor cannot be empty. Please provide valid TypeScript logic.",
+                }],
+                isProblemPanelVisible: true
+              });
+              return;
+            }
+            if (!state.modelCto) {
               set({ isCompiling: false, compilationErrors: [] });
               return;
             }

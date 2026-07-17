@@ -15,6 +15,7 @@ import * as paymentReceipt from './paymentReceipt';
 import * as employmentOffer from "./employmentOffer";
 import * as nda from "./nda";
 import * as counterLogic from "./counterLogic";
+import * as latePaymentPenalty from "./latePaymentPenalty";
 
 export type Sample = {
   NAME: string;
@@ -30,6 +31,7 @@ export type Sample = {
 export const SAMPLES: Array<Sample> = [
   playground,
   counterLogic,   // Logic sample — listed near the top to showcase the new feature
+  latePaymentPenalty, // Logic sample with time-based calculations
   helloworld,
   employmentOffer,
   formula,
