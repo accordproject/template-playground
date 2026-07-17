@@ -10,39 +10,7 @@ const MonacoEditor = lazy(() =>
   import('@monaco-editor/react').then((mod) => ({ default: mod.Editor }))
 );
 
-const DEFAULT_LOGIC_BOILERPLATE = `// Write your contract logic here.
-// TemplateLogic, IRequest, IState, IResponse are available as global types.
 
-class ContractLogic extends TemplateLogic<any> {
-
-  // Optional: initialize contract state
-  async init(data: any) {
-    return {
-      state: {
-        $identifier: 'contract-state',
-        // add your initial state fields here
-      },
-    };
-  }
-
-  // Required: execute business logic for each request
-  async trigger(data: any, request: any, state: any) {
-    return {
-      result: {
-        $class: 'org.example.Response',
-        $timestamp: new Date().toISOString(),
-        // add your response fields here
-      },
-      state: {
-        ...state,
-        // update state fields here
-      },
-    };
-  }
-}
-
-export default ContractLogic;
-`;
 
 export default function LogicEditor() {
   const monaco = useMonaco();
@@ -112,12 +80,8 @@ export default function LogicEditor() {
   );
 
   const handleApply = useCallback(() => {
-    const nextSource =
-      editorLogicTs.trim() === '' && logicTs.trim() === ''
-        ? DEFAULT_LOGIC_BOILERPLATE
-        : editorLogicTs;
-    void setLogicTs(nextSource);
-  }, [setLogicTs, editorLogicTs, logicTs]);
+    void setLogicTs(editorLogicTs);
+  }, [setLogicTs, editorLogicTs]);
 
 
   // Has the editor content diverged from committed logic?
