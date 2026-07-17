@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Modal, Switch, Collapse, Space, Divider, Typography, Row, Col } from 'antd';
+import { Modal, Switch, Collapse, Space, Divider, Typography, ConfigProvider, theme, Row, Col } from 'antd';
 import { BulbOutlined, MoonOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 import useAppStore from '../store/store';
 import AIConfigSection from './AIConfigSection';
+import { colors } from '../utils/theme';
 
 const { Text } = Typography;
 
@@ -114,23 +115,30 @@ const SettingsModal: React.FC = () => {
   ];
 
   return (
-    <Modal
-      title="Settings"
-      open={isSettingsOpen}
-      onCancel={() => setSettingsOpen(false)}
-      footer={null}
-      className={isDarkMode ? 'dark-modal' : ''}
-      width="90%"
-      style={{ maxWidth: 520 }}
+    <ConfigProvider
+      theme={{
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: {
+          colorPrimary: colors.primary,
+        },
+      }}
     >
-      <Collapse
-        activeKey={activeKey}
-        onChange={setActiveKey}
-        items={collapseItems}
-        bordered={false}
-        className={isDarkMode ? 'dark-collapse' : ''}
-      />
-    </Modal>
+      <Modal
+        title="Settings"
+        open={isSettingsOpen}
+        onCancel={() => setSettingsOpen(false)}
+        footer={null}
+        width="90%"
+        style={{ maxWidth: 520 }}
+      >
+        <Collapse
+          activeKey={activeKey}
+          onChange={setActiveKey}
+          items={collapseItems}
+          bordered={false}
+        />
+      </Modal>
+    </ConfigProvider>
   );
 };
 
