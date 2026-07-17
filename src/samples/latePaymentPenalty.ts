@@ -40,6 +40,8 @@ event LatePaymentEvent {
 asset LatePaymentState identified by stateId {
   o String stateId
   o Integer count
+  o Double totalPenalty
+  o Boolean isTerminated
 }
 `;
 
@@ -76,8 +78,10 @@ export const REQUEST = {
   invoiceValue: 1000
 };
 
-export const LOGIC = `// Late Payment Penalty Logic
-// Demonstrates: Date/time handling, mathematical calculations, and cap enforcements
+export const LOGIC = `/*
+ * Late Payment Penalty Logic
+ * Demonstrates: Date/time handling, mathematical calculations, and cap enforcements
+ */
 
 class LatePaymentLogic extends TemplateLogic<any> {
 
@@ -89,6 +93,8 @@ class LatePaymentLogic extends TemplateLogic<any> {
         stateId: 'late-payment-state',
         $identifier: 'late-payment-state',
         count: 0,
+        totalPenalty: 0,
+        isTerminated: false
       },
       events: []
     };
@@ -97,9 +103,13 @@ class LatePaymentLogic extends TemplateLogic<any> {
   // Called for each request — calculates penalty based on days overdue
   async trigger(data: any, request: any, state: any) {
     const currentCount = (state?.count ?? 0) as number;
+    const currentTotalPenalty = (state?.totalPenalty ?? 0) as number;
+    const isAlreadyTerminated = (state?.isTerminated ?? false) as boolean;
 
-    // Force Majeure: if the contract excludes penalties for force majeure
-    // and the request claims force majeure, waive the penalty entirely
+    /*
+     * Force Majeure: if the contract excludes penalties for force majeure
+     * and the request claims force majeure, waive the penalty entirely
+     */
     if (data.forceMajeure && request.forceMajeure) {
       return {
         result: {
@@ -119,6 +129,8 @@ class LatePaymentLogic extends TemplateLogic<any> {
           stateId: state.stateId,
           $identifier: state.stateId,
           count: currentCount + 1,
+          totalPenalty: currentTotalPenalty,
+          isTerminated: isAlreadyTerminated
         }
       };
     }
@@ -165,6 +177,8 @@ class LatePaymentLogic extends TemplateLogic<any> {
         stateId: state.stateId,
         $identifier: state.stateId,
         count: currentCount + 1,
+        totalPenalty: currentTotalPenalty + penalty,
+        isTerminated: isAlreadyTerminated || sellerMayTerminate
       }
     };
   }
