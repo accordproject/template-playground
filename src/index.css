@@ -44,21 +44,45 @@ html[data-theme="dark"] .ant-modal-confirm .ant-btn-default:hover {
     border-color: #19c6c7;
 }
 
-.ant-modal-confirm .ant-btn-default:hover {
+.export-dropdown-btn.ant-btn-default:hover,
+.export-dropdown-btn .ant-btn-default:hover {
     color: #19c6c7;
     border-color: #19c6c7;
 }
 
-.ant-modal-confirm .ant-btn-primary {
+.export-dropdown-btn.ant-btn-primary,
+.export-dropdown-btn .ant-btn-primary {
     background-color: #19c6c7;
     border-color: #19c6c7;
     color: #050c40;
 }
 
-.ant-modal-confirm .ant-btn-primary:hover {
+.export-dropdown-btn.ant-btn-primary:hover,
+.export-dropdown-btn .ant-btn-primary:hover {
     background-color: #15b3b4;
     border-color: #15b3b4;
     color: #050c40;
+}
+
+/* Remove the default blue separator line in Button Groups (like Dropdown.Button) */
+.export-dropdown-btn.ant-btn-group .ant-btn-primary::before,
+.export-dropdown-btn.ant-btn-group .ant-btn-primary::after,
+.export-dropdown-btn.ant-dropdown-button .ant-btn-primary::before,
+.export-dropdown-btn.ant-dropdown-button .ant-btn-primary::after,
+.export-dropdown-btn.ant-space-compact .ant-btn-primary::before,
+.export-dropdown-btn.ant-space-compact .ant-btn-primary::after {
+    display: none !important;
+    background: transparent !important;
+}
+
+/* Fallback for border-left/right if Ant Design applies it directly */
+.export-dropdown-btn.ant-btn-group > .ant-btn-primary,
+.export-dropdown-btn.ant-dropdown-button > .ant-btn-primary,
+.export-dropdown-btn.ant-space-compact > .ant-btn-primary {
+    border-left-color: #19c6c7 !important;
+    border-right-color: #19c6c7 !important;
+    border-inline-start-color: #19c6c7 !important;
+    border-inline-end-color: #19c6c7 !important;
 }
 
 html[data-theme="light"] {
