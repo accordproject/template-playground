@@ -6,9 +6,14 @@ import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
-import { SAMPLES, Sample } from "../samples";
-import * as playground from "../samples/playground";
+import { Sample } from "../samples";
+import * as counterLogic from "../samples/counterLogic";
 import { compress, decompress } from "../utils/compression/compression";
+import {
+  TemplateIndexEntry,
+  fetchTemplateIndex,
+  fetchTemplate,
+} from "../utils/templateLibrary";
 // Import removed: compileLogicTs is now a no-op
 import {
   AIConfig,
@@ -39,7 +44,11 @@ interface AppState {
   editorAgreementData: string;
   agreementHtml: string;
   error: string | undefined;
-  samples: Array<Sample>;
+  samples: Array<TemplateIndexEntry>;
+  lastLoadedSample: Sample | null;
+  isLoadingIndex: boolean;
+  isLoadingTemplate: boolean;
+  templateLibraryError: string | null;
   sampleName: string;
   isAIChatOpen: boolean;
   backgroundColor: string;
@@ -81,6 +90,7 @@ interface AppState {
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
+  fetchTemplateLibrary: () => Promise<void>;
   generateShareableLink: () => string;
   loadFromLink: (compressedData: string) => Promise<void>;
   toggleDarkMode: () => void;
@@ -275,17 +285,21 @@ const useAppStore = create<AppState>()(
         setActiveTab: (tab: "build" | "simulate") => set({ activeTab: tab }),
         backgroundColor: initialTheme.backgroundColor,
         textColor: initialTheme.textColor,
-        sampleName: playground.NAME,
-        templateMarkdown: playground.TEMPLATE,
-        editorValue: playground.TEMPLATE,
-        modelCto: playground.MODEL,
-        editorModelCto: playground.MODEL,
-        data: JSON.stringify(playground.DATA, null, 2),
-        editorAgreementData: JSON.stringify(playground.DATA, null, 2),
+        sampleName: "",
+        templateMarkdown: "",
+        editorValue: "",
+        modelCto: "",
+        editorModelCto: "",
+        data: "",
+        editorAgreementData: "",
         agreementHtml: "",
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
-        samples: SAMPLES,
+        samples: [],
+        lastLoadedSample: null,
+        isLoadingIndex: false,
+        isLoadingTemplate: false,
+        templateLibraryError: null,
         chatState: {
           messages: [],
           isLoading: false,
@@ -393,73 +407,85 @@ const useAppStore = create<AppState>()(
           set({ isLogicPanelVisible: value });
           savePanelState({ ...get(), isLogicPanelVisible: value }); // Save change
         },
+        fetchTemplateLibrary: async () => {
+          set({ isLoadingIndex: true, templateLibraryError: null });
+          try {
+            const entries = await fetchTemplateIndex();
+            set({ samples: entries, isLoadingIndex: false });
+          } catch (err) {
+            set({
+              isLoadingIndex: false,
+              templateLibraryError:
+                err instanceof Error
+                  ? err.message
+                  : "Failed to load template library",
+            });
+          }
+        },
         init: async () => {
           const params = new URLSearchParams(window.location.search);
           const compressedData = params.get("data");
           if (compressedData) {
             await get().loadFromLink(compressedData);
           } else {
-            // Ensure layout is valid for the initial template if recovering from a logic-based session
-            const state = get();
-            const sampleHasLogic = !!state.samples.find((sample) => sample.NAME === state.sampleName)?.LOGIC;
-            const hasLogic = sampleHasLogic || state.logicTs.trim().length > 0 || state.editorLogicTs.trim().length > 0;
-            
-            if (!hasLogic) {
-              set({ 
-                isEditorsVisible: true,
-                isPreviewVisible: true, 
-                isLogicPanelVisible: false, 
-                isContractRunnerVisible: false 
-              });
-              savePanelState({
-                ...get(),
-                isEditorsVisible: true,
-                isPreviewVisible: true, 
-                isLogicPanelVisible: false, 
-                isContractRunnerVisible: false 
-              });
+            await get().fetchTemplateLibrary();
+            // Auto-load helloworld as the default, fall back to first template
+            const entries = get().samples;
+            const defaultEntry =
+              entries.find((e) => e.dirName === "helloworld") ?? entries[0];
+            if (defaultEntry) {
+              await get().loadSample(defaultEntry.NAME);
             }
-            await get().rebuild();
           }
         },
         loadSample: async (name: string) => {
-          const sample = SAMPLES.find((s) => s.NAME === name);
-          if (sample) {
-            const state = get();
-            const logicTs = sample.LOGIC ?? "";
-            const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
-            set(() => ({
-              sampleName: sample.NAME,
-              agreementHtml: undefined,
-              error: undefined,
-              templateMarkdown: sample.TEMPLATE,
-              editorValue: sample.TEMPLATE,
-              modelCto: sample.MODEL,
-              editorModelCto: sample.MODEL,
-              data: JSON.stringify(sample.DATA, null, 2),
-              editorAgreementData: JSON.stringify(sample.DATA, null, 2),
-              // Reset logic state when switching samples
-              logicTs,
-              editorLogicTs: logicTs,
-              compiledLogicJs: null,
-              compilationErrors: [],
-              isCompiling: false,
-              // Adapt layout based on whether template has logic
-              isLogicPanelVisible: hasLogic,
-              isContractRunnerVisible: hasLogic,
-              isPreviewVisible: !hasLogic,
-            }));
-            
-            // Persist the adaptive layout state
-            savePanelState({
-              ...get(),
-              isLogicPanelVisible: hasLogic,
-              isContractRunnerVisible: hasLogic,
-              isPreviewVisible: !hasLogic,
-            });
+          let sample: Sample;
 
-            await get().rebuild();
+          if (name === counterLogic.NAME) {
+            sample = counterLogic as Sample;
+          } else {
+            set({ isLoadingTemplate: true });
+            try {
+              sample = await fetchTemplate(name);
+            } catch (err) {
+              set({ isLoadingTemplate: false });
+              throw err;
+            }
+            set({ isLoadingTemplate: false });
           }
+
+          const state = get();
+          const logicTs = sample.LOGIC ?? "";
+          const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
+          set(() => ({
+            sampleName: sample.NAME,
+            lastLoadedSample: sample,
+            agreementHtml: undefined,
+            error: undefined,
+            templateMarkdown: sample.TEMPLATE,
+            editorValue: sample.TEMPLATE,
+            modelCto: sample.MODEL,
+            editorModelCto: sample.MODEL,
+            data: JSON.stringify(sample.DATA, null, 2),
+            editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+            logicTs,
+            editorLogicTs: logicTs,
+            compiledLogicJs: null,
+            compilationErrors: [],
+            isCompiling: false,
+            isLogicPanelVisible: hasLogic,
+            isContractRunnerVisible: hasLogic,
+            isPreviewVisible: !hasLogic,
+          }));
+
+          savePanelState({
+            ...get(),
+            isLogicPanelVisible: hasLogic,
+            isContractRunnerVisible: hasLogic,
+            isPreviewVisible: !hasLogic,
+          });
+
+          await get().rebuild();
         },
 
         rebuild: async () => {
