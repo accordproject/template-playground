@@ -3,7 +3,6 @@ import {
   fetchTemplateIndex,
   fetchTemplate,
   clearTemplateCache,
-  TemplateIndexEntry,
 } from "../../utils/templateLibrary";
 
 // Mock semver so tests are not sensitive to the actual CICERO_RANGE from package.json
@@ -38,7 +37,6 @@ vi.mock("@accordproject/concerto-core", () => ({
 import { intersects, gt } from "semver";
 
 const COMPATIBLE = true;
-const INCOMPATIBLE = false;
 
 function makeLibraryIndex(
   entries: Array<{
