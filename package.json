@@ -18,7 +18,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@accordproject/cicero-core": "^1.0.1",
+    "@accordproject/cicero-core": "^2.1.0",
     "@accordproject/concerto-core": "^4.1.4",
     "@accordproject/concerto-cto": "^4.1.4",
     "@accordproject/markdown-common": "^1.0.1",
