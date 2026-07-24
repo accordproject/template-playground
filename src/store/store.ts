@@ -742,7 +742,7 @@ const useAppStore = create<AppState>()(
               set({
                 isCompiling: false,
                 isProblemPanelVisible: true,
-                compilationErrors: actualErrors.slice(0, 1).map((e: any) => ({
+                compilationErrors: actualErrors.map((e: any) => ({
                   message: e.renderedMessage || e.text,
                   line: e.line,
                   column: e.character,

@@ -88,8 +88,8 @@ const ProblemPanel: React.FC = () => {
           source: 'TypeScript Logic' as EditorSource, // Will be handled if navigation is implemented
           message: compError.message,
           // Omitting line and column until offset mapping is implemented (US-09)
-          line: undefined,
-          column: undefined,
+          line: compError.line,
+          column: compError.column,
         });
       });
     }

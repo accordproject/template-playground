@@ -4,6 +4,7 @@ import type * as monacoNS from 'monaco-editor';
 import { Button, Badge } from 'antd';
 import useAppStore from '../store/store';
 import useThemeName from '../hooks/useThemeName';
+import { registerEditor, unregisterEditor } from '../utils/editorNavigation';
 import '../styles/components/LogicEditor.css';
 
 const MonacoEditor = lazy(() =>
@@ -119,6 +120,29 @@ export default function LogicEditor() {
     void setLogicTs(nextSource);
   }, [setLogicTs, editorLogicTs, logicTs]);
 
+  // Cleanup editor registration on unmount
+  useEffect(() => {
+    return () => unregisterEditor('logic');
+  }, []);
+
+  // Sync compilation errors with Monaco markers
+  useEffect(() => {
+    if (!monaco || !compilerConfigured.current) return;
+    const models = monaco.editor.getModels();
+    const model = models.find((m) => m.uri.path === '/logic.ts');
+    if (model) {
+      const markers = (compilationErrors || []).map((e) => ({
+        severity: monaco.MarkerSeverity.Error,
+        startLineNumber: e.line || 1,
+        startColumn: e.column || 1,
+        endLineNumber: e.line || 1,
+        endColumn: e.column ? e.column + (e.length || 1) : 1,
+        message: e.message,
+      }));
+      monaco.editor.setModelMarkers(model, 'logic', markers);
+    }
+  }, [monaco, compilationErrors]);
+
 
   // Has the editor content diverged from committed logic?
   const isDirty = editorLogicTs !== logicTs;
@@ -182,6 +206,7 @@ export default function LogicEditor() {
             theme={themeName}
             options={editorOptions}
             onChange={handleChange}
+            onMount={(editor) => registerEditor('logic', editor)}
           />
         </Suspense>
       </div>

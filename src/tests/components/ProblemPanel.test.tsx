@@ -188,4 +188,27 @@ describe("ProblemPanel", () => {
     const clickableProblems = screen.getAllByRole("button");
     expect(clickableProblems).toHaveLength(2);
   });
+
+  it("should render compilation errors as clickable and navigate correctly", () => {
+    useAppStore.setState({
+      compilationErrors: [
+        { message: 'TS Error 1', line: 15, column: 5 }
+      ],
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    const problemItem = screen.getByText(/TS Error 1/i).closest('[role="button"]');
+    expect(problemItem).toBeInTheDocument();
+
+    fireEvent.click(problemItem!);
+
+    expect(editorNavigation.navigateToLine).toHaveBeenCalledWith(
+      'TypeScript Logic',
+      15,
+      5
+    );
+  });
 });
