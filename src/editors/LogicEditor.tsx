@@ -125,27 +125,30 @@ export default function LogicEditor() {
     return () => unregisterEditor('logic');
   }, []);
 
+  // Has the editor content diverged from committed logic?
+  const isDirty = editorLogicTs !== logicTs;
+
   // Sync compilation errors with Monaco markers
   useEffect(() => {
     if (!monaco || !compilerConfigured.current) return;
     const models = monaco.editor.getModels();
     const model = models.find((m) => m.uri.path === '/logic.ts');
     if (model) {
-      const markers = (compilationErrors || []).map((e) => ({
-        severity: monaco.MarkerSeverity.Error,
-        startLineNumber: e.line || 1,
-        startColumn: e.column || 1,
-        endLineNumber: e.line || 1,
-        endColumn: e.column ? e.column + (e.length || 1) : 1,
-        message: e.message,
-      }));
+      const markers = !isDirty
+        ? (compilationErrors || []).map((e) => ({
+            severity: monaco.MarkerSeverity.Error,
+            startLineNumber: e.line || 1,
+            startColumn: e.column || 1,
+            endLineNumber: e.line || 1,
+            endColumn: e.column ? e.column + (e.length || 1) : 1,
+            message: e.message,
+          }))
+        : [];
       monaco.editor.setModelMarkers(model, 'logic', markers);
     }
-  }, [monaco, compilationErrors]);
+  }, [monaco, compilationErrors, isDirty]);
 
 
-  // Has the editor content diverged from committed logic?
-  const isDirty = editorLogicTs !== logicTs;
   const hasErrors = compilationErrors && compilationErrors.length > 0;
   const themeMode = backgroundColor === '#ffffff' ? 'light' : 'dark';
 

@@ -172,4 +172,24 @@ describe('LogicEditor', () => {
       []
     );
   });
+
+  it('clears markers when editor content is dirty (unsaved changes)', async () => {
+    useAppStore.setState({
+      editorLogicTs: 'const x = 2;',
+      logicTs: 'const x = 1;',
+      compilationErrors: [
+        { message: 'Test error', line: 5, column: 10, length: 4 }
+      ]
+    });
+
+    await act(async () => {
+      render(<LogicEditor />);
+    });
+
+    expect(mockSetModelMarkers).toHaveBeenCalledWith(
+      { uri: { path: '/logic.ts' } },
+      'logic',
+      []
+    );
+  });
 });
