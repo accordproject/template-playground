@@ -34,12 +34,6 @@ const ContractRequestEditor: React.FC = () => {
    * `compiledLogicJs` can be null and `executionState` can be an empty string.
    * Coercing with `!!` normalizes these values to booleans for UI enable/disable logic.
    */
-  // Determine current step for visual guidance
-  const getCurrentStep = (): number => {
-    if (!compiledLogicJs) return 1; // Step 1: Compile
-    if (!executionState) return 2; // Step 2: Init
-    return 3; // Step 3: Ready to trigger
-  };
 
   // Auto-compile if not compiled when Init Contract is clicked
   const handleInitContract = async () => {
