@@ -211,4 +211,20 @@ describe("ProblemPanel", () => {
       5
     );
   });
+
+  it("should render a warning banner when logic has unsaved changes and compilation errors exist", () => {
+    useAppStore.setState({
+      compilationErrors: [
+        { message: 'TS Error 1', line: 15, column: 5 }
+      ],
+      editorLogicTs: 'const x = 2;',
+      logicTs: 'const x = 1;',
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.getByText(/Logic Editor has unsaved changes. Please click/i)).toBeInTheDocument();
+  });
 });
