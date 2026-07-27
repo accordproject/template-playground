@@ -34,38 +34,118 @@ const ContractRequestEditor: React.FC = () => {
    * `compiledLogicJs` can be null and `executionState` can be an empty string.
    * Coercing with `!!` normalizes these values to booleans for UI enable/disable logic.
    */
-  const canInit = !!compiledLogicJs;
-  const canTrigger = !!compiledLogicJs && !!executionState;
+  // Determine current step for visual guidance
+  const getCurrentStep = (): number => {
+    if (!compiledLogicJs) return 1; // Step 1: Compile
+    if (!executionState) return 2; // Step 2: Init
+    return 3; // Step 3: Ready to trigger
+  };
 
-  const initTooltip = !canInit ? "Please compile the contract logic first" : "";
+  const currentStep = getCurrentStep();
+
+  // Auto-compile if not compiled when Init Contract is clicked
+  const handleInitContract = async () => {
+    const { compileLogic } = useAppStore.getState();
+    
+    if (!compiledLogicJs && logicTs) {
+      // Auto-compile first, then init
+      await compileLogic();
+      // After compilation, init the contract
+      await initContract();
+    } else if (compiledLogicJs) {
+      await initContract();
+    }
+  };
+
+  // Auto-compile and auto-init if needed when Send Request is clicked
+  const handleTriggerContract = async () => {
+    const { compileLogic } = useAppStore.getState();
+    
+    if (!compiledLogicJs && logicTs) {
+      // Auto-compile first
+      await compileLogic();
+    }
+    
+    // Auto-init if not initialized
+    if (compiledLogicJs && !executionState) {
+      await initContract();
+    }
+    
+    // Now trigger the contract
+    if (compiledLogicJs && executionState) {
+      await triggerContract();
+    }
+  };
+
+  const initTooltip = !compiledLogicJs ? "Auto-compiles logic if needed" : "";
 
   let triggerTooltip = "";
   if (!compiledLogicJs) {
-    triggerTooltip = "Please compile the contract logic first";
+    triggerTooltip = "Auto-compiles and initializes if needed";
   } else if (!executionState) {
-    triggerTooltip = "Please initialize the contract first";
+    triggerTooltip = "Auto-initializes if needed";
   }
 
   let statusBadge: React.ReactNode = null;
+  let stepIndicator: React.ReactNode = null;
+
   if (!compiledLogicJs) {
     statusBadge = (
       <Badge
         status="warning"
         text={
           <span className="contract-runner-panel-badge-text">
-            Requires Compilation
+            Step 1: Compile Logic
           </span>
         }
       />
     );
-  } else if (executionState) {
+    stepIndicator = (
+      <div className="step-indicator">
+        <div className="step active">1. Compile</div>
+        <div className="step-connector"></div>
+        <div className="step">2. Init</div>
+        <div className="step-connector"></div>
+        <div className="step">3. Execute</div>
+      </div>
+    );
+  } else if (!executionState) {
+    statusBadge = (
+      <Badge
+        status="processing"
+        text={
+          <span className="contract-runner-panel-badge-text">
+            Step 2: Initialize Contract
+          </span>
+        }
+      />
+    );
+    stepIndicator = (
+      <div className="step-indicator">
+        <div className="step completed">✓ 1. Compile</div>
+        <div className="step-connector completed"></div>
+        <div className="step active">2. Init</div>
+        <div className="step-connector"></div>
+        <div className="step">3. Execute</div>
+      </div>
+    );
+  } else {
     statusBadge = (
       <Badge
         status="success"
         text={
-          <span className="contract-runner-panel-badge-text">Initialized</span>
+          <span className="contract-runner-panel-badge-text">Ready to Execute</span>
         }
       />
+    );
+    stepIndicator = (
+      <div className="step-indicator">
+        <div className="step completed">✓ 1. Compile</div>
+        <div className="step-connector completed"></div>
+        <div className="step completed">✓ 2. Init</div>
+        <div className="step-connector completed"></div>
+        <div className="step active">3. Execute</div>
+      </div>
     );
   }
 
@@ -91,20 +171,19 @@ const ContractRequestEditor: React.FC = () => {
             </span>
           )}
         </div>
+        {logicTs && stepIndicator}
         <Space>
           <span
             title={initTooltip}
             className="contract-runner-panel-button-wrapper"
-            data-disabled={!canInit}
           >
             <Button
               size="small"
               type="default"
-              onClick={() => { void initContract(); }}
+              onClick={handleInitContract}
               loading={isExecuting}
-              disabled={!canInit || isExecuting}
+              disabled={isExecuting || !logicTs}
               className="contract-runner-panel-button"
-              data-disabled={!canInit}
             >
               Init Contract
             </Button>
@@ -112,16 +191,14 @@ const ContractRequestEditor: React.FC = () => {
           <span
             title={triggerTooltip}
             className="contract-runner-panel-button-wrapper"
-            data-disabled={!canTrigger}
           >
             <Button
               size="small"
               type="primary"
-              onClick={() => { void triggerContract(); }}
+              onClick={handleTriggerContract}
               loading={isExecuting}
-              disabled={!canTrigger || isExecuting}
+              disabled={isExecuting || !logicTs}
               className="contract-runner-panel-button"
-              data-disabled={!canTrigger}
             >
               Send Request
             </Button>
