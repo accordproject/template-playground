@@ -41,17 +41,10 @@ const ContractRequestEditor: React.FC = () => {
     return 3; // Step 3: Ready to trigger
   };
 
-  const currentStep = getCurrentStep();
-
   // Auto-compile if not compiled when Init Contract is clicked
   const handleInitContract = async () => {
-    const { compileLogic } = useAppStore.getState();
-    
     if (!compiledLogicJs && logicTs) {
-      // Auto-compile first, then init
-      await compileLogic();
-      // After compilation, init the contract
-      await initContract();
+      await initContract(); // This will trigger compileLogic first
     } else if (compiledLogicJs) {
       await initContract();
     }
@@ -59,18 +52,13 @@ const ContractRequestEditor: React.FC = () => {
 
   // Auto-compile and auto-init if needed when Send Request is clicked
   const handleTriggerContract = async () => {
-    const { compileLogic } = useAppStore.getState();
-    
     if (!compiledLogicJs && logicTs) {
       // Auto-compile first
-      await compileLogic();
-    }
-    
-    // Auto-init if not initialized
-    if (compiledLogicJs && !executionState) {
+      await initContract(); // This will compile and then init
+    } else if (compiledLogicJs && !executionState) {
+      // Auto-init if not initialized
       await initContract();
     }
-    
     // Now trigger the contract
     if (compiledLogicJs && executionState) {
       await triggerContract();
