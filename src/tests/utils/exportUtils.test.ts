@@ -1,19 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { generateMarkdown, generateHtml } from '../../utils/exportUtils';
+import { generateText, generateHtml } from '../../utils/exportUtils';
 
 describe('exportUtils', () => {
+  const mockMarkdown = '# Test Agreement\n\nThis is a **bold** statement.';
   const mockHtml = '<h1>Test Agreement</h1><p>This is a <strong>bold</strong> statement.</p><script>alert("hack");</script>';
 
-  describe('generateMarkdown', () => {
-    it('should correctly convert HTML to Markdown', async () => {
-      const result = await generateMarkdown(mockHtml);
+  describe('generateText', () => {
+    it('should correctly convert Markdown to plain text', async () => {
+      const result = await generateText(mockMarkdown);
       
-      // Expected markdown output based on markdown-transform
-      expect(result).toContain('Test Agreement\n====');
-      expect(result).toContain('This is a **bold** statement.');
-      
-      // Ensure the tag itself is stripped
-      expect(result).not.toContain('<script>');
+      expect(result).toContain('Test Agreement');
+      expect(result).toContain('This is a bold statement.');
+      expect(result).not.toContain('#');
+      expect(result).not.toContain('**');
     });
   });
 

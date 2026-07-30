@@ -2,14 +2,14 @@ import { transform } from "@accordproject/markdown-transform";
 import DOMPurify from "dompurify";
 
 /**
- * Generates a Markdown representation of the provided HTML string.
+ * Generates a plain text representation of the provided markdown string.
  */
-export const generateMarkdown = async (html: string): Promise<string> => {
+export const generateText = async (markdown: string): Promise<string> => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   const result = (await transform(
-    html,
-    "html",
-    ["markdown"],
+    markdown,
+    "markdown",
+    ["plaintext"],
     {},
     { verbose: false },
   )) as string;

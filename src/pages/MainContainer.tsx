@@ -18,10 +18,11 @@ import { message, Dropdown } from "antd";
 import type { MenuProps } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
-import { generateMarkdown, generateHtml } from "../utils/exportUtils";
+import { generateText, generateHtml } from "../utils/exportUtils";
 import DOMPurify from "dompurify";
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
+  const templateMarkdown = useAppStore((state) => state.templateMarkdown);
   const downloadRef = useRef<HTMLDivElement>(null);
   const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -84,21 +85,20 @@ const MainContainer = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadText = () => {
-    const element = downloadRef.current;
-    if (!element) return;
-    triggerDownload(element.innerText, 'text/plain;charset=utf-8', 'agreement.txt');
+  const handleDownloadText = async () => {
+    if (!templateMarkdown) return;
+    try {
+      const text = await generateText(templateMarkdown);
+      triggerDownload(text, 'text/plain;charset=utf-8', 'agreement.txt');
+    } catch (error) {
+      console.error("Text generation failed:", error);
+      void message.error("Failed to generate Text. Please check the console.");
+    }
   };
 
-  const handleDownloadMarkdown = async () => {
-    if (!agreementHtml) return;
-    try {
-      const markdown = await generateMarkdown(agreementHtml);
-      triggerDownload(markdown, 'text/markdown;charset=utf-8', 'agreement.md');
-    } catch (error) {
-      console.error("Markdown generation failed:", error);
-      void message.error("Failed to generate Markdown. Please check the console.");
-    }
+  const handleDownloadMarkdown = () => {
+    if (!templateMarkdown) return;
+    triggerDownload(templateMarkdown, 'text/markdown;charset=utf-8', 'agreement.md');
   };
 
   const handleDownloadHtml = () => {
@@ -116,7 +116,7 @@ const MainContainer = () => {
     {
       key: 'md',
       label: 'Download as Markdown (.md)',
-      onClick: () => { void handleDownloadMarkdown(); },
+      onClick: handleDownloadMarkdown,
     },
     {
       key: 'html',

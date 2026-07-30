@@ -44,12 +44,14 @@ html[data-theme="dark"] .ant-modal-confirm .ant-btn-default:hover {
     border-color: #19c6c7;
 }
 
+.ant-modal-confirm .ant-btn-default:hover,
 .export-dropdown-btn.ant-btn-default:hover,
 .export-dropdown-btn .ant-btn-default:hover {
     color: #19c6c7;
     border-color: #19c6c7;
 }
 
+.ant-modal-confirm .ant-btn-primary,
 .export-dropdown-btn.ant-btn-primary,
 .export-dropdown-btn .ant-btn-primary {
     background-color: #19c6c7;
@@ -57,6 +59,7 @@ html[data-theme="dark"] .ant-modal-confirm .ant-btn-default:hover {
     color: #050c40;
 }
 
+.ant-modal-confirm .ant-btn-primary:hover,
 .export-dropdown-btn.ant-btn-primary:hover,
 .export-dropdown-btn .ant-btn-primary:hover {
     background-color: #15b3b4;
