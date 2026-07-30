@@ -749,9 +749,13 @@ const useAppStore = create<AppState>()(
                   typeof templateToCompile.getModelManager === "function" &&
                   typeof templateToCompile.getTemplateModel === "function"
                 ) {
+                  const templateModel = templateToCompile.getTemplateModel();
+                  const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
+                    ? templateModel.getFullyQualifiedName()
+                    : undefined;
                   const contextStr = new TypeScriptCompilationContext(
                     templateToCompile.getModelManager(),
-                    templateToCompile.getTemplateModel().getFullyQualifiedName(),
+                    fqn,
                   ).getCompilationContext();
                   const declarationsStr = atob(SMART_LEGAL_CONTRACT_BASE64);
                   const prependedText = `\n${contextStr}\n${declarationsStr}\n                `;
