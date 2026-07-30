@@ -21,8 +21,8 @@ test.describe('Template Workflow', () => {
     // Select Hello World sample
     await helloWorldOption.click();
 
-    // Verify the template content changed - should contain Hello World related content
-    await expect(page.locator('.main-container-agreement')).toContainText(/Hello|hello/i, {
+    // Verify the template content loaded - Hello World template renders with "Thank you!"
+    await expect(page.locator('.main-container-agreement')).toContainText(/Thank you/i, {
       timeout: 10000,
     });
   });
@@ -76,7 +76,7 @@ test.describe('Template Workflow', () => {
     await expect(page.locator('.ant-modal-confirm')).toHaveCount(0);
 
     // Sample should load
-    await expect(page.locator('.main-container-agreement')).toContainText(/Hello|hello/i, {
+    await expect(page.locator('.main-container-agreement')).toContainText(/Thank you/i, {
       timeout: 10000,
     });
   });
@@ -103,7 +103,7 @@ test.describe('Template Workflow', () => {
     await expect(confirmModal).toBeVisible({ timeout: 5000 });
     await expect(confirmModal.getByText('Load Sample Template')).toBeVisible();
     await expect(
-      confirmModal.getByText(/Loading a new sample will replace your current/i)
+      confirmModal.getByText(/Loading a new template will replace your current/i)
     ).toBeVisible();
 
     // Click Cancel
@@ -141,7 +141,7 @@ test.describe('Template Workflow', () => {
 
     // Modal should close and the new sample should load
     await expect(confirmModal).toBeHidden({ timeout: 5000 });
-    await expect(page.locator('.main-container-agreement')).toContainText(/Hello|hello/i, {
+    await expect(page.locator('.main-container-agreement')).toContainText(/Thank you/i, {
       timeout: 10000,
     });
   });

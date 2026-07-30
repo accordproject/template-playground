@@ -16,11 +16,7 @@ import { intersects, gt } from "semver";
 const TEMPLATE_LIBRARY_URL =
   "https://templates.accordproject.org/template-library.json";
 
-// templates.accordproject.org has not yet published archives built against cicero-core 2.x,
-// so gating the catalog by the installed @accordproject/cicero-core dependency (currently
-// ^2.1.0) would filter out every entry. Track the max cicero version the remote registry
-// actually supports separately until it catches up.
-const CICERO_RANGE = "^1.0.0";
+const CICERO_RANGE = "^2.0.0";
 
 export interface TemplateIndexEntry {
   NAME: string;     // display name from template-library.json
