@@ -1,6 +1,15 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
 import React, { useState } from "react";
 import { Tabs } from "antd";
 import JSONEditor from "../editors/JSONEditor";
+import ObligationsList from "./ObligationsList";
 import useAppStore from "../store/store";
 import usePanelHeaderBg from "../hooks/usePanelHeaderBg";
 import "../styles/components/ContractRunnerPanel.css";
@@ -18,9 +27,17 @@ const ContractExecutionTabs: React.FC = () => {
     executionEvents: s.executionEvents,
   }));
 
-  const panelHeaderBg = usePanelHeaderBg();
-
   const [activeTab, setActiveTab] = useState("response");
+
+  const isStateEmptyObject = (() => {
+    if (!executionState) return false;
+    try {
+      const parsed = JSON.parse(executionState);
+      return typeof parsed === "object" && parsed !== null && Object.keys(parsed).length === 0;
+    } catch {
+      return false;
+    }
+  })();
 
   const tabItems = [
     {
@@ -46,8 +63,15 @@ const ContractExecutionTabs: React.FC = () => {
       label: "State",
       children: (
         <div className="contract-runner-panel-editor-container">
-          {executionState ? (
+          {executionState && !isStateEmptyObject ? (
             <JSONEditor id="state" value={executionState} readOnly={true} />
+          ) : isStateEmptyObject ? (
+            <div
+              className="contract-runner-panel-placeholder"
+              style={{ color: textColor }}
+            >
+              Stateless contract (no state variables).
+            </div>
           ) : (
             <div
               className="contract-runner-panel-placeholder"
@@ -64,33 +88,22 @@ const ContractExecutionTabs: React.FC = () => {
       label: "Events",
       children: (
         <div className="contract-runner-panel-editor-container">
-          {executionEvents ? (
-            <JSONEditor id="events" value={executionEvents} readOnly={true} />
-          ) : (
-            <div
-              className="contract-runner-panel-placeholder"
-              style={{ color: textColor }}
-            >
-              No events emitted.
-            </div>
-          )}
+          <ObligationsList eventsJson={executionEvents} />
         </div>
       ),
     },
   ];
 
+  const panelHeaderBg = usePanelHeaderBg();
+
   return (
     <div className="contract-runner-panel-bottom">
       <Tabs
+        className="contract-runner-panel-tabs"
         activeKey={activeTab}
         onChange={setActiveTab}
         items={tabItems}
-        size="small"
-        className="contract-runner-panel-tabs"
-        tabBarStyle={{
-          backgroundColor: panelHeaderBg,
-          color: textColor,
-        }}
+        style={{ "--panel-header-bg": panelHeaderBg } as React.CSSProperties}
       />
     </div>
   );
