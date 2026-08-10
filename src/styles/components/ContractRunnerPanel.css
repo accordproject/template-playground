@@ -90,8 +90,32 @@
   pointer-events: none;
 }
 
+.contract-runner-panel-tabs .ant-tabs-content-holder,
+.contract-runner-panel-tabs .ant-tabs-content,
+.contract-runner-panel-tabs .ant-tabs-tabpane {
+  height: 100%;
+}
+
+.contract-runner-panel-tabs .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden) {
+  display: flex;
+  flex-direction: column;
+}
+
 .contract-runner-panel-editor-container {
   flex: 1;
   position: relative;
   min-height: 0;
+}
+
+.contract-runner-panel-json-display {
+  margin: 0;
+  padding: 12px;
+  height: 100%;
+  overflow: auto;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre;
+  border: none;
+  border-radius: 0;
 }

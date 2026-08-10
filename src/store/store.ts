@@ -4,6 +4,8 @@ import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
 import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
+import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
+import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
@@ -153,6 +155,7 @@ export interface DecompressedData {
   modelCto: string;
   data: string;
   agreementHtml: string;
+  logicTs?: string;
 }
 
 const rebuildDeBounce = debounce(rebuild, 500);
@@ -327,11 +330,11 @@ const useAppStore = create<AppState>()(
         isSandboxReady: false,
         isExecuting: false,
         executionId: 0,
-        
+
         executionState: '',
         executionEvents: '',
         executionResponse: '',
-        
+
         requestJson: '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
         setRequestJson: (json: string) => set({ requestJson: json }),
 
@@ -377,11 +380,11 @@ const useAppStore = create<AppState>()(
         setContractRunnerVisible: (value) => {
           const state = get();
           const updates: Partial<AppState> = { isContractRunnerVisible: value };
-          
+
           if (value && state.isPreviewVisible) {
             updates.isPreviewVisible = false;
           }
-          
+
           set(updates);
           savePanelState({ ...state, ...updates });
         },
@@ -403,20 +406,20 @@ const useAppStore = create<AppState>()(
             const state = get();
             const sampleHasLogic = !!state.samples.find((sample) => sample.NAME === state.sampleName)?.LOGIC;
             const hasLogic = sampleHasLogic || state.logicTs.trim().length > 0 || state.editorLogicTs.trim().length > 0;
-            
+
             if (!hasLogic) {
-              set({ 
+              set({
                 isEditorsVisible: true,
-                isPreviewVisible: true, 
-                isLogicPanelVisible: false, 
-                isContractRunnerVisible: false 
+                isPreviewVisible: true,
+                isLogicPanelVisible: false,
+                isContractRunnerVisible: false
               });
               savePanelState({
                 ...get(),
                 isEditorsVisible: true,
-                isPreviewVisible: true, 
-                isLogicPanelVisible: false, 
-                isContractRunnerVisible: false 
+                isPreviewVisible: true,
+                isLogicPanelVisible: false,
+                isContractRunnerVisible: false
               });
             }
             await get().rebuild();
@@ -449,7 +452,7 @@ const useAppStore = create<AppState>()(
               isContractRunnerVisible: hasLogic,
               isPreviewVisible: !hasLogic,
             }));
-            
+
             // Persist the adaptive layout state
             savePanelState({
               ...get(),
@@ -536,16 +539,18 @@ const useAppStore = create<AppState>()(
             modelCto: state.modelCto,
             data: state.data,
             agreementHtml: state.agreementHtml,
+            ...(state.logicTs?.trim() ? { logicTs: state.logicTs } : {}),
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
         loadFromLink: async (compressedData: string) => {
           try {
-            const { templateMarkdown, modelCto, data, agreementHtml } =
+            const { templateMarkdown, modelCto, data, agreementHtml, logicTs } =
               decompress(compressedData);
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
             }
+            const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
             set(() => ({
               templateMarkdown,
               editorValue: templateMarkdown,
@@ -555,13 +560,21 @@ const useAppStore = create<AppState>()(
               editorAgreementData: data,
               agreementHtml,
               error: undefined,
-              logicTs: "",
-              editorLogicTs: "",
+              logicTs: logicTs || "",
+              editorLogicTs: logicTs || "",
               compiledLogicJs: null,
               compilationErrors: [],
               isCompiling: false,
+              isLogicPanelVisible: hasLogic,
             }));
+            if (hasLogic) {
+              get().setLogicFeatureEnabled(true);
+              savePanelState({ ...get(), isLogicPanelVisible: true });
+            }
             await get().rebuild();
+            if (hasLogic) {
+              await get().compileLogic();
+            }
           } catch (error) {
             set(() => ({
               error:
@@ -728,15 +741,42 @@ const useAppStore = create<AppState>()(
               : [];
 
             if (actualErrors.length > 0) {
+              // Calculate the line offset of the user's logic code dynamically
+              let lineOffset = 0;
+              try {
+                if (
+                  templateToCompile &&
+                  typeof templateToCompile.getModelManager === "function" &&
+                  typeof templateToCompile.getTemplateModel === "function"
+                ) {
+                  const templateModel = templateToCompile.getTemplateModel();
+                  const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
+                    ? templateModel.getFullyQualifiedName()
+                    : undefined;
+                  const contextStr = new TypeScriptCompilationContext(
+                    templateToCompile.getModelManager(),
+                    fqn,
+                  ).getCompilationContext();
+                  const declarationsStr = atob(SMART_LEGAL_CONTRACT_BASE64);
+                  const prependedText = `\n${contextStr}\n${declarationsStr}\n                `;
+                  lineOffset = prependedText.split("\n").length - 1;
+                }
+              } catch (e) {
+                console.error("Failed to calculate compilation line offset", e);
+              }
+
               set({
                 isCompiling: false,
                 isProblemPanelVisible: true,
-                compilationErrors: actualErrors.slice(0, 1).map((e: any) => ({
-                  message: e.renderedMessage || e.text,
-                  line: e.line,
-                  column: e.character,
-                  length: e.length,
-                })),
+                compilationErrors: actualErrors.map((e: any) => {
+                  const errorLine = e.line !== undefined ? e.line - lineOffset : undefined;
+                  return {
+                    message: e.renderedMessage || e.text,
+                    line: errorLine !== undefined ? Math.max(0, errorLine) + 1 : undefined,
+                    column: e.character !== undefined ? e.character + 1 : undefined,
+                    length: e.length,
+                  };
+                }),
               });
             } else {
               let code = result.code;
@@ -885,24 +925,24 @@ const useAppStore = create<AppState>()(
             );
           });
         },
-        
+
         initContract: async () => {
           const { compiledLogicJs, data } = get();
           if (!compiledLogicJs) {
             return;
           }
-          
+
           try {
             const parsedData = JSON.parse(data);
             const output = await get().executeInSandbox(compiledLogicJs, 'init', [parsedData]) as { state?: unknown; events?: unknown[] };
-            
+
             set({
               executionState: output.state ? JSON.stringify(output.state, null, 2) : '',
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
               compilationErrors: []
             });
           } catch (err: unknown) {
-            set({ 
+            set({
               compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
               isProblemPanelVisible: true
             });
@@ -912,22 +952,22 @@ const useAppStore = create<AppState>()(
         triggerContract: async () => {
           const { compiledLogicJs, data, requestJson, executionState, executeInSandbox } = get();
           if (!compiledLogicJs) return;
-          
+
           if (!executionState) {
-            set({ 
+            set({
               compilationErrors: [{ message: "Execution Error: Contract must be initialized before triggering." }],
-              isProblemPanelVisible: true 
+              isProblemPanelVisible: true
             });
             return;
           }
-          
+
           try {
             const parsedData = JSON.parse(data);
             const parsedRequest = JSON.parse(requestJson);
             const parsedState = JSON.parse(executionState);
-            
+
             const output = (await executeInSandbox(compiledLogicJs, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] };
-            
+
             /*
              * Extract and store execution artifacts.
              * The executionResponse holds the result payload, while state and events
@@ -940,7 +980,7 @@ const useAppStore = create<AppState>()(
               compilationErrors: []
             });
           } catch (err: unknown) {
-            set({ 
+            set({
               compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
               isProblemPanelVisible: true
             });
