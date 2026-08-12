@@ -80,7 +80,7 @@ const ContractExecutionTabs: React.FC = () => {
   ];
 
   return (
-    <div className="contract-runner-panel-bottom">
+    <div className="contract-runner-panel-bottom tour-execution-results">
       <Tabs
         activeKey={activeTab}
         onChange={setActiveTab}

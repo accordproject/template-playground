@@ -262,7 +262,7 @@ const MainContainer = () => {
                       <span>Logic <span className="main-container-subtitle">(TypeScript)</span></span>
                     </div>
                   </div>
-                  <div className="main-container-editor-content main-container-editor-content-logic" style={{ backgroundColor }}>
+                  <div className="main-container-editor-content main-container-editor-content-logic tour-logic-editor" style={{ backgroundColor }}>
                     <LogicEditor />
                   </div>
                 </div>
