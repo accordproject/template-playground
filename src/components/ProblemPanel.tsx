@@ -14,9 +14,11 @@ export interface ProblemItem {
 }
 
 const ProblemPanel: React.FC = () => {
-  const { error, compilationErrors, backgroundColor, textColor } = useAppStore((state) => ({
+  const { error, compilationErrors, editorLogicTs, logicTs, backgroundColor, textColor } = useAppStore((state) => ({
     error: state.error,
     compilationErrors: state.compilationErrors,
+    editorLogicTs: state.editorLogicTs,
+    logicTs: state.logicTs,
     backgroundColor: state.backgroundColor,
     textColor: state.textColor
   }));
@@ -88,8 +90,8 @@ const ProblemPanel: React.FC = () => {
           source: 'TypeScript Logic' as EditorSource, // Will be handled if navigation is implemented
           message: compError.message,
           // Omitting line and column until offset mapping is implemented (US-09)
-          line: undefined,
-          column: undefined,
+          line: compError.line,
+          column: compError.column,
         });
       });
     }
@@ -122,6 +124,23 @@ const ProblemPanel: React.FC = () => {
         <span className="problem-panel-title">Problems</span>
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
+        {editorLogicTs !== logicTs && compilationErrors && compilationErrors.length > 0 && (
+          <div className="problem-panel-warning-banner" style={{
+            backgroundColor: backgroundColor === '#ffffff' ? '#fffbe6' : '#2b2111',
+            border: `1px solid ${backgroundColor === '#ffffff' ? '#ffe58f' : '#593f16'}`,
+            color: backgroundColor === '#ffffff' ? '#d46b08' : '#e89e3a',
+            padding: '8px 12px',
+            margin: '8px 12px 0 12px',
+            borderRadius: '4px',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span className="warning-icon" style={{ fontSize: '14px' }}>⚠️</span>
+            <span>Logic Editor has unsaved changes. Please click <strong>Apply & Compile</strong> to refresh compilation errors.</span>
+          </div>
+        )}
         {problems.length === 0 ? (
           <div className="problem-panel-empty-state">
             <div className="problem-panel-empty-state-content">
