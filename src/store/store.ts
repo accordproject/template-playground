@@ -4,6 +4,8 @@ import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
 import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
+import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
+import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
@@ -739,15 +741,42 @@ const useAppStore = create<AppState>()(
               : [];
 
             if (actualErrors.length > 0) {
+              // Calculate the line offset of the user's logic code dynamically
+              let lineOffset = 0;
+              try {
+                if (
+                  templateToCompile &&
+                  typeof templateToCompile.getModelManager === "function" &&
+                  typeof templateToCompile.getTemplateModel === "function"
+                ) {
+                  const templateModel = templateToCompile.getTemplateModel();
+                  const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
+                    ? templateModel.getFullyQualifiedName()
+                    : undefined;
+                  const contextStr = new TypeScriptCompilationContext(
+                    templateToCompile.getModelManager(),
+                    fqn,
+                  ).getCompilationContext();
+                  const declarationsStr = atob(SMART_LEGAL_CONTRACT_BASE64);
+                  const prependedText = `\n${contextStr}\n${declarationsStr}\n                `;
+                  lineOffset = prependedText.split("\n").length - 1;
+                }
+              } catch (e) {
+                console.error("Failed to calculate compilation line offset", e);
+              }
+
               set({
                 isCompiling: false,
                 isProblemPanelVisible: true,
-                compilationErrors: actualErrors.slice(0, 1).map((e: any) => ({
-                  message: e.renderedMessage || e.text,
-                  line: e.line,
-                  column: e.character,
-                  length: e.length,
-                })),
+                compilationErrors: actualErrors.map((e: any) => {
+                  const errorLine = e.line !== undefined ? e.line - lineOffset : undefined;
+                  return {
+                    message: e.renderedMessage || e.text,
+                    line: errorLine !== undefined ? Math.max(0, errorLine) + 1 : undefined,
+                    column: e.character !== undefined ? e.character + 1 : undefined,
+                    length: e.length,
+                  };
+                }),
               });
             } else {
               let code = result.code;
