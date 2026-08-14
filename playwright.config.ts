@@ -22,6 +22,10 @@ export default defineConfig({
               name: 'hasVisited',
               value: 'true',
             },
+            {
+              name: 'hasVisitedLogicTour',
+              value: 'true',
+            },
           ],
         },
       ],
