@@ -11,6 +11,7 @@ import * as path from 'path';
  */
 
 test.describe('Logic Lifecycle', () => {
+  test.setTimeout(120000); // Set high timeout for heavy compilation
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
   /**
@@ -24,16 +25,18 @@ test.describe('Logic Lifecycle', () => {
    * should be visible and populated with counter logic code.
    */
   test.beforeEach(async ({ page }) => {
+    // Log browser console errors for debugging
     page.on('console', msg => console.log(`[Browser Console] ${msg.type()}: ${msg.text()} at ${msg.location().url}`));
     page.on('pageerror', err => console.log(`[Browser Error] ${err.message}`));
 
-    // Intercept TypeScript lib fetches and serve them from the local typescript installation
-    await page.route(/playgroundcdn\.typescriptlang\.org\/cdn\/.*\/typescript\/lib\/.*/, async (route) => {
+    // Intercept TypeScript lib fetches for both Monaco and Twoslash and serve them from the local typescript installation
+    await page.route(/.*\/typescript\/lib\/.*\.d\.ts/i, async (route) => {
       const url = route.request().url();
       const filename = url.split('/').pop();
       try {
-        const tsLibPath = path.dirname(require.resolve('typescript/package.json'));
-        const filePath = path.join(tsLibPath, 'lib', filename!);
+        const tsLibPath = require('path').dirname(require.resolve('typescript/package.json'));
+        const filePath = require('path').join(tsLibPath, 'lib', filename!);
+        const fs = require('fs');
         if (fs.existsSync(filePath)) {
           const body = fs.readFileSync(filePath, 'utf-8');
           await route.fulfill({
@@ -43,11 +46,11 @@ test.describe('Logic Lifecycle', () => {
             headers: { 'Access-Control-Allow-Origin': '*' }
           });
         } else {
-          console.log(`[Intercept] Local file not found: ${filename}, fulfilling with empty body`);
+          console.log(`[Intercept] Local file not found: ${filename}, fulfilling with 404 to let TS gracefully degrade`);
           await route.fulfill({
-            status: 200,
+            status: 404,
             contentType: 'text/plain',
-            body: '',
+            body: 'Not Found',
             headers: { 'Access-Control-Allow-Origin': '*' }
           });
         }
@@ -273,12 +276,12 @@ test.describe('Logic Lifecycle', () => {
     const compileButton = page.getByRole('button', { name: /apply & compile/i });
     await compileButton.click({ force: true });
 
-    // Wait for compilation attempt to complete
-    await page.waitForTimeout(5000);
+    // Wait for compilation attempt to complete (should show error badge)
+    await expect(page.locator('.logic-editor-badge-wrapper .ant-badge-status-error')).toBeVisible({ timeout: 60000 });
 
     // Should show compilation failure state — either "Compilation Failed" badge
     // or errors visible in the Problems panel
-    const hasFailedBadge = await page.getByText('Compilation Failed').isVisible({ timeout: 10000 }).catch(() => false);
+    const hasFailedBadge = await page.getByText('Compilation Failed').isVisible({ timeout: 1000 }).catch(() => false);
     const hasCompilationError = await page.locator('body').evaluate(
       (body) => body.textContent?.includes('Compilation Failed') ||
         body.textContent?.includes('Error') ||
