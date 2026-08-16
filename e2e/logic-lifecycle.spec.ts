@@ -136,7 +136,7 @@ test.describe('Logic Lifecycle', () => {
 
   test('should compile logic and show Compiled status', async ({ page }) => {
     // Click Apply & Compile button
-    const compileButton = page.locator('.tour-apply-compile');
+    const compileButton = page.getByRole('button', { name: /apply & compile/i });
     await expect(compileButton).toBeVisible({ timeout: 10000 });
     await compileButton.click({ force: true });
 
@@ -146,7 +146,7 @@ test.describe('Logic Lifecycle', () => {
 
   test('should init contract and populate State tab', async ({ page }) => {
     // Compile first
-    const compileButton = page.locator('.tour-apply-compile');
+    const compileButton = page.getByRole('button', { name: /apply & compile/i });
     await expect(compileButton).toBeVisible({ timeout: 10000 });
     await compileButton.click({ force: true });
     await expect(page.locator('.logic-editor-badge-wrapper .ant-badge-status-success')).toBeVisible({ timeout: 60000 });
@@ -165,7 +165,7 @@ test.describe('Logic Lifecycle', () => {
     await stateTab.click();
 
     // State should contain initialized counter data
-    const stateContent = page.locator('.tour-execution-results');
+    const stateContent = page.locator('.contract-runner-panel-container');
     await expect(stateContent).toBeVisible();
     // The counter state should have count: 0 after init
     await expect(stateContent).toContainText('count', { timeout: 10000 });
@@ -173,7 +173,7 @@ test.describe('Logic Lifecycle', () => {
 
   test('should trigger contract and populate Response tab', async ({ page }) => {
     // Compile
-    const compileButton = page.locator('.tour-apply-compile');
+    const compileButton = page.getByRole('button', { name: /apply & compile/i });
     await expect(compileButton).toBeVisible({ timeout: 10000 });
     await compileButton.click({ force: true });
     await expect(page.locator('.logic-editor-badge-wrapper .ant-badge-status-success')).toBeVisible({ timeout: 60000 });
@@ -196,13 +196,13 @@ test.describe('Logic Lifecycle', () => {
     await expect(responseTab).toBeVisible();
     await responseTab.click();
 
-    const executionResults = page.locator('.tour-execution-results');
+    const executionResults = page.locator('.contract-runner-panel-container');
     await expect(executionResults).toContainText('message', { timeout: 10000 });
   });
 
   test('should update state after trigger and show Events', async ({ page }) => {
     // Full lifecycle: compile → init → trigger
-    const compileButton = page.locator('.tour-apply-compile');
+    const compileButton = page.getByRole('button', { name: /apply & compile/i });
     await expect(compileButton).toBeVisible({ timeout: 10000 });
     await compileButton.click({ force: true });
     await expect(page.locator('.logic-editor-badge-wrapper .ant-badge-status-success')).toBeVisible({ timeout: 60000 });
@@ -222,7 +222,7 @@ test.describe('Logic Lifecycle', () => {
     await expect(eventsTab).toBeVisible();
     await eventsTab.click();
 
-    const executionResults = page.locator('.tour-execution-results');
+    const executionResults = page.locator('.contract-runner-panel-container');
     await expect(executionResults).toContainText('CounterUpdated', { timeout: 10000 });
 
     // State tab should show updated count
@@ -235,7 +235,7 @@ test.describe('Logic Lifecycle', () => {
 
   test('should show error when trigger is called before init', async ({ page }) => {
     // Compile
-    const compileButton = page.locator('.tour-apply-compile');
+    const compileButton = page.getByRole('button', { name: /apply & compile/i });
     await expect(compileButton).toBeVisible({ timeout: 10000 });
     await compileButton.click({ force: true });
     await expect(page.locator('.logic-editor-badge-wrapper .ant-badge-status-success')).toBeVisible({ timeout: 60000 });
@@ -270,7 +270,7 @@ test.describe('Logic Lifecycle', () => {
     await page.keyboard.type('class Broken {{{ invalid syntax');
 
     // Click Apply & Compile
-    const compileButton = page.locator('.tour-apply-compile');
+    const compileButton = page.getByRole('button', { name: /apply & compile/i });
     await compileButton.click({ force: true });
 
     // Wait for compilation attempt to complete
