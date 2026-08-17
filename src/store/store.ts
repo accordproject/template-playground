@@ -7,7 +7,7 @@ import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
 import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
-import { transform } from "@accordproject/markdown-transform";
+import { HtmlTransformer } from "@accordproject/markdown-html";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
@@ -197,13 +197,8 @@ async function rebuild(
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   const ciceroMarkJson = ciceroMark.toJSON() as unknown;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  const result = (await transform(
-    ciceroMarkJson,
-    "ciceromark_parsed",
-    ["html"],
-    {},
-    { verbose: false },
-  )) as string;
+  const htmlTransformer = new HtmlTransformer();
+  const result = htmlTransformer.toHtml(ciceroMarkJson) as string;
   return result;
 }
 
