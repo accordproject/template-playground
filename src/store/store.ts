@@ -431,6 +431,8 @@ const useAppStore = create<AppState>()(
             const state = get();
             const logicTs = sample.LOGIC ?? "";
             const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
+            const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
+            const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
             set(() => ({
               sampleName: sample.NAME,
               agreementHtml: undefined,
@@ -441,6 +443,7 @@ const useAppStore = create<AppState>()(
               editorModelCto: sample.MODEL,
               data: JSON.stringify(sample.DATA, null, 2),
               editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+              requestJson,
               // Reset logic state when switching samples
               logicTs,
               editorLogicTs: logicTs,
