@@ -334,6 +334,9 @@ tour.addStep({
           localStorage.setItem("hasVisitedLogicTour", "true");
         }
         const store = useAppStore.getState();
+        if (!store.isLogicFeatureEnabled) {
+          store.setLogicFeatureEnabled(true);
+        }
         store.setLogicPanelVisible(true);
         store.setContractRunnerVisible(true);
 
