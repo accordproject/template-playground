@@ -10,6 +10,8 @@ export const NAME = 'Late Payment Penalty (with Logic)';
 export const MODEL = `namespace org.acme.latepayment@1.0.0
 
 import org.accordproject.time@0.3.0.Duration
+import org.accordproject.obligation@0.2.0.PaymentObligation
+import org.accordproject.money@0.3.0.MonetaryAmount
 
 @template
 concept TemplateModel {
@@ -166,12 +168,27 @@ class LatePaymentLogic extends TemplateLogic<any> {
         penalty: penalty,
         sellerMayTerminate: sellerMayTerminate
       },
-      events: [{
-        $class: 'org.acme.latepayment@1.0.0.LatePaymentEvent',
-        $timestamp: new Date(),
-        penaltyCalculated: true,
-        contractTerminated: sellerMayTerminate
-      }],
+      events: [
+        {
+          $class: 'org.accordproject.obligation@0.2.0.PaymentObligation',
+          $timestamp: new Date(),
+          amount: {
+            $class: 'org.accordproject.money@0.3.0.MonetaryAmount',
+            doubleValue: penalty,
+            currencyCode: 'USD'
+          },
+          description: 'Penalty for late payment',
+          promisor: 'resource:org.accordproject.party@0.2.0.Party#Buyer',
+          promisee: 'resource:org.accordproject.party@0.2.0.Party#Seller',
+          deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          $class: 'org.acme.latepayment@1.0.0.LatePaymentEvent',
+          $timestamp: new Date(),
+          penaltyCalculated: true,
+          contractTerminated: sellerMayTerminate
+        }
+      ],
       state: {
         $class: 'org.acme.latepayment@1.0.0.LatePaymentState',
         stateId: state.stateId,
