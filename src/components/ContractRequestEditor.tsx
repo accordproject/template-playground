@@ -99,7 +99,7 @@ const ContractRequestEditor: React.FC = () => {
         <Space>
           <span
             title={initTooltip}
-            className="contract-runner-panel-button-wrapper"
+            className="contract-runner-panel-button-wrapper tour-init-contract"
             data-disabled={!canInit}
           >
             <Button
@@ -116,7 +116,7 @@ const ContractRequestEditor: React.FC = () => {
           </span>
           <span
             title={triggerTooltip}
-            className="contract-runner-panel-button-wrapper"
+            className="contract-runner-panel-button-wrapper tour-send-request"
             data-disabled={!canTrigger}
           >
             <Button
@@ -133,7 +133,7 @@ const ContractRequestEditor: React.FC = () => {
           </span>
         </Space>
       </div>
-      <div className="contract-runner-panel-editor-container">
+      <div className="contract-runner-panel-editor-container tour-request-editor">
         <JSONEditor
           id="request"
           value={requestJson}

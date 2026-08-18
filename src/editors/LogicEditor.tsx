@@ -202,6 +202,7 @@ export default function LogicEditor() {
           loading={isCompiling}
           disabled={isCompiling}
           size="small"
+          className="tour-apply-compile"
         >
           {isDirty ? 'Apply & Compile*' : 'Apply & Compile'}
         </Button>
