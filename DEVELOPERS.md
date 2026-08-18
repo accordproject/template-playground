@@ -93,19 +93,11 @@ Compilation errors flow through a specific pipeline to provide immediate feedbac
 3. The `LogicEditor.tsx` maps these errors to Monaco editor markers (via `monaco.editor.setModelMarkers`), highlighting the exact line and column of the syntax or type error.
 4. General execution or timeout errors are displayed via the UI's `ProblemPanel`.
 
-## Adapter Layer & Swapping Execution Backends
+## Execution Boundary & Sandbox Communication
 
-The execution environment is intentionally decoupled from the UI and state management via a strict adapter boundary: the `executeInSandbox()` method in `store.ts`.
+The execution environment is isolated from the UI and state management via the `executeInSandbox()` helper method in `store.ts`.
 
-Because the playground relies on a standardized message payload rather than tightly coupled function calls, the execution backend can be easily swapped out without refactoring the UI. Currently, the playground uses a browser-based Web Worker sandbox. 
-
-To swap the current browser-based sandbox for a different backend (e.g., a secure Node.js server, a Dockerized microservice, or a WebAssembly engine):
-
-1. **Replace `SandboxFrame.tsx`**: Remove the hidden iframe component. Depending on your architecture, you might not need a replacement component, or you might replace it with a WebSocket connection manager.
-2. **Update `executeInSandbox`**: Modify this function in `store.ts` to dispatch execution payloads to your new backend instead of using `window.postMessage`.
-   - **Payload Format**: Your backend should expect the same execution payload: `{ code: string, method: 'init' | 'trigger', args: unknown[] }`.
-   - **Transport**: Use `fetch`, WebSockets, or gRPC to send the payload to the backend.
-3. **Handle the Response**: Ensure your backend returns the results in the expected format (e.g., the `TriggerResponse` or `InitResponse` objects defined by `TemplateLogic`), and resolve the promise inside `executeInSandbox`. This ensures the rest of the application's state management remains completely unaware of the backend swap.
+The playground uses asynchronous `postMessage` communications to evaluate contract logic inside a browser-based Web Worker (`logic-handler.html`). This structure decouples the user interface from the evaluation process, keeping execution asynchronous and preventing user-authored code from blocking the main thread.
 
 ## Security Model
 
