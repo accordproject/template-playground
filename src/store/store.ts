@@ -20,6 +20,7 @@ import {
 import { validateBeforeRebuild } from "../utils/validators";
 import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
+import tour from "../components/Tour";
 
 // A single trigger execution result, stored in history
 export interface LogicExecutionResult {
@@ -465,6 +466,18 @@ const useAppStore = create<AppState>()(
             });
 
             await get().rebuild();
+
+            // Auto-trigger logic tour when a user opens a logic contract sample for the first time
+            if (hasLogic && typeof window !== "undefined" && !localStorage.getItem("hasVisitedLogicTour")) {
+              localStorage.setItem("hasVisitedLogicTour", "true");
+              setTimeout(() => {
+                try {
+                  void tour.show("logic-transition-prompt");
+                } catch (e) {
+                  console.error("Failed to auto-start logic tour:", e);
+                }
+              }, 400);
+            }
           }
         },
 

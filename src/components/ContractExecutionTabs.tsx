@@ -97,7 +97,7 @@ const ContractExecutionTabs: React.FC = () => {
   const panelHeaderBg = usePanelHeaderBg();
 
   return (
-    <div className="contract-runner-panel-bottom">
+    <div className="contract-runner-panel-bottom tour-execution-results">
       <Tabs
         className="contract-runner-panel-tabs"
         activeKey={activeTab}
