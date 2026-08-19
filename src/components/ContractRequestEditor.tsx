@@ -187,7 +187,7 @@ const ContractRequestEditor: React.FC = () => {
           </span>
         </Space>
       </div>
-      <div className="contract-runner-panel-editor-container">
+      <div className="contract-runner-panel-editor-container tour-request-editor">
         <JSONEditor
           id="request"
           value={requestJson}

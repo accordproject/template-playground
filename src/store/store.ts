@@ -20,6 +20,7 @@ import {
 import { validateBeforeRebuild } from "../utils/validators";
 import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
+import tour from "../components/Tour";
 
 // A single trigger execution result, stored in history
 export interface LogicExecutionResult {
@@ -431,6 +432,8 @@ const useAppStore = create<AppState>()(
             const state = get();
             const logicTs = sample.LOGIC ?? "";
             const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
+            const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
+            const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
             set(() => ({
               sampleName: sample.NAME,
               agreementHtml: undefined,
@@ -441,6 +444,7 @@ const useAppStore = create<AppState>()(
               editorModelCto: sample.MODEL,
               data: JSON.stringify(sample.DATA, null, 2),
               editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+              requestJson,
               // Reset logic state when switching samples
               logicTs,
               editorLogicTs: logicTs,
@@ -462,6 +466,18 @@ const useAppStore = create<AppState>()(
             });
 
             await get().rebuild();
+
+            // Auto-trigger logic tour when a user opens a logic contract sample for the first time
+            if (hasLogic && typeof window !== "undefined" && !localStorage.getItem("hasVisitedLogicTour")) {
+              localStorage.setItem("hasVisitedLogicTour", "true");
+              setTimeout(() => {
+                try {
+                  void tour.show("logic-transition-prompt");
+                } catch (e) {
+                  console.error("Failed to auto-start logic tour:", e);
+                }
+              }, 400);
+            }
           }
         },
 
