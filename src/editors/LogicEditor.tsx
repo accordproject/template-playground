@@ -11,6 +11,9 @@ const MonacoEditor = lazy(() =>
   import('@monaco-editor/react').then((mod) => ({ default: mod.Editor }))
 );
 
+/**
+ * The initial boilerplate code shown when a template has no logic.
+ */
 const DEFAULT_LOGIC_BOILERPLATE = `// Write your contract logic here.
 // TemplateLogic, IRequest, IState, IResponse are available as global types.
 
@@ -45,6 +48,11 @@ class ContractLogic extends TemplateLogic<any> {
 export default ContractLogic;
 `;
 
+/**
+ * LogicEditor provides a Monaco-based TypeScript authoring environment for contract logic.
+ * It configures a virtual TS compiler with the `TemplateLogic` base class declarations
+ * to provide intellisense. It also surfaces compilation diagnostic markers.
+ */
 export default function LogicEditor() {
   const monaco = useMonaco();
   const compilerConfigured = useRef(false);

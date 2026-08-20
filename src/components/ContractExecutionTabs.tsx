@@ -14,6 +14,11 @@ import useAppStore from "../store/store";
 import usePanelHeaderBg from "../hooks/usePanelHeaderBg";
 import "../styles/components/ContractRunnerPanel.css";
 
+/**
+ * Renders the bottom half of the Contract Runner panel.
+ * Uses a tabbed interface to display the execution artifacts (Response, State, Events)
+ * returned by the sandbox after a trigger.
+ */
 const ContractExecutionTabs: React.FC = () => {
   const {
     textColor,

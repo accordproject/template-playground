@@ -5,6 +5,11 @@ import useAppStore from "../store/store";
 import usePanelHeaderBg from "../hooks/usePanelHeaderBg";
 import "../styles/components/ContractRunnerPanel.css";
 
+/**
+ * Provides a JSON editor for authoring the request payload.
+ * Also houses the primary execution action buttons ("Init Contract" and "Send Request")
+ * and displays the current execution readiness status via badges.
+ */
 const ContractRequestEditor: React.FC = () => {
   const {
     backgroundColor,

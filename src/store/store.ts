@@ -22,7 +22,10 @@ import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
 import tour from "../components/Tour";
 
-// A single trigger execution result, stored in history
+/**
+ * A single trigger execution result, stored in history to track the evolution
+ * of the contract state over time.
+ */
 export interface LogicExecutionResult {
   response: object;
   stateBefore: object;
@@ -124,19 +127,53 @@ interface AppState {
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
   isLogicFeatureEnabled: boolean;
   setLogicFeatureEnabled: (value: boolean) => void;
-  // Update live editor value without compiling
+  /**
+   * Updates the live editor value without committing or triggering compilation.
+   * @param ts - The current TypeScript source from the editor
+   */
   setEditorLogicTs: (ts: string) => void;
-  // Commit logic — applies editorLogicTs, compiles to JS, resets execution state
+  
+  /**
+   * Commits the logic source, synchronizes the editor state, and triggers an immediate compilation.
+   * @param ts - The new TypeScript source to commit
+   */
   setLogicTs: (ts: string) => Promise<void>;
-  // Force a recompilation of the committed logicTs
+  
+  /**
+   * Orchestrates the compilation of the currently committed `logicTs` via the
+   * TemplateArchiveProcessor. Updates state with the resulting JS code or
+   * extracts and surfaces compilation diagnostic markers if it fails.
+   */
   compileLogic: () => Promise<void>;
-  // Build an official template archive from memory strings
+  /**
+   * Builds an official Template object from the current in-memory string contents
+   * (grammar, model, logic) using JSZip. This object is required by the engine for compilation.
+   */
   buildTemplateFromMemory: () => Promise<void>;
-  // Register the sandbox iframe reference
+  
+  /**
+   * Registers the reference to the sandboxed iframe element once mounted.
+   * @param iframe - The HTMLIFrameElement instance
+   */
   setSandboxRef: (iframe: HTMLIFrameElement | null) => void;
-  // Mark the sandbox as ready after receiving the ready signal
+  
+  /**
+   * Marks the sandbox as ready to receive execution requests.
+   * Called when the iframe signals it has successfully initialized.
+   * @param ready - True if ready, false otherwise
+   */
   setSandboxReady: (ready: boolean) => void;
-  // Execute compiled logic inside the sandboxed iframe
+  
+  /**
+   * Executes a compiled contract logic method inside the isolated iframe sandbox.
+   * Coordinates the cross-origin postMessage workflow and registers a resolver
+   * to await the asynchronous response from the Web Worker.
+   * 
+   * @param code - The compiled JavaScript code string to execute
+   * @param method - The contract logic method to invoke ('init' or 'trigger')
+   * @param args - The arguments array to pass to the method
+   * @returns A Promise resolving to the method's output payload
+   */
   executeInSandbox: (
     code: string,
     method: string,
@@ -144,10 +181,26 @@ interface AppState {
   ) => Promise<unknown>;
   executionState: string;
   executionEvents: string;
+  /**
+   * The active execution response payload (JSON string) for display in the UI.
+   */
   executionResponse: string;
+  
+  /** The current request payload (JSON string) used as input for the next trigger. */
   requestJson: string;
   setRequestJson: (json: string) => void;
+  
+  /**
+   * Initializes the contract logic. Dispatches the `init` method to the sandbox
+   * using the current contract data, and stores the resulting state and events.
+   */
   initContract: () => Promise<void>;
+  
+  /**
+   * Triggers the contract logic. Dispatches the `trigger` method to the sandbox
+   * using the current data, request, and accumulated state, then updates the UI
+   * with the resulting response, new state, and events.
+   */
   triggerContract: () => Promise<void>;
 }
 
