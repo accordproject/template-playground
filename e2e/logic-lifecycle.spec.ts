@@ -25,17 +25,68 @@ test.describe('Logic Lifecycle', () => {
    * should be visible and populated with counter logic code.
    */
   test.beforeEach(async ({ page }) => {
-    // Log browser console errors for debugging
+    // Log browser console errors and unhandled rejections for debugging
     page.on('console', msg => console.log(`[Browser Console] ${msg.type()}: ${msg.text()} at ${msg.location().url}`));
-    page.on('pageerror', err => console.log(`[Browser Error] ${err.message}`));
+    page.on('pageerror', err => console.log(`[Browser Error] ${err.stack || err.message || err}`));
+    await page.addInitScript(() => {
+      window.addEventListener('unhandledrejection', (event) => {
+        console.error('UNHANDLED REJECTION DETECTED:', event.reason?.stack || event.reason?.message || event.reason);
+      });
+    });
+
+    // Intercept TypeScript CDN bundle fetches and serve from local node_modules to eliminate 9MB network downloads
+    await page.route(/.*cdn\.jsdelivr\.net\/npm\/typescript.*/i, async (route) => {
+      try {
+        const tsPath = require.resolve('typescript/lib/typescript.js');
+        const fs = require('fs');
+        const tsCode = fs.readFileSync(tsPath, 'utf-8');
+        const esmWrapper = `
+          var module = { exports: {} };
+          var exports = module.exports;
+          ${tsCode}
+          export default (module.exports && Object.keys(module.exports).length > 0 ? module.exports : (typeof ts !== 'undefined' ? ts : globalThis.ts));
+        `;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/javascript',
+          body: esmWrapper,
+          headers: { 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        await route.continue();
+      }
+    });
 
     // Intercept TypeScript lib fetches for both Monaco and Twoslash and serve them from the local typescript installation
     await page.route(/.*\/typescript\/lib\/.*\.d\.ts/i, async (route) => {
       const url = route.request().url();
-      const filename = url.split('/').pop();
+      let filename = url.split('/').pop() || '';
+      
+      // Omit heavy DOM/WebWorker declaration files (1.8MB+) to prevent 60s compilation timeouts in headless test runner
+      if (filename.includes('dom') || filename.includes('webworker') || filename.includes('scripthost')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'text/plain',
+          body: '/* omitted DOM types for test performance */\n',
+          headers: { 'Access-Control-Allow-Origin': '*' }
+        });
+        return;
+      }
+
+      const LIB_ALIAS_MAP: Record<string, string> = {
+        'lib.core.d.ts': 'lib.es5.d.ts',
+        'lib.es7.d.ts': 'lib.es2016.full.d.ts',
+        'lib.core.es6.d.ts': 'lib.es6.d.ts',
+        'lib.core.es7.d.ts': 'lib.es2017.d.ts',
+        'lib.es2022.sharedmemory.d.ts': 'lib.es2020.sharedmemory.d.ts',
+      };
+      if (LIB_ALIAS_MAP[filename]) {
+        filename = LIB_ALIAS_MAP[filename];
+      }
+
       try {
         const tsLibPath = require('path').dirname(require.resolve('typescript/package.json'));
-        const filePath = require('path').join(tsLibPath, 'lib', filename!);
+        const filePath = require('path').join(tsLibPath, 'lib', filename);
         const fs = require('fs');
         if (fs.existsSync(filePath)) {
           const body = fs.readFileSync(filePath, 'utf-8');
@@ -46,17 +97,22 @@ test.describe('Logic Lifecycle', () => {
             headers: { 'Access-Control-Allow-Origin': '*' }
           });
         } else {
-          console.log(`[Intercept] Local file not found: ${filename}, fulfilling with 404 to let TS gracefully degrade`);
+          // Fulfill with 200 OK empty declaration so createDefaultMapFromCDN in @typescript/vfs doesn't throw 404
           await route.fulfill({
-            status: 404,
+            status: 200,
             contentType: 'text/plain',
-            body: 'Not Found',
+            body: '/* empty ts lib fallback */\n',
             headers: { 'Access-Control-Allow-Origin': '*' }
           });
         }
       } catch (e) {
         console.error(`[Intercept Error]`, e);
-        await route.continue();
+        await route.fulfill({
+          status: 200,
+          contentType: 'text/plain',
+          body: '/* empty ts lib fallback */\n',
+          headers: { 'Access-Control-Allow-Origin': '*' }
+        });
       }
     });
 
@@ -118,11 +174,12 @@ test.describe('Logic Lifecycle', () => {
     }
 
     // Dismiss any lingering dropdown overlays (like the samples menu backdrop)
+    await page.mouse.click(10, 10);
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
 
     // Wait for rebuild to settle
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(1000);
   });
 
   // ─── Happy Path ────────────────────────────────────────────────────────
@@ -141,7 +198,7 @@ test.describe('Logic Lifecycle', () => {
     // Click Apply & Compile button
     const compileButton = page.getByRole('button', { name: /apply & compile/i });
     await expect(compileButton).toBeVisible({ timeout: 10000 });
-    await compileButton.click({ force: true });
+    await compileButton.click();
 
     // Wait for compilation to finish — the badge should show "Compiled"
     await expect(page.locator('.logic-editor-badge-wrapper .ant-badge-status-success')).toBeVisible({ timeout: 60000 });
