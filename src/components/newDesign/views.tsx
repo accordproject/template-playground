@@ -198,10 +198,9 @@ export const ExportView = () => (
   <div className="nd-view nd-view-export">
     <div className="nd-export-head">
       <h1>Export</h1>
-      <span className="nd-badge nd-badge-grey nd-mono">coming soon</span>
     </div>
     <div className="nd-export-grid">
-      {["Download PDF", "Share link", "Template archive (.cta)", "Copy to clipboard"].map((label) => (
+      {["Download PDF", "Share link", "Copy to clipboard"].map((label) => (
         <div key={label} className="nd-card nd-export-card">
           <span className="nd-export-icon nd-placeholder" />
           <span className="nd-export-label">{label}</span>

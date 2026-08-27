@@ -36,7 +36,6 @@ const Header = ({ view, previewOpen, onNavigate, onTogglePreview }: HeaderProps)
           {showChrome && (
             <div className="nd-header-sample">
               <span className="nd-header-sample-name">{sampleName}</span>
-              <span className="nd-header-sample-saved nd-mono">saved · just now</span>
             </div>
           )}
         </div>
