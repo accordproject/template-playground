@@ -1,7 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
+import { Routes, Route, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
 import useAppStore from "./store/store";
@@ -12,6 +12,7 @@ import { colors } from './utils/theme';
 
 const LearnNow = lazy(() => import("./pages/LearnNow"));
 const MainContainer = lazy(() => import("./pages/MainContainer"));
+const NewDesignLayout = lazy(() => import("./components/newDesign/NewDesignLayout"));
 
 const { Content } = Layout;
 
@@ -21,6 +22,10 @@ const App = () => {
   const loadFromLink = useAppStore((state) => state.loadFromLink);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
+  const isNewDesignEnabled = useAppStore((state) => state.isNewDesignEnabled);
+  const location = useLocation();
+  // The new design ships its own header, so the legacy navbar is hidden on the playground route.
+  const hideNavbar = isNewDesignEnabled && location.pathname === "/";
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
@@ -83,11 +88,14 @@ const App = () => {
       }
     };
 
+    // The new design has its own onboarding flow; the legacy tour targets elements that don't exist there.
+    if (isNewDesignEnabled) return;
+
     const showTour = searchParams.get("showTour") === "true";
     if (showTour || !localStorage.getItem("hasVisited")) {
       void startTour();
     }
-  }, [searchParams]);
+  }, [searchParams, isNewDesignEnabled]);
 
   // Set data-theme attribute on initial load and when theme changes
   useEffect(() => {
@@ -98,13 +106,13 @@ const App = () => {
   return (
     <AntdApp>
       <Layout style={{ height: "100vh" }}>
-        <Navbar />
+        {!hideNavbar && <Navbar />}
         <Layout
           className="app-layout"
           style={{
             backgroundColor,
-            height: "calc(100vh - 64px)",
-            marginTop: "64px",
+            height: hideNavbar ? "100vh" : "calc(100vh - 64px)",
+            marginTop: hideNavbar ? 0 : "64px",
             overflow: "hidden",
           }}
         >
@@ -112,6 +120,17 @@ const App = () => {
             <Route
               path="/"
               element={
+                isNewDesignEnabled ? (
+                  loading ? (
+                    <div className="app-content-loading">
+                      <Spinner />
+                    </div>
+                  ) : (
+                    <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
+                      <NewDesignLayout />
+                    </Suspense>
+                  )
+                ) : (
                 <>
                   <PlaygroundSidebar />
                   <Content style={{ marginLeft: "64px" }}>
@@ -128,6 +147,7 @@ const App = () => {
                     )}
                   </Content>
                 </>
+                )
               }
             />
             <Route

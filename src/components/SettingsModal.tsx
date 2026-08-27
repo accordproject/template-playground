@@ -16,7 +16,9 @@ const SettingsModal: React.FC = () => {
     backgroundColor,
     toggleDarkMode,
     isLogicFeatureEnabled,
-    setLogicFeatureEnabled
+    setLogicFeatureEnabled,
+    isNewDesignEnabled,
+    setNewDesignEnabled
   } = useAppStore((state) => ({
     isSettingsOpen: state.isSettingsOpen,
     setSettingsOpen: state.setSettingsOpen,
@@ -26,6 +28,8 @@ const SettingsModal: React.FC = () => {
     toggleDarkMode: state.toggleDarkMode,
     isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     setLogicFeatureEnabled: state.setLogicFeatureEnabled,
+    isNewDesignEnabled: state.isNewDesignEnabled,
+    setNewDesignEnabled: state.setNewDesignEnabled,
   }));
 
   const isDarkMode = backgroundColor === '#121212';
@@ -96,6 +100,26 @@ const SettingsModal: React.FC = () => {
                 checked={isLogicFeatureEnabled}
                 onChange={setLogicFeatureEnabled}
                 aria-label="Toggle template logic"
+              />
+            </Col>
+          </Row>
+
+          <Divider style={{ margin: 0 }} />
+
+          {/* New Design Feature Flag Toggle */}
+          <Row justify="space-between" align="middle" style={{ width: '100%' }}>
+            <Col flex="auto">
+              <Text strong style={{ display: 'block' }}>Enable New Design (Work in Progress)</Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                Preview the redesigned playground layout. This design is still under development and may be incomplete or change without notice.
+              </Text>
+            </Col>
+            <Col>
+              <Switch
+                data-testid="new-design-toggle"
+                checked={isNewDesignEnabled}
+                onChange={setNewDesignEnabled}
+                aria-label="Toggle new design"
               />
             </Col>
           </Row>
