@@ -13,16 +13,8 @@ const HelpRail = () => {
       <div className="nd-card">
         <div className="nd-card-head">
           <span className="nd-card-title">CHECKLIST</span>
-          <span className="nd-card-count nd-placeholder nd-placeholder-pill nd-placeholder-short" />
         </div>
-        <div className="nd-checklist">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="nd-check-row">
-              <span className="nd-check-icon nd-placeholder" />
-              <span className="nd-placeholder nd-placeholder-line" />
-            </div>
-          ))}
-        </div>
+        <div className="nd-checklist" />
       </div>
 
       <div className="nd-card nd-card-tabs">
@@ -46,11 +38,7 @@ const HelpRail = () => {
             HOW IT WORKS
           </button>
         </div>
-        <div className="nd-card-body">
-          <span className="nd-placeholder nd-placeholder-line" />
-          <span className="nd-placeholder nd-placeholder-line" />
-          <span className="nd-placeholder nd-placeholder-line nd-placeholder-short" />
-        </div>
+        <div className="nd-card-body" />
       </div>
     </aside>
   );

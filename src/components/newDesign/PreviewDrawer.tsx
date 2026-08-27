@@ -15,11 +15,7 @@ const PreviewDrawer = ({ onClose }: PreviewDrawerProps) => (
       </button>
     </div>
     <div className="nd-preview-body">
-      <div className="nd-preview-page">
-        <span className="nd-placeholder nd-placeholder-line nd-placeholder-heading" />
-        <span className="nd-placeholder nd-placeholder-line" />
-        <span className="nd-placeholder nd-placeholder-line nd-placeholder-short" />
-      </div>
+      <div className="nd-preview-page" />
     </div>
   </aside>
 );

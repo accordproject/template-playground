@@ -70,22 +70,7 @@ export const StartView = () => (
     </div>
     <div className="nd-sample-grid">
       {Array.from({ length: 3 }).map((_, i) => (
-        <button key={i} type="button" className="nd-sample-card">
-          <div className="nd-sample-paper">
-            <div className="nd-sample-sheet">
-              <span className="nd-placeholder nd-placeholder-line" />
-              <span className="nd-placeholder nd-placeholder-line" />
-              <span className="nd-placeholder nd-placeholder-line nd-placeholder-short" />
-            </div>
-          </div>
-          <div className="nd-sample-meta">
-            <span className="nd-placeholder nd-placeholder-pill" />
-            <div className="nd-sample-tags">
-              <span className="nd-placeholder nd-placeholder-tag" />
-              <span className="nd-placeholder nd-placeholder-tag" />
-            </div>
-          </div>
-        </button>
+        <button key={i} type="button" className="nd-sample-card" aria-label={`Template ${i + 1}`} />
       ))}
     </div>
   </div>
@@ -112,7 +97,6 @@ export const EditorView = ({ step }: EditorViewProps) => {
           <div className="nd-editor-icon">{meta.icon}</div>
           <div className="nd-editor-title-text">
             <h1>{meta.title}</h1>
-            <p className="nd-placeholder nd-placeholder-line nd-placeholder-short" />
           </div>
           {step === 5 && (
             <button type="button" className="nd-btn-outline-sm">✦ Scaffold from model</button>
@@ -131,8 +115,6 @@ export const EditorView = ({ step }: EditorViewProps) => {
           </div>
           <div className="nd-editor-card-foot">
             <span className="nd-status-ok">✓ ok</span>
-            <div className="nd-spacer" />
-            <span className="nd-placeholder nd-placeholder-pill nd-placeholder-short" />
           </div>
         </div>
       </div>
@@ -141,53 +123,15 @@ export const EditorView = ({ step }: EditorViewProps) => {
   );
 };
 
-/** Step 6: runs list + new request (left), selected run request/response (right). */
+/** Step 6: Simulate — empty placeholder until the runner UI is designed. */
 export const SimulateView = () => (
   <div className="nd-view nd-view-simulate">
-    <div className="nd-sim-left">
-      <div className="nd-sim-head">
-        <h1>Simulate</h1>
-        <span className="nd-badge nd-badge-grey nd-mono">0 runs</span>
-        <div className="nd-spacer" />
-        <button type="button" className="nd-btn-outline-sm">↺ restart</button>
-      </div>
-      <div className="nd-sim-runs">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="nd-sim-run">
-            <span className="nd-placeholder nd-placeholder-tag" />
-            <span className="nd-placeholder nd-placeholder-line" />
-            <span className="nd-placeholder nd-placeholder-tag" />
-          </div>
-        ))}
-      </div>
-      <div className="nd-card nd-sim-request">
-        <div className="nd-card-head nd-card-head-bordered">
-          <span className="nd-card-title-strong">New request</span>
-          <span className="nd-mono nd-muted">json</span>
-        </div>
-        <div className="nd-sim-request-row">
-          <span className="nd-placeholder nd-placeholder-line" />
-          <button type="button" className="nd-btn-primary-sm">▶ Send</button>
-        </div>
-      </div>
+    <div className="nd-sim-head">
+      <h1>Simulate</h1>
     </div>
-    <div className="nd-sim-right">
-      <div className="nd-sim-sel-head">
-        <span className="nd-placeholder nd-placeholder-tag" />
-        <span className="nd-placeholder nd-placeholder-line" />
-        <span className="nd-placeholder nd-placeholder-tag" />
-      </div>
-      <div className="nd-sim-pane">
-        <div className="nd-sim-pane-head">Request</div>
+    <div className="nd-editor-card">
+      <div className="nd-editor-card-body">
         <div className="nd-placeholder nd-placeholder-block" />
-      </div>
-      <div className="nd-sim-pane nd-sim-pane-ok">
-        <div className="nd-sim-pane-head">Response</div>
-        <div className="nd-placeholder nd-placeholder-block" />
-      </div>
-      <div className="nd-sim-stats">
-        <div className="nd-sim-stat"><span>State after</span><span className="nd-placeholder nd-placeholder-pill nd-placeholder-short" /></div>
-        <div className="nd-sim-stat"><span>Events</span><span className="nd-placeholder nd-placeholder-pill nd-placeholder-short" /></div>
       </div>
     </div>
   </div>
@@ -202,9 +146,7 @@ export const ExportView = () => (
     <div className="nd-export-grid">
       {["Download PDF", "Share link", "Copy to clipboard"].map((label) => (
         <div key={label} className="nd-card nd-export-card">
-          <span className="nd-export-icon nd-placeholder" />
           <span className="nd-export-label">{label}</span>
-          <span className="nd-placeholder nd-placeholder-line nd-placeholder-short" />
         </div>
       ))}
     </div>
