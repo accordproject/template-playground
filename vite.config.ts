@@ -33,7 +33,7 @@ const viteConfig = defineViteConfig({
           'concerto': ['@accordproject/concerto-core', '@accordproject/concerto-cto'],
           'anthropic': ['@anthropic-ai/sdk'],
           'google-genai': ['@google/genai'],
-          'mistral': ['@mistralai/mistralai'],
+          'mistral': ['@mistralai/mistralai', '@mistralai/mistralai/models/components/chatcompletionstreamrequest'],
           'openai': ['openai'],
         },
       },
