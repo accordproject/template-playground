@@ -4,12 +4,16 @@ import type * as monacoNS from 'monaco-editor';
 import { Button, Badge } from 'antd';
 import useAppStore from '../store/store';
 import useThemeName from '../hooks/useThemeName';
+import { registerEditor, unregisterEditor } from '../utils/editorNavigation';
 import '../styles/components/LogicEditor.css';
 
 const MonacoEditor = lazy(() =>
   import('@monaco-editor/react').then((mod) => ({ default: mod.Editor }))
 );
 
+/**
+ * The initial boilerplate code shown when a template has no logic.
+ */
 const DEFAULT_LOGIC_BOILERPLATE = `// Write your contract logic here.
 // TemplateLogic, IRequest, IState, IResponse are available as global types.
 
@@ -44,6 +48,11 @@ class ContractLogic extends TemplateLogic<any> {
 export default ContractLogic;
 `;
 
+/**
+ * LogicEditor provides a Monaco-based TypeScript authoring environment for contract logic.
+ * It configures a virtual TS compiler with the `TemplateLogic` base class declarations
+ * to provide intellisense. It also surfaces compilation diagnostic markers.
+ */
 export default function LogicEditor() {
   const monaco = useMonaco();
   const compilerConfigured = useRef(false);
@@ -119,9 +128,35 @@ export default function LogicEditor() {
     void setLogicTs(nextSource);
   }, [setLogicTs, editorLogicTs, logicTs]);
 
+  // Cleanup editor registration on unmount
+  useEffect(() => {
+    return () => unregisterEditor('logic');
+  }, []);
 
   // Has the editor content diverged from committed logic?
   const isDirty = editorLogicTs !== logicTs;
+
+  // Sync compilation errors with Monaco markers
+  useEffect(() => {
+    if (!monaco || !compilerConfigured.current) return;
+    const models = monaco.editor.getModels();
+    const model = models.find((m) => m.uri.path === '/logic.ts');
+    if (model) {
+      const markers = !isDirty
+        ? (compilationErrors || []).map((e) => ({
+            severity: monaco.MarkerSeverity.Error,
+            startLineNumber: e.line || 1,
+            startColumn: e.column || 1,
+            endLineNumber: e.line || 1,
+            endColumn: e.column ? e.column + (e.length || 1) : 1,
+            message: e.message,
+          }))
+        : [];
+      monaco.editor.setModelMarkers(model, 'logic', markers);
+    }
+  }, [monaco, compilationErrors, isDirty]);
+
+
   const hasErrors = compilationErrors && compilationErrors.length > 0;
   const themeMode = backgroundColor === '#ffffff' ? 'light' : 'dark';
 
@@ -167,6 +202,7 @@ export default function LogicEditor() {
           loading={isCompiling}
           disabled={isCompiling}
           size="small"
+          className="tour-apply-compile"
         >
           {isDirty ? 'Apply & Compile*' : 'Apply & Compile'}
         </Button>
@@ -182,6 +218,7 @@ export default function LogicEditor() {
             theme={themeName}
             options={editorOptions}
             onChange={handleChange}
+            onMount={(editor) => registerEditor('logic', editor)}
           />
         </Suspense>
       </div>

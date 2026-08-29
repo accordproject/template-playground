@@ -53,6 +53,11 @@ export const DATA = {
   maxCount: 10,
 };
 
+export const REQUEST = {
+  $class: 'org.acme.counter@1.0.0.CounterRequest',
+  increment: 2,
+};
+
 
 export const LOGIC = `// Counter Contract Logic
 // Demonstrates: init() for state setup + trigger() with state accumulation

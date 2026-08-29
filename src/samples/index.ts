@@ -15,6 +15,7 @@ import * as paymentReceipt from './paymentReceipt';
 import * as employmentOffer from "./employmentOffer";
 import * as nda from "./nda";
 import * as counterLogic from "./counterLogic";
+import * as latePaymentPenalty from "./latePaymentPenalty";
 
 export type Sample = {
   NAME: string;
@@ -24,11 +25,12 @@ export type Sample = {
   /** Optional TypeScript logic string. When present, the Logic Editor and Contract Runner panels are activated. */
   LOGIC?: string;
   /** Default request JSON shown in the Contract Runner request editor (only used when LOGIC is set). */
-  DEFAULT_REQUEST?: string;
+  REQUEST?: object;
 };
 
 export const SAMPLES: Array<Sample> = [
   playground,
+  latePaymentPenalty,
   counterLogic,   // Logic sample — listed near the top to showcase the new feature
   helloworld,
   employmentOffer,

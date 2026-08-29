@@ -1,0 +1,5 @@
+/* SandboxFrame.css — Styles for the hidden sandbox iframe */
+
+.sandbox-frame-hidden {
+  display: none;
+}
