@@ -23,6 +23,22 @@ const viteConfig = defineViteConfig({
     include: ["immer"],
     needsInterop: ['@accordproject/template-engine'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'template-engine': ['@accordproject/template-engine'],
+          'markdown-transform': ['@accordproject/markdown-transform'],
+          'markdown-template': ['@accordproject/markdown-template'],
+          'concerto': ['@accordproject/concerto-core', '@accordproject/concerto-cto'],
+          'anthropic': ['@anthropic-ai/sdk'],
+          'google-genai': ['@google/genai'],
+          'mistral': ['@mistralai/mistralai', '@mistralai/mistralai/models/components/chatcompletionstreamrequest'],
+          'openai': ['openai'],
+        },
+      },
+    },
+  },
 });
 
 
