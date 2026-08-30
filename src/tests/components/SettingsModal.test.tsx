@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SettingsModal from '../../components/SettingsModal';
+import useAppStore from '../../store/store';
 
 // Mock the store - use inline functions to avoid hoisting issues
 vi.mock('../../store/store', () => {
@@ -109,5 +110,28 @@ describe('SettingsModal', () => {
 
     expect(screen.getByTestId('ai-config-section')).toBeInTheDocument();
     expect(screen.getByText('AI Configuration Content')).toBeInTheDocument();
+  });
+
+  it('renders properly in dark mode state', () => {
+    const useAppStoreMock = vi.mocked(useAppStore);
+    useAppStoreMock.mockImplementation((selector: any) =>
+      selector({
+        isSettingsOpen: true,
+        setSettingsOpen: vi.fn(),
+        showLineNumbers: true,
+        setShowLineNumbers: vi.fn(),
+        textColor: '#ffffff',
+        backgroundColor: '#121212',
+        toggleDarkMode: vi.fn(),
+        keyProtectionLevel: 'none',
+        setKeyProtectionLevel: vi.fn(),
+      })
+    );
+
+    render(<SettingsModal />);
+
+    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Dark Mode')).toBeInTheDocument();
+    expect(screen.getByTestId('dark-mode-toggle')).toBeInTheDocument();
   });
 });

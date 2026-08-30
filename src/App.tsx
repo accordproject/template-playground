@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import { App as AntdApp, Layout, Spin } from "antd";
+import { App as AntdApp, Layout, Spin, ConfigProvider, theme } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -95,58 +95,69 @@ const App = () => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [backgroundColor]);
 
+  const isDarkMode = backgroundColor === "#121212";
+
   return (
-    <AntdApp>
-      <Layout style={{ height: "100vh" }}>
-        <Navbar />
-        <Layout
-          className="app-layout"
-          style={{
-            backgroundColor,
-            height: "calc(100vh - 64px)",
-            marginTop: "64px",
-            overflow: "hidden",
-          }}
-        >
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <PlaygroundSidebar />
-                  <Content style={{ marginLeft: "64px" }}>
-                    {loading ? (
-                      <div className="app-content-loading">
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <div className="app-main-content">
-                        <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
-                          <MainContainer />
-                        </Suspense>
-                      </div>
-                    )}
-                  </Content>
-                </>
-              }
-            />
-            <Route
-              path="/learn"
-              element={
-                <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
-                  <LearnNow />
-                </Suspense>
-              }
-            >
-              <Route path="intro" element={<LearnContent file="intro.md" />} />
-              <Route path="module1" element={<LearnContent file="module1.md" />} />
-              <Route path="module2" element={<LearnContent file="module2.md" />} />
-              <Route path="module3" element={<LearnContent file="module3.md" />} />
-            </Route>
-          </Routes>
+    <ConfigProvider
+      theme={{
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: {
+          colorPrimary: colors.primary,
+        },
+      }}
+    >
+      <AntdApp>
+        <Layout style={{ height: "100vh" }}>
+          <Navbar />
+          <Layout
+            className="app-layout"
+            style={{
+              backgroundColor,
+              height: "calc(100vh - 64px)",
+              marginTop: "64px",
+              overflow: "hidden",
+            }}
+          >
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    <PlaygroundSidebar />
+                    <Content style={{ marginLeft: "64px" }}>
+                      {loading ? (
+                        <div className="app-content-loading">
+                          <Spinner />
+                        </div>
+                      ) : (
+                        <div className="app-main-content">
+                          <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
+                            <MainContainer />
+                          </Suspense>
+                        </div>
+                      )}
+                    </Content>
+                  </>
+                }
+              />
+              <Route
+                path="/learn"
+                element={
+                  <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
+                    <LearnNow />
+                  </Suspense>
+                }
+              >
+                <Route path="intro" element={<LearnContent file="intro.md" />} />
+                <Route path="module1" element={<LearnContent file="module1.md" />} />
+                <Route path="module2" element={<LearnContent file="module2.md" />} />
+                <Route path="module3" element={<LearnContent file="module3.md" />} />
+              </Route>
+            </Routes>
+          </Layout>
         </Layout>
-      </Layout>
-    </AntdApp>
+      </AntdApp>
+    </ConfigProvider>
   );
 };
 
