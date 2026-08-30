@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Switch, Collapse, Space, Divider, Typography, ConfigProvider, theme, Row, Col } from 'antd';
+import { Modal, Switch, Collapse, Space, Divider, Typography, Row, Col, ConfigProvider, theme } from 'antd';
 import { BulbOutlined, MoonOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 import useAppStore from '../store/store';
 import AIConfigSection from './AIConfigSection';
@@ -118,9 +118,6 @@ const SettingsModal: React.FC = () => {
     <ConfigProvider
       theme={{
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: {
-          colorPrimary: colors.primary,
-        },
       }}
     >
       <Modal
