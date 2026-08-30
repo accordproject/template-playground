@@ -134,7 +134,8 @@ export default function LogicEditor() {
   }, []);
 
   // Has the editor content diverged from committed logic?
-  const isDirty = editorLogicTs !== logicTs;
+  const normalizeNewlines = (str: string) => (str || '').replace(/\r\n/g, '\n');
+  const isDirty = normalizeNewlines(editorLogicTs) !== normalizeNewlines(logicTs);
 
   // Sync compilation errors with Monaco markers
   useEffect(() => {
@@ -164,10 +165,10 @@ export default function LogicEditor() {
     let statusProps: { status: 'warning' | 'processing' | 'error' | 'success' | 'default', text: string };
 
     switch (true) {
-      case isDirty:
-        statusProps = { status: 'warning', text: 'Unsaved changes' }; break;
       case isCompiling:
         statusProps = { status: 'processing', text: 'Compiling...' }; break;
+      case isDirty:
+        statusProps = { status: 'warning', text: 'Unsaved changes' }; break;
       case hasErrors:
         statusProps = { status: 'error', text: 'Compilation Failed' }; break;
       case !!compiledLogicJs:
