@@ -4,6 +4,8 @@ import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
 import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
+import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
+import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
@@ -18,8 +20,12 @@ import {
 import { validateBeforeRebuild } from "../utils/validators";
 import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
+import tour from "../components/Tour";
 
-// A single trigger execution result, stored in history
+/**
+ * A single trigger execution result, stored in history to track the evolution
+ * of the contract state over time.
+ */
 export interface LogicExecutionResult {
   response: object;
   stateBefore: object;
@@ -121,19 +127,53 @@ interface AppState {
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
   isLogicFeatureEnabled: boolean;
   setLogicFeatureEnabled: (value: boolean) => void;
-  // Update live editor value without compiling
+  /**
+   * Updates the live editor value without committing or triggering compilation.
+   * @param ts - The current TypeScript source from the editor
+   */
   setEditorLogicTs: (ts: string) => void;
-  // Commit logic — applies editorLogicTs, compiles to JS, resets execution state
+  
+  /**
+   * Commits the logic source, synchronizes the editor state, and triggers an immediate compilation.
+   * @param ts - The new TypeScript source to commit
+   */
   setLogicTs: (ts: string) => Promise<void>;
-  // Force a recompilation of the committed logicTs
+  
+  /**
+   * Orchestrates the compilation of the currently committed `logicTs` via the
+   * TemplateArchiveProcessor. Updates state with the resulting JS code or
+   * extracts and surfaces compilation diagnostic markers if it fails.
+   */
   compileLogic: () => Promise<void>;
-  // Build an official template archive from memory strings
+  /**
+   * Builds an official Template object from the current in-memory string contents
+   * (grammar, model, logic) using JSZip. This object is required by the engine for compilation.
+   */
   buildTemplateFromMemory: () => Promise<void>;
-  // Register the sandbox iframe reference
+  
+  /**
+   * Registers the reference to the sandboxed iframe element once mounted.
+   * @param iframe - The HTMLIFrameElement instance
+   */
   setSandboxRef: (iframe: HTMLIFrameElement | null) => void;
-  // Mark the sandbox as ready after receiving the ready signal
+  
+  /**
+   * Marks the sandbox as ready to receive execution requests.
+   * Called when the iframe signals it has successfully initialized.
+   * @param ready - True if ready, false otherwise
+   */
   setSandboxReady: (ready: boolean) => void;
-  // Execute compiled logic inside the sandboxed iframe
+  
+  /**
+   * Executes a compiled contract logic method inside the isolated iframe sandbox.
+   * Coordinates the cross-origin postMessage workflow and registers a resolver
+   * to await the asynchronous response from the Web Worker.
+   * 
+   * @param code - The compiled JavaScript code string to execute
+   * @param method - The contract logic method to invoke ('init' or 'trigger')
+   * @param args - The arguments array to pass to the method
+   * @returns A Promise resolving to the method's output payload
+   */
   executeInSandbox: (
     code: string,
     method: string,
@@ -141,10 +181,26 @@ interface AppState {
   ) => Promise<unknown>;
   executionState: string;
   executionEvents: string;
+  /**
+   * The active execution response payload (JSON string) for display in the UI.
+   */
   executionResponse: string;
+  
+  /** The current request payload (JSON string) used as input for the next trigger. */
   requestJson: string;
   setRequestJson: (json: string) => void;
+  
+  /**
+   * Initializes the contract logic. Dispatches the `init` method to the sandbox
+   * using the current contract data, and stores the resulting state and events.
+   */
   initContract: () => Promise<void>;
+  
+  /**
+   * Triggers the contract logic. Dispatches the `trigger` method to the sandbox
+   * using the current data, request, and accumulated state, then updates the UI
+   * with the resulting response, new state, and events.
+   */
   triggerContract: () => Promise<void>;
 }
 
@@ -153,6 +209,7 @@ export interface DecompressedData {
   modelCto: string;
   data: string;
   agreementHtml: string;
+  logicTs?: string;
 }
 
 const rebuildDeBounce = debounce(rebuild, 500);
@@ -327,11 +384,11 @@ const useAppStore = create<AppState>()(
         isSandboxReady: false,
         isExecuting: false,
         executionId: 0,
-        
+
         executionState: '',
         executionEvents: '',
         executionResponse: '',
-        
+
         requestJson: '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
         setRequestJson: (json: string) => set({ requestJson: json }),
 
@@ -377,11 +434,11 @@ const useAppStore = create<AppState>()(
         setContractRunnerVisible: (value) => {
           const state = get();
           const updates: Partial<AppState> = { isContractRunnerVisible: value };
-          
+
           if (value && state.isPreviewVisible) {
             updates.isPreviewVisible = false;
           }
-          
+
           set(updates);
           savePanelState({ ...state, ...updates });
         },
@@ -403,20 +460,20 @@ const useAppStore = create<AppState>()(
             const state = get();
             const sampleHasLogic = !!state.samples.find((sample) => sample.NAME === state.sampleName)?.LOGIC;
             const hasLogic = sampleHasLogic || state.logicTs.trim().length > 0 || state.editorLogicTs.trim().length > 0;
-            
+
             if (!hasLogic) {
-              set({ 
+              set({
                 isEditorsVisible: true,
-                isPreviewVisible: true, 
-                isLogicPanelVisible: false, 
-                isContractRunnerVisible: false 
+                isPreviewVisible: true,
+                isLogicPanelVisible: false,
+                isContractRunnerVisible: false
               });
               savePanelState({
                 ...get(),
                 isEditorsVisible: true,
-                isPreviewVisible: true, 
-                isLogicPanelVisible: false, 
-                isContractRunnerVisible: false 
+                isPreviewVisible: true,
+                isLogicPanelVisible: false,
+                isContractRunnerVisible: false
               });
             }
             await get().rebuild();
@@ -428,6 +485,8 @@ const useAppStore = create<AppState>()(
             const state = get();
             const logicTs = sample.LOGIC ?? "";
             const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
+            const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
+            const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
             set(() => ({
               sampleName: sample.NAME,
               agreementHtml: undefined,
@@ -438,6 +497,7 @@ const useAppStore = create<AppState>()(
               editorModelCto: sample.MODEL,
               data: JSON.stringify(sample.DATA, null, 2),
               editorAgreementData: JSON.stringify(sample.DATA, null, 2),
+              requestJson,
               // Reset logic state when switching samples
               logicTs,
               editorLogicTs: logicTs,
@@ -449,7 +509,7 @@ const useAppStore = create<AppState>()(
               isContractRunnerVisible: hasLogic,
               isPreviewVisible: !hasLogic,
             }));
-            
+
             // Persist the adaptive layout state
             savePanelState({
               ...get(),
@@ -459,6 +519,18 @@ const useAppStore = create<AppState>()(
             });
 
             await get().rebuild();
+
+            // Auto-trigger logic tour when a user opens a logic contract sample for the first time
+            if (hasLogic && typeof window !== "undefined" && !localStorage.getItem("hasVisitedLogicTour")) {
+              localStorage.setItem("hasVisitedLogicTour", "true");
+              setTimeout(() => {
+                try {
+                  void tour.show("logic-transition-prompt");
+                } catch (e) {
+                  console.error("Failed to auto-start logic tour:", e);
+                }
+              }, 400);
+            }
           }
         },
 
@@ -536,16 +608,18 @@ const useAppStore = create<AppState>()(
             modelCto: state.modelCto,
             data: state.data,
             agreementHtml: state.agreementHtml,
+            ...(state.logicTs?.trim() ? { logicTs: state.logicTs } : {}),
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
         loadFromLink: async (compressedData: string) => {
           try {
-            const { templateMarkdown, modelCto, data, agreementHtml } =
+            const { templateMarkdown, modelCto, data, agreementHtml, logicTs } =
               decompress(compressedData);
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
             }
+            const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
             set(() => ({
               templateMarkdown,
               editorValue: templateMarkdown,
@@ -555,13 +629,21 @@ const useAppStore = create<AppState>()(
               editorAgreementData: data,
               agreementHtml,
               error: undefined,
-              logicTs: "",
-              editorLogicTs: "",
+              logicTs: logicTs || "",
+              editorLogicTs: logicTs || "",
               compiledLogicJs: null,
               compilationErrors: [],
               isCompiling: false,
+              isLogicPanelVisible: hasLogic,
             }));
+            if (hasLogic) {
+              get().setLogicFeatureEnabled(true);
+              savePanelState({ ...get(), isLogicPanelVisible: true });
+            }
             await get().rebuild();
+            if (hasLogic) {
+              await get().compileLogic();
+            }
           } catch (error) {
             set(() => ({
               error:
@@ -728,15 +810,42 @@ const useAppStore = create<AppState>()(
               : [];
 
             if (actualErrors.length > 0) {
+              // Calculate the line offset of the user's logic code dynamically
+              let lineOffset = 0;
+              try {
+                if (
+                  templateToCompile &&
+                  typeof templateToCompile.getModelManager === "function" &&
+                  typeof templateToCompile.getTemplateModel === "function"
+                ) {
+                  const templateModel = templateToCompile.getTemplateModel();
+                  const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
+                    ? templateModel.getFullyQualifiedName()
+                    : undefined;
+                  const contextStr = new TypeScriptCompilationContext(
+                    templateToCompile.getModelManager(),
+                    fqn,
+                  ).getCompilationContext();
+                  const declarationsStr = atob(SMART_LEGAL_CONTRACT_BASE64);
+                  const prependedText = `\n${contextStr}\n${declarationsStr}\n                `;
+                  lineOffset = prependedText.split("\n").length - 1;
+                }
+              } catch (e) {
+                console.error("Failed to calculate compilation line offset", e);
+              }
+
               set({
                 isCompiling: false,
                 isProblemPanelVisible: true,
-                compilationErrors: actualErrors.slice(0, 1).map((e: any) => ({
-                  message: e.renderedMessage || e.text,
-                  line: e.line,
-                  column: e.character,
-                  length: e.length,
-                })),
+                compilationErrors: actualErrors.map((e: any) => {
+                  const errorLine = e.line !== undefined ? e.line - lineOffset : undefined;
+                  return {
+                    message: e.renderedMessage || e.text,
+                    line: errorLine !== undefined ? Math.max(0, errorLine) + 1 : undefined,
+                    column: e.character !== undefined ? e.character + 1 : undefined,
+                    length: e.length,
+                  };
+                }),
               });
             } else {
               let code = result.code;
@@ -885,24 +994,24 @@ const useAppStore = create<AppState>()(
             );
           });
         },
-        
+
         initContract: async () => {
           const { compiledLogicJs, data } = get();
           if (!compiledLogicJs) {
             return;
           }
-          
+
           try {
             const parsedData = JSON.parse(data);
             const output = await get().executeInSandbox(compiledLogicJs, 'init', [parsedData]) as { state?: unknown; events?: unknown[] };
-            
+
             set({
               executionState: output.state ? JSON.stringify(output.state, null, 2) : '',
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
               compilationErrors: []
             });
           } catch (err: unknown) {
-            set({ 
+            set({
               compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
               isProblemPanelVisible: true
             });
@@ -912,22 +1021,22 @@ const useAppStore = create<AppState>()(
         triggerContract: async () => {
           const { compiledLogicJs, data, requestJson, executionState, executeInSandbox } = get();
           if (!compiledLogicJs) return;
-          
+
           if (!executionState) {
-            set({ 
+            set({
               compilationErrors: [{ message: "Execution Error: Contract must be initialized before triggering." }],
-              isProblemPanelVisible: true 
+              isProblemPanelVisible: true
             });
             return;
           }
-          
+
           try {
             const parsedData = JSON.parse(data);
             const parsedRequest = JSON.parse(requestJson);
             const parsedState = JSON.parse(executionState);
-            
+
             const output = (await executeInSandbox(compiledLogicJs, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] };
-            
+
             /*
              * Extract and store execution artifacts.
              * The executionResponse holds the result payload, while state and events
@@ -940,7 +1049,7 @@ const useAppStore = create<AppState>()(
               compilationErrors: []
             });
           } catch (err: unknown) {
-            set({ 
+            set({
               compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
               isProblemPanelVisible: true
             });

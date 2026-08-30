@@ -3,6 +3,7 @@ import { Modal, Switch, Collapse, Space, Divider, Typography, Row, Col, ConfigPr
 import { BulbOutlined, MoonOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 import useAppStore from '../store/store';
 import AIConfigSection from './AIConfigSection';
+import { colors } from '../utils/theme';
 
 const { Text } = Typography;
 
