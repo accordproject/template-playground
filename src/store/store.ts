@@ -17,21 +17,44 @@ import {
   ChatState,
   KeyProtectionLevel,
 } from "../types/components/AIAssistant.types";
+import type {
+  ExecutionEngine,
+  InitResponse,
+  LLMMode,
+  TriggerResponse,
+} from "../ai-assistant/llm";
 import { validateBeforeRebuild } from "../utils/validators";
 import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
 import tour from "../components/Tour";
 
 /**
- * A single trigger execution result, stored in history to track the evolution
- * of the contract state over time.
+ * A single step in a stateful template's execution chain: either the Init
+ * step (index 0 — `request`/`priorState`/`result` all `null`) or a
+ * subsequent trigger. Mirrors the shape `LLMExecutor.trigger()` (and the
+ * sandboxed TS logic) already speak — `priorState` in, `result` + `state` +
+ * `events` out — plus `edited`, which marks a step whose `state` was
+ * hand-edited in the runner rather than produced by a run.
+ *
+ * Persisted to localStorage (see `getInitialChain`/`persistChain`) so a page
+ * refresh doesn't lose the sequence. This was previously `LogicExecutionResult`,
+ * an unused placeholder for the same idea — renamed and filled in here.
  */
-export interface LogicExecutionResult {
-  response: object;
-  stateBefore: object;
-  stateAfter: object;
+export interface ChainStep {
+  /** Label shown in the stepper ("Init", "Trigger 1", ...). */
+  label: string;
+  /** The request payload evaluated for this step. `null` for the Init step. */
+  request: object | null;
+  /** The state this step was evaluated against. `null` for the Init step. */
+  priorState: object | null;
+  /** The response returned by this step. `null` for the Init step. */
+  result: object | null;
+  /** The resulting state after this step. */
+  state: object;
+  /** Events emitted by this step. */
   events: object[];
-  executedAt: string; // ISO timestamp
+  /** True once this step's `state` was hand-edited rather than produced by a run. */
+  edited: boolean;
 }
 
 interface AppState {
@@ -76,6 +99,13 @@ interface AppState {
   isSandboxReady: boolean;
   // Whether logic execution is in progress
   isExecuting: boolean;
+  /**
+   * Which of the two runner actions is in flight. `isExecuting` gates the
+   * sandbox against concurrent runs and so is shared, but the buttons need to
+   * know *whose* run it is — otherwise triggering a request spins the Init
+   * button too.
+   */
+  executingOperation: "init" | "trigger" | null;
   // Monotonically increasing counter for deduplicating concurrent results
   executionId: number;
   setTemplateMarkdown: (template: string) => Promise<void>;
@@ -185,7 +215,99 @@ interface AppState {
    * The active execution response payload (JSON string) for display in the UI.
    */
   executionResponse: string;
-  
+
+  /**
+   * How the Contract Runner picks an execution engine, mirroring the
+   * `llmConfig.mode` the template-engine's `TemplateArchiveProcessor` takes:
+   * `disabled` runs only the compiled TypeScript logic, `fallback` falls back to
+   * the LLM when there is no compiled logic, and `force` always runs the LLM.
+   */
+  llmExecutionMode: LLMMode;
+  setLLMExecutionMode: (mode: LLMMode) => void;
+
+  /**
+   * Whether the loaded template declares its own State type. Stateful templates
+   * must be initialized before a request can be triggered; stateless ones carry
+   * no state and skip init entirely.
+   */
+  isTemplateStateful: boolean;
+
+  /**
+   * Whether `init` has run successfully for the engine currently selected.
+   * Kept separate from `executionState` because a template may legitimately
+   * initialize to an empty state, which would otherwise read as "never
+   * initialized" and leave Send Request disabled forever.
+   */
+  isContractInitialized: boolean;
+
+  /**
+   * Discards every execution artifact and returns the runner to its pre-init
+   * state. Called when the engine changes, since a response, state or event
+   * produced by one engine says nothing about what the next one would do.
+   * Also clears the execution chain (see below) and its persisted copy.
+   */
+  resetExecution: () => void;
+
+  /**
+   * The full execution history for a stateful template: index 0 is the Init
+   * step, each following entry is one `triggerContract()` call. Empty for a
+   * stateless template — `priorState` is meaningless there and every request
+   * is independent (see `LLMExecutor.trigger`/`this.stateless`).
+   */
+  executionChain: ChainStep[];
+
+  /**
+   * Which step of `executionChain` is on display. `-1` when the chain is
+   * empty. `executionResponse`/`executionState`/`executionEvents` always
+   * mirror `executionChain[selectedChainIndex]`, so the existing Response/
+   * State/Events tabs keep working unchanged.
+   */
+  selectedChainIndex: number;
+
+  /**
+   * Selects a step in the chain and syncs the display fields to it.
+   * @param index - index into `executionChain`
+   */
+  selectChainStep: (index: number) => void;
+
+  /**
+   * Hand-edits the resulting state of the currently selected chain step.
+   * Marks the step `edited`. Never touches or recomputes later steps — those
+   * were computed against the state as it stood before this edit, and
+   * silently recomputing them would mean re-running the LLM/TS logic for
+   * every one of them. Call `discardChainAfter` first if that staleness
+   * needs clearing instead.
+   * @param stateJson - the edited state as a JSON string
+   * @returns an error message if `stateJson` is not valid JSON, otherwise `null`
+   */
+  editChainStepState: (stateJson: string) => string | null;
+
+  /**
+   * Truncates the chain to just `index` (inclusive), discarding every step
+   * after it. Use once a step's state has been edited and the steps
+   * computed after it no longer reflect that edit.
+   * @param index - the last step to keep
+   */
+  discardChainAfter: (index: number) => void;
+
+  /** Which engine produced the artifacts currently on display. */
+  lastExecutionEngine: ExecutionEngine | null;
+
+  /**
+   * Runs `init` or `trigger` through the LLM executor, using the provider,
+   * model and API key held in `aiConfig`.
+   *
+   * @param operation - the contract operation to evaluate
+   * @param payload - the contract data, and for `trigger` the request and the
+   * state to evaluate it against
+   * @returns the operation's output
+   */
+  executeWithLLM: (
+    operation: "init" | "trigger",
+    payload: { data: unknown; request?: unknown; priorState?: unknown },
+  ) => Promise<InitResponse | TriggerResponse>;
+
+
   /** The current request payload (JSON string) used as input for the next trigger. */
   requestJson: string;
   setRequestJson: (json: string) => void;
@@ -321,11 +443,71 @@ const getInitialLineNumbers = () => {
   return true; // Default to showing line numbers
 };
 
+/**
+ * Reads the persisted execution mode. Defaults to `disabled` so a playground
+ * without AI settings behaves exactly as it did before the LLM engine existed.
+ */
+const getInitialLLMExecutionMode = (): LLMMode => {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("llmExecutionMode");
+    if (saved === "disabled" || saved === "fallback" || saved === "force") {
+      return saved;
+    }
+  }
+  return "disabled";
+};
+
+const CHAIN_STORAGE_KEY = "contractRunnerChain";
+
+/**
+ * Reads the persisted execution chain. Storage is a single flat key, the
+ * same pattern `llmExecutionMode` uses above — it holds whatever chain the
+ * runner last had on screen. `loadSample`/`loadFromLink` clear it, so a
+ * chain from one template never bleeds into another.
+ */
+const getInitialChain = (): ChainStep[] => {
+  if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem(CHAIN_STORAGE_KEY);
+      if (saved) return JSON.parse(saved) as ChainStep[];
+    } catch (e) {
+      // ignore malformed/stale data
+    }
+  }
+  return [];
+};
+
+/** Persists the execution chain, or clears storage once it's empty. */
+const persistChain = (chain: ChainStep[]) => {
+  if (typeof window === "undefined") return;
+  if (chain.length === 0) {
+    localStorage.removeItem(CHAIN_STORAGE_KEY);
+  } else {
+    localStorage.setItem(CHAIN_STORAGE_KEY, JSON.stringify(chain));
+  }
+};
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
       const initialTheme = getInitialTheme();
       const initialPanels = getInitialPanelState(); // Load saved panels
+      const initialChain = getInitialChain();
+      const initialChainIndex = initialChain.length - 1;
+      const initialChainStep = initialChainIndex >= 0 ? initialChain[initialChainIndex] : null;
+
+      /**
+       * Mirrors a chain step onto the display fields the Response/State/Events
+       * tabs already read (`executionResponse`/`executionState`/`executionEvents`),
+       * so selecting, editing or discarding chain steps doesn't require those
+       * tabs to change how they get their data.
+       */
+      const syncChainDisplay = (step: ChainStep | null) =>
+        set({
+          executionResponse: step?.result ? JSON.stringify(step.result, null, 2) : '',
+          executionState: step ? JSON.stringify(step.state, null, 2) : '',
+          executionEvents: step ? JSON.stringify(step.events, null, 2) : '[]',
+        });
 
       return {
         activeTab: "build",
@@ -383,11 +565,87 @@ const useAppStore = create<AppState>()(
         sandboxIframe: null,
         isSandboxReady: false,
         isExecuting: false,
+        executingOperation: null,
         executionId: 0,
 
-        executionState: '',
-        executionEvents: '',
-        executionResponse: '',
+        executionState: initialChainStep ? JSON.stringify(initialChainStep.state, null, 2) : '',
+        executionEvents: initialChainStep ? JSON.stringify(initialChainStep.events, null, 2) : '',
+        executionResponse: initialChainStep?.result ? JSON.stringify(initialChainStep.result, null, 2) : '',
+
+        llmExecutionMode: getInitialLLMExecutionMode(),
+        setLLMExecutionMode: (mode: LLMMode) => {
+          if (get().llmExecutionMode === mode) return;
+          if (typeof window !== "undefined") {
+            localStorage.setItem("llmExecutionMode", mode);
+          }
+          /*
+           * Artifacts belong to the engine that produced them. Carrying a
+           * response, state or event list across a mode switch would let the
+           * previous engine's run stand in for one the new engine never made —
+           * and, because Send Request unlocks on init, would let a request run
+           * against an engine that was never initialized.
+           */
+          set({ llmExecutionMode: mode });
+          get().resetExecution();
+        },
+        // Assumed stateful until a Template object says otherwise, so the Init
+        // step stays visible for templates that have not been built yet.
+        isTemplateStateful: true,
+        // A restored chain already has an Init step, so Send Request should
+        // stay usable across a refresh rather than forcing Init again.
+        isContractInitialized: initialChain.length > 0,
+        resetExecution: () => {
+          set({
+            executionResponse: '',
+            executionState: '',
+            executionEvents: '',
+            isContractInitialized: false,
+            lastExecutionEngine: null,
+            executionChain: [],
+            selectedChainIndex: -1,
+          });
+          persistChain([]);
+        },
+        lastExecutionEngine: null,
+
+        executionChain: initialChain,
+        selectedChainIndex: initialChainIndex,
+        selectChainStep: (index: number) => {
+          const step = get().executionChain[index];
+          if (!step) return;
+          set({ selectedChainIndex: index });
+          syncChainDisplay(step);
+        },
+        editChainStepState: (stateJson: string) => {
+          const { executionChain, selectedChainIndex } = get();
+          const step = executionChain[selectedChainIndex];
+          if (!step) return "No step selected.";
+
+          let parsed: object;
+          try {
+            parsed = JSON.parse(stateJson) as object;
+          } catch {
+            return "Enter valid JSON before saving.";
+          }
+
+          const chain = executionChain.map((s, i) =>
+            i === selectedChainIndex ? { ...s, state: parsed, edited: true } : s,
+          );
+          set({ executionChain: chain });
+          syncChainDisplay(chain[selectedChainIndex]);
+          persistChain(chain);
+          return null;
+        },
+        discardChainAfter: (index: number) => {
+          const { executionChain, selectedChainIndex } = get();
+          if (index >= executionChain.length - 1) return;
+
+          const chain = executionChain.slice(0, index + 1);
+          const newSelected = Math.min(selectedChainIndex, index);
+          set({ executionChain: chain, selectedChainIndex: newSelected });
+          syncChainDisplay(chain[newSelected] ?? null);
+          persistChain(chain);
+        },
 
         requestJson: '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
         setRequestJson: (json: string) => set({ requestJson: json }),
@@ -504,11 +762,21 @@ const useAppStore = create<AppState>()(
               compiledLogicJs: null,
               compilationErrors: [],
               isCompiling: false,
+              // A new sample is a new contract — nothing the last one produced
+              // applies to it, including having been initialized.
+              executionResponse: '',
+              executionState: '',
+              executionEvents: '',
+              isContractInitialized: false,
+              lastExecutionEngine: null,
+              executionChain: [],
+              selectedChainIndex: -1,
               // Adapt layout based on whether template has logic
               isLogicPanelVisible: hasLogic,
               isContractRunnerVisible: hasLogic,
               isPreviewVisible: !hasLogic,
             }));
+            persistChain([]);
 
             // Persist the adaptive layout state
             savePanelState({
@@ -620,6 +888,14 @@ const useAppStore = create<AppState>()(
               throw new Error("Invalid share link data");
             }
             const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
+            /*
+             * A shared link loads a different template — nothing the last one
+             * produced (including its execution chain) applies here. This was
+             * a pre-existing gap (loadSample already did this); the chain
+             * persisting across page loads makes it worth closing now, since
+             * otherwise a stale chain could leak into an unrelated template.
+             */
+            get().resetExecution();
             set(() => ({
               templateMarkdown,
               editorValue: templateMarkdown,
@@ -751,7 +1027,20 @@ const useAppStore = create<AppState>()(
               { offline: true },
             );
 
-            set({ templateObject: template });
+            const { isStatefulTemplate } = await import("../ai-assistant/llm");
+            /*
+             * A template is stateful when its model declares a State type — the
+             * rule cicero-core's isStateful() applies, and the one the LLM
+             * executor derives its schema from. The runner also treats logic
+             * with an init() as stateful: a template whose State does not
+             * extend the runtime base is malformed, but its sandboxed logic
+             * still has state to seed, and hiding Init would strand it.
+             */
+            set({
+              templateObject: template,
+              isTemplateStateful:
+                isStatefulTemplate(template) || logicDefinesInit(logicTs),
+            });
             if (import.meta.env.DEV)
               console.log(
                 "Successfully built Template object from JSZip archive!",
@@ -995,34 +1284,151 @@ const useAppStore = create<AppState>()(
           });
         },
 
+        executeWithLLM: async (operation, payload) => {
+          const { aiConfig, llmExecutionMode, isExecuting } = get();
+
+          /*
+           * Mirrors the guard in executeInSandbox: one execution at a time, so a
+           * second click can't race the first back into the state artifacts.
+           */
+          if (isExecuting) {
+            throw new Error(
+              "An execution is already in progress. Please wait for it to complete.",
+            );
+          }
+
+          const { buildLLMExecutorConfig, getLLMExecutor } = await import(
+            "../ai-assistant/llm"
+          );
+          const executorConfig = buildLLMExecutorConfig(aiConfig, llmExecutionMode);
+
+          /*
+           * The LLM executor derives its JSON Schema from the template's own
+           * ModelManager, so it needs a Template object. Rebuild it every run:
+           * templates without logic never go through compileLogic() (which is
+           * what usually builds one), and an edited model would otherwise be
+           * executed against a stale schema.
+           */
+          await get().buildTemplateFromMemory();
+          const template = get().templateObject;
+          if (!template) {
+            throw new Error(
+              "Could not build a template from the current model and grammar.",
+            );
+          }
+
+          const executor = getLLMExecutor(template, executorConfig);
+
+          set({ isExecuting: true });
+          try {
+            return operation === "init"
+              ? await executor.init(payload.data)
+              : await executor.trigger(
+                  payload.data,
+                  payload.request,
+                  payload.priorState,
+                );
+          } finally {
+            set({ isExecuting: false });
+          }
+        },
+
         initContract: async () => {
-          const { compiledLogicJs, data } = get();
-          if (!compiledLogicJs) {
+          const { compiledLogicJs, data, llmExecutionMode } = get();
+
+          /*
+           * Engine selection follows TemplateArchiveProcessor: the template's own
+           * logic runs unless the LLM is forced, and the LLM only steps in when
+           * it is forced or there is no compiled logic to fall back from.
+           */
+          const forceLLM = llmExecutionMode === 'force';
+          const useTypeScript = !forceLLM && !!compiledLogicJs;
+          const useLLM = forceLLM || (llmExecutionMode !== 'disabled' && !compiledLogicJs);
+
+          if (!useTypeScript && !useLLM) {
+            if (compiledLogicJs) return;
+            set({
+              compilationErrors: [{ message: "Execution Error: No executable logic found and LLM fallback is disabled." }],
+              isProblemPanelVisible: true
+            });
             return;
           }
 
+          /*
+           * Init starts a fresh run of the contract, so anything left over from
+           * the last one goes first — otherwise the Response tab keeps showing
+           * a trigger result that this init did not produce.
+           */
+          get().resetExecution();
+          set({ executingOperation: 'init' });
+
           try {
-            const parsedData = JSON.parse(data);
-            const output = await get().executeInSandbox(compiledLogicJs, 'init', [parsedData]) as { state?: unknown; events?: unknown[] };
+            const parsedData: unknown = JSON.parse(data);
+            const output = useTypeScript
+              ? (await get().executeInSandbox(compiledLogicJs!, 'init', [parsedData])) as { state?: unknown; events?: unknown[] }
+              : (await get().executeWithLLM('init', { data: parsedData })) as { state?: unknown; events?: unknown[] };
+
+            /*
+             * Init is step 0 of the chain, not a separate artifact — every
+             * later trigger's priorState traces back to this one. The button
+             * (see ContractRequestEditor) confirms with the user before
+             * calling this when a chain already exists, so clearing it here
+             * is safe.
+             */
+            const initStep: ChainStep = {
+              label: 'Init',
+              request: null,
+              priorState: null,
+              result: null,
+              state: (output.state ?? {}) as object,
+              events: (output.events ?? []) as object[],
+              edited: false,
+            };
+            const chain = [initStep];
 
             set({
-              executionState: output.state ? JSON.stringify(output.state, null, 2) : '',
-              executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              executionChain: chain,
+              selectedChainIndex: 0,
+              isContractInitialized: true,
+              lastExecutionEngine: useTypeScript ? 'typescript' : 'llm',
               compilationErrors: []
             });
+            syncChainDisplay(initStep);
+            persistChain(chain);
           } catch (err: unknown) {
             set({
               compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
               isProblemPanelVisible: true
             });
+          } finally {
+            set({ executingOperation: null });
           }
         },
 
         triggerContract: async () => {
-          const { compiledLogicJs, data, requestJson, executionState, executeInSandbox } = get();
-          if (!compiledLogicJs) return;
+          const { compiledLogicJs, data, requestJson, executionState, isTemplateStateful, isContractInitialized, llmExecutionMode, executeInSandbox, executionChain, selectedChainIndex } = get();
 
-          if (!executionState) {
+          const forceLLM = llmExecutionMode === 'force';
+          const useTypeScript = !forceLLM && !!compiledLogicJs;
+          const useLLM = forceLLM || (llmExecutionMode !== 'disabled' && !compiledLogicJs);
+
+          if (!useTypeScript && !useLLM) {
+            if (compiledLogicJs) return;
+            set({
+              compilationErrors: [{ message: "Execution Error: No executable logic found and LLM fallback is disabled." }],
+              isProblemPanelVisible: true
+            });
+            return;
+          }
+
+          /*
+           * Stateful templates have no implicit empty state — they must be
+           * triggered against the state produced by init() or a previous
+           * trigger(). Gate on the init flag rather than on executionState:
+           * a contract that legitimately initializes to an empty state has
+           * still been initialized. Stateless templates skip the check.
+           */
+          if (isTemplateStateful && !isContractInitialized) {
             set({
               compilationErrors: [{ message: "Execution Error: Contract must be initialized before triggering." }],
               isProblemPanelVisible: true
@@ -1030,12 +1436,36 @@ const useAppStore = create<AppState>()(
             return;
           }
 
-          try {
-            const parsedData = JSON.parse(data);
-            const parsedRequest = JSON.parse(requestJson);
-            const parsedState = JSON.parse(executionState);
+          /*
+           * A Send Request only ever extends the chain linearly, from
+           * whichever step's state is currently loaded. Sending from a past
+           * step would mean branching the chain, which trigger()'s single
+           * priorState-in/state-out contract doesn't model — so require the
+           * latest step to be selected first (mirrored by the disabled Send
+           * Request button in ContractRequestEditor).
+           */
+          if (
+            isTemplateStateful &&
+            executionChain.length > 0 &&
+            selectedChainIndex !== executionChain.length - 1
+          ) {
+            set({
+              compilationErrors: [{ message: "Execution Error: Select the latest step in the chain before sending a new request." }],
+              isProblemPanelVisible: true
+            });
+            return;
+          }
 
-            const output = (await executeInSandbox(compiledLogicJs, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] };
+          set({ executingOperation: 'trigger' });
+
+          try {
+            const parsedData: unknown = JSON.parse(data);
+            const parsedRequest: unknown = JSON.parse(requestJson);
+            const parsedState: unknown = executionState ? JSON.parse(executionState) : {};
+
+            const output = useTypeScript
+              ? (await executeInSandbox(compiledLogicJs!, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] }
+              : (await get().executeWithLLM('trigger', { data: parsedData, request: parsedRequest, priorState: parsedState })) as { result?: unknown, state?: unknown, events?: unknown[] };
 
             /*
              * Extract and store execution artifacts.
@@ -1046,13 +1476,36 @@ const useAppStore = create<AppState>()(
               executionResponse: output.result ? JSON.stringify(output.result, null, 2) : '',
               executionState: output.state ? JSON.stringify(output.state, null, 2) : executionState,
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              lastExecutionEngine: useTypeScript ? 'typescript' : 'llm',
               compilationErrors: []
             });
+
+            /*
+             * Stateless templates ignore priorState entirely (this.stateless in
+             * LLMExecutor) — each Send Request is independent, so there is no
+             * chain to extend.
+             */
+            if (isTemplateStateful) {
+              const newStep: ChainStep = {
+                label: `Trigger ${executionChain.length}`,
+                request: parsedRequest as object,
+                priorState: parsedState as object,
+                result: (output.result ?? {}) as object,
+                state: (output.state ?? parsedState) as object,
+                events: (output.events ?? []) as object[],
+                edited: false,
+              };
+              const chain = [...executionChain, newStep];
+              set({ executionChain: chain, selectedChainIndex: chain.length - 1 });
+              persistChain(chain);
+            }
           } catch (err: unknown) {
             set({
               compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
               isProblemPanelVisible: true
             });
+          } finally {
+            set({ executingOperation: null });
           }
         },
       };
@@ -1061,6 +1514,17 @@ const useAppStore = create<AppState>()(
 );
 
 export default useAppStore;
+
+/**
+ * Whether template logic defines an `init` method, mirroring the check the
+ * engine makes before calling one. Used to decide whether the runner shows the
+ * Init step for a template whose model does not declare a State type.
+ * @param source - the template's TypeScript logic
+ * @returns true when the logic declares an init method
+ */
+function logicDefinesInit(source: string): boolean {
+  return /(^|[\s;}])init\s*\(/.test(source);
+}
 
 function formatError(error: unknown): string {
   console.error(error);

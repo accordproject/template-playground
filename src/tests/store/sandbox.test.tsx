@@ -249,6 +249,7 @@ describe("useAppStore - Sandbox State", () => {
       useAppStore.setState({
         compiledLogicJs: "some_code",
         executionState: "",
+        isContractInitialized: false,
         compilationErrors: [],
         isProblemPanelVisible: false
       });
@@ -271,6 +272,7 @@ describe("useAppStore - Sandbox State", () => {
         data: '{"owner": "Alice"}',
         requestJson: '{"increment": 1}',
         executionState: '{"count": 1}',
+        isContractInitialized: true,
         executeInSandbox: executeInSandboxMock
       });
 
@@ -296,6 +298,7 @@ describe("useAppStore - Sandbox State", () => {
         data: '{"owner": "Alice"}',
         requestJson: '{}',
         executionState: '{}',
+        isContractInitialized: true,
         executeInSandbox: executeInSandboxMock,
         compilationErrors: [],
         isProblemPanelVisible: false
