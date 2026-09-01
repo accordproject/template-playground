@@ -12,6 +12,7 @@ import {
   MenuOutlined,
   FileTextOutlined,
   ExclamationCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
 import { message, Modal } from "antd";
@@ -200,12 +201,12 @@ const useBreakpoint = () => {
 
 function Navbar() {
   const [hovered, setHovered] = useState<
-    null | "home" | "help" | "samples" | "github" | "discord" | "join"
+    null | "home" | "help" | "samples" | "github" | "discord" | "join" | "settings"
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
 
-  const { samples, loadSample, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs, isLogicFeatureEnabled } =
+  const { samples, loadSample, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs, isLogicFeatureEnabled, setSettingsOpen } =
     useStoreWithEqualityFn(
       useAppStore,
       (state) => ({
@@ -217,6 +218,7 @@ function Navbar() {
         editorAgreementData: state.editorAgreementData,
         editorLogicTs: state.editorLogicTs,
         isLogicFeatureEnabled: state.isLogicFeatureEnabled,
+        setSettingsOpen: state.setSettingsOpen,
       }),
       shallow
     );
@@ -484,6 +486,28 @@ function Navbar() {
             }`} />
             <span className={screens.md ? "inline" : "hidden"}>GitHub</span>
           </a>
+        </div>
+
+        <div
+          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
+            screens.md
+              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4"
+              : "px-2.5 pl-1.5 pr-1.5"
+          } ${
+            hovered === "settings" ? "bg-white bg-opacity-10" : "bg-transparent"
+          }`}
+          onMouseEnter={() => setHovered("settings")}
+          onMouseLeave={() => setHovered(null)}
+        >
+          <button
+            type="button"
+            aria-label="Settings"
+            title="Settings"
+            onClick={() => setSettingsOpen(true)}
+            className="flex items-center bg-transparent border-none text-white cursor-pointer p-0"
+          >
+            <SettingOutlined className="text-xl text-white" />
+          </button>
         </div>
       </div>
     </div>

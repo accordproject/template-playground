@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import ContractRunnerPanel from '../../components/ContractRunnerPanel';
 import useAppStore from '../../store/store';
 
@@ -9,6 +9,46 @@ vi.mock('../../store/store', () => {
     default: vi.fn(),
   };
 });
+
+/**
+ * Minimal slice of the store the panel reads. Kept in one place so the runner's
+ * engine controls and its execution buttons see a coherent state.
+ */
+const baseState = {
+  backgroundColor: '#ffffff',
+  textColor: '#000000',
+  requestJson: '{}',
+  setRequestJson: vi.fn(),
+  executionState: '',
+  executionResponse: '',
+  executionEvents: '',
+  isExecuting: false,
+  initContract: vi.fn(),
+  triggerContract: vi.fn(),
+  logicTs: '',
+  compiledLogicJs: null,
+  llmExecutionMode: 'disabled' as const,
+  setLLMExecutionMode: vi.fn(),
+  isTemplateStateful: true,
+  aiConfig: null,
+  setSettingsOpen: vi.fn(),
+  templateObject: {},
+  buildTemplateFromMemory: vi.fn(),
+};
+
+type StoreSlice = typeof baseState;
+
+/**
+ * Points the mocked store at a state slice for the duration of a test.
+ * @param state - the slice the panel's selectors read from
+ */
+const useStoreState = (state: StoreSlice) => {
+  const mockedStore = useAppStore as unknown as Mock<
+    [(state: StoreSlice) => unknown],
+    unknown
+  >;
+  mockedStore.mockImplementation((selector) => selector(state));
+};
 
 describe('ContractRunnerPanel', () => {
   beforeEach(() => {
@@ -32,9 +72,7 @@ describe('ContractRunnerPanel', () => {
   });
 
   it('renders correctly in light mode', () => {
-    (useAppStore as any).mockImplementation((selector: any) => 
-      selector({ backgroundColor: '#ffffff', textColor: '#000000' })
-    );
+    useStoreState(baseState);
 
     render(<ContractRunnerPanel />);
     
@@ -55,10 +93,21 @@ describe('ContractRunnerPanel', () => {
     expect(screen.getByText('No response generated yet.')).toBeInTheDocument();
   });
 
+  it('drops the init step and the State tab for a stateless template', () => {
+    useStoreState({ ...baseState, isTemplateStateful: false });
+
+    render(<ContractRunnerPanel />);
+
+    expect(screen.queryByRole('button', { name: /init contract/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /state/i })).not.toBeInTheDocument();
+    // The request can still be sent — a stateless template needs no seed state.
+    expect(screen.getByRole('button', { name: /send request/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /response/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /events/i })).toBeInTheDocument();
+  });
+
   it('renders correctly in dark mode', () => {
-    (useAppStore as any).mockImplementation((selector: any) => 
-      selector({ backgroundColor: '#1e1e1e', textColor: '#ffffff' })
-    );
+    useStoreState({ ...baseState, backgroundColor: '#1e1e1e', textColor: '#ffffff' });
 
     render(<ContractRunnerPanel />);
     expect(screen.getByText('Request')).toBeInTheDocument();
