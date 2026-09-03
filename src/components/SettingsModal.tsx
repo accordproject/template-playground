@@ -17,8 +17,8 @@ const SettingsModal: React.FC = () => {
     toggleDarkMode,
     isLogicFeatureEnabled,
     setLogicFeatureEnabled,
-    isNewDesignEnabled,
-    setNewDesignEnabled
+    isDesignV2Enabled,
+    setDesignV2Enabled
   } = useAppStore((state) => ({
     isSettingsOpen: state.isSettingsOpen,
     setSettingsOpen: state.setSettingsOpen,
@@ -28,8 +28,8 @@ const SettingsModal: React.FC = () => {
     toggleDarkMode: state.toggleDarkMode,
     isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     setLogicFeatureEnabled: state.setLogicFeatureEnabled,
-    isNewDesignEnabled: state.isNewDesignEnabled,
-    setNewDesignEnabled: state.setNewDesignEnabled,
+    isDesignV2Enabled: state.isDesignV2Enabled,
+    setDesignV2Enabled: state.setDesignV2Enabled,
   }));
 
   const isDarkMode = backgroundColor === '#121212';
@@ -106,7 +106,7 @@ const SettingsModal: React.FC = () => {
 
           <Divider style={{ margin: 0 }} />
 
-          {/* New Design Feature Flag Toggle */}
+          {/* Design v2 feature flag toggle */}
           <Row justify="space-between" align="middle" style={{ width: '100%' }}>
             <Col flex="auto">
               <Text strong style={{ display: 'block' }}>Enable New Design (Work in Progress)</Text>
@@ -116,10 +116,10 @@ const SettingsModal: React.FC = () => {
             </Col>
             <Col>
               <Switch
-                data-testid="new-design-toggle"
-                checked={isNewDesignEnabled}
-                onChange={setNewDesignEnabled}
-                aria-label="Toggle new design"
+                data-testid="design-v2-toggle"
+                checked={isDesignV2Enabled}
+                onChange={setDesignV2Enabled}
+                aria-label="Toggle design v2"
               />
             </Col>
           </Row>

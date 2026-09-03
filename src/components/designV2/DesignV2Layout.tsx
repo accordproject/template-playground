@@ -4,30 +4,30 @@ import Header from "./Header";
 import Footer from "./Footer";
 import PreviewDrawer from "./PreviewDrawer";
 import { ViewSwitch } from "./views";
-import { STEPS, type NewDesignView } from "./types";
-import "./NewDesignLayout.css";
+import { STEPS, type DesignV2View } from "./types";
+import "./DesignV2Layout.css";
 
 /**
- * NewDesignLayout
+ * DesignV2Layout
  *
  * Skeleton of the redesigned, step-based Template Playground (work in progress).
  * Structure follows the "Template Playground v4" design:
  *
  *   ┌ rail ┬───────────────────────────────────────────┐
  *   │      │ header  (eyebrow / sample · docs Advanced Preview)
- *   │      │ stepper (1 Template · 2 Model · 3 Text · 4 Data · 5 Logic · 6 Simulate · 7 Export)
+ *   │      │ stepper (1 Template · 2 Text · 3 Model · 4 Data · 5 Logic · 6 Simulate · 7 Deploy)
  *   │      ├─────────────────────────────┬─────────────┤
  *   │      │ view (welcome/start/editor/ │ help rail   │  ← preview drawer overlays
- *   │      │       simulate/export)      │ (steps 2–5) │
+ *   │      │       simulate/deploy)      │ (steps 2–5) │
  *   │      ├─────────────────────────────┴─────────────┤
  *   │      │ footer  (problems · Back · Compile · Next)
  *   └──────┴───────────────────────────────────────────┘
  *
  * All content areas are placeholders; wiring to the store/editors comes later.
- * Rendered from App.tsx when the "Enable New Design" feature flag is on.
+ * Rendered from App.tsx when the "Enable New Design" (isDesignV2Enabled) feature flag is on.
  */
-const NewDesignLayout = () => {
-  const [view, setView] = useState<NewDesignView>("welcome");
+const DesignV2Layout = () => {
+  const [view, setView] = useState<DesignV2View>("welcome");
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const stepIndex = STEPS.findIndex((s) => s.id === view);
@@ -62,4 +62,4 @@ const NewDesignLayout = () => {
   );
 };
 
-export default NewDesignLayout;
+export default DesignV2Layout;

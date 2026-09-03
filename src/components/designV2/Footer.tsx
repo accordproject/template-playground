@@ -1,7 +1,7 @@
-import type { NewDesignView } from "./types";
+import type { DesignV2View } from "./types";
 
 interface FooterProps {
-  view: NewDesignView;
+  view: DesignV2View;
   onBack: () => void;
   onNext: () => void;
 }

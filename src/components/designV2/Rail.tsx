@@ -90,7 +90,7 @@ const Rail = () => {
                 <span className="nd-menu-icon nd-menu-icon-amber">↗</span>
                 <span className="nd-menu-item-text">
                   <span className="nd-menu-item-label">Docs: template format</span>
-                  <span className="nd-menu-item-hint">Model, text and logic explained</span>
+                  <span className="nd-menu-item-hint">Text, model and logic explained</span>
                 </span>
               </button>
               <button type="button" role="menuitem" className="nd-menu-item" onClick={closeMenu}>

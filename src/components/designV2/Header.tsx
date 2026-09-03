@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { QuestionOutlined, UserOutlined, InfoOutlined, BookOutlined, CaretDownFilled } from "@ant-design/icons";
 import useAppStore from "../../store/store";
-import { STEPS, type NewDesignView } from "./types";
+import { STEPS, type DesignV2View } from "./types";
 
 /** Same links as the legacy navbar's Help dropdown. */
 const HELP_LINKS = {
@@ -16,9 +16,9 @@ const HELP_LINKS = {
 };
 
 interface HeaderProps {
-  view: NewDesignView;
+  view: DesignV2View;
   previewOpen: boolean;
-  onNavigate: (view: NewDesignView) => void;
+  onNavigate: (view: DesignV2View) => void;
   onTogglePreview: () => void;
 }
 

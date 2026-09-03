@@ -128,8 +128,8 @@ interface AppState {
   isLogicFeatureEnabled: boolean;
   setLogicFeatureEnabled: (value: boolean) => void;
   /** Feature flag for the new playground design (work in progress). */
-  isNewDesignEnabled: boolean;
-  setNewDesignEnabled: (value: boolean) => void;
+  isDesignV2Enabled: boolean;
+  setDesignV2Enabled: (value: boolean) => void;
   /**
    * Updates the live editor value without committing or triggering compilation.
    * @param ts - The current TypeScript source from the editor
@@ -377,15 +377,15 @@ const useAppStore = create<AppState>()(
           }
           set({ isLogicFeatureEnabled: value });
         },
-        isNewDesignEnabled:
+        isDesignV2Enabled:
           typeof window !== "undefined"
-            ? localStorage.getItem("isNewDesignEnabled") === "true"
+            ? localStorage.getItem("isDesignV2Enabled") === "true"
             : false,
-        setNewDesignEnabled: (value: boolean) => {
+        setDesignV2Enabled: (value: boolean) => {
           if (typeof window !== "undefined") {
-            localStorage.setItem("isNewDesignEnabled", String(value));
+            localStorage.setItem("isDesignV2Enabled", String(value));
           }
-          set({ isNewDesignEnabled: value });
+          set({ isDesignV2Enabled: value });
         },
         logicTs: "",
         editorLogicTs: "",

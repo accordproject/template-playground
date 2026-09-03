@@ -12,7 +12,7 @@ import { colors } from './utils/theme';
 
 const LearnNow = lazy(() => import("./pages/LearnNow"));
 const MainContainer = lazy(() => import("./pages/MainContainer"));
-const NewDesignLayout = lazy(() => import("./components/newDesign/NewDesignLayout"));
+const DesignV2Layout = lazy(() => import("./components/designV2/DesignV2Layout"));
 
 const { Content } = Layout;
 
@@ -22,10 +22,10 @@ const App = () => {
   const loadFromLink = useAppStore((state) => state.loadFromLink);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
-  const isNewDesignEnabled = useAppStore((state) => state.isNewDesignEnabled);
+  const isDesignV2Enabled = useAppStore((state) => state.isDesignV2Enabled);
   const location = useLocation();
   // The new design ships its own header, so the legacy navbar is hidden on the playground route.
-  const hideNavbar = isNewDesignEnabled && location.pathname === "/";
+  const hideNavbar = isDesignV2Enabled && location.pathname === "/";
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
@@ -89,13 +89,13 @@ const App = () => {
     };
 
     // The new design has its own onboarding flow; the legacy tour targets elements that don't exist there.
-    if (isNewDesignEnabled) return;
+    if (isDesignV2Enabled) return;
 
     const showTour = searchParams.get("showTour") === "true";
     if (showTour || !localStorage.getItem("hasVisited")) {
       void startTour();
     }
-  }, [searchParams, isNewDesignEnabled]);
+  }, [searchParams, isDesignV2Enabled]);
 
   // Set data-theme attribute on initial load and when theme changes
   useEffect(() => {
@@ -120,14 +120,14 @@ const App = () => {
             <Route
               path="/"
               element={
-                isNewDesignEnabled ? (
+                isDesignV2Enabled ? (
                   loading ? (
                     <div className="app-content-loading">
                       <Spinner />
                     </div>
                   ) : (
                     <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
-                      <NewDesignLayout />
+                      <DesignV2Layout />
                     </Suspense>
                   )
                 ) : (

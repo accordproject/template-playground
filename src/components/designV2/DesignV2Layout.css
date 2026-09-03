@@ -322,7 +322,7 @@
 .nd-sim-head { flex: none; display: flex; align-items: center; gap: 10px; }
 .nd-sim-head h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
 
-/* Export */
+/* Deploy */
 .nd-view-export { flex-direction: column; padding: 18px 20px 20px; gap: 14px; }
 .nd-export-head { flex: none; display: flex; align-items: center; gap: 10px; }
 .nd-export-head h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }

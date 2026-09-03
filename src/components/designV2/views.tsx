@@ -1,17 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import HelpRail from "./HelpRail";
-import { STEPS, type EditorStep, type NewDesignView } from "./types";
+import { STEPS, type EditorStep, type DesignV2View } from "./types";
 
 /*
  * Placeholder views for each step of the flow. Only structure — no real
- * editors or data yet. Each is swapped in by NewDesignLayout based on `view`.
+ * editors or data yet. Each is swapped in by DesignV2Layout based on `view`.
  */
 
 interface WelcomeViewProps {
   onStart: () => void;
 }
 
-/** Dark hero card with headline, CTAs and the Model → Text → Data → Logic → Run it strip. */
+/** Dark hero card with headline, CTAs and the Text → Model → Data → Logic → Run it strip. */
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
   const navigate = useNavigate();
   return (
@@ -77,8 +77,8 @@ export const StartView = () => (
 );
 
 const EDITOR_META: Record<EditorStep, { icon: string; title: string; file: string; badge: string }> = {
-  2: { icon: "◇", title: "Define the data model", file: "model.cto", badge: "Concerto" },
-  3: { icon: "¶", title: "Write the contract text", file: "text.md", badge: "TemplateMark" },
+  2: { icon: "¶", title: "Write the contract text", file: "text.md", badge: "TemplateMark" },
+  3: { icon: "◇", title: "Define the data model", file: "model.cto", badge: "Concerto" },
   4: { icon: "{}", title: "Fill in the data", file: "data.json", badge: "instance" },
   5: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
 };
@@ -137,11 +137,11 @@ export const SimulateView = () => (
   </div>
 );
 
-/** Step 7: Export — placeholder until the export flow is designed. */
-export const ExportView = () => (
+/** Step 7: Deploy — placeholder until the deploy flow is designed. */
+export const DeployView = () => (
   <div className="nd-view nd-view-export">
     <div className="nd-export-head">
-      <h1>Export</h1>
+      <h1>Deploy</h1>
     </div>
     <div className="nd-export-grid">
       {["Download PDF", "Share link", "Copy to clipboard"].map((label) => (
@@ -154,7 +154,7 @@ export const ExportView = () => (
 );
 
 interface ViewSwitchProps {
-  view: NewDesignView;
+  view: DesignV2View;
   onStart: () => void;
 }
 
@@ -162,6 +162,6 @@ export const ViewSwitch = ({ view, onStart }: ViewSwitchProps) => {
   if (view === "welcome") return <WelcomeView onStart={onStart} />;
   if (view === 1) return <StartView />;
   if (view === 6) return <SimulateView />;
-  if (view === 7) return <ExportView />;
+  if (view === 7) return <DeployView />;
   return <EditorView step={view} />;
 };
