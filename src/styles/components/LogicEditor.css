@@ -27,25 +27,29 @@
 }
 
 .logic-editor-apply-btn {
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 4px;
-  border: 1px solid rgba(25, 198, 199, 0.5);
-  background: transparent;
+  border: 1px solid rgba(25, 198, 199, 0.4);
+  background: rgba(25, 198, 199, 0.08);
   color: #19c6c7;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s;
+  transition: all 0.15s ease-in-out;
 }
 
 .logic-editor-apply-btn:hover:not(:disabled) {
-  background: rgba(25, 198, 199, 0.12);
+  background: rgba(25, 198, 199, 0.2);
   border-color: #19c6c7;
+  color: #19c6c7;
 }
 
 .logic-editor-apply-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.35;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.35);
   cursor: not-allowed;
 }
 
