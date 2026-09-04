@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import HelpRail from "./HelpRail";
-import { STEPS, type EditorStep, type DesignV2View } from "./types";
+import { STEPS, STEP_ID, STEP_KEY, isEditorStep, type EditorStepKey, type DesignV2View } from "./types";
 
 /*
  * Placeholder views for each step of the flow. Only structure — no real
@@ -65,7 +65,7 @@ export const StartView = () => (
       <button type="button" className="nd-btn-outline-sm">✦ Draft with AI</button>
       <label className="nd-checkbox">
         <input type="checkbox" defaultChecked /> include logic{" "}
-        <span className="nd-start-hint">steps 4 &amp; 5</span>
+        <span className="nd-start-hint">steps {STEP_ID.data} &amp; {STEP_ID.logic}</span>
       </label>
     </div>
     <div className="nd-sample-grid">
@@ -76,18 +76,18 @@ export const StartView = () => (
   </div>
 );
 
-const EDITOR_META: Record<EditorStep, { icon: string; title: string; file: string; badge: string }> = {
-  2: { icon: "¶", title: "Write the contract text", file: "text.md", badge: "TemplateMark" },
-  3: { icon: "◇", title: "Define the data model", file: "model.cto", badge: "Concerto" },
-  4: { icon: "{}", title: "Fill in the data", file: "data.json", badge: "instance" },
-  5: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
+const EDITOR_META: Record<EditorStepKey, { icon: string; title: string; file: string; badge: string }> = {
+  text: { icon: "¶", title: "Write the contract text", file: "text.md", badge: "TemplateMark" },
+  model: { icon: "◇", title: "Define the data model", file: "model.cto", badge: "Concerto" },
+  data: { icon: "{}", title: "Fill in the data", file: "data.json", badge: "instance" },
+  logic: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
 };
 
 interface EditorViewProps {
-  step: EditorStep;
+  step: EditorStepKey;
 }
 
-/** Steps 2–5: title block, editor card (header / body / status bar) and the help rail. */
+/** Editor steps: title block, editor card (header / body / status bar) and the help rail. */
 export const EditorView = ({ step }: EditorViewProps) => {
   const meta = EDITOR_META[step];
   return (
@@ -98,7 +98,7 @@ export const EditorView = ({ step }: EditorViewProps) => {
           <div className="nd-editor-title-text">
             <h1>{meta.title}</h1>
           </div>
-          {step === 5 && (
+          {step === "logic" && (
             <button type="button" className="nd-btn-outline-sm">✦ Scaffold from model</button>
           )}
         </div>
@@ -160,8 +160,9 @@ interface ViewSwitchProps {
 
 export const ViewSwitch = ({ view, onStart }: ViewSwitchProps) => {
   if (view === "welcome") return <WelcomeView onStart={onStart} />;
-  if (view === 1) return <StartView />;
-  if (view === 6) return <SimulateView />;
-  if (view === 7) return <DeployView />;
-  return <EditorView step={view} />;
+  const key = STEP_KEY[view];
+  if (isEditorStep(key)) return <EditorView step={key} />;
+  if (key === "template") return <StartView />;
+  if (key === "simulate") return <SimulateView />;
+  return <DeployView />;
 };

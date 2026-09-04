@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 /**
- * Right-hand 286px help rail shown next to the editor steps (2–5).
+ * Right-hand 286px help rail shown next to the editor steps.
  * Card 1: step checklist. Card 2: "Why this step" / "How it works" tabs.
  * Content is placeholder-only for now.
  */

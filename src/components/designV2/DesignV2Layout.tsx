@@ -4,7 +4,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import PreviewDrawer from "./PreviewDrawer";
 import { ViewSwitch } from "./views";
-import { STEPS, type DesignV2View } from "./types";
+import { STEPS, FIRST_STEP, type DesignV2View } from "./types";
 import "./DesignV2Layout.css";
 
 /**
@@ -18,7 +18,7 @@ import "./DesignV2Layout.css";
  *   │      │ stepper (1 Template · 2 Text · 3 Model · 4 Data · 5 Logic · 6 Simulate · 7 Deploy)
  *   │      ├─────────────────────────────┬─────────────┤
  *   │      │ view (welcome/start/editor/ │ help rail   │  ← preview drawer overlays
- *   │      │       simulate/deploy)      │ (steps 2–5) │
+ *   │      │       simulate/deploy)      │ (editor steps) │
  *   │      ├─────────────────────────────┴─────────────┤
  *   │      │ footer  (problems · Back · Compile · Next)
  *   └──────┴───────────────────────────────────────────┘
@@ -52,7 +52,7 @@ const DesignV2Layout = () => {
         />
         <div className="nd-body">
           <div className="nd-body-content">
-            <ViewSwitch view={view} onStart={() => setView(1)} />
+            <ViewSwitch view={view} onStart={() => setView(FIRST_STEP)} />
           </div>
           {previewOpen && <PreviewDrawer onClose={() => setPreviewOpen(false)} />}
         </div>

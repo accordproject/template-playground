@@ -1,4 +1,4 @@
-import type { DesignV2View } from "./types";
+import { FIRST_STEP, LAST_STEP, STEP_ID, type DesignV2View } from "./types";
 
 interface FooterProps {
   view: DesignV2View;
@@ -8,9 +8,10 @@ interface FooterProps {
 
 /** Bottom bar: problems pill on the left, Back / Apply & Compile / Next on the right. */
 const Footer = ({ view, onBack, onNext }: FooterProps) => {
-  const canBack = view !== 1;
-  const canNext = view !== 7;
-  const isLogic = view === 5;
+  const isFirst = view === FIRST_STEP;
+  const canBack = !isFirst;
+  const canNext = view !== LAST_STEP;
+  const isLogic = view === STEP_ID.logic;
 
   return (
     <footer className="nd-footer">
@@ -28,7 +29,7 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
       )}
       {canNext && (
         <button type="button" className="nd-btn-primary" onClick={onNext}>
-          {view === 1 ? "Start with this template" : "Next →"}
+          {isFirst ? "Start with this template" : "Next →"}
         </button>
       )}
     </footer>
