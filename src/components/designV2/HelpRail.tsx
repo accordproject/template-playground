@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { HELP_RAIL } from "./constants";
 
 /**
  * Right-hand 286px help rail shown next to the editor steps.
@@ -9,10 +10,10 @@ const HelpRail = () => {
   const [tab, setTab] = useState<"why" | "how">("why");
 
   return (
-    <aside className="nd-help-rail" aria-label="Step guidance">
+    <aside className="nd-help-rail" aria-label={HELP_RAIL.ariaLabel}>
       <div className="nd-card">
         <div className="nd-card-head">
-          <span className="nd-card-title">CHECKLIST</span>
+          <span className="nd-card-title">{HELP_RAIL.checklist}</span>
         </div>
         <div className="nd-checklist" />
       </div>
@@ -26,7 +27,7 @@ const HelpRail = () => {
             className={`nd-tab ${tab === "why" ? "nd-tab-active" : ""}`}
             onClick={() => setTab("why")}
           >
-            WHY THIS STEP
+            {HELP_RAIL.tabWhy}
           </button>
           <button
             type="button"
@@ -35,7 +36,7 @@ const HelpRail = () => {
             className={`nd-tab ${tab === "how" ? "nd-tab-active" : ""}`}
             onClick={() => setTab("how")}
           >
-            HOW IT WORKS
+            {HELP_RAIL.tabHow}
           </button>
         </div>
         <div className="nd-card-body" />

@@ -1,4 +1,5 @@
 import { FIRST_STEP, LAST_STEP, STEP_ID, type DesignV2View } from "./types";
+import { FOOTER } from "./constants";
 
 interface FooterProps {
   view: DesignV2View;
@@ -15,21 +16,21 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
 
   return (
     <footer className="nd-footer">
-      <span className="nd-problem-pill nd-problem-pill-ok">✓ no problems</span>
+      <span className="nd-problem-pill nd-problem-pill-ok">{FOOTER.noProblems}</span>
       <div className="nd-spacer" />
       {canBack && (
         <button type="button" className="nd-btn-ghost" onClick={onBack}>
-          ← Back
+          {FOOTER.back}
         </button>
       )}
       {isLogic && (
         <button type="button" className="nd-btn-compile">
-          Apply &amp; Compile
+          {FOOTER.applyAndCompile}
         </button>
       )}
       {canNext && (
         <button type="button" className="nd-btn-primary" onClick={onNext}>
-          {isFirst ? "Start with this template" : "Next →"}
+          {isFirst ? FOOTER.startWithTemplate : FOOTER.next}
         </button>
       )}
     </footer>

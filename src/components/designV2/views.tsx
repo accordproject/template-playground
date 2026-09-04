@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import HelpRail from "./HelpRail";
 import { STEPS, STEP_ID, STEP_KEY, isEditorStep, type EditorStepKey, type DesignV2View } from "./types";
+import { ROUTES, WELCOME, START, EDITOR, SIMULATE, DEPLOY, type EditorMeta } from "./constants";
 
 /*
  * Placeholder views for each step of the flow. Only structure — no real
@@ -20,20 +21,20 @@ export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
       <div className="nd-hero-grid" />
       <div className="nd-spacer" />
       <h1 className="nd-hero-title">
-        Contracts that
+        {WELCOME.titleLine}
         <br />
-        <span className="nd-hero-title-accent">run themselves.</span>
+        <span className="nd-hero-title-accent">{WELCOME.titleAccent}</span>
       </h1>
       <p className="nd-hero-sub">
-        Write the agreement once — as data, text and rules — and watch it execute.
+        {WELCOME.subtitleLine1}
         <br />
-        Seven steps, no setup.
+        {WELCOME.subtitleLine2}
       </p>
       <div className="nd-hero-actions">
         <button type="button" className="nd-btn-hero" onClick={onStart}>
-          Start building <span>→</span>
+          {WELCOME.start} <span>→</span>
         </button>
-        <button type="button" className="nd-btn-hero-outline" onClick={() => navigate("/learn/intro")}>How it works ↗</button>
+        <button type="button" className="nd-btn-hero-outline" onClick={() => navigate(ROUTES.learnIntro)}>{WELCOME.howItWorks}</button>
       </div>
       <div className="nd-spacer" />
       <div className="nd-hero-strip">
@@ -58,30 +59,23 @@ export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
 export const StartView = () => (
   <div className="nd-view nd-view-start">
     <div className="nd-start-head">
-      <span className="nd-start-title">Choose a template type</span>
-      <span className="nd-start-hint">everything stays editable later</span>
+      <span className="nd-start-title">{START.title}</span>
+      <span className="nd-start-hint">{START.hint}</span>
       <div className="nd-spacer" />
-      <button type="button" className="nd-btn-dashed">+ Blank</button>
-      <button type="button" className="nd-btn-outline-sm">✦ Draft with AI</button>
+      <button type="button" className="nd-btn-dashed">{START.blank}</button>
+      <button type="button" className="nd-btn-outline-sm">{START.draftWithAi}</button>
       <label className="nd-checkbox">
-        <input type="checkbox" defaultChecked /> include logic{" "}
-        <span className="nd-start-hint">steps {STEP_ID.data} &amp; {STEP_ID.logic}</span>
+        <input type="checkbox" defaultChecked /> {START.includeLogic}{" "}
+        <span className="nd-start-hint">{START.includeLogicHint(STEP_ID.data, STEP_ID.logic)}</span>
       </label>
     </div>
     <div className="nd-sample-grid">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <button key={i} type="button" className="nd-sample-card" aria-label={`Template ${i + 1}`} />
+      {Array.from({ length: START.sampleCount }).map((_, i) => (
+        <button key={i} type="button" className="nd-sample-card" aria-label={START.sampleCardLabel(i + 1)} />
       ))}
     </div>
   </div>
 );
-
-const EDITOR_META: Record<EditorStepKey, { icon: string; title: string; file: string; badge: string }> = {
-  text: { icon: "¶", title: "Write the contract text", file: "text.md", badge: "TemplateMark" },
-  model: { icon: "◇", title: "Define the data model", file: "model.cto", badge: "Concerto" },
-  data: { icon: "{}", title: "Fill in the data", file: "data.json", badge: "instance" },
-  logic: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
-};
 
 interface EditorViewProps {
   step: EditorStepKey;
@@ -89,7 +83,7 @@ interface EditorViewProps {
 
 /** Editor steps: title block, editor card (header / body / status bar) and the help rail. */
 export const EditorView = ({ step }: EditorViewProps) => {
-  const meta = EDITOR_META[step];
+  const meta: EditorMeta = EDITOR.meta[step];
   return (
     <div className="nd-view nd-view-editor">
       <div className="nd-editor-column">
@@ -99,7 +93,7 @@ export const EditorView = ({ step }: EditorViewProps) => {
             <h1>{meta.title}</h1>
           </div>
           {step === "logic" && (
-            <button type="button" className="nd-btn-outline-sm">✦ Scaffold from model</button>
+            <button type="button" className="nd-btn-outline-sm">{EDITOR.scaffoldFromModel}</button>
           )}
         </div>
         <div className="nd-editor-card">
@@ -107,14 +101,14 @@ export const EditorView = ({ step }: EditorViewProps) => {
             <span className="nd-mono nd-editor-file">{meta.file}</span>
             <span className="nd-badge nd-badge-teal">{meta.badge}</span>
             <div className="nd-spacer" />
-            <button type="button" className="nd-btn-ghost-sm">≡ format</button>
-            <button type="button" className="nd-btn-ghost-sm">⧉ copy</button>
+            <button type="button" className="nd-btn-ghost-sm">{EDITOR.format}</button>
+            <button type="button" className="nd-btn-ghost-sm">{EDITOR.copy}</button>
           </div>
           <div className="nd-editor-card-body">
             <div className="nd-placeholder nd-placeholder-block" />
           </div>
           <div className="nd-editor-card-foot">
-            <span className="nd-status-ok">✓ ok</span>
+            <span className="nd-status-ok">{EDITOR.statusOk}</span>
           </div>
         </div>
       </div>
@@ -127,7 +121,7 @@ export const EditorView = ({ step }: EditorViewProps) => {
 export const SimulateView = () => (
   <div className="nd-view nd-view-simulate">
     <div className="nd-sim-head">
-      <h1>Simulate</h1>
+      <h1>{SIMULATE.title}</h1>
     </div>
     <div className="nd-editor-card">
       <div className="nd-editor-card-body">
@@ -141,10 +135,10 @@ export const SimulateView = () => (
 export const DeployView = () => (
   <div className="nd-view nd-view-export">
     <div className="nd-export-head">
-      <h1>Deploy</h1>
+      <h1>{DEPLOY.title}</h1>
     </div>
     <div className="nd-export-grid">
-      {["Download PDF", "Share link", "Copy to clipboard"].map((label) => (
+      {DEPLOY.cards.map((label) => (
         <div key={label} className="nd-card nd-export-card">
           <span className="nd-export-label">{label}</span>
         </div>

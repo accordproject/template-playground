@@ -3,9 +3,7 @@ import { GithubOutlined, SettingOutlined } from "@ant-design/icons";
 import { FaDiscord } from "react-icons/fa";
 import useAppStore from "../../store/store";
 import SettingsModal from "../SettingsModal";
-
-const DISCORD_URL = "https://discord.com/invite/Zm99SKhhtA";
-const GITHUB_URL = "https://github.com/accordproject/template-playground";
+import { RAIL, URLS } from "./constants";
 
 /**
  * Dark 56px navigation rail on the far left of the new design.
@@ -22,34 +20,34 @@ const Rail = () => {
 
   return (
     <>
-      <aside className="nd-rail" aria-label="Playground navigation">
+      <aside className="nd-rail" aria-label={RAIL.navLabel}>
         <button
           type="button"
           className={`nd-rail-menu ${menuOpen ? "nd-rail-menu-open" : ""}`}
-          title="Playground menu"
-          aria-label="Playground menu"
+          title={RAIL.menuButton}
+          aria-label={RAIL.menuButton}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((v) => !v)}
         >
           <span className="nd-rail-menu-glyph" />
         </button>
         <div className="nd-spacer" />
-        <button type="button" className="nd-rail-ai" title="AI assistant" aria-label="AI assistant">
+        <button type="button" className="nd-rail-ai" title={RAIL.aiButton} aria-label={RAIL.aiButton}>
           ✦
         </button>
         <button
           type="button"
           className="nd-rail-link"
-          title="Settings"
-          aria-label="Settings"
+          title={RAIL.settings}
+          aria-label={RAIL.settings}
           onClick={() => setSettingsOpen(true)}
         >
           <SettingOutlined />
         </button>
-        <a className="nd-rail-link" href={DISCORD_URL} target="_blank" rel="noopener noreferrer" title="Discord" aria-label="Discord">
+        <a className="nd-rail-link" href={URLS.discord} target="_blank" rel="noopener noreferrer" title={RAIL.discord} aria-label={RAIL.discord}>
           <FaDiscord />
         </a>
-        <a className="nd-rail-link" href={GITHUB_URL} target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
+        <a className="nd-rail-link" href={URLS.github} target="_blank" rel="noopener noreferrer" title={RAIL.github} aria-label={RAIL.github}>
           <GithubOutlined />
         </a>
       </aside>
@@ -58,46 +56,46 @@ const Rail = () => {
       {menuOpen && (
         <>
           <div className="nd-menu-backdrop" onClick={() => setMenuOpen(false)} />
-          <div className="nd-menu" role="menu" aria-label="Playground menu">
+          <div className="nd-menu" role="menu" aria-label={RAIL.menuButton}>
             <div className="nd-menu-head">
-              <div className="nd-menu-title">Playground</div>
-              <div className="nd-menu-sub">Open a demo, learn the format, or start over.</div>
+              <div className="nd-menu-title">{RAIL.menuTitle}</div>
+              <div className="nd-menu-sub">{RAIL.menuSubtitle}</div>
             </div>
             <div className="nd-menu-body">
               {/* Actions intentionally not wired yet — visual skeleton only. */}
               <button type="button" role="menuitem" className="nd-menu-item" onClick={closeMenu}>
                 <span className="nd-menu-icon nd-menu-icon-teal">◧</span>
                 <span className="nd-menu-item-text">
-                  <span className="nd-menu-item-label">Open the demo document</span>
-                  <span className="nd-menu-item-hint">See the rendered {sampleName} as a signer would</span>
+                  <span className="nd-menu-item-label">{RAIL.items.demo.label}</span>
+                  <span className="nd-menu-item-hint">{RAIL.items.demo.hint(sampleName)}</span>
                 </span>
               </button>
               <button type="button" role="menuitem" className="nd-menu-item" onClick={closeMenu}>
                 <span className="nd-menu-icon nd-menu-icon-blue">▶</span>
                 <span className="nd-menu-item-text">
-                  <span className="nd-menu-item-label">Replay the guided tour</span>
-                  <span className="nd-menu-item-hint">Back to step 0 — pick a starting point</span>
+                  <span className="nd-menu-item-label">{RAIL.items.tour.label}</span>
+                  <span className="nd-menu-item-hint">{RAIL.items.tour.hint}</span>
                 </span>
               </button>
               <button type="button" role="menuitem" className="nd-menu-item" onClick={closeMenu}>
                 <span className="nd-menu-icon">⬡</span>
                 <span className="nd-menu-item-text">
-                  <span className="nd-menu-item-label">Browse example templates</span>
-                  <span className="nd-menu-item-hint">Employment offer, NDA, supply agreement…</span>
+                  <span className="nd-menu-item-label">{RAIL.items.examples.label}</span>
+                  <span className="nd-menu-item-hint">{RAIL.items.examples.hint}</span>
                 </span>
               </button>
               <button type="button" role="menuitem" className="nd-menu-item" onClick={closeMenu}>
                 <span className="nd-menu-icon nd-menu-icon-amber">↗</span>
                 <span className="nd-menu-item-text">
-                  <span className="nd-menu-item-label">Docs: template format</span>
-                  <span className="nd-menu-item-hint">Text, model and logic explained</span>
+                  <span className="nd-menu-item-label">{RAIL.items.docs.label}</span>
+                  <span className="nd-menu-item-hint">{RAIL.items.docs.hint}</span>
                 </span>
               </button>
               <button type="button" role="menuitem" className="nd-menu-item" onClick={closeMenu}>
                 <span className="nd-menu-icon">↺</span>
                 <span className="nd-menu-item-text">
-                  <span className="nd-menu-item-label">Reset the playground</span>
-                  <span className="nd-menu-item-hint">Clear edits and start from the sample</span>
+                  <span className="nd-menu-item-label">{RAIL.items.reset.label}</span>
+                  <span className="nd-menu-item-hint">{RAIL.items.reset.hint}</span>
                 </span>
               </button>
             </div>
