@@ -1,10 +1,9 @@
-import { useState } from "react";
+import useDesignV2Store from "../../store/designV2Store";
 import Rail from "./Rail";
 import Header from "./Header";
 import Footer from "./Footer";
 import PreviewDrawer from "./PreviewDrawer";
 import { ViewSwitch } from "./views";
-import { STEPS, FIRST_STEP, type DesignV2View } from "./types";
 import "./DesignV2Layout.css";
 
 /**
@@ -23,20 +22,19 @@ import "./DesignV2Layout.css";
  *   │      │ footer  (problems · Back · Compile · Next)
  *   └──────┴───────────────────────────────────────────┘
  *
- * All content areas are placeholders; wiring to the store/editors comes later.
+ * View / preview state lives in useDesignV2Store (src/store/designV2Store.ts).
+ * All content areas are placeholders; wiring to the editors comes later.
  * Rendered from App.tsx when the "Enable New Design" (isDesignV2Enabled) feature flag is on.
  */
 const DesignV2Layout = () => {
-  const [view, setView] = useState<DesignV2View>("welcome");
-  const [previewOpen, setPreviewOpen] = useState(false);
-
-  const stepIndex = STEPS.findIndex((s) => s.id === view);
-  const goBack = () => {
-    if (stepIndex > 0) setView(STEPS[stepIndex - 1].id);
-  };
-  const goNext = () => {
-    if (stepIndex >= 0 && stepIndex < STEPS.length - 1) setView(STEPS[stepIndex + 1].id);
-  };
+  const view = useDesignV2Store((s) => s.view);
+  const previewOpen = useDesignV2Store((s) => s.previewOpen);
+  const setView = useDesignV2Store((s) => s.setView);
+  const start = useDesignV2Store((s) => s.start);
+  const goBack = useDesignV2Store((s) => s.goBack);
+  const goNext = useDesignV2Store((s) => s.goNext);
+  const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
+  const togglePreview = useDesignV2Store((s) => s.togglePreview);
 
   const showChrome = view !== "welcome";
 
@@ -48,11 +46,11 @@ const DesignV2Layout = () => {
           view={view}
           previewOpen={previewOpen}
           onNavigate={setView}
-          onTogglePreview={() => setPreviewOpen((v) => !v)}
+          onTogglePreview={togglePreview}
         />
         <div className="nd-body">
           <div className="nd-body-content">
-            <ViewSwitch view={view} onStart={() => setView(FIRST_STEP)} />
+            <ViewSwitch view={view} onStart={start} />
           </div>
           {previewOpen && <PreviewDrawer onClose={() => setPreviewOpen(false)} />}
         </div>
