@@ -24,7 +24,7 @@ const App = () => {
   const textColor = useAppStore((state) => state.textColor);
   const isDesignV2Enabled = useAppStore((state) => state.isDesignV2Enabled);
   const location = useLocation();
-  // The new design ships its own header, so the legacy navbar is hidden on the playground route.
+  // Design v2 ships its own header, so the legacy navbar is hidden on the playground route.
   const hideNavbar = isDesignV2Enabled && location.pathname === "/";
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
@@ -88,7 +88,7 @@ const App = () => {
       }
     };
 
-    // The new design has its own onboarding flow; the legacy tour targets elements that don't exist there.
+    // Design v2 has its own onboarding flow; the legacy tour targets elements that don't exist there.
     if (isDesignV2Enabled) return;
 
     const showTour = searchParams.get("showTour") === "true";

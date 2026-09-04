@@ -24,7 +24,7 @@ import "./DesignV2Layout.css";
  *
  * View / preview state lives in useDesignV2Store (src/store/designV2Store.ts).
  * All content areas are placeholders; wiring to the editors comes later.
- * Rendered from App.tsx when the "Enable New Design" (isDesignV2Enabled) feature flag is on.
+ * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
 const DesignV2Layout = () => {
   const view = useDesignV2Store((s) => s.view);

@@ -109,7 +109,7 @@ const SettingsModal: React.FC = () => {
           {/* Design v2 feature flag toggle */}
           <Row justify="space-between" align="middle" style={{ width: '100%' }}>
             <Col flex="auto">
-              <Text strong style={{ display: 'block' }}>Enable New Design (Work in Progress)</Text>
+              <Text strong style={{ display: 'block' }}>Enable Design v2 (Work in Progress)</Text>
               <Text type="secondary" style={{ fontSize: 13 }}>
                 Preview the redesigned playground layout. This design is still under development and may be incomplete or change without notice.
               </Text>

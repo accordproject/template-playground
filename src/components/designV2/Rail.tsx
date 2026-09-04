@@ -6,7 +6,7 @@ import SettingsModal from "../SettingsModal";
 import { RAIL, URLS } from "./constants";
 
 /**
- * Dark 56px navigation rail on the far left of the new design.
+ * Dark 56px navigation rail on the far left of design v2.
  * The ▲ button opens the Playground menu (demo, tour, samples, docs, reset).
  * Menu items are not wired to actions yet.
  * Settings / Discord / GitHub live at the bottom of the rail; Settings opens
