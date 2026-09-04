@@ -127,6 +127,9 @@ interface AppState {
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
   isLogicFeatureEnabled: boolean;
   setLogicFeatureEnabled: (value: boolean) => void;
+  /** Feature flag for the new playground design (work in progress). */
+  isDesignV2Enabled: boolean;
+  setDesignV2Enabled: (value: boolean) => void;
   /**
    * Updates the live editor value without committing or triggering compilation.
    * @param ts - The current TypeScript source from the editor
@@ -373,6 +376,16 @@ const useAppStore = create<AppState>()(
             localStorage.setItem("isLogicFeatureEnabled", String(value));
           }
           set({ isLogicFeatureEnabled: value });
+        },
+        isDesignV2Enabled:
+          typeof window !== "undefined"
+            ? localStorage.getItem("isDesignV2Enabled") === "true"
+            : false,
+        setDesignV2Enabled: (value: boolean) => {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("isDesignV2Enabled", String(value));
+          }
+          set({ isDesignV2Enabled: value });
         },
         logicTs: "",
         editorLogicTs: "",
