@@ -37,7 +37,10 @@ const ContractExecutionTabs: React.FC = () => {
     executionState: s.executionState,
     executionEvents: s.executionEvents,
     isTemplateStateful: s.isTemplateStateful,
-    executionChain: s.executionChain,
+    // Default to [] — a template swap or a store not yet fully initialized
+    // can leave this undefined for a render or two, and every use below
+    // assumes an array.
+    executionChain: s.executionChain ?? [],
   }));
 
   const [activeTab, setActiveTab] = useState("response");

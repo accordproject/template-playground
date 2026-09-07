@@ -87,7 +87,12 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
     if (savedMaxTokens) setMaxTokens(savedMaxTokens);
     if (savedEffort) setEffort(savedEffort);
-    if (savedTemperature) setTemperature(Number(savedTemperature));
+    if (savedTemperature) {
+      const parsed = Number(savedTemperature);
+      if (Number.isFinite(parsed)) {
+        setTemperature(Math.min(1, Math.max(0, parsed)));
+      }
+    }
     setThinking(localStorage.getItem('aiThinking') !== 'false');
 
     setShowFullPrompt(savedShowFullPrompt);

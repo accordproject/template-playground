@@ -28,23 +28,15 @@ import { LLMExecutorConfig } from './LLMConfig';
 import { BaseReasoner, ChatMessage, JsonSchema, createReasoner } from './Reasoners';
 import { treeShakeModel } from './ModelManagerSchema';
 
-/** The contract state. */
-export type State = object;
-/** A response/result returned by the contract logic. */
-export type Response = object;
-/** An event emitted by the contract logic. */
-export type Event = object;
-
 /** The result of triggering a template: the response, updated state, and events. */
 export interface TriggerResponse {
-  result: Response;
-  state: State;
-  events: Event[];
+  result: object;
+  state: object;
+  events: object[];
 }
 
-/** The result of initializing a template: the initial state. */
 export interface InitResponse {
-  state: State;
+  state: object;
 }
 
 /** The fully-qualified name of the runtime State base type. */

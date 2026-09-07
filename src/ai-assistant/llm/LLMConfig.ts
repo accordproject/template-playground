@@ -30,10 +30,14 @@ import type { AIConfig } from '../../types/components/AIAssistant.types';
  * - `fallback`: run the compiled logic when there is some, otherwise the LLM.
  * - `force`: always run the LLM, even when compiled logic exists.
  */
-export type LLMMode = 'disabled' | 'fallback' | 'force';
+export enum LLMMode {
+  Disabled = 'disabled',
+  Fallback = 'fallback',
+  Force = 'force',
+}
 
 /** Every LLM mode, in the order the mode switch renders them. */
-export const LLM_MODES: readonly LLMMode[] = ['disabled', 'fallback', 'force'];
+export const LLM_MODES: readonly LLMMode[] = [LLMMode.Disabled, LLMMode.Fallback, LLMMode.Force];
 
 /**
  * Effort levels the OpenAI Chat Completions API accepts. Only reasoning models
@@ -66,14 +70,15 @@ export const EFFORT_THINKING_BUDGET: Record<AnthropicEffort, number> = {
 };
 
 /** The provider ids the playground can execute contracts with. */
-export type LLMProviderId =
-  | 'openai'
-  | 'anthropic'
-  | 'google'
-  | 'mistral'
-  | 'openrouter'
-  | 'ollama'
-  | 'openai-compatible';
+export enum LLMProviderId {
+  OpenAI = 'openai',
+  Anthropic = 'anthropic',
+  Google = 'google',
+  Mistral = 'mistral',
+  OpenRouter = 'openrouter',
+  Ollama = 'ollama',
+  OpenAICompatible = 'openai-compatible',
+}
 
 /**
  * Which tuning knobs a provider honours. Drives both the settings form and the
@@ -92,15 +97,15 @@ export interface ProviderCapabilities {
 
 /** Capability matrix, keyed by provider id. */
 export const PROVIDER_CAPABILITIES: Record<LLMProviderId, ProviderCapabilities> = {
-  openai: { effort: OPENAI_EFFORT_LEVELS, temperature: false, thinking: false, structuredOutput: true },
-  anthropic: { effort: ANTHROPIC_EFFORT_LEVELS, temperature: false, thinking: true, structuredOutput: true },
-  google: { effort: null, temperature: true, thinking: false, structuredOutput: true },
-  mistral: { effort: null, temperature: true, thinking: false, structuredOutput: true },
-  openrouter: { effort: null, temperature: true, thinking: false, structuredOutput: true },
+  [LLMProviderId.OpenAI]: { effort: OPENAI_EFFORT_LEVELS, temperature: false, thinking: false, structuredOutput: true },
+  [LLMProviderId.Anthropic]: { effort: ANTHROPIC_EFFORT_LEVELS, temperature: false, thinking: true, structuredOutput: true },
+  [LLMProviderId.Google]: { effort: null, temperature: true, thinking: false, structuredOutput: true },
+  [LLMProviderId.Mistral]: { effort: null, temperature: true, thinking: false, structuredOutput: true },
+  [LLMProviderId.OpenRouter]: { effort: null, temperature: true, thinking: false, structuredOutput: true },
   // Local models vary wildly in how well they honour a schema, so the executor
   // falls back to describing the Concerto types in the prompt for these two.
-  ollama: { effort: null, temperature: true, thinking: false, structuredOutput: false },
-  'openai-compatible': { effort: null, temperature: true, thinking: false, structuredOutput: false },
+  [LLMProviderId.Ollama]: { effort: null, temperature: true, thinking: false, structuredOutput: false },
+  [LLMProviderId.OpenAICompatible]: { effort: null, temperature: true, thinking: false, structuredOutput: false },
 };
 
 /**
@@ -130,30 +135,33 @@ export function getProviderCapabilities(provider: string): ProviderCapabilities 
  */
 export function isLLMConfigured(aiConfig: AIConfig | null | undefined): boolean {
   if (!aiConfig?.provider || !aiConfig.model) return false;
-  if (aiConfig.provider === 'openai-compatible' && !aiConfig.customEndpoint) return false;
+  if (aiConfig.provider === LLMProviderId.OpenAICompatible && !aiConfig.customEndpoint) return false;
   // Ollama runs locally and takes no key.
-  if (aiConfig.provider !== 'ollama' && !aiConfig.apiKey) return false;
+  if (aiConfig.provider !== LLMProviderId.Ollama && !aiConfig.apiKey) return false;
   return true;
 }
 
 /**
  * Provider settings shared by every reasoner.
+ *
+ * `model`, `customEndpoint`, `thinking`, `temperature` and `maxTokens` are
+ * pulled straight from {@link AIConfig} so the AI chat panel and the contract
+ * executor stay in lockstep — a knob added to one settings form shows up here
+ * automatically instead of being redeclared and allowed to drift.
  */
-export interface LLMProviderConfig {
+export interface LLMProviderConfig
+  extends Pick<AIConfig, 'model' | 'customEndpoint' | 'thinking' | 'temperature' | 'maxTokens'> {
   provider: LLMProviderId;
+  /** Absent for providers that need no key, e.g. Ollama. */
   apiKey?: string;
-  model: string;
-  /** Base URL for the OpenAI-compatible providers (`openai-compatible`, `ollama`). */
-  customEndpoint?: string;
   /** Whether the provider enforces the JSON Schema natively. */
   isStructuredOutputSupported?: boolean;
-  /** Reasoning depth. Only honoured where {@link ProviderCapabilities.effort} is set. */
+  /**
+   * Reasoning depth. Only honoured where {@link ProviderCapabilities.effort}
+   * is set. Narrower than `AIConfig.effort` (a plain `string`) because the
+   * executor needs to know it is one of the levels a provider actually accepts.
+   */
   effort?: ReasoningEffort;
-  /** Whether to run Anthropic with extended thinking. Defaults to `true`. */
-  thinking?: boolean;
-  /** Sampling temperature. Only honoured where the provider accepts one. */
-  temperature?: number;
-  maxTokens?: number;
   /** Extra attempts after the first failure. Defaults to 1. */
   retries?: number;
   timeoutMs?: number;

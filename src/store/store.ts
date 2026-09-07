@@ -480,10 +480,14 @@ const getInitialChain = (): ChainStep[] => {
 /** Persists the execution chain, or clears storage once it's empty. */
 const persistChain = (chain: ChainStep[]) => {
   if (typeof window === "undefined") return;
-  if (chain.length === 0) {
-    localStorage.removeItem(CHAIN_STORAGE_KEY);
-  } else {
-    localStorage.setItem(CHAIN_STORAGE_KEY, JSON.stringify(chain));
+   try {
+     if (chain.length === 0) {
+       localStorage.removeItem(CHAIN_STORAGE_KEY);
+     } else {
+       localStorage.setItem(CHAIN_STORAGE_KEY, JSON.stringify(chain));
+     }
+   } catch {
+     // ignore storage quota / access errors
   }
 };
 

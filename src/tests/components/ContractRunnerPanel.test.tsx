@@ -34,6 +34,10 @@ const baseState = {
   setSettingsOpen: vi.fn(),
   templateObject: {},
   buildTemplateFromMemory: vi.fn(),
+  // No chain started by default — matches the store's own initial state
+  // (see getInitialChain/resetExecution in store.ts).
+  executionChain: [],
+  selectedChainIndex: -1,
 };
 
 type StoreSlice = typeof baseState;

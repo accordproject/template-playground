@@ -25,7 +25,7 @@
     "@accordproject/markdown-common": "^1.0.1",
     "@accordproject/markdown-template": "^1.0.1",
     "@accordproject/markdown-transform": "^1.0.1",
-    "@accordproject/template-engine": "^4.0.0",
+    "@accordproject/template-engine": "^4.2.1",
     "@ant-design/icons": "^5.3.7",
     "@anthropic-ai/sdk": "^0.56.0",
     "@google/genai": "^1.8.0",

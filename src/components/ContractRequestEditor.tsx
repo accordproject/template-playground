@@ -47,7 +47,10 @@ const ContractRequestEditor: React.FC = () => {
     isTemplateStateful: s.isTemplateStateful,
     isContractInitialized: s.isContractInitialized,
     aiConfig: s.aiConfig,
-    executionChain: s.executionChain,
+    // Default to [] — a template swap or a store not yet fully initialized
+    // can leave this undefined for a render or two, and canTrigger/
+    // isOnLatestChainStep below both assume an array.
+    executionChain: s.executionChain ?? [],
     selectedChainIndex: s.selectedChainIndex,
   }));
 

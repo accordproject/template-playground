@@ -26,7 +26,9 @@ import { AIConfig } from '../../types/components/AIAssistant.types';
 import {
   LLMExecutorConfig,
   LLMMode,
+  LLMProviderConfig,
   LLMProviderId,
+  ProviderCapabilities,
   ReasoningEffort,
   getProviderCapabilities,
   isLLMConfigured,
@@ -38,46 +40,72 @@ export type { InitResponse, TriggerResponse } from './LLMExecutor';
 export * from './LLMConfig';
 
 /** Which engine produced the artifacts currently shown in the runner. */
-export type ExecutionEngine = 'typescript' | 'llm';
+export enum ExecutionEngine {
+  TypeScript = 'typescript',
+  Llm = 'llm',
+}
+
+/**
+ * Builds the provider config for the executor, including only the tuning
+ * knobs the chosen provider actually honours.
+ * @param config - the caller's (already validated) AI configuration
+ * @param provider - the provider id, narrowed from `config.provider`
+ * @param capabilities - the tuning knobs `provider` honours
+ * @returns the provider config to send to the executor
+ */
+function buildProviderConfig(
+  config: AIConfig,
+  provider: LLMProviderId,
+  capabilities: ProviderCapabilities
+): LLMProviderConfig {
+  const providerConfig: LLMProviderConfig = {
+    provider,
+    model: config.model,
+    apiKey: config.apiKey,
+    customEndpoint: config.customEndpoint,
+    isStructuredOutputSupported: capabilities.structuredOutput,
+  };
+
+  if (capabilities.effort && config.effort) {
+    providerConfig.effort = config.effort as ReasoningEffort;
+  }
+  if (capabilities.thinking) {
+    providerConfig.thinking = config.thinking ?? true;
+  }
+  if (capabilities.temperature && config.temperature !== undefined) {
+    providerConfig.temperature = config.temperature;
+  }
+  if (config.maxTokens) {
+    providerConfig.maxTokens = config.maxTokens;
+  }
+
+  return providerConfig;
+}
 
 /**
  * Maps the playground's AI settings onto the executor configuration, dropping
  * any tuning knob the chosen provider does not honour.
+ *
+ * Callers are expected to have already confirmed `aiConfig` is present (e.g.
+ * behind an `isLLMConfigured` / null check at the call site) — this function
+ * takes a definite `AIConfig` rather than re-deriving that check internally.
  * @param aiConfig - the AI configuration held in the global store
  * @param mode - the execution mode selected in the Contract Runner
  * @returns the executor configuration
- * @throws {Error} if the AI configuration is missing or incomplete
+ * @throws {Error} if the AI configuration is incomplete for the chosen provider
  */
-export function buildLLMExecutorConfig(
-  aiConfig: AIConfig | null | undefined,
-  mode: LLMMode
-): LLMExecutorConfig {
+export function buildLLMExecutorConfig(aiConfig: AIConfig, mode: LLMMode): LLMExecutorConfig {
   if (!isLLMConfigured(aiConfig)) {
     throw new Error(
       'AI execution requires a provider, model and API key. Open Settings → AI Configuration to set them up.'
     );
   }
-  const config = aiConfig!;
-  const provider = config.provider as LLMProviderId;
+  const provider = aiConfig.provider as LLMProviderId;
   const capabilities = getProviderCapabilities(provider);
 
   return {
     mode,
-    provider: {
-      provider,
-      model: config.model,
-      apiKey: config.apiKey,
-      customEndpoint: config.customEndpoint,
-      isStructuredOutputSupported: capabilities.structuredOutput,
-      ...(capabilities.effort && config.effort
-        ? { effort: config.effort as ReasoningEffort }
-        : {}),
-      ...(capabilities.thinking ? { thinking: config.thinking ?? true } : {}),
-      ...(capabilities.temperature && config.temperature !== undefined
-        ? { temperature: config.temperature }
-        : {}),
-      ...(config.maxTokens ? { maxTokens: config.maxTokens } : {}),
-    },
+    provider: buildProviderConfig(aiConfig, provider, capabilities),
     verbose: import.meta.env.DEV,
   };
 }
@@ -87,7 +115,7 @@ export function buildLLMExecutorConfig(
  * the whole JSON Schema from the ModelManager, so it is kept until either the
  * template or the AI configuration changes.
  */
-const executorCache = new WeakMap<object, { key: string; executor: LLMExecutor }>();
+const executorCache = new WeakMap<Template, { key: string; executor: LLMExecutor }>();
 
 /**
  * Returns the executor for a template, reusing the cached one when the
@@ -98,11 +126,11 @@ const executorCache = new WeakMap<object, { key: string; executor: LLMExecutor }
  */
 export function getLLMExecutor(template: Template, config: LLMExecutorConfig): LLMExecutor {
   const key = JSON.stringify(config.provider);
-  const cached = executorCache.get(template as unknown as object);
+  const cached = executorCache.get(template);
   if (cached && cached.key === key) {
     return cached.executor;
   }
   const executor = new LLMExecutor(template, config);
-  executorCache.set(template as unknown as object, { key, executor });
+  executorCache.set(template, { key, executor });
   return executor;
 }
