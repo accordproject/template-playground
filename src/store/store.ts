@@ -17,10 +17,12 @@ import {
   ChatState,
   KeyProtectionLevel,
 } from "../types/components/AIAssistant.types";
-import type {
+import {
   ExecutionEngine,
-  InitResponse,
   LLMMode,
+} from "../ai-assistant/llm";
+import type {
+  InitResponse,
   TriggerResponse,
 } from "../ai-assistant/llm";
 import { validateBeforeRebuild } from "../utils/validators";
@@ -450,11 +452,11 @@ const getInitialLineNumbers = () => {
 const getInitialLLMExecutionMode = (): LLMMode => {
   if (typeof window !== "undefined") {
     const saved = localStorage.getItem("llmExecutionMode");
-    if (saved === "disabled" || saved === "fallback" || saved === "force") {
-      return saved;
+    if (saved === LLMMode.Disabled || saved === LLMMode.Fallback || saved === LLMMode.Force) {
+      return saved as LLMMode;
     }
   }
-  return "disabled";
+  return LLMMode.Disabled;
 };
 
 const CHAIN_STORAGE_KEY = "contractRunnerChain";
@@ -1304,8 +1306,10 @@ const useAppStore = create<AppState>()(
           const { buildLLMExecutorConfig, getLLMExecutor } = await import(
             "../ai-assistant/llm"
           );
+          if (!aiConfig) {
+            throw new Error('AI is not configured. Open Settings → AI Configuration to set it up.');
+          }
           const executorConfig = buildLLMExecutorConfig(aiConfig, llmExecutionMode);
-
           /*
            * The LLM executor derives its JSON Schema from the template's own
            * ModelManager, so it needs a Template object. Rebuild it every run:
@@ -1394,7 +1398,7 @@ const useAppStore = create<AppState>()(
               executionChain: chain,
               selectedChainIndex: 0,
               isContractInitialized: true,
-              lastExecutionEngine: useTypeScript ? 'typescript' : 'llm',
+              lastExecutionEngine: useTypeScript ? ExecutionEngine.TypeScript : ExecutionEngine.LLM,
               compilationErrors: []
             });
             syncChainDisplay(initStep);
@@ -1480,7 +1484,7 @@ const useAppStore = create<AppState>()(
               executionResponse: output.result ? JSON.stringify(output.result, null, 2) : '',
               executionState: output.state ? JSON.stringify(output.state, null, 2) : executionState,
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
-              lastExecutionEngine: useTypeScript ? 'typescript' : 'llm',
+              lastExecutionEngine: useTypeScript ? ExecutionEngine.TypeScript : ExecutionEngine.LLM,
               compilationErrors: []
             });
 

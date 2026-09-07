@@ -31,6 +31,7 @@ import {
   AnthropicEffort,
   EFFORT_THINKING_BUDGET,
   LLMProviderConfig,
+  LLMProviderId,
   OPENAI_EFFORT_LEVELS,
   OpenAIEffort,
   ReasoningEffort,
@@ -161,7 +162,7 @@ export class OpenAICompatibleReasoner extends BaseReasoner {
       throw new Error(`Missing API key for the ${config.provider} provider`);
     }
     this.baseUrl = baseUrl;
-    this.isNativeOpenAI = config.provider === 'openai';
+    this.isNativeOpenAI = config.provider === LLMProviderId.OpenAI;
     this.effort = this.isNativeOpenAI
       ? resolveEffort(config.effort, OPENAI_EFFORT_LEVELS, 'openai')
       : undefined;
@@ -366,26 +367,26 @@ export class MistralReasoner extends BaseReasoner {
  */
 export function createReasoner(config: LLMProviderConfig): BaseReasoner {
   switch (config.provider) {
-    case 'openai':
+    case LLMProviderId.OpenAI:
       return new OpenAICompatibleReasoner(config, 'https://api.openai.com/v1');
-    case 'openrouter':
+    case LLMProviderId.OpenRouter:
       return new OpenAICompatibleReasoner(config, 'https://openrouter.ai/api/v1');
-    case 'ollama':
+    case LLMProviderId.Ollama:
       return new OpenAICompatibleReasoner(
         config,
         config.customEndpoint || 'http://localhost:11434/v1',
         'ollama'
       );
-    case 'openai-compatible':
+    case LLMProviderId.OpenAICompatible:
       if (!config.customEndpoint) {
         throw new Error('An API endpoint is required for the OpenAI Compatible provider');
       }
       return new OpenAICompatibleReasoner(config, config.customEndpoint);
-    case 'anthropic':
+    case LLMProviderId.Anthropic:
       return new AnthropicReasoner(config);
-    case 'google':
+    case LLMProviderId.Google:
       return new GoogleReasoner(config);
-    case 'mistral':
+    case LLMProviderId.Mistral:
       return new MistralReasoner(config);
     default: {
       const exhaustive: never = config.provider;

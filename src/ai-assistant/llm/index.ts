@@ -42,7 +42,7 @@ export * from './LLMConfig';
 /** Which engine produced the artifacts currently shown in the runner. */
 export enum ExecutionEngine {
   TypeScript = 'typescript',
-  Llm = 'llm',
+  LLM = 'llm',
 }
 
 /**

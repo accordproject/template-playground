@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import useAppStore from '../../store/store';
+import { ExecutionEngine, LLMMode } from '../../ai-assistant/llm';
 import type { TriggerResponse } from '../../ai-assistant/llm';
 
 /**
@@ -34,7 +35,7 @@ describe('useAppStore - execution engine selection', () => {
       isContractInitialized: true,
       executingOperation: null,
       compiledLogicJs: 'return class {};',
-      llmExecutionMode: 'disabled',
+      llmExecutionMode: LLMMode.Disabled,
       lastExecutionEngine: null,
       executeInSandbox,
       executeWithLLM,
@@ -46,7 +47,7 @@ describe('useAppStore - execution engine selection', () => {
 
     expect(executeInSandbox).toHaveBeenCalledTimes(1);
     expect(executeWithLLM).not.toHaveBeenCalled();
-    expect(useAppStore.getState().lastExecutionEngine).toBe('typescript');
+    expect(useAppStore.getState().lastExecutionEngine).toBe(ExecutionEngine.TypeScript);
   });
 
   it('reports an error when there is no logic and the LLM is disabled', async () => {
@@ -63,18 +64,18 @@ describe('useAppStore - execution engine selection', () => {
   });
 
   it('falls back to the LLM when there is no compiled logic', async () => {
-    useAppStore.setState({ compiledLogicJs: null, llmExecutionMode: 'fallback' });
+    useAppStore.setState({ compiledLogicJs: null, llmExecutionMode: LLMMode.Fallback });
 
     await useAppStore.getState().triggerContract();
 
     expect(executeInSandbox).not.toHaveBeenCalled();
     expect(executeWithLLM).toHaveBeenCalledTimes(1);
-    expect(useAppStore.getState().lastExecutionEngine).toBe('llm');
+    expect(useAppStore.getState().lastExecutionEngine).toBe(ExecutionEngine.LLM);
     expect(useAppStore.getState().executionResponse).toContain('"r": 2');
   });
 
   it('keeps using the compiled logic in fallback mode when there is some', async () => {
-    useAppStore.setState({ llmExecutionMode: 'fallback' });
+    useAppStore.setState({ llmExecutionMode: LLMMode.Fallback });
 
     await useAppStore.getState().triggerContract();
 
@@ -83,14 +84,14 @@ describe('useAppStore - execution engine selection', () => {
   });
 
   it('uses the LLM in force mode even when logic is compiled', async () => {
-    useAppStore.setState({ llmExecutionMode: 'force' });
+    useAppStore.setState({ llmExecutionMode: LLMMode.Force });
 
     await useAppStore.getState().initContract();
 
     expect(executeInSandbox).not.toHaveBeenCalled();
     expect(executeWithLLM).toHaveBeenCalledTimes(1);
     expect(executeWithLLM.mock.calls[0][0]).toBe('init');
-    expect(useAppStore.getState().lastExecutionEngine).toBe('llm');
+    expect(useAppStore.getState().lastExecutionEngine).toBe(ExecutionEngine.LLM);
   });
 
   it('requires an initialized state before triggering a stateful template', async () => {
@@ -140,10 +141,10 @@ describe('useAppStore - execution engine selection', () => {
       useAppStore.setState({
         executionResponse: '{"r":1}',
         executionEvents: '[{"e":1}]',
-        lastExecutionEngine: 'typescript',
+        lastExecutionEngine: ExecutionEngine.TypeScript,
       });
 
-      useAppStore.getState().setLLMExecutionMode('force');
+      useAppStore.getState().setLLMExecutionMode(LLMMode.Force);
 
       const state = useAppStore.getState();
       expect(state.llmExecutionMode).toBe('force');
@@ -155,7 +156,7 @@ describe('useAppStore - execution engine selection', () => {
     });
 
     it('re-locks trigger until the new engine has been initialized', async () => {
-      useAppStore.getState().setLLMExecutionMode('force');
+      useAppStore.getState().setLLMExecutionMode(LLMMode.Force);
 
       await useAppStore.getState().triggerContract();
 
@@ -169,7 +170,7 @@ describe('useAppStore - execution engine selection', () => {
     it('leaves the artifacts alone when the mode does not actually change', () => {
       useAppStore.setState({ executionResponse: '{"r":1}' });
 
-      useAppStore.getState().setLLMExecutionMode('disabled');
+      useAppStore.getState().setLLMExecutionMode(LLMMode.Disabled);
 
       expect(useAppStore.getState().executionResponse).toBe('{"r":1}');
       expect(useAppStore.getState().isContractInitialized).toBe(true);

@@ -181,7 +181,7 @@ export const LOGIC = `import {
     IPerishableGoodsState,
     ITemplateModel,
     ISensorReading,
-} from "./generated/org.accordproject.perishablegoods@0.2.0";
+} from "./org.accordproject.perishablegoods@0.2.0";
 
 interface PerishableGoodsResponse extends EngineResponse<IPerishableGoodsState> {
     result: IPriceCalculation;

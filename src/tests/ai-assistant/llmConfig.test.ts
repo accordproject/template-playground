@@ -3,6 +3,7 @@ import {
   buildLLMExecutorConfig,
   getProviderCapabilities,
   isLLMConfigured,
+  LLMMode,
 } from '../../ai-assistant/llm';
 import { treeShakeModel } from '../../ai-assistant/llm/ModelManagerSchema';
 import { AIConfig } from '../../types/components/AIAssistant.types';
@@ -61,9 +62,9 @@ describe('isLLMConfigured', () => {
 
 describe('buildLLMExecutorConfig', () => {
   it('carries the provider, model and key through from the global AI config', () => {
-    const config = buildLLMExecutorConfig(anthropicConfig, 'force');
+    const config = buildLLMExecutorConfig(anthropicConfig, LLMMode.Force);
 
-    expect(config.mode).toBe('force');
+    expect(config.mode).toBe(LLMMode.Force);
     expect(config.provider.provider).toBe('anthropic');
     expect(config.provider.model).toBe('claude-sonnet-4-5-20250929');
     expect(config.provider.apiKey).toBe('sk-test');
@@ -71,7 +72,7 @@ describe('buildLLMExecutorConfig', () => {
   });
 
   it('drops the knobs the selected provider does not honour', () => {
-    const anthropic = buildLLMExecutorConfig(anthropicConfig, 'fallback');
+    const anthropic = buildLLMExecutorConfig(anthropicConfig, LLMMode.Fallback);
     // Anthropic takes effort and thinking, but no sampling temperature.
     expect(anthropic.provider.effort).toBe('high');
     expect(anthropic.provider.thinking).toBe(false);
@@ -79,16 +80,12 @@ describe('buildLLMExecutorConfig', () => {
 
     const google = buildLLMExecutorConfig(
       { ...anthropicConfig, provider: 'google', model: 'gemini-2.5-pro' },
-      'fallback'
+      LLMMode.Fallback
     );
     // Google takes a temperature, but neither effort nor thinking.
     expect(google.provider.temperature).toBe(0.9);
     expect(google.provider.effort).toBeUndefined();
     expect(google.provider.thinking).toBeUndefined();
-  });
-
-  it('refuses to build a config from incomplete AI settings', () => {
-    expect(() => buildLLMExecutorConfig(null, 'force')).toThrow(/AI Configuration/);
   });
 });
 

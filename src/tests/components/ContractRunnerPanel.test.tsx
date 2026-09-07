@@ -91,7 +91,7 @@ describe('ContractRunnerPanel', () => {
     
     // Check tabs
     expect(screen.getByRole('tab', { name: /response/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /state/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^state$/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /events/i })).toBeInTheDocument();
     // Check empty state placeholders
     expect(screen.getByText('No response generated yet.')).toBeInTheDocument();

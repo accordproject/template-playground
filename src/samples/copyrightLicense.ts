@@ -123,7 +123,7 @@ export const REQUEST = {
   "$timestamp": "2018-01-01T00:00:00Z"
 };
 
-export const LOGIC = `import { ITemplateModel, IPaymentRequest, IPayOut, IPaymentObligationEvent } from "./generated/org.accordproject.copyrightlicense@0.2.0";
+export const LOGIC = `import { ITemplateModel, IPaymentRequest, IPayOut, IPaymentObligationEvent } from "./org.accordproject.copyrightlicense@0.2.0";
 
 type CopyrightLicenseResponse = {
     result: IPayOut;
