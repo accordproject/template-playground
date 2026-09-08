@@ -3,6 +3,7 @@
  * Components import from here instead of embedding literals, so copy can be
  * reviewed and changed in one place (and later localised).
  */
+import { NAME as BLANK_SAMPLE_NAME } from "../../samples/blank";
 
 export const URLS = {
   discord: "https://discord.com/invite/Zm99SKhhtA",
@@ -79,7 +80,7 @@ export const WELCOME = {
   titleLine: "Contracts that",
   titleAccent: "run themselves.",
   subtitleLine1: "Write the agreement once — as data, text and rules — and watch it execute.",
-  subtitleLine2: "Seven steps, no setup.",
+  subtitleLine2: "Six steps, no setup.",
   start: "Start building",
   howItWorks: "How it works ↗",
 } as const;
@@ -169,6 +170,15 @@ export const START_SAMPLES: readonly StartSample[] = [
   },
 ];
 
+/**
+ * NAME of the sample in src/samples to load for a card picked on the Start
+ * step, or undefined when nothing (or an unknown name) is selected.
+ */
+export const sampleNameFor = (selectedTemplate: string | null): string | undefined => {
+  if (selectedTemplate === START.blankName) return BLANK_SAMPLE_NAME;
+  return START_SAMPLES.find((card) => card.name === selectedTemplate)?.sampleName;
+};
+
 export interface EditorMeta {
   icon: string;
   title: string;
@@ -183,10 +193,44 @@ export const EDITOR = {
   statusOk: "✓ ok",
   meta: {
     text: { icon: "¶", title: "Write the contract text", file: "text.md", badge: "TemplateMark" },
-    model: { icon: "◇", title: "Define the data model", file: "model.cto", badge: "Concerto" },
-    data: { icon: "{}", title: "Fill in the data", file: "data.json", badge: "instance" },
     logic: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
   } satisfies Record<string, EditorMeta>,
+} as const;
+
+/** Step 3: model.cto on the left, data.json on the right — both wired to the app store. */
+export const MODEL_DATA = {
+  icon: "⬡",
+  title: "Define the model and fill in the data",
+  subtitle:
+    "Declare every value once as a Concerto concept on the left, then give it a concrete value on the right. Both feed the preview live.",
+  format: "≡ format",
+  copy: "⧉ copy",
+  reset: "↺ reset",
+  model: {
+    paneLabel: "Model",
+    file: "model.cto",
+    badge: "Concerto",
+    ok: "✓ parses",
+    noNamespace: "no namespace",
+    noTemplate: "no @template concept",
+    template: (concept: string, fields: number) =>
+      `@template ${concept} · ${fields} ${fields === 1 ? "field" : "fields"}`,
+    copied: "model.cto copied",
+    formatFailed: "Fix Concerto syntax errors before formatting.",
+  },
+  data: {
+    paneLabel: "Data",
+    file: "data.json",
+    badge: "instance",
+    ok: "✓ valid against the model",
+    invalidJson: "not valid JSON",
+    required: (present: number, required: number) => `${present} of ${required} required fields`,
+    formatFailed: "Fix JSON syntax errors before formatting.",
+    resetDone: (sample: string) => `data.json reset to the ${sample} sample`,
+    resetUnavailable: "No sample to reset to.",
+  },
+  /** Prefix in front of a rebuild error shown in a status bar. */
+  errorPrefix: "✕",
 } as const;
 
 export const SIMULATE = {

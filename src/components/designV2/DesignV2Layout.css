@@ -295,6 +295,7 @@
 }
 .nd-editor-title-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .nd-editor-title-text h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
+.nd-editor-subtitle { margin: 0; color: var(--nd-text-3); font-size: 12.5px; line-height: 1.5; max-width: 620px; text-wrap: pretty; }
 .nd-editor-card {
   flex: 1; min-height: 0; display: flex; flex-direction: column;
   background: #fff; border: 1px solid var(--nd-line); border-radius: 10px; overflow: hidden;
@@ -308,7 +309,24 @@
 .nd-editor-card-foot { border-top: 1px solid var(--nd-line-soft); padding: 11px 15px; }
 .nd-editor-file { color: var(--nd-ink); }
 .nd-editor-card-body { flex: 1; min-height: 0; padding: 17px; }
+/* Body hosting a Monaco editor: no padding, the editor fills the card. */
+.nd-editor-card-body-editor { padding: 0; display: flex; }
+.nd-editor-card-body-editor .editorwrapper { flex: 1; min-width: 0; min-height: 0; height: 100%; width: 100%; }
 .nd-status-ok { color: #0c8b57; }
+.nd-status-err {
+  color: #a6272c; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nd-status-fact { display: inline-flex; align-items: center; gap: 11px; white-space: nowrap; font-family: var(--nd-mono); font-weight: 500; }
+.nd-status-sep { color: #c4d7da; }
+
+/* Model & Data: the editor column is split into two panes */
+.nd-split {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
+}
+.nd-pane { min-height: 0; min-width: 0; }
+.nd-pane .nd-editor-card-head { flex-wrap: wrap; }
+.nd-pane .nd-editor-card-foot { flex-wrap: wrap; gap: 8px 11px; }
 
 /* Help rail */
 .nd-help-rail {
@@ -366,6 +384,7 @@
 }
 .nd-badge-teal { background: var(--nd-teal-tint); color: var(--nd-teal); }
 .nd-badge-grey { background: var(--nd-line-soft); color: var(--nd-text-2); font-weight: 500; }
+.nd-badge-blue { background: #e7f2fe; color: var(--nd-blue); }
 
 /* ---------- Placeholders ---------- */
 .nd-placeholder { display: block; background: var(--nd-placeholder); border-radius: 6px; }
@@ -373,6 +392,11 @@
 
 
 /* ---------- Responsive ---------- */
+@media (max-width: 1180px) {
+  /* Two Monaco editors need room: stack the panes and let the column scroll. */
+  .nd-view-model-data .nd-editor-column { overflow-y: auto; }
+  .nd-split { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(300px, 1fr); }
+}
 @media (max-width: 960px) {
   .nd-view-editor { flex-direction: column; }
   .nd-help-rail {

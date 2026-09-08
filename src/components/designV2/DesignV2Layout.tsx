@@ -1,5 +1,8 @@
 import { ConfigProvider } from "antd";
+import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
+import { STEP_ID } from "../../types/designV2.types";
+import { sampleNameFor } from "./constants";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
@@ -16,17 +19,20 @@ import "./DesignV2Layout.css";
  *
  *   ┌ rail ┬───────────────────────────────────────────┐
  *   │      │ header  (eyebrow / sample · docs Advanced Preview)
- *   │      │ stepper (1 Template · 2 Text · 3 Model · 4 Data · 5 Logic · 6 Simulate · 7 Deploy)
+ *   │      │ stepper (1 Template · 2 Text · 3 Model & Data · 4 Logic · 5 Simulate · 6 Deploy)
  *   │      ├─────────────────────────────┬─────────────┤
  *   │      │ view (welcome/start/editor/ │ help rail   │  ← preview drawer overlays
- *   │      │       simulate/deploy)      │ (editor steps) │
+ *   │      │  model+data/simulate/deploy)│ (editor steps) │
  *   │      ├─────────────────────────────┴─────────────┤
  *   │      │ footer  (problems · Back · Compile · Next)
  *   └──────┴───────────────────────────────────────────┘
  *
  * View / preview state lives in useDesignV2Store (src/store/designV2Store.ts).
+ * Editor contents live in the legacy app store: leaving the Start step loads the
+ * picked sample there, and the Model & Data step edits it through the same
+ * containers as the old layout.
  * antd components inside are themed with the v2 palette via ConfigProvider (see theme.ts).
- * All content areas are placeholders; wiring to the editors comes later.
+ * Text, Logic, Simulate and Deploy are still placeholders.
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
 const DesignV2Layout = () => {
@@ -38,6 +44,17 @@ const DesignV2Layout = () => {
   const goNext = useDesignV2Store((s) => s.goNext);
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const togglePreview = useDesignV2Store((s) => s.togglePreview);
+  const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
+  const loadSample = useAppStore((s) => s.loadSample);
+
+  /** "Start with this template" loads the picked sample into the app store, then moves on. */
+  const handleNext = () => {
+    if (view === STEP_ID.template) {
+      const sampleName = sampleNameFor(selectedTemplate);
+      if (sampleName) void loadSample(sampleName);
+    }
+    goNext();
+  };
 
   const showChrome = view !== "welcome";
 
@@ -58,7 +75,7 @@ const DesignV2Layout = () => {
           </div>
           <PreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} />
         </div>
-        {showChrome && <Footer view={view} onBack={goBack} onNext={goNext} />}
+        {showChrome && <Footer view={view} onBack={goBack} onNext={handleNext} />}
       </div>
     </div>
     </ConfigProvider>
