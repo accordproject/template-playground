@@ -63,7 +63,7 @@ const EditorPane = ({
     <div className="nd-editor-card-foot" role="status">
       {error ? (
         <span className="nd-status-err" title={error}>
-          {MODEL_DATA.errorPrefix} {error}
+          {MODEL_DATA.error}
         </span>
       ) : pendingText ? (
         <span className="nd-status-pending">{pendingText}</span>

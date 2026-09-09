@@ -19,7 +19,7 @@ import "./DesignV2Layout.css";
  *
  *   ┌ rail ┬───────────────────────────────────────────┐
  *   │      │ header  (eyebrow / sample · docs Advanced Preview)
- *   │      │ stepper (1 Template · 2 Text · 3 Model & Data · 4 Logic · 5 Simulate · 6 Deploy)
+ *   │      │ stepper (1 Template · 2 Model & Data · 3 Text · 4 Logic · 5 Simulate · 6 Deploy)
  *   │      ├─────────────────────────────┬─────────────┤
  *   │      │ view (welcome/start/editor/ │ help rail   │  ← preview drawer overlays
  *   │      │  model+data/simulate/deploy)│ (editor steps) │

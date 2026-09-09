@@ -84,8 +84,10 @@ describe('ModelDataView', () => {
   it('routes a CTO error to the model pane and marks the data as not checked', () => {
     useAppStore.setState({ error: 'Invalid CTO model: Line 3 column 5' });
     render(<ModelDataView />);
-    expect(pane(MODEL_DATA.model.paneLabel).getByText(/Invalid CTO model/)).toBeInTheDocument();
-    expect(pane(MODEL_DATA.model.paneLabel).queryByText(MODEL_DATA.model.ok)).not.toBeInTheDocument();
+    const model = pane(MODEL_DATA.model.paneLabel);
+    // The pane only flags the error; the full message lives in the footer.
+    expect(model.getByText(MODEL_DATA.error)).toHaveAttribute('title', 'Invalid CTO model: Line 3 column 5');
+    expect(model.queryByText(MODEL_DATA.model.ok)).not.toBeInTheDocument();
     const data = pane(MODEL_DATA.data.paneLabel);
     expect(data.getByText(MODEL_DATA.data.notChecked)).toBeInTheDocument();
     expect(data.queryByText(MODEL_DATA.data.ok)).not.toBeInTheDocument();
@@ -94,14 +96,14 @@ describe('ModelDataView', () => {
   it('routes a JSON or instance error to the data pane', () => {
     useAppStore.setState({ error: 'Invalid JSON data: Unexpected token' });
     render(<ModelDataView />);
-    expect(pane(MODEL_DATA.data.paneLabel).getByText(/Invalid JSON data/)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.error)).toBeInTheDocument();
     expect(pane(MODEL_DATA.model.paneLabel).getByText(MODEL_DATA.model.ok)).toBeInTheDocument();
   });
 
   it("routes the template engine's @template error to the model pane", () => {
     useAppStore.setState({ error: 'Failed to find a concept with the @template decorator.' });
     render(<ModelDataView />);
-    expect(pane(MODEL_DATA.model.paneLabel).getByText(/@template decorator/)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.model.paneLabel).getByText(MODEL_DATA.error)).toBeInTheDocument();
     expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.notChecked)).toBeInTheDocument();
   });
 

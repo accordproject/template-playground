@@ -12,7 +12,7 @@ export const URLS = {
   issues: "https://github.com/accordproject/template-playground/issues",
   engineDocs: "https://github.com/accordproject/template-engine/blob/main/README.md",
   concertoSite: "https://concerto.accordproject.org/",
-  concertoTypes: "https://concerto.accordproject.org/docs/design/specification/model-properties",
+  concertoSpec: "https://concerto.accordproject.org/docs/category/specification",
   concertoIntro: "https://concerto.accordproject.org/docs/intro",
 } as const;
 
@@ -58,6 +58,9 @@ export const HEADER = {
 
 export const FOOTER = {
   noProblems: "✓ no problems",
+  /** Problems pill while the app store reports an error; the full message follows it. */
+  problem: "✕ error",
+  problemLabel: "Problem",
   back: "← Back",
   applyAndCompile: "Apply & Compile",
   startWithTemplate: "Start with this template",
@@ -241,8 +244,8 @@ export const MODEL_DATA = {
     resetTitle: (sample: string) => `Restore the ${sample} sample data`,
     resetUnavailable: "No sample to reset to.",
   },
-  /** Prefix in front of a rebuild error shown in a status bar. */
-  errorPrefix: "✕",
+  /** Status of a pane whose file the app store rejected; the message itself is in the footer. */
+  error: "✕ error",
   /** Content of the help rail for this step. */
   help: {
     checklistTitle: "THIS STEP NEEDS",
@@ -257,14 +260,13 @@ export const MODEL_DATA = {
         "The model is the contract’s vocabulary: name a field once and the text and the logic can use it. The data is the instance you test with, checked against the model field by field.",
       links: [
         { label: "Concerto site", href: URLS.concertoSite },
-        { label: "Concerto types cheat sheet", href: URLS.concertoTypes },
-        { label: "What @template does", href: URLS.engineDocs },
+        { label: "Concerto specification", href: URLS.concertoSpec },
       ],
     },
     how: [
       "A namespace + version names your model so it can be shared.",
-      "The concept marked @template is the template model: its fields are the variables the text refers to with {{ }}.",
-      "$class in the data points at that concept, and every required field is checked against its type.",
+      "Concepts declare the fields of the agreement, each with a type such as String, Integer or DateTime.",
+      "The data gives those fields concrete values and is checked against the model field by field.",
       "Valid data is what the preview and the simulator run on.",
     ],
   },

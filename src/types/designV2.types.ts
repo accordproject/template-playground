@@ -3,8 +3,8 @@
  *
  * welcome   → hero landing
  * template  → "Choose a template type" gallery
- * text, logic → editor steps with the right-hand help rail
  * modelData → split screen: model.cto on the left, data.json on the right
+ * text, logic → editor steps with the right-hand help rail
  * simulate  → runs list + request/response
  * deploy    → placeholder — contents TBD
  *
@@ -14,8 +14,8 @@
  */
 export const STEPS = [
   { id: 1, key: "template", icon: "1", label: "Template", meta: "pick a starting point" },
-  { id: 2, key: "text", icon: "2", label: "Text", meta: "text.md" },
-  { id: 3, key: "modelData", icon: "3", label: "Model & Data", meta: "model.cto · data.json" },
+  { id: 2, key: "modelData", icon: "2", label: "Model & Data", meta: "model.cto · data.json" },
+  { id: 3, key: "text", icon: "3", label: "Text", meta: "text.md" },
   { id: 4, key: "logic", icon: "4", label: "Logic", meta: "logic.ts" },
   { id: 5, key: "simulate", icon: "5", label: "Simulate", meta: "run requests" },
   { id: 6, key: "deploy", icon: "6", label: "Deploy", meta: "publish & share" },

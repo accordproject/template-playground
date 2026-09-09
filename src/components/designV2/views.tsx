@@ -34,7 +34,7 @@ interface WelcomeViewProps {
   onStart: () => void;
 }
 
-/** Dark hero card with headline, CTAs and the Text → Model → Data → Logic → Run it strip. */
+/** Dark hero card with headline, CTAs and the Template → Model & Data → Text → … → Deploy strip. */
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
   const navigate = useNavigate();
   return (
