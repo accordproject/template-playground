@@ -293,6 +293,7 @@
   background: var(--nd-teal-tint); color: var(--nd-teal);
   font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center;
 }
+.nd-editor-icon-amber { background: #fff3e2; color: var(--nd-amber); }
 .nd-editor-title-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .nd-editor-title-text h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
 .nd-editor-subtitle { margin: 0; color: var(--nd-text-3); font-size: 12.5px; line-height: 1.5; text-wrap: pretty; }
@@ -323,6 +324,13 @@
   flex: 1; min-height: 0;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
 }
+/* Text step: amber-tinted card chrome and the formatting toolbar */
+.nd-pane-amber .nd-editor-card-head, .nd-pane-amber .nd-editor-card-foot { background: #fffaf3; }
+.nd-text-toolbar { display: flex; align-items: center; gap: 2px; }
+.nd-text-toolbar .ant-btn { min-width: 30px; padding-inline: 6px; font-weight: 600; }
+.nd-text-toolbar .ant-btn:not(:disabled):hover { background: #f6ede1; }
+.nd-tb-bold { font-weight: 700; }
+.nd-tb-italic { font-style: italic; }
 .nd-split-single { grid-template-columns: minmax(0, 1fr); }
 .nd-pane { min-height: 0; min-width: 0; }
 .nd-pane-close { color: var(--nd-text-4); margin-left: 4px; }
@@ -433,6 +441,7 @@
 .nd-badge-teal { background: var(--nd-teal-tint); color: var(--nd-teal); }
 .nd-badge-grey { background: var(--nd-line-soft); color: var(--nd-text-2); font-weight: 500; }
 .nd-badge-blue { background: #e7f2fe; color: var(--nd-blue); }
+.nd-badge-amber { background: var(--nd-amber-tint); color: var(--nd-amber); }
 .nd-badge-link { text-decoration: none; }
 .nd-badge-link:hover { text-decoration: underline; }
 

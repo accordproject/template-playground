@@ -4,7 +4,8 @@
  * welcome   → hero landing
  * template  → "Choose a template type" gallery
  * modelData → split screen: model.cto on the left, data.json on the right
- * text, logic → editor steps with the right-hand help rail
+ * text      → text.md in the TemplateMark editor, with the help rail
+ * logic     → editor step with the right-hand help rail
  * simulate  → runs list + request/response
  * deploy    → placeholder — contents TBD
  *
@@ -26,8 +27,8 @@ export type StepId = StepDefinition["id"];
 export type StepKey = StepDefinition["key"];
 export type DesignV2View = "welcome" | StepId;
 
-/** Steps rendered with the generic editor card + help rail. Model & Data has its own split view. */
-export const EDITOR_STEP_KEYS = ["text", "logic"] as const satisfies readonly StepKey[];
+/** Steps still rendered with the generic placeholder editor card. Model & Data and Text have their own views. */
+export const EDITOR_STEP_KEYS = ["logic"] as const satisfies readonly StepKey[];
 export type EditorStepKey = (typeof EDITOR_STEP_KEYS)[number];
 
 /**

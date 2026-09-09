@@ -13,6 +13,7 @@ export const URLS = {
   engineDocs: "https://github.com/accordproject/template-engine/blob/main/README.md",
   concertoSite: "https://concerto.accordproject.org/",
   concertoSpec: "https://concerto.accordproject.org/docs/category/specification",
+  templateMark: "https://github.com/accordproject/markdown-transform/blob/main/packages/markdown-template/README.md",
   concertoIntro: "https://concerto.accordproject.org/docs/intro",
 } as const;
 
@@ -203,12 +204,49 @@ export const EDITOR = {
   copy: "⧉ copy",
   statusOk: "✓ ok",
   meta: {
-    text: { icon: "¶", title: "Write the contract text", file: "text.md", badge: "TemplateMark" },
     logic: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
   } satisfies Record<string, EditorMeta>,
 } as const;
 
-/** Step 3: model.cto on the left, data.json on the right — both wired to the app store. */
+/** Step "Text": text.md in the TemplateMark editor, wired to the app store. */
+export const TEXT = {
+  icon: "¶",
+  title: "Write the agreement text",
+  subtitle: "Plain markdown plus variables in double braces that pull values from your model.",
+  paneLabel: "Text",
+  file: "text.md",
+  badge: "TemplateMark",
+  copy: "⧉ copy",
+  copied: "text.md copied",
+  ok: "✓ renders",
+  error: "✕ error",
+  toolbarLabel: "Formatting",
+  /** Buttons map onto the legacy markdown editor commands. */
+  toolbar: [
+    { key: "toggleBold", label: "B", title: "Bold", className: "nd-tb-bold" },
+    { key: "toggleItalic", label: "I", title: "Italic", className: "nd-tb-italic" },
+    { key: "toggleHeading1", label: "H1", title: "Heading 1", className: "" },
+    { key: "toggleHeading2", label: "H2", title: "Heading 2", className: "" },
+    { key: "toggleUnorderedList", label: "•", title: "Bulleted list", className: "" },
+    { key: "insertLink", label: "↗", title: "Insert link", className: "" },
+  ],
+  help: {
+    checklistTitle: "THIS STEP NEEDS",
+    checks: { renders: "the text renders" },
+    why: {
+      note:
+        "This is what a human signs. Every variable resolves against the model, so a typo surfaces here long before a run.",
+      links: [{ label: "TemplateMark syntax", href: URLS.templateMark }],
+    },
+    how: [
+      "Markdown handles headings, bold and lists.",
+      "Double braces pull a value straight from the model.",
+      "The preview re-renders on every change.",
+    ],
+  },
+} as const;
+
+/** Step 2: model.cto on the left, data.json on the right — both wired to the app store. */
 export const MODEL_DATA = {
   icon: "⬡",
   title: "Define the model and fill in the data",

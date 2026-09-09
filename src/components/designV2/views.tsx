@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
 import HelpRail, { HelpRailReopen } from "./HelpRail";
 import { ModelDataView } from "./ModelDataView";
+import { TextView } from "./TextView";
 import useDesignV2Store from "../../store/designV2Store";
 import {
   STEPS,
@@ -255,9 +256,10 @@ interface ViewSwitchProps {
 export const ViewSwitch = ({ view, onStart }: ViewSwitchProps) => {
   if (view === "welcome") return <WelcomeView onStart={onStart} />;
   const key = STEP_KEY[view];
-  if (isEditorStep(key)) return <EditorView step={key} />;
   if (key === "template") return <StartView />;
   if (key === "modelData") return <ModelDataView />;
+  if (key === "text") return <TextView />;
+  if (isEditorStep(key)) return <EditorView step={key} />;
   if (key === "simulate") return <SimulateView />;
   return <DeployView />;
 };
