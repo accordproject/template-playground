@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
-import HelpRail from "./HelpRail";
+import HelpRail, { HelpRailReopen } from "./HelpRail";
 import { ModelDataView } from "./ModelDataView";
 import useDesignV2Store from "../../store/designV2Store";
 import {
@@ -194,6 +194,7 @@ export const EditorView = ({ step }: EditorViewProps) => {
           {step === "logic" && (
             <Button size="small">{EDITOR.scaffoldFromModel}</Button>
           )}
+          <HelpRailReopen />
         </div>
         <div className="nd-editor-card">
           <div className="nd-editor-card-head">

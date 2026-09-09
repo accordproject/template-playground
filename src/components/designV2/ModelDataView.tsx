@@ -1,11 +1,13 @@
 import { useMemo, type ReactNode } from "react";
-import { Button, message } from "antd";
+import { Button, Tooltip, message } from "antd";
+import { CloseOutlined } from "@ant-design/icons";
 import useAppStore from "../../store/store";
+import useDesignV2Store, { type ModelDataPane } from "../../store/designV2Store";
 import TemplateModel from "../../editors/editorsContainer/TemplateModel";
 import AgreementData from "../../editors/editorsContainer/AgreementData";
 import { formatConcertoModel } from "../../utils/formatConcertoModel";
 import { summarizeModel, summarizeData, splitError } from "../../utils/modelDataStats";
-import HelpRail from "./HelpRail";
+import HelpRail, { HelpRailReopen, type ChecklistItem } from "./HelpRail";
 import { MODEL_DATA } from "./constants";
 
 interface EditorPaneProps {
@@ -14,24 +16,51 @@ interface EditorPaneProps {
   file: string;
   badge: string;
   badgeClass: string;
+  /** When set, the badge is a link (opens in a new tab). */
+  badgeHref?: string;
+  badgeTitle?: string;
   actions: ReactNode;
   /** Rebuild error routed to this pane, if any. */
   error?: string;
   /** Status shown when there is no error, e.g. "✓ parses". */
   okText: string;
+  /** Neutral status shown instead of okText when the check could not run. */
+  pendingText?: string;
   /** Extra facts on the right of the status bar. */
   facts: readonly string[];
+  onClose: () => void;
+  /** False when this is the last open pane: the × stays visible but does nothing. */
+  canClose: boolean;
   children: ReactNode;
 }
 
 /** One half of the split screen: file header, Monaco editor, status bar. */
-const EditorPane = ({ label, file, badge, badgeClass, actions, error, okText, facts, children }: EditorPaneProps) => (
+const EditorPane = ({
+  label, file, badge, badgeClass, badgeHref, badgeTitle, actions, error, okText, pendingText, facts, onClose, canClose, children,
+}: EditorPaneProps) => (
   <section className="nd-editor-card nd-pane" aria-label={label}>
     <div className="nd-editor-card-head">
       <span className="nd-mono nd-editor-file">{file}</span>
-      <span className={`nd-badge ${badgeClass}`}>{badge}</span>
+      {badgeHref ? (
+        <a className={`nd-badge nd-badge-link ${badgeClass}`} href={badgeHref} title={badgeTitle} target="_blank" rel="noopener noreferrer">
+          {badge} ↗
+        </a>
+      ) : (
+        <span className={`nd-badge ${badgeClass}`}>{badge}</span>
+      )}
       <div className="nd-spacer" />
       {actions}
+      <Tooltip title={canClose ? undefined : MODEL_DATA.keepOneOpen}>
+        <Button
+          type="text"
+          size="small"
+          className="nd-pane-close"
+          aria-label={MODEL_DATA.closePane(file)}
+          aria-disabled={!canClose}
+          icon={<CloseOutlined />}
+          onClick={canClose ? onClose : undefined}
+        />
+      </Tooltip>
     </div>
     <div className="nd-editor-card-body nd-editor-card-body-editor">{children}</div>
     <div className="nd-editor-card-foot" role="status">
@@ -39,6 +68,8 @@ const EditorPane = ({ label, file, badge, badgeClass, actions, error, okText, fa
         <span className="nd-status-err" title={error}>
           {MODEL_DATA.errorPrefix} {error}
         </span>
+      ) : pendingText ? (
+        <span className="nd-status-pending">{pendingText}</span>
       ) : (
         <span className="nd-status-ok">{okText}</span>
       )}
@@ -61,6 +92,10 @@ const EditorPane = ({ label, file, badge, badgeClass, actions, error, okText, fa
  * so edits flow through the app store exactly as in the old layout: the store
  * rebuilds the agreement, and its single `error` string is routed to the pane
  * it belongs to by splitError(). Only the chrome around the editors is new.
+ *
+ * Either pane can be closed with its × so the other one takes the full
+ * width; a "+ file" chip next to the title brings it back. At least one pane
+ * always stays open (see designV2Store.setPaneOpen).
  */
 export const ModelDataView = () => {
   const editorModelCto = useAppStore((s) => s.editorModelCto);
@@ -72,6 +107,10 @@ export const ModelDataView = () => {
   const setModelCto = useAppStore((s) => s.setModelCto);
   const setEditorAgreementData = useAppStore((s) => s.setEditorAgreementData);
   const setData = useAppStore((s) => s.setData);
+  const panes = useDesignV2Store((s) => s.modelDataPanes);
+  const setPaneOpen = useDesignV2Store((s) => s.setPaneOpen);
+  const openCount = Number(panes.model) + Number(panes.data);
+  const closedPanes = (["model", "data"] as const).filter((pane) => !panes[pane]);
 
   const model = useMemo(() => summarizeModel(editorModelCto), [editorModelCto]);
   const data = useMemo(
@@ -126,6 +165,21 @@ export const ModelDataView = () => {
   const dataFacts = [MODEL_DATA.data.required(data.present, data.required)];
   const dataError = errors.data ?? (data.parses ? undefined : MODEL_DATA.data.invalidJson);
 
+  const checks = MODEL_DATA.help.checks;
+  const checklist: ChecklistItem[] = [
+    { label: checks.templateConcept, tone: model.templateConcept ? "done" : "todo", tag: model.templateConcept ?? undefined },
+    { label: checks.modelParses, tone: errors.model ? "error" : "done" },
+    // Without a parsing model the data cannot be checked against anything.
+    errors.model
+      ? { label: checks.dataValid, tone: "todo", tag: checks.needsModel }
+      : { label: checks.dataValid, tone: dataError ? "error" : "done" },
+    {
+      label: checks.requiredFields,
+      tone: data.required > 0 && data.present === data.required ? "done" : "todo",
+      tag: `${data.present}/${data.required}`,
+    },
+  ];
+
   return (
     <div className="nd-view nd-view-editor nd-view-model-data">
       <div className="nd-editor-column">
@@ -135,17 +189,28 @@ export const ModelDataView = () => {
             <h1>{MODEL_DATA.title}</h1>
             <p className="nd-editor-subtitle">{MODEL_DATA.subtitle}</p>
           </div>
+          {closedPanes.map((pane: ModelDataPane) => (
+            <Button key={pane} type="dashed" size="small" onClick={() => setPaneOpen(pane, true)}>
+              {MODEL_DATA.reopenPane(MODEL_DATA[pane].file)}
+            </Button>
+          ))}
+          <HelpRailReopen />
         </div>
 
-        <div className="nd-split">
+        <div className={`nd-split ${openCount === 1 ? "nd-split-single" : ""}`}>
+          {panes.model && (
           <EditorPane
             label={MODEL_DATA.model.paneLabel}
             file={MODEL_DATA.model.file}
             badge={MODEL_DATA.model.badge}
             badgeClass="nd-badge-teal"
+            badgeHref={MODEL_DATA.model.badgeHref}
+            badgeTitle={MODEL_DATA.model.badgeTitle}
             error={errors.model}
             okText={MODEL_DATA.model.ok}
             facts={modelFacts}
+            onClose={() => setPaneOpen("model", false)}
+            canClose={openCount > 1}
             actions={
               <>
                 <Button type="text" size="small" onClick={formatModel} disabled={!editorModelCto.trim()}>
@@ -159,7 +224,9 @@ export const ModelDataView = () => {
           >
             <TemplateModel />
           </EditorPane>
+          )}
 
+          {panes.data && (
           <EditorPane
             label={MODEL_DATA.data.paneLabel}
             file={MODEL_DATA.data.file}
@@ -167,7 +234,10 @@ export const ModelDataView = () => {
             badgeClass="nd-badge-blue"
             error={dataError}
             okText={MODEL_DATA.data.ok}
+            pendingText={errors.model ? MODEL_DATA.data.notChecked : undefined}
             facts={dataFacts}
+            onClose={() => setPaneOpen("data", false)}
+            canClose={openCount > 1}
             actions={
               <>
                 <Button type="text" size="small" onClick={formatData}>
@@ -181,9 +251,14 @@ export const ModelDataView = () => {
           >
             <AgreementData />
           </EditorPane>
+          )}
         </div>
       </div>
-      <HelpRail />
+      <HelpRail
+        checklist={{ title: MODEL_DATA.help.checklistTitle, items: checklist }}
+        why={MODEL_DATA.help.why}
+        how={MODEL_DATA.help.how}
+      />
     </div>
   );
 };

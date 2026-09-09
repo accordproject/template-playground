@@ -295,7 +295,7 @@
 }
 .nd-editor-title-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .nd-editor-title-text h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
-.nd-editor-subtitle { margin: 0; color: var(--nd-text-3); font-size: 12.5px; line-height: 1.5; max-width: 620px; text-wrap: pretty; }
+.nd-editor-subtitle { margin: 0; color: var(--nd-text-3); font-size: 12.5px; line-height: 1.5; text-wrap: pretty; }
 .nd-editor-card {
   flex: 1; min-height: 0; display: flex; flex-direction: column;
   background: #fff; border: 1px solid var(--nd-line); border-radius: 10px; overflow: hidden;
@@ -313,6 +313,7 @@
 .nd-editor-card-body-editor { padding: 0; display: flex; }
 .nd-editor-card-body-editor .editorwrapper { flex: 1; min-width: 0; min-height: 0; height: 100%; width: 100%; }
 .nd-status-ok { color: #0c8b57; }
+.nd-status-pending { color: var(--nd-text-4); }
 .nd-status-err {
   color: #a6272c; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -324,7 +325,10 @@
   flex: 1; min-height: 0;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
 }
+.nd-split-single { grid-template-columns: minmax(0, 1fr); }
 .nd-pane { min-height: 0; min-width: 0; }
+.nd-pane-close { color: var(--nd-text-4); margin-left: 4px; }
+.nd-pane-close[aria-disabled="true"] { opacity: 0.35; cursor: default; }
 .nd-pane .nd-editor-card-head { flex-wrap: wrap; }
 .nd-pane .nd-editor-card-foot { flex-wrap: wrap; gap: 8px 11px; }
 
@@ -335,14 +339,54 @@
   padding: 14px 13px; display: flex; flex-direction: column; gap: 10px;
 }
 .nd-card { flex: none; background: #fff; border: 1px solid var(--nd-line); border-radius: 9px; overflow: hidden; }
-.nd-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 13px 14px 10px; }
+.nd-card-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px 8px; }
+.nd-card-head > .nd-card-title { flex: 1; min-width: 0; }
+.nd-help-close { margin-left: 0; margin-right: -6px; }
 .nd-card-head-bordered { border-bottom: 1px solid var(--nd-line-soft); background: var(--nd-surface); padding: 8px 12px; align-items: center; justify-content: flex-start; }
 .nd-card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.11em; color: var(--nd-text-4); }
 .nd-card-title-strong { font-size: 12px; font-weight: 600; }
-.nd-card-body { padding: 12px 14px 13px; display: flex; flex-direction: column; gap: 9px; }
-.nd-checklist { display: flex; flex-direction: column; gap: 11px; padding: 0 14px 13px; }
+.nd-card-body { padding: 11px 13px 12px; display: flex; flex-direction: column; gap: 9px; }
+.nd-checklist { display: flex; flex-direction: column; gap: 8px; padding: 0 14px 11px; margin: 0; list-style: none; min-height: 12px; }
+.nd-checklist-count { font-size: 10.5px; font-weight: 600; color: var(--nd-teal); }
+.nd-check { display: flex; align-items: flex-start; gap: 9px; font-size: 12.5px; color: #16323c; }
+.nd-check-icon {
+  width: 18px; height: 18px; flex: none; border-radius: 6px;
+  font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+  background: #f1f5f6; color: #93a9af;
+}
+.nd-check-done .nd-check-icon { background: #def3e9; color: #0c8b57; }
+.nd-check-error .nd-check-icon { background: #fcedec; color: #a6272c; }
+.nd-check-label { flex: 1; min-width: 0; line-height: 1.45; font-weight: 500; }
+.nd-check-tag {
+  flex: none; font-size: 10.5px; color: var(--nd-text-4); background: var(--nd-line-soft);
+  border-radius: 5px; padding: 2px 6px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nd-help-note { margin: 0; font-size: 12.5px; line-height: 1.55; color: #24424c; font-weight: 500; text-wrap: pretty; }
+/* Links sit two per row so the rail fits without scrolling. */
+.nd-help-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.nd-help-link {
+  font-size: 11px; font-weight: 600; color: var(--nd-teal-dark); text-align: center;
+  background: #e4f6f6; border: 1px solid #bfe9ea; border-radius: 7px; padding: 4px 6px; text-decoration: none;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nd-help-link:hover { background: var(--nd-teal-tint); border-color: #9fd6dc; }
+.nd-help-how { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.nd-help-how li { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; line-height: 1.45; color: #24424c; font-weight: 500; }
+.nd-help-how-n {
+  width: 16px; height: 16px; flex: none; border-radius: 5px; margin-top: 1px;
+  background: #e4f6f6; color: var(--nd-teal); font-size: 9.5px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
 .nd-card-tabs .ant-tabs-nav { margin-bottom: 0; background: var(--nd-surface); }
-.nd-card-tabs .ant-tabs-tab { font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; }
+/* Two equal tabs that always fit the 286px rail: no gutter, no "..." overflow menu. */
+.nd-card-tabs .ant-tabs-nav-wrap { flex: 1; }
+.nd-card-tabs .ant-tabs-nav-list { width: 100%; }
+.nd-card-tabs .ant-tabs-tab {
+  flex: 1 1 0; min-width: 0; justify-content: center; margin: 0 !important; padding: 9px 6px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em;
+}
+.nd-card-tabs .ant-tabs-tab-btn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nd-card-tabs .ant-tabs-nav-operations { display: none !important; }
 
 /* Simulate */
 .nd-view-simulate { flex-direction: column; padding: 18px 20px 20px; gap: 12px; }
@@ -385,6 +429,8 @@
 .nd-badge-teal { background: var(--nd-teal-tint); color: var(--nd-teal); }
 .nd-badge-grey { background: var(--nd-line-soft); color: var(--nd-text-2); font-weight: 500; }
 .nd-badge-blue { background: #e7f2fe; color: var(--nd-blue); }
+.nd-badge-link { text-decoration: none; }
+.nd-badge-link:hover { text-decoration: underline; }
 
 /* ---------- Placeholders ---------- */
 .nd-placeholder { display: block; background: var(--nd-placeholder); border-radius: 6px; }

@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ModelDataView } from '../../../components/designV2/ModelDataView';
-import { MODEL_DATA, START, START_SAMPLES, sampleNameFor } from '../../../components/designV2/constants';
+import { HELP_RAIL, MODEL_DATA, START, START_SAMPLES, sampleNameFor } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
+import useDesignV2Store from '../../../store/designV2Store';
 import { SAMPLES } from '../../../samples';
 import * as counter from '../../../samples/counterLogic';
 import { NAME as BLANK_SAMPLE_NAME } from '../../../samples/blank';
@@ -41,6 +42,7 @@ describe('ModelDataView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useDesignV2Store.setState({ modelDataPanes: { model: true, data: true }, helpRailOpen: true });
     useAppStore.setState({
       sampleName: counter.NAME,
       samples: SAMPLES,
@@ -62,7 +64,10 @@ describe('ModelDataView', () => {
     const model = pane(MODEL_DATA.model.paneLabel);
     const data = pane(MODEL_DATA.data.paneLabel);
     expect(model.getByText(MODEL_DATA.model.file)).toBeInTheDocument();
-    expect(model.getByText(MODEL_DATA.model.badge)).toBeInTheDocument();
+    expect(model.getByRole('link', { name: `${MODEL_DATA.model.badge} ↗` })).toHaveAttribute(
+      'href',
+      MODEL_DATA.model.badgeHref
+    );
     expect(data.getByText(MODEL_DATA.data.file)).toBeInTheDocument();
     expect(data.getByText(MODEL_DATA.data.badge)).toBeInTheDocument();
     // The editors are lazy-loaded, so they show up a tick after the chrome.
@@ -82,12 +87,14 @@ describe('ModelDataView', () => {
     expect(data.getByText(MODEL_DATA.data.required(2, 2))).toBeInTheDocument();
   });
 
-  it('routes a CTO error to the model pane and leaves the data pane green', () => {
+  it('routes a CTO error to the model pane and marks the data as not checked', () => {
     useAppStore.setState({ error: 'Invalid CTO model: Line 3 column 5' });
     render(<ModelDataView />);
     expect(pane(MODEL_DATA.model.paneLabel).getByText(/Invalid CTO model/)).toBeInTheDocument();
     expect(pane(MODEL_DATA.model.paneLabel).queryByText(MODEL_DATA.model.ok)).not.toBeInTheDocument();
-    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.ok)).toBeInTheDocument();
+    const data = pane(MODEL_DATA.data.paneLabel);
+    expect(data.getByText(MODEL_DATA.data.notChecked)).toBeInTheDocument();
+    expect(data.queryByText(MODEL_DATA.data.ok)).not.toBeInTheDocument();
   });
 
   it('routes a JSON or instance error to the data pane', () => {
@@ -134,6 +141,82 @@ describe('ModelDataView', () => {
     expect(formatted).not.toBe(messy);
     expect(formatted).toContain('concept C');
     expect(setModelCto).toHaveBeenCalledWith(formatted);
+  });
+
+  it('closing a pane leaves the other one alone, and a chip brings it back', () => {
+    render(<ModelDataView />);
+    fireEvent.click(screen.getByRole('button', { name: MODEL_DATA.closePane(MODEL_DATA.data.file) }));
+    expect(screen.queryByRole('region', { name: MODEL_DATA.data.paneLabel })).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: MODEL_DATA.model.paneLabel })).toBeInTheDocument();
+    expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: true, data: false });
+
+    fireEvent.click(screen.getByRole('button', { name: MODEL_DATA.reopenPane(MODEL_DATA.data.file) }));
+    expect(screen.getByRole('region', { name: MODEL_DATA.data.paneLabel })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: MODEL_DATA.reopenPane(MODEL_DATA.data.file) })
+    ).not.toBeInTheDocument();
+  });
+
+  it('the last open pane cannot be closed', () => {
+    useDesignV2Store.setState({ modelDataPanes: { model: false, data: true } });
+    render(<ModelDataView />);
+    const close = screen.getByRole('button', { name: MODEL_DATA.closePane(MODEL_DATA.data.file) });
+    expect(close).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(close);
+    expect(screen.getByRole('region', { name: MODEL_DATA.data.paneLabel })).toBeInTheDocument();
+    expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: false, data: true });
+    expect(
+      screen.getByRole('button', { name: MODEL_DATA.reopenPane(MODEL_DATA.model.file) })
+    ).toBeInTheDocument();
+  });
+
+  it('fills the help rail: live checklist, "why this step" note with links, "how it works" steps', () => {
+    render(<ModelDataView />);
+    const rail = within(screen.getByRole('complementary'));
+    const checks = MODEL_DATA.help.checks;
+    expect(rail.getByText(MODEL_DATA.help.checklistTitle)).toBeInTheDocument();
+    expect(rail.getByText(HELP_RAIL.count(4, 4))).toBeInTheDocument();
+    expect(rail.getByText(checks.templateConcept).closest('li')).toHaveClass('nd-check-done');
+    expect(rail.getByText('CounterContract')).toBeInTheDocument();
+    expect(rail.getByText('2/2')).toBeInTheDocument();
+
+    expect(rail.getByText(MODEL_DATA.help.why.note)).toBeInTheDocument();
+    for (const link of MODEL_DATA.help.why.links) {
+      expect(rail.getByRole('link', { name: `↗ ${link.label}` })).toHaveAttribute('href', link.href);
+    }
+
+    fireEvent.click(rail.getByRole('tab', { name: HELP_RAIL.tabHow }));
+    for (const step of MODEL_DATA.help.how) {
+      expect(rail.getByText(step)).toBeInTheDocument();
+    }
+  });
+
+  it('the checklist reflects errors and missing fields', () => {
+    useAppStore.setState({ error: 'Invalid CTO model: Line 3', editorAgreementData: '{ "owner": "Alice" }' });
+    render(<ModelDataView />);
+    const rail = within(screen.getByRole('complementary'));
+    const checks = MODEL_DATA.help.checks;
+    expect(rail.getByText(checks.modelParses).closest('li')).toHaveClass('nd-check-error');
+    // A broken model means the data cannot be checked: not green, not red.
+    expect(rail.getByText(checks.dataValid).closest('li')).toHaveClass('nd-check-todo');
+    expect(rail.getByText(checks.needsModel)).toBeInTheDocument();
+    expect(rail.getByText(checks.requiredFields).closest('li')).toHaveClass('nd-check-todo');
+    expect(rail.getByText('1/2')).toBeInTheDocument();
+    expect(rail.getByText(HELP_RAIL.count(1, 4))).toBeInTheDocument();
+  });
+
+  it('the help rail can be closed and brought back with the "? Help" chip', () => {
+    render(<ModelDataView />);
+    fireEvent.click(screen.getByRole('button', { name: HELP_RAIL.close }));
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+    expect(useDesignV2Store.getState().helpRailOpen).toBe(false);
+    // Both editors keep working without the rail.
+    expect(screen.getByRole('region', { name: MODEL_DATA.model.paneLabel })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: MODEL_DATA.data.paneLabel })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: HELP_RAIL.reopen }));
+    expect(screen.getByRole('complementary')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: HELP_RAIL.reopen })).not.toBeInTheDocument();
   });
 
   it('"copy" writes the model to the clipboard', () => {

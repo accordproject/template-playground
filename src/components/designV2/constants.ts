@@ -11,6 +11,10 @@ export const URLS = {
   readme: "https://github.com/accordproject/template-playground/blob/main/README.md",
   issues: "https://github.com/accordproject/template-playground/issues",
   engineDocs: "https://github.com/accordproject/template-engine/blob/main/README.md",
+  concertoSite: "https://concerto.accordproject.org/",
+  concertoTypes: "https://concerto.accordproject.org/docs/design/specification/model-properties",
+  concertoIntro: "https://concerto.accordproject.org/docs/intro",
+  concertoInstances: "https://concerto.accordproject.org/docs/design/specification/model-instances",
 } as const;
 
 export const ROUTES = {
@@ -66,6 +70,11 @@ export const HELP_RAIL = {
   checklist: "CHECKLIST",
   tabWhy: "WHY THIS STEP",
   tabHow: "HOW IT WORKS",
+  /** "2 / 3" done-of-total counter next to the checklist title. */
+  count: (done: number, total: number) => `${done} / ${total}`,
+  close: "Close help",
+  /** Chip next to the step title that brings the rail back. */
+  reopen: "? Help",
 } as const;
 
 export const PREVIEW = {
@@ -206,10 +215,17 @@ export const MODEL_DATA = {
   format: "≡ format",
   copy: "⧉ copy",
   reset: "↺ reset",
+  /** Accessible name of the × on a pane header. */
+  closePane: (file: string) => `Close ${file}`,
+  /** Label of the chip that brings a closed pane back. */
+  reopenPane: (file: string) => `+ ${file}`,
+  keepOneOpen: "Keep at least one panel open",
   model: {
     paneLabel: "Model",
     file: "model.cto",
     badge: "Concerto",
+    badgeHref: URLS.concertoSite,
+    badgeTitle: "Open the Concerto site",
     ok: "✓ parses",
     noNamespace: "no namespace",
     noTemplate: "no @template concept",
@@ -223,6 +239,8 @@ export const MODEL_DATA = {
     file: "data.json",
     badge: "instance",
     ok: "✓ valid against the model",
+    /** Shown instead of the ✓ while the model itself does not parse. */
+    notChecked: "○ not checked — fix the model first",
     invalidJson: "not valid JSON",
     required: (present: number, required: number) => `${present} of ${required} required fields`,
     formatFailed: "Fix JSON syntax errors before formatting.",
@@ -231,6 +249,34 @@ export const MODEL_DATA = {
   },
   /** Prefix in front of a rebuild error shown in a status bar. */
   errorPrefix: "✕",
+  /** Content of the help rail for this step. */
+  help: {
+    checklistTitle: "THIS STEP NEEDS",
+    checks: {
+      templateConcept: "a @template concept",
+      modelParses: "the model parses",
+      dataValid: "data matches the model",
+      requiredFields: "every required field filled",
+      /** Tag on the data check while the model does not parse. */
+      needsModel: "needs a valid model",
+    },
+    why: {
+      note:
+        "The model is the contract’s vocabulary: name a field once and the text and the logic can use it. The data is the instance you test with, checked against the model field by field.",
+      links: [
+        { label: "Concerto site", href: URLS.concertoSite },
+        { label: "Concerto types", href: URLS.concertoTypes },
+        { label: "@template", href: URLS.engineDocs },
+        { label: "Instances", href: URLS.concertoInstances },
+      ],
+    },
+    how: [
+      "A namespace + version names your model so it can be shared.",
+      "The @template concept is the root the agreement is built from; each o field becomes a variable.",
+      "$class in the data points at that concept, and every required field is checked against its type.",
+      "Valid data is what the preview and the simulator run on.",
+    ],
+  },
 } as const;
 
 export const SIMULATE = {
