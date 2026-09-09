@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Button, Tooltip, message } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import useAppStore from "../../store/store";
@@ -6,7 +6,6 @@ import useDesignV2Store, { type ModelDataPane } from "../../store/designV2Store"
 import TemplateModel from "../../editors/editorsContainer/TemplateModel";
 import AgreementData from "../../editors/editorsContainer/AgreementData";
 import { formatConcertoModel } from "../../utils/formatConcertoModel";
-import { summarizeModel, summarizeData, splitError } from "../../utils/modelDataStats";
 import HelpRail, { HelpRailReopen, type ChecklistItem } from "./HelpRail";
 import { MODEL_DATA } from "./constants";
 
@@ -26,8 +25,6 @@ interface EditorPaneProps {
   okText: string;
   /** Neutral status shown instead of okText when the check could not run. */
   pendingText?: string;
-  /** Extra facts on the right of the status bar. */
-  facts: readonly string[];
   onClose: () => void;
   /** False when this is the last open pane: the × stays visible but does nothing. */
   canClose: boolean;
@@ -36,7 +33,7 @@ interface EditorPaneProps {
 
 /** One half of the split screen: file header, Monaco editor, status bar. */
 const EditorPane = ({
-  label, file, badge, badgeClass, badgeHref, badgeTitle, actions, error, okText, pendingText, facts, onClose, canClose, children,
+  label, file, badge, badgeClass, badgeHref, badgeTitle, actions, error, okText, pendingText, onClose, canClose, children,
 }: EditorPaneProps) => (
   <section className="nd-editor-card nd-pane" aria-label={label}>
     <div className="nd-editor-card-head">
@@ -73,16 +70,22 @@ const EditorPane = ({
       ) : (
         <span className="nd-status-ok">{okText}</span>
       )}
-      <div className="nd-spacer" />
-      {facts.map((fact, i) => (
-        <span key={i} className="nd-status-fact">
-          {i > 0 && <span className="nd-status-sep" aria-hidden="true">|</span>}
-          {fact}
-        </span>
-      ))}
     </div>
   </section>
 );
+
+/**
+ * Which pane the app store's single `error` string belongs to.
+ * Display-only: the message itself comes from the store's validators and the
+ * Accord template engine, this just decides where to show it. CTO syntax
+ * errors ("Invalid CTO model", legacy "c:" prefix) and the engine's
+ * "@template decorator" errors are model problems; everything else (invalid
+ * JSON, an instance that does not match the model) is a data problem.
+ */
+const errorPane = (error: string | undefined): "model" | "data" | null => {
+  if (!error) return null;
+  return /^c:|Invalid CTO model|@template decorator/i.test(error) ? "model" : "data";
+};
 
 /**
  * Step 3 — Model & Data, side by side.
@@ -90,8 +93,9 @@ const EditorPane = ({
  * Left: model.cto in the Concerto editor. Right: data.json in the JSON editor.
  * Both are the legacy playground containers (TemplateModel / AgreementData),
  * so edits flow through the app store exactly as in the old layout: the store
- * rebuilds the agreement, and its single `error` string is routed to the pane
- * it belongs to by splitError(). Only the chrome around the editors is new.
+ * rebuilds the agreement and validates; its error is shown in the pane it
+ * belongs to. Only the chrome around the editors is new — no validation of
+ * its own.
  *
  * Either pane can be closed with its × so the other one takes the full
  * width; a "+ file" chip next to the title brings it back. At least one pane
@@ -112,12 +116,9 @@ export const ModelDataView = () => {
   const openCount = Number(panes.model) + Number(panes.data);
   const closedPanes = (["model", "data"] as const).filter((pane) => !panes[pane]);
 
-  const model = useMemo(() => summarizeModel(editorModelCto), [editorModelCto]);
-  const data = useMemo(
-    () => summarizeData(editorAgreementData, model.templateFields),
-    [editorAgreementData, model.templateFields]
-  );
-  const errors = splitError(error);
+  const failing = errorPane(error);
+  const modelError = failing === "model" ? error : undefined;
+  const dataError = failing === "data" ? error : undefined;
 
   const formatModel = () => {
     try {
@@ -144,40 +145,28 @@ export const ModelDataView = () => {
     }
   };
 
+  // "reset" puts the loaded sample's original data.json back; it is greyed out while nothing changed.
+  const sample = samples.find((s) => s.NAME === sampleName);
+  const sampleData = sample ? JSON.stringify(sample.DATA, null, 2) : undefined;
+  const canReset = sampleData !== undefined && sampleData !== editorAgreementData;
   const resetData = () => {
-    const sample = samples.find((s) => s.NAME === sampleName);
-    if (!sample) {
+    if (!sample || sampleData === undefined) {
       void message.warning(MODEL_DATA.data.resetUnavailable);
       return;
     }
-    const original = JSON.stringify(sample.DATA, null, 2);
-    setEditorAgreementData(original);
-    void setData(original);
+    setEditorAgreementData(sampleData);
+    void setData(sampleData);
     void message.success(MODEL_DATA.data.resetDone(sample.NAME));
   };
 
-  const modelFacts = [
-    model.namespace ?? MODEL_DATA.model.noNamespace,
-    model.templateConcept
-      ? MODEL_DATA.model.template(model.templateConcept, model.templateFields.length)
-      : MODEL_DATA.model.noTemplate,
-  ];
-  const dataFacts = [MODEL_DATA.data.required(data.present, data.required)];
-  const dataError = errors.data ?? (data.parses ? undefined : MODEL_DATA.data.invalidJson);
-
+  // Checklist tones mirror the store's validation result and nothing else.
   const checks = MODEL_DATA.help.checks;
   const checklist: ChecklistItem[] = [
-    { label: checks.templateConcept, tone: model.templateConcept ? "done" : "todo", tag: model.templateConcept ?? undefined },
-    { label: checks.modelParses, tone: errors.model ? "error" : "done" },
+    { label: checks.modelParses, tone: modelError ? "error" : "done" },
     // Without a parsing model the data cannot be checked against anything.
-    errors.model
+    modelError
       ? { label: checks.dataValid, tone: "todo", tag: checks.needsModel }
       : { label: checks.dataValid, tone: dataError ? "error" : "done" },
-    {
-      label: checks.requiredFields,
-      tone: data.required > 0 && data.present === data.required ? "done" : "todo",
-      tag: `${data.present}/${data.required}`,
-    },
   ];
 
   return (
@@ -206,9 +195,8 @@ export const ModelDataView = () => {
             badgeClass="nd-badge-teal"
             badgeHref={MODEL_DATA.model.badgeHref}
             badgeTitle={MODEL_DATA.model.badgeTitle}
-            error={errors.model}
+            error={modelError}
             okText={MODEL_DATA.model.ok}
-            facts={modelFacts}
             onClose={() => setPaneOpen("model", false)}
             canClose={openCount > 1}
             actions={
@@ -234,8 +222,7 @@ export const ModelDataView = () => {
             badgeClass="nd-badge-blue"
             error={dataError}
             okText={MODEL_DATA.data.ok}
-            pendingText={errors.model ? MODEL_DATA.data.notChecked : undefined}
-            facts={dataFacts}
+            pendingText={modelError ? MODEL_DATA.data.notChecked : undefined}
             onClose={() => setPaneOpen("data", false)}
             canClose={openCount > 1}
             actions={
@@ -243,7 +230,13 @@ export const ModelDataView = () => {
                 <Button type="text" size="small" onClick={formatData}>
                   {MODEL_DATA.format}
                 </Button>
-                <Button type="text" size="small" onClick={resetData}>
+                <Button
+                  type="text"
+                  size="small"
+                  onClick={resetData}
+                  disabled={!canReset}
+                  title={sample ? MODEL_DATA.data.resetTitle(sample.NAME) : undefined}
+                >
                   {MODEL_DATA.reset}
                 </Button>
               </>

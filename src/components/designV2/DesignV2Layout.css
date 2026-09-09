@@ -317,8 +317,6 @@
 .nd-status-err {
   color: #a6272c; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.nd-status-fact { display: inline-flex; align-items: center; gap: 11px; white-space: nowrap; font-family: var(--nd-mono); font-weight: 500; }
-.nd-status-sep { color: #c4d7da; }
 
 /* Model & Data: the editor column is split into two panes */
 .nd-split {
@@ -359,14 +357,14 @@
 .nd-check-label { flex: 1; min-width: 0; line-height: 1.45; font-weight: 500; }
 .nd-check-tag {
   flex: none; font-size: 10.5px; color: var(--nd-text-4); background: var(--nd-line-soft);
-  border-radius: 5px; padding: 2px 6px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-radius: 5px; padding: 2px 6px; white-space: nowrap;
 }
 .nd-help-note { margin: 0; font-size: 12.5px; line-height: 1.55; color: #24424c; font-weight: 500; text-wrap: pretty; }
-/* Links sit two per row so the rail fits without scrolling. */
-.nd-help-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+/* One link per row, full width of the card. */
+.nd-help-links { display: flex; flex-direction: column; gap: 5px; }
 .nd-help-link {
-  font-size: 11px; font-weight: 600; color: var(--nd-teal-dark); text-align: center;
-  background: #e4f6f6; border: 1px solid #bfe9ea; border-radius: 7px; padding: 4px 6px; text-decoration: none;
+  font-size: 11px; font-weight: 600; color: var(--nd-teal-dark);
+  background: #e4f6f6; border: 1px solid #bfe9ea; border-radius: 7px; padding: 4px 9px; text-decoration: none;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .nd-help-link:hover { background: var(--nd-teal-tint); border-color: #9fd6dc; }

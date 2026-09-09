@@ -75,16 +75,10 @@ describe('ModelDataView', () => {
     expect(await data.findByTestId('monaco-json')).toBeInTheDocument();
   });
 
-  it('summarises the counter sample in both status bars', () => {
+  it('shows both status bars green while the store reports no error', () => {
     render(<ModelDataView />);
-    const model = pane(MODEL_DATA.model.paneLabel);
-    expect(model.getByText(MODEL_DATA.model.ok)).toBeInTheDocument();
-    expect(model.getByText('org.acme.counter@1.0.0')).toBeInTheDocument();
-    expect(model.getByText(MODEL_DATA.model.template('CounterContract', 2))).toBeInTheDocument();
-
-    const data = pane(MODEL_DATA.data.paneLabel);
-    expect(data.getByText(MODEL_DATA.data.ok)).toBeInTheDocument();
-    expect(data.getByText(MODEL_DATA.data.required(2, 2))).toBeInTheDocument();
+    expect(pane(MODEL_DATA.model.paneLabel).getByText(MODEL_DATA.model.ok)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.ok)).toBeInTheDocument();
   });
 
   it('routes a CTO error to the model pane and marks the data as not checked', () => {
@@ -104,15 +98,11 @@ describe('ModelDataView', () => {
     expect(pane(MODEL_DATA.model.paneLabel).getByText(MODEL_DATA.model.ok)).toBeInTheDocument();
   });
 
-  it('flags unparseable data and counts missing required fields', () => {
-    useAppStore.setState({ editorAgreementData: '{ "owner": "Alice" }' });
-    const { unmount } = render(<ModelDataView />);
-    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.required(1, 2))).toBeInTheDocument();
-    unmount();
-
-    useAppStore.setState({ editorAgreementData: '{ not json' });
+  it("routes the template engine's @template error to the model pane", () => {
+    useAppStore.setState({ error: 'Failed to find a concept with the @template decorator.' });
     render(<ModelDataView />);
-    expect(pane(MODEL_DATA.data.paneLabel).getByText(new RegExp(MODEL_DATA.data.invalidJson))).toBeInTheDocument();
+    expect(pane(MODEL_DATA.model.paneLabel).getByText(/@template decorator/)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.notChecked)).toBeInTheDocument();
   });
 
   it('"format" pretty-prints the data through the store', () => {
@@ -124,10 +114,16 @@ describe('ModelDataView', () => {
     expect(setData).toHaveBeenCalledWith(pretty);
   });
 
-  it('"reset" restores the loaded sample\'s data', () => {
+  it('"reset" restores the loaded sample\'s data and is disabled while nothing changed', () => {
+    const { unmount } = render(<ModelDataView />);
+    expect(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset })).toBeDisabled();
+    unmount();
+
     useAppStore.setState({ editorAgreementData: '{ "owner": "Bob" }' });
     render(<ModelDataView />);
-    fireEvent.click(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset }));
+    const reset = pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset });
+    expect(reset).toBeEnabled();
+    fireEvent.click(reset);
     expect(useAppStore.getState().editorAgreementData).toBe(counterData);
     expect(setData).toHaveBeenCalledWith(counterData);
   });
@@ -175,10 +171,9 @@ describe('ModelDataView', () => {
     const rail = within(screen.getByRole('complementary'));
     const checks = MODEL_DATA.help.checks;
     expect(rail.getByText(MODEL_DATA.help.checklistTitle)).toBeInTheDocument();
-    expect(rail.getByText(HELP_RAIL.count(4, 4))).toBeInTheDocument();
-    expect(rail.getByText(checks.templateConcept).closest('li')).toHaveClass('nd-check-done');
-    expect(rail.getByText('CounterContract')).toBeInTheDocument();
-    expect(rail.getByText('2/2')).toBeInTheDocument();
+    expect(rail.getByText(HELP_RAIL.count(2, 2))).toBeInTheDocument();
+    expect(rail.getByText(checks.modelParses).closest('li')).toHaveClass('nd-check-done');
+    expect(rail.getByText(checks.dataValid).closest('li')).toHaveClass('nd-check-done');
 
     expect(rail.getByText(MODEL_DATA.help.why.note)).toBeInTheDocument();
     for (const link of MODEL_DATA.help.why.links) {
@@ -191,8 +186,8 @@ describe('ModelDataView', () => {
     }
   });
 
-  it('the checklist reflects errors and missing fields', () => {
-    useAppStore.setState({ error: 'Invalid CTO model: Line 3', editorAgreementData: '{ "owner": "Alice" }' });
+  it('the checklist mirrors the store error', () => {
+    useAppStore.setState({ error: 'Invalid CTO model: Line 3' });
     render(<ModelDataView />);
     const rail = within(screen.getByRole('complementary'));
     const checks = MODEL_DATA.help.checks;
@@ -200,9 +195,7 @@ describe('ModelDataView', () => {
     // A broken model means the data cannot be checked: not green, not red.
     expect(rail.getByText(checks.dataValid).closest('li')).toHaveClass('nd-check-todo');
     expect(rail.getByText(checks.needsModel)).toBeInTheDocument();
-    expect(rail.getByText(checks.requiredFields).closest('li')).toHaveClass('nd-check-todo');
-    expect(rail.getByText('1/2')).toBeInTheDocument();
-    expect(rail.getByText(HELP_RAIL.count(1, 4))).toBeInTheDocument();
+    expect(rail.getByText(HELP_RAIL.count(0, 2))).toBeInTheDocument();
   });
 
   it('the help rail can be closed and brought back with the "? Help" chip', () => {
