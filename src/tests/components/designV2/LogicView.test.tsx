@@ -10,7 +10,7 @@ import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { STEP_ID } from '../../../types/designV2.types';
 import * as counter from '../../../samples/counterLogic';
-import * as employment from '../../../samples/employmentOffer';
+import * as helloworld from '../../../samples/helloworld';
 
 /*
  * Monaco is replaced by a plain div: the view under test is the chrome around
@@ -89,7 +89,7 @@ describe('LogicView', () => {
   });
 
   it('leaves the types row open when model.cto has no request/response transactions', () => {
-    useAppStore.setState({ modelCto: employment.MODEL });
+    useAppStore.setState({ modelCto: helloworld.MODEL });
     render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(0, 2))).toBeInTheDocument();
     expect(pane().getByText(LOGIC.typesMissing)).toBeInTheDocument();
@@ -115,7 +115,7 @@ describe('LogicView', () => {
   });
 
   it('"Scaffold" falls back to the generic skeleton when the model has no request/response', () => {
-    useAppStore.setState({ modelCto: employment.MODEL, editorLogicTs: '', logicTs: '' });
+    useAppStore.setState({ modelCto: helloworld.MODEL, editorLogicTs: '', logicTs: '' });
     render(<LogicView />);
     fireEvent.click(screen.getByRole('button', { name: LOGIC.scaffold }));
     expect(useAppStore.getState().editorLogicTs).toBe(DEFAULT_LOGIC_BOILERPLATE);

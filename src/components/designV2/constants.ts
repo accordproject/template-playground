@@ -110,7 +110,7 @@ export const START = {
   includeLogicHint: (stepIds: readonly number[]) => `steps ${stepIds.join(" & ")}`,
   stepsLabel: (count: number) => `${count} steps`,
   cardLabel: (name: string, steps: string, note: string) => `${name} · ${steps} · ${note}`,
-  notes: { startHere: "start here", noLogic: "no logic" },
+  notes: { startHere: "start here", withLogic: "with logic", noLogic: "no logic" },
   tags: { text: "text", model: "model", logic: "logic" },
 } as const;
 
@@ -157,8 +157,8 @@ export const START_SAMPLES: readonly StartSample[] = [
     name: "Employment Offer",
     sampleName: "Employment Offer Letter",
     accent: "amber",
-    logic: false,
-    note: START.notes.noLogic,
+    logic: true,
+    note: START.notes.withLogic,
     body: [
       "Role: Junior AI Engineer",
       "Company: Accord Project",
@@ -172,8 +172,8 @@ export const START_SAMPLES: readonly StartSample[] = [
     name: "Non-disclosure",
     sampleName: "Non-Disclosure Agreement",
     accent: "blue",
-    logic: false,
-    note: START.notes.noLogic,
+    logic: true,
+    note: START.notes.withLogic,
     body: [
       "Parties: Accord Project · John Doe",
       "Term: 24 months",

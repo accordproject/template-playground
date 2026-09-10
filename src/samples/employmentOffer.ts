@@ -32,6 +32,33 @@ concept EmploymentOffer {
   o MonetaryAmount annualSalary
   o DateTime startDate
   o Probation probation optional
+}
+
+/**
+ * The candidate answers the offer
+ */
+transaction AcceptanceRequest {
+  o Boolean accepted
+  o String note optional
+}
+
+transaction AcceptanceResponse {
+  o String outcome
+  o String message
+}
+
+event OfferAnswered {
+  o String candidateName
+  o String outcome
+}
+
+/**
+ * Where the offer stands: pending, accepted or declined
+ */
+asset OfferState identified by stateId {
+  o String stateId
+  o String status
+  o Integer answers
 }`;
 const TEMPLATE = `DATE: {{startDate as "DD MMMM YYYY"}}
 
@@ -72,4 +99,67 @@ const DATA = {
 };
 const NAME = 'Employment Offer Letter';
 
-export { NAME, MODEL, DATA, TEMPLATE };
+const REQUEST = {
+  $class: 'org.accordproject.employment@1.0.0.AcceptanceRequest',
+  accepted: true,
+  note: 'Looking forward to joining the team.',
+};
+
+const LOGIC = `// Employment Offer Logic
+// The offer starts pending; the candidate's first answer accepts or declines it, once.
+import type { IEmploymentOffer, IAcceptanceRequest } from './org.accordproject.employment@1.0.0';
+
+class EmploymentOfferLogic extends TemplateLogic<any> {
+
+  // Called once: the offer is open and unanswered
+  async init(data: IEmploymentOffer) {
+    return {
+      state: {
+        $class: 'org.accordproject.employment@1.0.0.OfferState',
+        $identifier: 'offer-state',
+        stateId: 'offer-state',
+        status: 'pending',
+        answers: 0,
+      },
+      events: [],
+    };
+  }
+
+  // Called per request: record the candidate's answer
+  async trigger(data: IEmploymentOffer, request: IAcceptanceRequest, state: any) {
+    if (state.status !== 'pending') {
+      throw new Error('This offer was already ' + state.status + ' and cannot be answered again');
+    }
+
+    const outcome = request.accepted ? 'accepted' : 'declined';
+    const message =
+      data.candidateName + ' ' + outcome + ' the ' + data.roleTitle + ' offer from ' + data.companyName +
+      (request.note ? ' - "' + request.note + '"' : '');
+
+    return {
+      result: {
+        $class: 'org.accordproject.employment@1.0.0.AcceptanceResponse',
+        $timestamp: new Date(),
+        outcome,
+        message,
+      },
+      state: {
+        ...state,
+        status: outcome,
+        answers: state.answers + 1,
+      },
+      events: [
+        {
+          $class: 'org.accordproject.employment@1.0.0.OfferAnswered',
+          $timestamp: new Date(),
+          candidateName: data.candidateName,
+          outcome,
+        },
+      ],
+    };
+  }
+}
+
+export default EmploymentOfferLogic;`;
+
+export { NAME, MODEL, DATA, TEMPLATE, LOGIC, REQUEST };

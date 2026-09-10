@@ -8,6 +8,7 @@ import {
 import * as counter from '../../samples/counterLogic';
 import * as latePayment from '../../samples/latePaymentPenalty';
 import * as employment from '../../samples/employmentOffer';
+import * as helloworld from '../../samples/helloworld';
 
 describe('describeLogicModel', () => {
   it('finds the template concept, request/response transactions and state asset', () => {
@@ -30,10 +31,17 @@ describe('describeLogicModel', () => {
   });
 
   it('reports no request/response for a model without transactions', () => {
-    const model = describeLogicModel(employment.MODEL);
-    expect(model?.template?.name).toBe('EmploymentOffer');
+    const model = describeLogicModel(helloworld.MODEL);
+    expect(model?.template?.name).toBe('HelloWorld');
     expect(model?.request).toBeUndefined();
     expect(model?.response).toBeUndefined();
+  });
+
+  it('finds the request/response the gallery samples now declare', () => {
+    const offer = describeLogicModel(employment.MODEL);
+    expect(offer?.request?.name).toBe('AcceptanceRequest');
+    expect(offer?.response?.name).toBe('AcceptanceResponse');
+    expect(offer?.state?.name).toBe('OfferState');
   });
 
   it('is null for an empty or unparsable model', () => {
@@ -67,7 +75,7 @@ describe('scaffoldFromModel', () => {
   });
 
   it('falls back to the generic boilerplate without request/response', () => {
-    expect(scaffoldFromModel(describeLogicModel(employment.MODEL))).toBe(DEFAULT_LOGIC_BOILERPLATE);
+    expect(scaffoldFromModel(describeLogicModel(helloworld.MODEL))).toBe(DEFAULT_LOGIC_BOILERPLATE);
     expect(scaffoldFromModel(null)).toBe(DEFAULT_LOGIC_BOILERPLATE);
   });
 });

@@ -54,21 +54,25 @@ describe('StartView', () => {
     expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(0);
   });
 
+  it('every gallery card ships logic', () => {
+    expect(START_SAMPLES.every((s) => s.logic)).toBe(true);
+  });
+
   it('picking a card selects it and follows its logic flag', () => {
     render(<StartView />);
-    const noLogic = START_SAMPLES.find((s) => !s.logic)!;
-    const withLogic = START_SAMPLES.find((s) => s.logic)!;
+    const [first, second] = START_SAMPLES;
 
-    fireEvent.click(screen.getByText(noLogic.name));
-    expect(useDesignV2Store.getState().selectedTemplate).toBe(noLogic.name);
-    expect(useDesignV2Store.getState().includeLogic).toBe(false);
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
-    expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
-
-    fireEvent.click(screen.getByText(withLogic.name));
-    expect(useDesignV2Store.getState().selectedTemplate).toBe(withLogic.name);
+    // The toggle was switched off by hand; picking a card with logic turns it back on.
+    useDesignV2Store.getState().setIncludeLogic(false);
+    fireEvent.click(screen.getByText(first.name));
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(first.name);
     expect(useDesignV2Store.getState().includeLogic).toBe(true);
     expect(screen.getByRole('checkbox')).toBeChecked();
+    expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
+
+    fireEvent.click(screen.getByText(second.name));
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(second.name);
+    expect(useDesignV2Store.getState().includeLogic).toBe(true);
     expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
   });
 
