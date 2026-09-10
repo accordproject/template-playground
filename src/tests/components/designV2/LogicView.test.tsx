@@ -68,7 +68,8 @@ describe('LogicView', () => {
     expect(pane().getByText(LOGIC.doneCount(1, 2))).toBeInTheDocument();
     expect(pane().getByText(LOGIC.typesFound('CounterRequest', 'CounterResponse'))).toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(1, 2))).toBeInTheDocument();
-    expect(rail().getByText(LOGIC.status.notCompiled)).toBeInTheDocument();
+    // The rail shows icon and label only; the state text lives in the card chips.
+    expect(rail().queryByText(LOGIC.status.notCompiled)).not.toBeInTheDocument();
     unmount();
 
     useAppStore.setState({ compiledLogicJs: 'js' });
@@ -85,7 +86,6 @@ describe('LogicView', () => {
     expect(pane().getByText(LOGIC.rows.pair.label).closest('li')).toHaveAttribute('title', "Cannot find name 'foo'.");
     expect(pane().getByText(LOGIC.status.failed)).toBeInTheDocument();
     expect(rail().getByText(LOGIC.rows.pair.label).closest('li')).toHaveClass('nd-check-error');
-    expect(rail().getByText(LOGIC.status.failed)).toBeInTheDocument();
   });
 
   it('leaves the types row open when model.cto has no request/response transactions', () => {
@@ -102,22 +102,21 @@ describe('LogicView', () => {
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.modelData);
   });
 
-  it('"Scaffold" fills an empty editor with a skeleton from the model and is disabled otherwise', () => {
-    const { unmount } = render(<LogicView />);
-    expect(screen.getByRole('button', { name: LOGIC.scaffold })).toBeDisabled();
-    unmount();
+  it('leaves existing logic alone', () => {
+    render(<LogicView />);
+    expect(useAppStore.getState().editorLogicTs).toBe(counter.LOGIC);
+  });
 
+  it('opens an empty editor with a skeleton built from the model', () => {
     useAppStore.setState({ editorLogicTs: '', logicTs: '' });
     render(<LogicView />);
-    fireEvent.click(screen.getByRole('button', { name: LOGIC.scaffold }));
     expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(counter.MODEL)));
     expect(useAppStore.getState().editorLogicTs).toContain("$class: 'org.acme.counter@1.0.0.CounterResponse'");
   });
 
-  it('"Scaffold" falls back to the generic skeleton when the model has no request/response', () => {
+  it('falls back to the generic skeleton when the model has no request/response', () => {
     useAppStore.setState({ modelCto: helloworld.MODEL, editorLogicTs: '', logicTs: '' });
     render(<LogicView />);
-    fireEvent.click(screen.getByRole('button', { name: LOGIC.scaffold }));
     expect(useAppStore.getState().editorLogicTs).toBe(DEFAULT_LOGIC_BOILERPLATE);
   });
 

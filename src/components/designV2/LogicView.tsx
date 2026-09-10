@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Button, Tooltip, message } from "antd";
+import { useEffect, useMemo } from "react";
+import { Button, message } from "antd";
 import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import LogicMonaco from "../../editors/LogicMonaco";
@@ -30,7 +30,8 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
  * The types chip reads model.cto (describeLogicModel) for a request and a
  * response transaction and links to the Model & Data step; the init/trigger
  * chip and the help-rail checklist mirror the store's compile state.
- * "Scaffold" inserts a skeleton built from those model types.
+ * Every template ships logic; when the step opens on an empty editor anyway
+ * (the blank template), a skeleton built from the model is written into it.
  */
 export const LogicView = () => {
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
@@ -50,12 +51,12 @@ export const LogicView = () => {
   const status = logicStatus({ editorLogicTs, logicTs, isCompiling, compilationErrors, compiledLogicJs });
   const pair = PAIR[status];
   const done = (typesOk ? 1 : 0) + (status === "compiled" ? 1 : 0);
-  const editorEmpty = editorLogicTs.trim() === "";
 
-  const scaffold = () => {
-    setEditorLogicTs(scaffoldFromModel(model));
-    void message.success(typesOk ? LOGIC.scaffoldDoneModel : LOGIC.scaffoldDone);
-  };
+  // Nothing written yet and nothing committed: start from a skeleton built from the model.
+  const nothingYet = editorLogicTs.trim() === "" && logicTs.trim() === "";
+  useEffect(() => {
+    if (nothingYet) setEditorLogicTs(scaffoldFromModel(model));
+  }, [nothingYet, model, setEditorLogicTs]);
 
   const copyLogic = async () => {
     try {
@@ -67,9 +68,10 @@ export const LogicView = () => {
     }
   };
 
+  // Icon and label only: the chips in the card and the footer carry the detail.
   const checklist: ChecklistItem[] = [
-    { label: LOGIC.rows.types.label, tone: typesOk ? "done" : "todo", tag: typesTag },
-    { label: LOGIC.rows.pair.label, tone: pair.tone, tag: LOGIC.status[status] },
+    { label: LOGIC.rows.types.label, tone: typesOk ? "done" : "todo" },
+    { label: LOGIC.rows.pair.label, tone: pair.tone },
   ];
 
   return (
@@ -84,11 +86,6 @@ export const LogicView = () => {
           <Button size="small" onClick={() => void copyLogic()}>
             {LOGIC.copy}
           </Button>
-          <Tooltip title={editorEmpty ? undefined : LOGIC.scaffoldBlocked}>
-            <Button size="small" onClick={scaffold} disabled={!editorEmpty}>
-              {LOGIC.scaffold}
-            </Button>
-          </Tooltip>
           <HelpRailReopen />
         </div>
 
