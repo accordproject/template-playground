@@ -9,7 +9,7 @@ const MODEL = `namespace org.accordproject.employment@1.0.0
 /**
  * Represents a monetary value with currency
  */
-concept MonetaryAmount {
+concept Salary {
   o Double doubleValue
   o String currencyCode
 }
@@ -29,7 +29,7 @@ concept EmploymentOffer {
   o String candidateName
   o String companyName
   o String roleTitle
-  o MonetaryAmount annualSalary
+  o Salary annualSalary
   o DateTime startDate
   o Probation probation optional
 }
@@ -87,7 +87,7 @@ const DATA = {
   "companyName": "Tech Innovators Inc.",
   "roleTitle": "Junior AI Engineer",
   "annualSalary": {
-    "$class": "org.accordproject.employment@1.0.0.MonetaryAmount",
+    "$class": "org.accordproject.employment@1.0.0.Salary",
     "doubleValue": 85000,
     "currencyCode": "USD"
   },
