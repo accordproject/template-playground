@@ -1,5 +1,6 @@
 import { ConfigProvider } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
+import useAppStore from "../../store/store";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
@@ -39,11 +40,14 @@ const DesignV2Layout = () => {
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const togglePreview = useDesignV2Store((s) => s.togglePreview);
 
+  const backgroundColor = useAppStore((s) => s.backgroundColor);
+  const isDarkMode = backgroundColor === "#121212";
+
   const showChrome = view !== "welcome";
 
   return (
-    <ConfigProvider theme={designV2Theme()}>
-    <div className="nd-root">
+    <ConfigProvider theme={designV2Theme(isDarkMode)}>
+    <div className={`nd-root ${isDarkMode ? "nd-dark" : ""}`}>
       <Rail />
       <div className="nd-main">
         <Header

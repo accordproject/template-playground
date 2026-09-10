@@ -326,3 +326,96 @@
     border-left: 0; border-top: 1px solid var(--nd-line);
   }
 }
+
+/* ============================================================
+   Dark Mode Overrides
+   ============================================================ */
+
+.nd-root.nd-dark {
+  --nd-ink: #e2e8ea;
+  --nd-navy: #10161a;
+  --nd-teal: #2fbabf;
+  --nd-teal-dark: #81d4d8;
+  --nd-teal-tint: rgba(47, 186, 191, 0.15);
+  --nd-text-2: #a5b7c0;
+  --nd-text-3: #8a9ea8;
+  --nd-text-4: #6a828d;
+  --nd-muted: #546a74;
+  --nd-line: #2a373d;
+  --nd-line-soft: #1d282d;
+  --nd-surface: #151e22;
+  --nd-placeholder: rgba(255, 255, 255, 0.08);
+
+  color: var(--nd-ink);
+  background: var(--nd-navy);
+}
+
+.nd-root.nd-dark .nd-menu,
+.nd-root.nd-dark .nd-header,
+.nd-root.nd-dark .nd-step,
+.nd-root.nd-dark .nd-sample-card,
+.nd-root.nd-dark .nd-editor-card,
+.nd-root.nd-dark .nd-card,
+.nd-root.nd-dark .nd-footer,
+.nd-root.nd-dark .nd-preview-page,
+.nd-root.nd-dark .nd-help-rail,
+.nd-root.nd-dark .nd-editor-card-head,
+.nd-root.nd-dark .nd-editor-card-foot,
+.nd-root.nd-dark .nd-menu-head,
+.nd-root.nd-dark .nd-card-head-bordered,
+.nd-root.nd-dark .nd-card-tabs .ant-tabs-nav {
+  background: var(--nd-surface);
+  border-color: var(--nd-line);
+}
+
+.nd-root.nd-dark .nd-main {
+  background: #111a1f;
+}
+
+.nd-root.nd-dark .nd-menu-item-label,
+.nd-root.nd-dark .nd-step-label,
+.nd-root.nd-dark .nd-export-label {
+  color: #f0f4f5;
+}
+
+.nd-root.nd-dark .nd-rail {
+  background: #080d11;
+}
+
+.nd-root.nd-dark .nd-rail-menu-glyph {
+  background: #080d11;
+}
+
+.nd-root.nd-dark .nd-step-active {
+  background: var(--nd-teal-tint);
+  border-color: var(--nd-teal);
+}
+
+.nd-root.nd-dark .nd-sample-card:hover {
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+  border-color: var(--nd-teal);
+}
+
+.nd-root.nd-dark .nd-hero {
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.4);
+}
+
+.nd-root.nd-dark .nd-editor-card {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.nd-root.nd-dark .nd-checkbox {
+  color: var(--nd-ink);
+}
+
+.nd-root.nd-dark .nd-preview .ant-drawer-content-wrapper {
+  box-shadow: -22px 0 50px rgba(0, 0, 0, 0.3);
+}
+
+.nd-root.nd-dark .nd-preview .ant-drawer-body {
+  background: #0c1216;
+}
+
+.nd-root.nd-dark .nd-problem-pill-ok {
+  background: rgba(12, 139, 87, 0.2);
+}
