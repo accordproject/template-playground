@@ -18,7 +18,7 @@ class ContractLogic extends TemplateLogic<any> {
     return {
       result: {
         $class: 'org.example.Response',
-        $timestamp: new Date().toISOString(),
+        $timestamp: new Date(),
       },
       state: {
         ...state,
