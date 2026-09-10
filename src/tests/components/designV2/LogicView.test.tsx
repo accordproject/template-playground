@@ -73,16 +73,17 @@ describe('LogicView', () => {
     const second = render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(2, 2))).toBeInTheDocument();
     expect(pane().getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2');
-    // Both done: the rows fold into the head summary so the editor gets their height.
-    expect(pane().getByText(LOGIC.summary)).toBeInTheDocument();
-    expect(pane().queryByText(LOGIC.rows.pair.hint)).not.toBeInTheDocument();
+    // Compiled: the init/trigger chip shows the state and drops its "start writing" link.
+    expect(pane().getByText(LOGIC.status.compiled)).toBeInTheDocument();
+    expect(pane().queryByRole('button', { name: LOGIC.rows.pair.action })).not.toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(2, 2))).toBeInTheDocument();
     expect(rail().getByText(LOGIC.rows.pair.label).closest('li')).toHaveClass('nd-check-done');
     second.unmount();
 
     useAppStore.setState({ compiledLogicJs: null, compilationErrors: [{ message: "Cannot find name 'foo'." }] });
     render(<LogicView />);
-    expect(pane().getByText(LOGIC.rows.pair.hint)).toHaveAttribute('title', "Cannot find name 'foo'.");
+    expect(pane().getByText(LOGIC.rows.pair.label).closest('li')).toHaveAttribute('title', "Cannot find name 'foo'.");
+    expect(pane().getByText(LOGIC.status.failed)).toBeInTheDocument();
     expect(rail().getByText(LOGIC.rows.pair.label).closest('li')).toHaveClass('nd-check-error');
     expect(rail().getByText(LOGIC.status.failed)).toBeInTheDocument();
   });

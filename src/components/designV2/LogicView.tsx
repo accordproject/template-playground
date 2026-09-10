@@ -9,7 +9,7 @@ import HelpRail, { HelpRailReopen, type ChecklistItem, type ChecklistTone } from
 import { LOGIC } from "./constants";
 import { logicStatus, type LogicStatus } from "./logicStatus";
 
-/** Icon and tone of the "init() & trigger()" row for each compile state. */
+/** Icon and tone of the "init() & trigger()" chip for each compile state. */
 const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
   compiled: { icon: "✓", tone: "done" },
   failed: { icon: "✕", tone: "error" },
@@ -21,9 +21,9 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
 
 /**
  * Step "Logic" — logic.ts in the TypeScript editor, laid out as in the mock:
- * a progress header ("n of 2 done"), the two parts of the job as a one-line
- * strip (request/response types, init() & trigger()) and the editor under them.
- * The strip folds into the header once both are done, so the editor gets the room.
+ * a progress header ("n of 2 done") carrying the two parts of the job as chips
+ * (request/response types, init() & trigger()), and the editor right under it.
+ * The chips hold label, state and action; the longer hints live in their tooltips.
  *
  * The editor is LogicMonaco, the store-bound Monaco the legacy panel uses.
  * Compiling happens through the footer's "Apply & Compile" (store.setLogicTs).
@@ -44,8 +44,6 @@ export const LogicView = () => {
   const pair = PAIR[status];
   // As in the mock: the types row counts as done (they live in the model), init/trigger once compiled.
   const done = 1 + (status === "compiled" ? 1 : 0);
-  // Once both are done the rows fold into a one-line summary in the head, giving the editor their height.
-  const allDone = done === 2;
   const editorEmpty = editorLogicTs.trim() === "";
 
   const scaffold = () => {
@@ -85,11 +83,30 @@ export const LogicView = () => {
             <div className="nd-logic-head-row">
               <span className="nd-badge nd-badge-blue">{LOGIC.badge}</span>
               <span className="nd-mono nd-editor-file">{LOGIC.file}</span>
-              {allDone && (
-                <span className="nd-mono nd-logic-summary" title={LOGIC.summaryTitle}>
-                  {LOGIC.summary}
-                </span>
-              )}
+              <ol className="nd-logic-chips" aria-label={LOGIC.chipsLabel}>
+                <li className="nd-logic-chip" title={LOGIC.rows.types.hint}>
+                  <span className="nd-check-icon nd-check-icon-done" aria-hidden="true">✓</span>
+                  <span className="nd-mono nd-logic-chip-label">{LOGIC.rows.types.label}</span>
+                  <Button type="link" size="small" className="nd-logic-chip-action" onClick={() => setView(STEP_ID.modelData)}>
+                    {LOGIC.rows.types.action}
+                  </Button>
+                </li>
+                <li className="nd-logic-chip" title={status === "failed" ? compilationErrors[0]?.message : LOGIC.rows.pair.hint}>
+                  <span className={`nd-check-icon nd-check-icon-${pair.tone}`} aria-hidden="true">{pair.icon}</span>
+                  <span className="nd-mono nd-logic-chip-label">{LOGIC.rows.pair.label}</span>
+                  <span className={`nd-logic-chip-tag nd-logic-chip-tag-${pair.tone}`}>{LOGIC.status[status]}</span>
+                  {status !== "compiled" && (
+                    <Button
+                      type="link"
+                      size="small"
+                      className="nd-logic-chip-action nd-logic-chip-action-amber"
+                      onClick={() => navigateToLine("TypeScript Logic", 1)}
+                    >
+                      {LOGIC.rows.pair.action}
+                    </Button>
+                  )}
+                </li>
+              </ol>
               <div className="nd-spacer" />
               <span className={`nd-mono nd-logic-done ${done === 2 ? "nd-logic-done-all" : ""}`}>
                 {LOGIC.doneCount(done, 2)}
@@ -102,36 +119,6 @@ export const LogicView = () => {
               <div className="nd-logic-progress-bar" style={{ width: `${(done / 2) * 100}%` }} />
             </div>
           </div>
-
-          {!allDone && (
-            <ol className="nd-logic-rows">
-              <li className="nd-logic-row nd-logic-row-types">
-                <span className="nd-check-icon nd-check-icon-done" aria-hidden="true">✓</span>
-                <span className="nd-mono nd-logic-row-label">{LOGIC.rows.types.label}</span>
-                <span className="nd-logic-row-dash" aria-hidden="true">—</span>
-                <span className="nd-logic-row-hint">{LOGIC.rows.types.hint}</span>
-                <Button type="link" size="small" className="nd-logic-row-action" onClick={() => setView(STEP_ID.modelData)}>
-                  {LOGIC.rows.types.action}
-                </Button>
-              </li>
-              <li className="nd-logic-row nd-logic-row-pair">
-                <span className={`nd-check-icon nd-check-icon-${pair.tone}`} aria-hidden="true">{pair.icon}</span>
-                <span className="nd-mono nd-logic-row-label">{LOGIC.rows.pair.label}</span>
-                <span className="nd-logic-row-dash" aria-hidden="true">—</span>
-                <span className="nd-logic-row-hint" title={status === "failed" ? compilationErrors[0]?.message : LOGIC.rows.pair.hint}>
-                  {LOGIC.rows.pair.hint}
-                </span>
-                <Button
-                  type="link"
-                  size="small"
-                  className="nd-logic-row-action nd-logic-row-action-amber"
-                  onClick={() => navigateToLine("TypeScript Logic", 1)}
-                >
-                  {LOGIC.rows.pair.action}
-                </Button>
-              </li>
-            </ol>
-          )}
 
           <div className="nd-editor-card-body nd-editor-card-body-editor nd-logic-editor">
             <LogicMonaco />

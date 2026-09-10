@@ -223,15 +223,13 @@ export const LOGIC = {
   scaffoldDone: "Skeleton inserted — fill in init() and trigger()",
   scaffoldBlocked: "The editor already has code",
   doneCount: (done: number, total: number) => `${done} of ${total} done`,
-  /** Shown in the head instead of the rows once both parts are done. */
-  summary: "✓ types · ✓ init() & trigger()",
-  summaryTitle: "Both parts done — the rows are folded to give the editor room",
-  /** The two parts of the job, as a one-line strip above the editor (mock). */
+  chipsLabel: "Progress",
+  /** The two parts of the job, as chips in the card head; the hints are their tooltips. */
   rows: {
     types: {
       label: "Request & Response types",
       hint: "declared in model.cto",
-      action: "‣",
+      action: "model.cto ‣",
     },
     pair: {
       label: "init() & trigger()",

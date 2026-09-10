@@ -301,25 +301,23 @@
 .nd-logic-head-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
 .nd-logic-done { font-size: 11px; font-weight: 600; color: #93a9af; }
 .nd-logic-done-all { color: #0c8b57; }
-.nd-logic-summary {
-  font-size: 11px; font-weight: 600; color: #0c8b57; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
 .nd-logic-progress { height: 4px; border-radius: 999px; background: var(--nd-line-soft); overflow: hidden; }
 .nd-logic-progress-bar { height: 100%; background: linear-gradient(90deg, #0a8188, #0c949c); border-radius: 999px; transition: width 300ms ease; }
-/* One line, both rows side by side: the editor below is what needs the height. */
-.nd-logic-rows { flex: none; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: row; border-bottom: 1px solid var(--nd-line-soft); }
-.nd-logic-row { display: flex; align-items: center; gap: 8px; padding: 7px 14px; font-size: 12.5px; }
-/* The types row is short and takes only what it needs; init/trigger gets the rest for its longer hint. */
-.nd-logic-row-types { flex: 0 0 auto; }
-.nd-logic-row-pair { flex: 1 1 0; min-width: 0; }
-.nd-logic-row + .nd-logic-row { border-left: 1px solid #f3f7f8; }
-.nd-logic-row-label { font-weight: 600; white-space: nowrap; }
-.nd-logic-row-dash { color: #93a9af; }
-.nd-logic-row-hint { flex: 1; min-width: 0; color: var(--nd-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.nd-logic-row-action { font-weight: 600; padding-inline: 4px; }
-.nd-logic-row-action-amber { color: var(--nd-amber); }
-.nd-logic-row-action-amber:hover { color: #7a4708 !important; }
+/* The two parts of the job as chips in the head row; they wrap under the file name when the card is narrow. */
+.nd-logic-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.nd-logic-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 6px 2px 3px;
+  border: 1px solid var(--nd-line-soft); border-radius: 999px; background: #f6f9fa;
+  font-size: 12px; white-space: nowrap;
+}
+.nd-logic-chip-label { font-weight: 600; }
+.nd-logic-chip-tag { font-size: 11px; color: var(--nd-text-3); }
+.nd-logic-chip-tag::before { content: "·"; margin-right: 6px; color: #93a9af; }
+.nd-logic-chip-tag-done { color: #0c8b57; }
+.nd-logic-chip-tag-error { color: #a6272c; }
+.nd-logic-chip-action { font-weight: 600; font-size: 12px; height: auto; padding: 0 2px; line-height: 1.4; }
+.nd-logic-chip-action-amber { color: var(--nd-amber); }
+.nd-logic-chip-action-amber:hover { color: #7a4708 !important; }
 .nd-check-icon-done { background: #def3e9; color: #0c8b57; }
 .nd-check-icon-error { background: #fcedec; color: #a6272c; }
 .nd-check-icon-todo { background: #e4f6f6; color: var(--nd-teal); }
@@ -493,8 +491,6 @@
 }
 @media (max-width: 960px) {
   .nd-view-editor { flex-direction: column; }
-  .nd-logic-rows { flex-direction: column; }
-  .nd-logic-row + .nd-logic-row { border-left: 0; border-top: 1px solid #f3f7f8; }
   .nd-help-rail {
     width: auto; flex: none; max-height: 40%;
     border-left: 0; border-top: 1px solid var(--nd-line);
