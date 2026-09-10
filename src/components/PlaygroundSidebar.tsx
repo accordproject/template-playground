@@ -98,6 +98,16 @@ const PlaygroundSidebar = () => {
     setContractRunnerVisible(!isContractRunnerVisible);
   };
 
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLDivElement>,
+    onClick?: () => void,
+  ) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClick?.();
+    }
+  };
+
   interface NavItem {
     title: string;
     icon?: React.ComponentType<{ size: number }>;
@@ -198,6 +208,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
+            onKeyDown={(event) => handleKeyDown(event, onClick)}
             className={`playground-sidebar-nav-item ${
               active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
             } tour-${title.toLowerCase().replace(' ', '-')}`}
@@ -223,6 +234,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
+            onKeyDown={(event) => handleKeyDown(event, onClick)}
             className={`playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             <Icon size={18} />
