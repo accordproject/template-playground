@@ -234,7 +234,6 @@ export const LOGIC = {
     pair: {
       label: "init() & trigger()",
       hint: "set the starting state, then respond to requests",
-      action: "start writing",
     },
   },
   /** Same five states, same order, as the legacy logic panel's badge. */

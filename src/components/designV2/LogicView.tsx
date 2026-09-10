@@ -3,7 +3,6 @@ import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import LogicMonaco from "../../editors/LogicMonaco";
 import { DEFAULT_LOGIC_BOILERPLATE } from "../../editors/logicSource";
-import { navigateToLine } from "../../utils/editorNavigation";
 import { STEP_ID } from "../../types/designV2.types";
 import HelpRail, { HelpRailReopen, type ChecklistItem, type ChecklistTone } from "./HelpRail";
 import { LOGIC } from "./constants";
@@ -23,7 +22,7 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
  * Step "Logic" — logic.ts in the TypeScript editor, laid out as in the mock:
  * a progress header ("n of 2 done") carrying the two parts of the job as chips
  * (request/response types, init() & trigger()), and the editor right under it.
- * The chips hold label, state and action; the longer hints live in their tooltips.
+ * The chips hold label and state; the longer hints live in their tooltips.
  *
  * The editor is LogicMonaco, the store-bound Monaco the legacy panel uses.
  * Compiling happens through the footer's "Apply & Compile" (store.setLogicTs).
@@ -70,6 +69,9 @@ export const LogicView = () => {
             <h1>{LOGIC.title}</h1>
             <p className="nd-editor-subtitle">{LOGIC.subtitle}</p>
           </div>
+          <Button size="small" onClick={() => void copyLogic()}>
+            {LOGIC.copy}
+          </Button>
           <Tooltip title={editorEmpty ? undefined : LOGIC.scaffoldBlocked}>
             <Button size="small" onClick={scaffold} disabled={!editorEmpty}>
               {LOGIC.scaffold}
@@ -95,25 +97,12 @@ export const LogicView = () => {
                   <span className={`nd-check-icon nd-check-icon-${pair.tone}`} aria-hidden="true">{pair.icon}</span>
                   <span className="nd-mono nd-logic-chip-label">{LOGIC.rows.pair.label}</span>
                   <span className={`nd-logic-chip-tag nd-logic-chip-tag-${pair.tone}`}>{LOGIC.status[status]}</span>
-                  {status !== "compiled" && (
-                    <Button
-                      type="link"
-                      size="small"
-                      className="nd-logic-chip-action nd-logic-chip-action-amber"
-                      onClick={() => navigateToLine("TypeScript Logic", 1)}
-                    >
-                      {LOGIC.rows.pair.action}
-                    </Button>
-                  )}
                 </li>
               </ol>
               <div className="nd-spacer" />
               <span className={`nd-mono nd-logic-done ${done === 2 ? "nd-logic-done-all" : ""}`}>
                 {LOGIC.doneCount(done, 2)}
               </span>
-              <Button type="text" size="small" onClick={() => void copyLogic()}>
-                {LOGIC.copy}
-              </Button>
             </div>
             <div className="nd-logic-progress" role="progressbar" aria-valuemin={0} aria-valuemax={2} aria-valuenow={done}>
               <div className="nd-logic-progress-bar" style={{ width: `${(done / 2) * 100}%` }} />

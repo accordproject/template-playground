@@ -73,9 +73,8 @@ describe('LogicView', () => {
     const second = render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(2, 2))).toBeInTheDocument();
     expect(pane().getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2');
-    // Compiled: the init/trigger chip shows the state and drops its "start writing" link.
+    // Compiled: the init/trigger chip shows the state.
     expect(pane().getByText(LOGIC.status.compiled)).toBeInTheDocument();
-    expect(pane().queryByRole('button', { name: LOGIC.rows.pair.action })).not.toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(2, 2))).toBeInTheDocument();
     expect(rail().getByText(LOGIC.rows.pair.label).closest('li')).toHaveClass('nd-check-done');
     second.unmount();

@@ -316,8 +316,6 @@
 .nd-logic-chip-tag-done { color: #0c8b57; }
 .nd-logic-chip-tag-error { color: #a6272c; }
 .nd-logic-chip-action { font-weight: 600; font-size: 12px; height: auto; padding: 0 2px; line-height: 1.4; }
-.nd-logic-chip-action-amber { color: var(--nd-amber); }
-.nd-logic-chip-action-amber:hover { color: #7a4708 !important; }
 .nd-check-icon-done { background: #def3e9; color: #0c8b57; }
 .nd-check-icon-error { background: #fcedec; color: #a6272c; }
 .nd-check-icon-todo { background: #e4f6f6; color: var(--nd-teal); }
