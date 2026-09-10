@@ -1,5 +1,6 @@
 import { Button } from "antd";
 import useAppStore from "../../store/store";
+import { nextLogicSource } from "../../editors/logicSource";
 import { FIRST_STEP, LAST_STEP, STEP_ID, type DesignV2View } from "../../types/designV2.types";
 import { FOOTER } from "./constants";
 
@@ -11,15 +12,24 @@ interface FooterProps {
 
 /**
  * Bottom bar: problems pill on the left, Back / Apply & Compile / Next on the right.
- * The pill mirrors the app store's `error`: green "no problems", or a red
- * "✕ error" followed by the store's full message.
+ * The pill mirrors the app store: green "no problems", or a red "✕ error"
+ * followed by the store's full message — `error` from the rebuild, or the
+ * first compilation error on the Logic step. "Apply & Compile" commits the
+ * logic through store.setLogicTs, exactly like the legacy logic panel.
  */
 const Footer = ({ view, onBack, onNext }: FooterProps) => {
-  const error = useAppStore((s) => s.error);
+  const rebuildError = useAppStore((s) => s.error);
+  const compilationErrors = useAppStore((s) => s.compilationErrors);
+  const editorLogicTs = useAppStore((s) => s.editorLogicTs);
+  const logicTs = useAppStore((s) => s.logicTs);
+  const isCompiling = useAppStore((s) => s.isCompiling);
+  const setLogicTs = useAppStore((s) => s.setLogicTs);
   const isFirst = view === FIRST_STEP;
   const canBack = !isFirst;
   const canNext = view !== LAST_STEP;
   const isLogic = view === STEP_ID.logic;
+  const error = rebuildError ?? (isLogic ? compilationErrors[0]?.message : undefined);
+  const logicDirty = editorLogicTs !== logicTs;
 
   return (
     <footer className="nd-footer">
@@ -38,8 +48,14 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
         </Button>
       )}
       {isLogic && (
-        <Button type="primary" ghost>
-          {FOOTER.applyAndCompile}
+        <Button
+          type="primary"
+          ghost={!logicDirty}
+          loading={isCompiling}
+          disabled={isCompiling}
+          onClick={() => void setLogicTs(nextLogicSource(editorLogicTs, logicTs))}
+        >
+          {logicDirty ? FOOTER.applyAndCompileDirty : FOOTER.applyAndCompile}
         </Button>
       )}
       {canNext && (

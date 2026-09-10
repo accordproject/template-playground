@@ -14,6 +14,7 @@ export const URLS = {
   concertoSite: "https://concerto.accordproject.org/",
   concertoSpec: "https://concerto.accordproject.org/docs/category/specification",
   templateMark: "https://github.com/accordproject/markdown-transform/blob/main/packages/markdown-template/README.md",
+  logicDocs: "https://github.com/accordproject/template-engine/blob/main/README.md#logic",
   concertoIntro: "https://concerto.accordproject.org/docs/intro",
 } as const;
 
@@ -59,6 +60,7 @@ export const HEADER = {
 
 export const FOOTER = {
   noProblems: "✓ no problems",
+  applyAndCompileDirty: "Apply & Compile*",
   /** Problems pill while the app store reports an error; the full message follows it. */
   problem: "✕ error",
   problemLabel: "Problem",
@@ -199,13 +201,63 @@ export interface EditorMeta {
 }
 
 export const EDITOR = {
-  scaffoldFromModel: "✦ Scaffold from model",
   format: "≡ format",
   copy: "⧉ copy",
   statusOk: "✓ ok",
-  meta: {
-    logic: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
-  } satisfies Record<string, EditorMeta>,
+  meta: {} satisfies Record<string, EditorMeta>,
+} as const;
+
+/** Step "Logic": logic.ts in the TypeScript editor, compiled through the store on Apply & Compile. */
+export const LOGIC = {
+  icon: "ƒ",
+  title: "Add logic",
+  subtitle:
+    "Three parts, one job: the types a request carries, the starting state, and what a request actually does.",
+  paneLabel: "Logic",
+  file: "logic.ts",
+  badge: "TypeScript",
+  copy: "⧉ copy",
+  copied: "logic.ts copied",
+  /** Puts the playground's default init() / trigger() skeleton into an empty editor. */
+  scaffold: "✦ Scaffold",
+  scaffoldDone: "Skeleton inserted — fill in init() and trigger()",
+  scaffoldBlocked: "The editor already has code",
+  doneCount: (done: number, total: number) => `${done} of ${total} done`,
+  /** The two parts of the job, as rows above the editor (mock). */
+  rows: {
+    types: {
+      label: "Request & Response types",
+      hint: "declared in model.cto",
+      action: "‣",
+    },
+    pair: {
+      label: "init() & trigger()",
+      hint: "set the starting state, then respond to requests",
+      action: "start writing",
+    },
+  },
+  /** Same five states, same order, as the legacy logic panel's badge. */
+  status: {
+    dirty: "unsaved changes",
+    compiling: "compiling…",
+    failed: "compilation failed",
+    compiled: "compiled",
+    notCompiled: "not compiled yet",
+    empty: "nothing to compile",
+  },
+  help: {
+    checklistTitle: "BEFORE SIMULATE",
+    why: {
+      note:
+        "Logic is optional — templates without it still render. With it, the contract responds to requests and keeps state between them.",
+      links: [{ label: "Writing contract logic", href: URLS.logicDocs }],
+    },
+    how: [
+      "Request and Response types define one run's in and out.",
+      "init() returns the starting state, once.",
+      "trigger() reads state + request and returns a response.",
+    ],
+  },
 } as const;
 
 /** Step "Text": text.md in the TemplateMark editor, wired to the app store. */

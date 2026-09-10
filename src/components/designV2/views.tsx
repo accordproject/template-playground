@@ -3,6 +3,7 @@ import { Button } from "antd";
 import HelpRail, { HelpRailReopen } from "./HelpRail";
 import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
+import { LogicView } from "./LogicView";
 import useDesignV2Store from "../../store/designV2Store";
 import {
   STEPS,
@@ -192,9 +193,6 @@ export const EditorView = ({ step }: EditorViewProps) => {
           <div className="nd-editor-title-text">
             <h1>{meta.title}</h1>
           </div>
-          {step === "logic" && (
-            <Button size="small">{EDITOR.scaffoldFromModel}</Button>
-          )}
           <HelpRailReopen />
         </div>
         <div className="nd-editor-card">
@@ -259,6 +257,7 @@ export const ViewSwitch = ({ view, onStart }: ViewSwitchProps) => {
   if (key === "template") return <StartView />;
   if (key === "modelData") return <ModelDataView />;
   if (key === "text") return <TextView />;
+  if (key === "logic") return <LogicView />;
   if (isEditorStep(key)) return <EditorView step={key} />;
   if (key === "simulate") return <SimulateView />;
   return <DeployView />;

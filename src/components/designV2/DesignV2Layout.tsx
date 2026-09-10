@@ -8,6 +8,7 @@ import Rail from "./Rail";
 import Header from "./Header";
 import Footer from "./Footer";
 import PreviewDrawer from "./PreviewDrawer";
+import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
 import "./DesignV2Layout.css";
 
@@ -61,6 +62,8 @@ const DesignV2Layout = () => {
   return (
     <ConfigProvider theme={designV2Theme()}>
     <div className="nd-root">
+      {/* Hidden iframe the store runs compiled logic in (initContract / triggerContract). */}
+      <SandboxFrame />
       <Rail />
       <div className="nd-main">
         <Header
