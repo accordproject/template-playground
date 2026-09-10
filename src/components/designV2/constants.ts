@@ -218,12 +218,18 @@ export const LOGIC = {
   badge: "TypeScript",
   copy: "⧉ copy",
   copied: "logic.ts copied",
-  /** Puts the playground's default init() / trigger() skeleton into an empty editor. */
+  copyFailed: "Couldn't copy — the clipboard is not available here",
+  /** Puts a skeleton built from model.cto (or the generic one) into an empty editor. */
   scaffold: "✦ Scaffold",
-  scaffoldDone: "Skeleton inserted — fill in init() and trigger()",
+  scaffoldDoneModel: "Skeleton from model.cto inserted — fill in init() and trigger()",
+  scaffoldDone: "Generic skeleton inserted — model.cto has no request/response yet",
   scaffoldBlocked: "The editor already has code",
   doneCount: (done: number, total: number) => `${done} of ${total} done`,
   chipsLabel: "Progress",
+  /** Tag on the types chip: the request/response transactions found in model.cto, or that they are missing. */
+  typesFound: (request: string, response: string) => `${request} → ${response}`,
+  typesMissing: "not in model.cto",
+  typesMissingHint: "Declare a request and a response transaction in model.cto",
   /** The two parts of the job, as chips in the card head; the hints are their tooltips. */
   rows: {
     types: {

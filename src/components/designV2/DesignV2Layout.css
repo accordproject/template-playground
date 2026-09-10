@@ -301,8 +301,6 @@
 .nd-logic-head-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
 .nd-logic-done { font-size: 11px; font-weight: 600; color: #93a9af; }
 .nd-logic-done-all { color: #0c8b57; }
-.nd-logic-progress { height: 4px; border-radius: 999px; background: var(--nd-line-soft); overflow: hidden; }
-.nd-logic-progress-bar { height: 100%; background: linear-gradient(90deg, #0a8188, #0c949c); border-radius: 999px; transition: width 300ms ease; }
 /* The two parts of the job as chips in the head row; they wrap under the file name when the card is narrow. */
 .nd-logic-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; min-width: 0; }
 .nd-logic-chip {
@@ -482,10 +480,15 @@
   .nd-view-model-data .nd-editor-column { overflow-y: auto; }
   .nd-split { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(300px, 1fr); }
 }
-/* Short viewports: the subtitle is the first thing to give way to the editor. */
-@media (max-height: 820px) {
-  .nd-view-logic .nd-editor-subtitle { display: none; }
-  .nd-view-logic .nd-editor-title { margin-bottom: 8px; }
+/*
+ * The Logic column measures itself (header, stepper and footer already taken
+ * off). Under 600px — title, card head and paddings leave the editor fewer
+ * than ~15 lines — the subtitle is the first thing to give way.
+ */
+.nd-view-logic .nd-editor-column { container-type: size; }
+@container (max-height: 600px) {
+  .nd-editor-subtitle { display: none; }
+  .nd-editor-title { margin-bottom: 8px; }
 }
 @media (max-width: 960px) {
   .nd-view-editor { flex-direction: column; }

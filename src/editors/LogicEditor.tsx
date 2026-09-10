@@ -13,6 +13,7 @@ import '../styles/components/LogicEditor.css';
 export default function LogicEditor() {
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
   const logicTs = useAppStore((s) => s.logicTs);
+  const modelCto = useAppStore((s) => s.modelCto);
   const setLogicTs = useAppStore((s) => s.setLogicTs);
   const isCompiling = useAppStore((s) => s.isCompiling);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
@@ -21,8 +22,8 @@ export default function LogicEditor() {
   const textColor = useAppStore((s) => s.textColor);
 
   const handleApply = useCallback(() => {
-    void setLogicTs(nextLogicSource(editorLogicTs, logicTs));
-  }, [setLogicTs, editorLogicTs, logicTs]);
+    void setLogicTs(nextLogicSource(editorLogicTs, logicTs, modelCto));
+  }, [setLogicTs, editorLogicTs, logicTs, modelCto]);
 
   // Has the editor content diverged from committed logic?
   const isDirty = editorLogicTs !== logicTs;

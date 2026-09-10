@@ -22,6 +22,7 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
   const compilationErrors = useAppStore((s) => s.compilationErrors);
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
   const logicTs = useAppStore((s) => s.logicTs);
+  const modelCto = useAppStore((s) => s.modelCto);
   const isCompiling = useAppStore((s) => s.isCompiling);
   const setLogicTs = useAppStore((s) => s.setLogicTs);
   const isFirst = view === FIRST_STEP;
@@ -53,7 +54,7 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
           ghost={!logicDirty}
           loading={isCompiling}
           disabled={isCompiling}
-          onClick={() => void setLogicTs(nextLogicSource(editorLogicTs, logicTs))}
+          onClick={() => void setLogicTs(nextLogicSource(editorLogicTs, logicTs, modelCto))}
         >
           {logicDirty ? FOOTER.applyAndCompileDirty : FOOTER.applyAndCompile}
         </Button>
