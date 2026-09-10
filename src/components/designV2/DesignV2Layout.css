@@ -216,8 +216,6 @@
 .nd-start-head { flex: none; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .nd-start-title { font-size: 19px; font-weight: 600; letter-spacing: -0.024em; }
 .nd-start-hint { font-size: 12.5px; color: var(--nd-text-4); font-weight: 500; }
-.nd-checkbox { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: #24424c; cursor: pointer; }
-.nd-checkbox input { width: 15px; height: 15px; accent-color: var(--nd-teal); }
 .nd-sample-grid {
   flex: 1; min-height: 0;
   display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));

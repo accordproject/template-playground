@@ -20,8 +20,6 @@ export interface DesignV2State {
   previewOpen: boolean;
   /** Name of the template card picked on the Start step; null until the user picks one. */
   selectedTemplate: string | null;
-  /** Whether the logic steps are part of the flow (see LOGIC_ONLY_STEP_KEYS). */
-  includeLogic: boolean;
   /** Which panes of the Model & Data step are open; at least one always is. */
   modelDataPanes: ModelDataPanes;
   /** Whether the right-hand help rail is shown next to the editor steps. */
@@ -34,12 +32,8 @@ export interface DesignV2State {
   goNext: () => void;
   setPreviewOpen: (open: boolean) => void;
   togglePreview: () => void;
-  /**
-   * Pick a template card. When the card declares whether it ships logic,
-   * the "include logic" toggle follows it; otherwise the toggle is left alone.
-   */
-  selectTemplate: (name: string, logic?: boolean) => void;
-  setIncludeLogic: (on: boolean) => void;
+  /** Pick a template card (or the blank template). */
+  selectTemplate: (name: string) => void;
   /** Open or close one pane of the Model & Data step. Closing the last open pane is ignored. */
   setPaneOpen: (pane: ModelDataPane, open: boolean) => void;
   setHelpRailOpen: (open: boolean) => void;
@@ -53,7 +47,6 @@ const useDesignV2Store = create<DesignV2State>()(
       view: "welcome",
       previewOpen: false,
       selectedTemplate: null,
-      includeLogic: true,
       modelDataPanes: { model: true, data: true },
       helpRailOpen: true,
 
@@ -72,13 +65,7 @@ const useDesignV2Store = create<DesignV2State>()(
       setPreviewOpen: (open) => set({ previewOpen: open }, false, "designV2/setPreviewOpen"),
       togglePreview: () =>
         set((state) => ({ previewOpen: !state.previewOpen }), false, "designV2/togglePreview"),
-      selectTemplate: (name, logic) =>
-        set(
-          (state) => ({ selectedTemplate: name, includeLogic: logic ?? state.includeLogic }),
-          false,
-          "designV2/selectTemplate"
-        ),
-      setIncludeLogic: (on) => set({ includeLogic: on }, false, "designV2/setIncludeLogic"),
+      selectTemplate: (name) => set({ selectedTemplate: name }, false, "designV2/selectTemplate"),
       setPaneOpen: (pane, open) =>
         set(
           (state) => {

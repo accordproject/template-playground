@@ -7,11 +7,9 @@ import { LogicView } from "./LogicView";
 import useDesignV2Store from "../../store/designV2Store";
 import {
   STEPS,
-  STEP_ID,
   STEP_KEY,
   isEditorStep,
-  countStepsAfterTemplate,
-  LOGIC_ONLY_STEP_KEYS,
+  STEPS_AFTER_TEMPLATE,
   type EditorStepKey,
   type DesignV2View,
 } from "../../types/designV2.types";
@@ -87,14 +85,12 @@ interface SampleCardProps {
 
 /** One gallery card: a miniature document on top, name / steps / tags underneath. */
 const SampleCard = ({ sample, selected, onPick }: SampleCardProps) => {
-  const steps = START.stepsLabel(countStepsAfterTemplate(sample.logic));
-  const tags = sample.logic
-    ? [START.tags.text, START.tags.model, START.tags.logic]
-    : [START.tags.text, START.tags.model];
+  const steps = START.stepsLabel(STEPS_AFTER_TEMPLATE);
+  const tags = [START.tags.text, START.tags.model, START.tags.logic];
   const classes = [
     "nd-sample-card",
     `nd-sample-card-${sample.accent}`,
-    sample.logic ? "nd-sample-card-logic" : "",
+    "nd-sample-card-logic",
     selected ? "nd-sample-card-selected" : "",
   ]
     .filter(Boolean)
@@ -138,9 +134,7 @@ const SampleCard = ({ sample, selected, onPick }: SampleCardProps) => {
 /** "Choose a template type" gallery with sample cards. */
 export const StartView = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
-  const includeLogic = useDesignV2Store((s) => s.includeLogic);
   const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
-  const setIncludeLogic = useDesignV2Store((s) => s.setIncludeLogic);
 
   return (
     <div className="nd-view nd-view-start">
@@ -152,17 +146,6 @@ export const StartView = () => {
           {START.blank}
         </Button>
         <Button size="small">{START.draftWithAi}</Button>
-        <label className="nd-checkbox">
-          <input
-            type="checkbox"
-            checked={includeLogic}
-            onChange={(e) => setIncludeLogic(e.target.checked)}
-          />{" "}
-          {START.includeLogic}{" "}
-          <span className="nd-start-hint">
-            {START.includeLogicHint(LOGIC_ONLY_STEP_KEYS.map((key) => STEP_ID[key]))}
-          </span>
-        </label>
       </div>
       <div className="nd-sample-grid">
         {START_SAMPLES.map((sample) => (
@@ -170,7 +153,7 @@ export const StartView = () => {
             key={sample.name}
             sample={sample}
             selected={selectedTemplate === sample.name}
-            onPick={() => selectTemplate(sample.name, sample.logic)}
+            onPick={() => selectTemplate(sample.name)}
           />
         ))}
       </div>

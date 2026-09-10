@@ -4,13 +4,13 @@ import '@testing-library/jest-dom';
 import { StartView } from '../../../components/designV2/views';
 import useDesignV2Store from '../../../store/designV2Store';
 import { START, START_SAMPLES } from '../../../components/designV2/constants';
-import { countStepsAfterTemplate, LOGIC_ONLY_STEP_KEYS, STEP_ID } from '../../../types/designV2.types';
+import { STEPS_AFTER_TEMPLATE } from '../../../types/designV2.types';
 import { SAMPLES } from '../../../samples';
 
 /**
  * Covers the "Choose a template type" gallery: one card per START_SAMPLES
- * entry, picking a card selects it (and follows its logic flag), and the
- * Blank / include-logic controls update the v2 store.
+ * entry, picking a card selects it, and "+ Blank" updates the v2 store.
+ * Every card ships logic, so every card walks the same steps.
  */
 describe('START_SAMPLES', () => {
   it('every card points at a real sample in src/samples', () => {
@@ -20,33 +20,35 @@ describe('START_SAMPLES', () => {
     }
   });
 
-  it('cards that turn logic on point at samples that ship logic', () => {
+  it('every card points at a sample that ships logic and a default request', () => {
     for (const card of START_SAMPLES) {
       const sample = SAMPLES.find((s) => s.NAME === card.sampleName)!;
-      expect(Boolean(sample.LOGIC)).toBe(card.logic);
+      expect(sample.LOGIC, card.name).toBeTruthy();
+      expect(sample.REQUEST, card.name).toBeTruthy();
     }
   });
 });
 
 describe('StartView', () => {
   beforeEach(() => {
-    useDesignV2Store.setState({ selectedTemplate: null, includeLogic: true });
+    useDesignV2Store.setState({ selectedTemplate: null });
   });
 
   const cards = () => screen.getAllByRole('button', { pressed: false }).concat(
     screen.queryAllByRole('button', { pressed: true })
   );
 
-  it('renders one card per sample with its name, step count and note', () => {
+  it('renders one card per sample with its name, the full step count and its note', () => {
     render(<StartView />);
+    const steps = START.stepsLabel(STEPS_AFTER_TEMPLATE);
     for (const sample of START_SAMPLES) {
       expect(screen.getByText(sample.name)).toBeInTheDocument();
-      const steps = START.stepsLabel(countStepsAfterTemplate(sample.logic));
       expect(
         screen.getByRole('button', { name: START.cardLabel(sample.name, steps, sample.note) })
       ).toBeInTheDocument();
     }
     expect(cards()).toHaveLength(START_SAMPLES.length);
+    expect(screen.getAllByText(START.tags.logic)).toHaveLength(START_SAMPLES.length);
   });
 
   it('starts with no card selected', () => {
@@ -54,48 +56,28 @@ describe('StartView', () => {
     expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(0);
   });
 
-  it('every gallery card ships logic', () => {
-    expect(START_SAMPLES.every((s) => s.logic)).toBe(true);
-  });
-
-  it('picking a card selects it and follows its logic flag', () => {
+  it('picking a card selects it, and only it', () => {
     render(<StartView />);
     const [first, second] = START_SAMPLES;
 
-    // The toggle was switched off by hand; picking a card with logic turns it back on.
-    useDesignV2Store.getState().setIncludeLogic(false);
     fireEvent.click(screen.getByText(first.name));
     expect(useDesignV2Store.getState().selectedTemplate).toBe(first.name);
-    expect(useDesignV2Store.getState().includeLogic).toBe(true);
-    expect(screen.getByRole('checkbox')).toBeChecked();
     expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
 
     fireEvent.click(screen.getByText(second.name));
     expect(useDesignV2Store.getState().selectedTemplate).toBe(second.name);
-    expect(useDesignV2Store.getState().includeLogic).toBe(true);
     expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
   });
 
-  it('"+ Blank" selects the blank template without touching the logic toggle', () => {
+  it('"+ Blank" selects the blank template', () => {
     render(<StartView />);
     fireEvent.click(screen.getByRole('button', { name: START.blank }));
     expect(useDesignV2Store.getState().selectedTemplate).toBe(START.blankName);
-    expect(useDesignV2Store.getState().includeLogic).toBe(true);
     expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(0);
   });
 
-  it('the include-logic hint names the logic-only steps', () => {
+  it('has no include-logic toggle: logic is part of every template', () => {
     render(<StartView />);
-    const ids = LOGIC_ONLY_STEP_KEYS.map((key) => STEP_ID[key]);
-    expect(screen.getByText(`steps ${ids.join(' & ')}`)).toBeInTheDocument();
-    expect(screen.getByText('steps 4 & 5')).toBeInTheDocument();
-  });
-
-  it('the include-logic checkbox writes to the store', () => {
-    render(<StartView />);
-    fireEvent.click(screen.getByRole('checkbox'));
-    expect(useDesignV2Store.getState().includeLogic).toBe(false);
-    fireEvent.click(screen.getByRole('checkbox'));
-    expect(useDesignV2Store.getState().includeLogic).toBe(true);
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
   });
 });

@@ -105,12 +105,10 @@ export const START = {
   blank: "+ Blank",
   blankName: "Blank template",
   draftWithAi: "✦ Draft with AI",
-  includeLogic: "include logic",
-  /** "steps 5 & 6" — the ids of the steps that only exist when logic is on. */
-  includeLogicHint: (stepIds: readonly number[]) => `steps ${stepIds.join(" & ")}`,
   stepsLabel: (count: number) => `${count} steps`,
   cardLabel: (name: string, steps: string, note: string) => `${name} · ${steps} · ${note}`,
-  notes: { startHere: "start here", withLogic: "with logic", noLogic: "no logic" },
+  /** Short label under the tags: what the card's logic example does. */
+  notes: { startHere: "start here", acceptOrDecline: "accept or decline", termAndDisclosures: "term & disclosures" },
   tags: { text: "text", model: "model", logic: "logic" },
 } as const;
 
@@ -122,11 +120,9 @@ export interface StartSample {
   name: string;
   /** NAME of the matching sample in src/samples, loaded when the user starts with this template. */
   sampleName: string;
-  /** Colour of the page spine and, for logic templates, the note. */
+  /** Colour of the page spine and the note. */
   accent: StartAccent;
-  /** Whether picking this card turns the logic steps on. */
-  logic: boolean;
-  /** Short label under the tags ("start here", "no logic"). */
+  /** Short label under the tags: what the card's logic example does ("start here", "accept or decline"). */
   note: string;
   /**
    * Preview lines: key facts from the sample's DATA ("Role: …"), then one
@@ -136,13 +132,12 @@ export interface StartSample {
   body: readonly string[];
 }
 
-/** Gallery cards shown on the Start step. Loading the matching sample comes later. */
+/** Gallery cards shown on the Start step. Every card's sample ships logic, so every card walks the same steps. */
 export const START_SAMPLES: readonly StartSample[] = [
   {
     name: "Counter Contract",
     sampleName: "Counter Contract (with Logic)",
     accent: "teal",
-    logic: true,
     note: START.notes.startHere,
     body: [
       "Owner: Alice",
@@ -157,8 +152,7 @@ export const START_SAMPLES: readonly StartSample[] = [
     name: "Employment Offer",
     sampleName: "Employment Offer Letter",
     accent: "amber",
-    logic: true,
-    note: START.notes.withLogic,
+    note: START.notes.acceptOrDecline,
     body: [
       "Role: Junior AI Engineer",
       "Company: Accord Project",
@@ -172,8 +166,7 @@ export const START_SAMPLES: readonly StartSample[] = [
     name: "Non-disclosure",
     sampleName: "Non-Disclosure Agreement",
     accent: "blue",
-    logic: true,
-    note: START.notes.withLogic,
+    note: START.notes.termAndDisclosures,
     body: [
       "Parties: Accord Project · John Doe",
       "Term: 24 months",
