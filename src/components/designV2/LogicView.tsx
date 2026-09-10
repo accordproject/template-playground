@@ -116,6 +116,9 @@ export const LogicView = () => {
                 {LOGIC.doneCount(done, 2)}
               </span>
             </div>
+            <div className="nd-logic-progress" role="progressbar" aria-valuemin={0} aria-valuemax={2} aria-valuenow={done}>
+              <div className="nd-logic-progress-bar" style={{ width: `${(done / 2) * 100}%` }} />
+            </div>
           </div>
 
           <div className="nd-editor-card-body nd-editor-card-body-editor nd-logic-editor">

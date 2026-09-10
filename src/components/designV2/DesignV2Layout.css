@@ -299,6 +299,8 @@
 .nd-logic-head-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
 .nd-logic-done { font-size: 11px; font-weight: 600; color: #93a9af; }
 .nd-logic-done-all { color: #0c8b57; }
+.nd-logic-progress { height: 4px; margin-top: 8px; border-radius: 999px; background: var(--nd-line-soft); overflow: hidden; }
+.nd-logic-progress-bar { height: 100%; background: linear-gradient(90deg, #0a8188, #0c949c); border-radius: 999px; transition: width 300ms ease; }
 /* The two parts of the job as chips in the head row; they wrap under the file name when the card is narrow. */
 .nd-logic-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; min-width: 0; }
 .nd-logic-chip {

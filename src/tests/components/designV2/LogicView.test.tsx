@@ -66,6 +66,7 @@ describe('LogicView', () => {
   it('counts the types row as done when model.cto declares request/response, and init/trigger once compiled', () => {
     const { unmount } = render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(1, 2))).toBeInTheDocument();
+    expect(pane().getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
     expect(pane().getByText(LOGIC.typesFound('CounterRequest', 'CounterResponse'))).toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(1, 2))).toBeInTheDocument();
     // The rail shows icon and label only; the state text lives in the card chips.
@@ -75,6 +76,7 @@ describe('LogicView', () => {
     useAppStore.setState({ compiledLogicJs: 'js' });
     const second = render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(2, 2))).toBeInTheDocument();
+    expect(pane().getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2');
     // Compiled: the init/trigger chip shows the state.
     expect(pane().getByText(LOGIC.status.compiled)).toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(2, 2))).toBeInTheDocument();

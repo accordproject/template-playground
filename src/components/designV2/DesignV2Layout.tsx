@@ -1,8 +1,5 @@
 import { ConfigProvider } from "antd";
-import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
-import { STEP_ID } from "../../types/designV2.types";
-import { sampleNameFor } from "./constants";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
@@ -45,17 +42,7 @@ const DesignV2Layout = () => {
   const goNext = useDesignV2Store((s) => s.goNext);
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const togglePreview = useDesignV2Store((s) => s.togglePreview);
-  const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
-  const loadSample = useAppStore((s) => s.loadSample);
 
-  /** "Start with this template" loads the picked sample into the app store, then moves on. */
-  const handleNext = () => {
-    if (view === STEP_ID.template) {
-      const sampleName = sampleNameFor(selectedTemplate);
-      if (sampleName) void loadSample(sampleName);
-    }
-    goNext();
-  };
 
   const showChrome = view !== "welcome";
 
@@ -78,7 +65,7 @@ const DesignV2Layout = () => {
           </div>
           <PreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} />
         </div>
-        {showChrome && <Footer view={view} onBack={goBack} onNext={handleNext} />}
+        {showChrome && <Footer view={view} onBack={goBack} onNext={goNext} />}
       </div>
     </div>
     </ConfigProvider>

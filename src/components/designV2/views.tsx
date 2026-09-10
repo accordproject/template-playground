@@ -5,6 +5,7 @@ import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
 import useDesignV2Store from "../../store/designV2Store";
+import useAppStore from "../../store/store";
 import {
   STEPS,
   STEP_KEY,
@@ -16,6 +17,7 @@ import {
 import {
   ROUTES,
   WELCOME,
+  sampleNameFor,
   START,
   START_SAMPLES,
   EDITOR,
@@ -135,6 +137,14 @@ const SampleCard = ({ sample, selected, onPick }: SampleCardProps) => {
 export const StartView = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
+  const loadSample = useAppStore((s) => s.loadSample);
+
+  /** Picking a card loads its sample right away, so jumping ahead through the stepper sees the right template. */
+  const pick = (name: string) => {
+    selectTemplate(name);
+    const sampleName = sampleNameFor(name);
+    if (sampleName) void loadSample(sampleName);
+  };
 
   return (
     <div className="nd-view nd-view-start">
@@ -142,7 +152,7 @@ export const StartView = () => {
         <span className="nd-start-title">{START.title}</span>
         <span className="nd-start-hint">{START.hint}</span>
         <div className="nd-spacer" />
-        <Button type="dashed" size="small" onClick={() => selectTemplate(START.blankName)}>
+        <Button type="dashed" size="small" onClick={() => pick(START.blankName)}>
           {START.blank}
         </Button>
         <Button size="small">{START.draftWithAi}</Button>
@@ -153,7 +163,7 @@ export const StartView = () => {
             key={sample.name}
             sample={sample}
             selected={selectedTemplate === sample.name}
-            onPick={() => selectTemplate(sample.name)}
+            onPick={() => pick(sample.name)}
           />
         ))}
       </div>
