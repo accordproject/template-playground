@@ -378,7 +378,8 @@
 .nd-card-body { padding: 11px 13px 12px; display: flex; flex-direction: column; gap: 9px; }
 .nd-checklist { display: flex; flex-direction: column; gap: 8px; padding: 0 14px 11px; margin: 0; list-style: none; min-height: 12px; }
 .nd-checklist-count { font-size: 10.5px; font-weight: 600; color: var(--nd-teal); }
-.nd-check { display: flex; align-items: flex-start; gap: 9px; font-size: 12.5px; color: #16323c; }
+/* Icon, label, tag. A tag too long for the line drops under the label, right-aligned, instead of squeezing it. */
+.nd-check { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 9px; font-size: 12.5px; color: #16323c; }
 .nd-check-icon {
   width: 18px; height: 18px; flex: none; border-radius: 6px;
   font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center;
@@ -386,10 +387,10 @@
 }
 .nd-check-done .nd-check-icon { background: #def3e9; color: #0c8b57; }
 .nd-check-error .nd-check-icon { background: #fcedec; color: #a6272c; }
-.nd-check-label { flex: 1; min-width: 0; line-height: 1.45; font-weight: 500; }
+.nd-check-label { flex: 1 1 auto; min-width: 0; line-height: 1.45; font-weight: 500; }
 .nd-check-tag {
-  flex: none; font-size: 10.5px; color: var(--nd-text-4); background: var(--nd-line-soft);
-  border-radius: 5px; padding: 2px 6px; white-space: nowrap;
+  flex: none; max-width: 100%; margin-left: auto; font-size: 10.5px; color: var(--nd-text-4); background: var(--nd-line-soft);
+  border-radius: 5px; padding: 2px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .nd-help-note { margin: 0; font-size: 12.5px; line-height: 1.55; color: #24424c; font-weight: 500; text-wrap: pretty; }
 /* One link per row, full width of the card. */
