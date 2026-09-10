@@ -309,7 +309,10 @@
 .nd-logic-progress-bar { height: 100%; background: linear-gradient(90deg, #0a8188, #0c949c); border-radius: 999px; transition: width 300ms ease; }
 /* One line, both rows side by side: the editor below is what needs the height. */
 .nd-logic-rows { flex: none; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: row; border-bottom: 1px solid var(--nd-line-soft); }
-.nd-logic-row { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 7px 14px; font-size: 12.5px; }
+.nd-logic-row { display: flex; align-items: center; gap: 8px; padding: 7px 14px; font-size: 12.5px; }
+/* The types row is short and takes only what it needs; init/trigger gets the rest for its longer hint. */
+.nd-logic-row-types { flex: 0 0 auto; }
+.nd-logic-row-pair { flex: 1 1 0; min-width: 0; }
 .nd-logic-row + .nd-logic-row { border-left: 1px solid #f3f7f8; }
 .nd-logic-row-label { font-weight: 600; white-space: nowrap; }
 .nd-logic-row-dash { color: #93a9af; }

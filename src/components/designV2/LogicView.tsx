@@ -105,7 +105,7 @@ export const LogicView = () => {
 
           {!allDone && (
             <ol className="nd-logic-rows">
-              <li className="nd-logic-row">
+              <li className="nd-logic-row nd-logic-row-types">
                 <span className="nd-check-icon nd-check-icon-done" aria-hidden="true">✓</span>
                 <span className="nd-mono nd-logic-row-label">{LOGIC.rows.types.label}</span>
                 <span className="nd-logic-row-dash" aria-hidden="true">—</span>
@@ -114,11 +114,11 @@ export const LogicView = () => {
                   {LOGIC.rows.types.action}
                 </Button>
               </li>
-              <li className="nd-logic-row">
+              <li className="nd-logic-row nd-logic-row-pair">
                 <span className={`nd-check-icon nd-check-icon-${pair.tone}`} aria-hidden="true">{pair.icon}</span>
                 <span className="nd-mono nd-logic-row-label">{LOGIC.rows.pair.label}</span>
                 <span className="nd-logic-row-dash" aria-hidden="true">—</span>
-                <span className="nd-logic-row-hint" title={status === "failed" ? compilationErrors[0]?.message : undefined}>
+                <span className="nd-logic-row-hint" title={status === "failed" ? compilationErrors[0]?.message : LOGIC.rows.pair.hint}>
                   {LOGIC.rows.pair.hint}
                 </span>
                 <Button
