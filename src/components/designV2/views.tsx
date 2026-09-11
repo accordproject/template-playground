@@ -5,7 +5,7 @@ import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
 import useDesignV2Store from "../../store/designV2Store";
-import useAppStore from "../../store/store";
+import { usePickTemplate } from "./usePickTemplate";
 import {
   STEPS,
   STEP_KEY,
@@ -17,7 +17,6 @@ import {
 import {
   ROUTES,
   WELCOME,
-  sampleNameFor,
   START,
   START_SAMPLES,
   EDITOR,
@@ -136,15 +135,7 @@ const SampleCard = ({ sample, selected, onPick }: SampleCardProps) => {
 /** "Choose a template type" gallery with sample cards. */
 export const StartView = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
-  const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
-  const loadSample = useAppStore((s) => s.loadSample);
-
-  /** Picking a card loads its sample right away, so jumping ahead through the stepper sees the right template. */
-  const pick = (name: string) => {
-    selectTemplate(name);
-    const sampleName = sampleNameFor(name);
-    if (sampleName) void loadSample(sampleName);
-  };
+  const pick = usePickTemplate();
 
   return (
     <div className="nd-view nd-view-start">

@@ -7,6 +7,7 @@ import Footer from "./Footer";
 import PreviewDrawer from "./PreviewDrawer";
 import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
+import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
 import "./DesignV2Layout.css";
 
 /**
@@ -38,11 +39,18 @@ const DesignV2Layout = () => {
   const previewOpen = useDesignV2Store((s) => s.previewOpen);
   const setView = useDesignV2Store((s) => s.setView);
   const start = useDesignV2Store((s) => s.start);
+  const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const goBack = useDesignV2Store((s) => s.goBack);
   const goNext = useDesignV2Store((s) => s.goNext);
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const togglePreview = useDesignV2Store((s) => s.togglePreview);
+  const pick = usePickTemplate();
 
+  /** "Start building": enter the flow on a template — the first card unless one was already picked. */
+  const handleStart = () => {
+    if (!selectedTemplate) pick(DEFAULT_TEMPLATE);
+    start();
+  };
 
   const showChrome = view !== "welcome";
 
@@ -61,7 +69,7 @@ const DesignV2Layout = () => {
         />
         <div className="nd-body">
           <div className="nd-body-content">
-            <ViewSwitch view={view} onStart={start} />
+            <ViewSwitch view={view} onStart={handleStart} />
           </div>
           <PreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} />
         </div>
