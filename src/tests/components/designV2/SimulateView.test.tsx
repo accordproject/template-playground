@@ -95,26 +95,34 @@ describe('SimulateView', () => {
       expect(rows[0]).toHaveAttribute('aria-pressed', 'false');
     });
 
-    it('shows the error of the selected failed run and links to trigger()', () => {
+    it('shows the error of the selected failed run in an Error tab and links to trigger()', () => {
       render(<SimulateView />);
+      expect(screen.getByRole('tab', { name: SIMULATE.errorTab })).toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: SIMULATE.response })).toBeNull();
       expect(screen.getByText(failedRun.error!)).toBeInTheDocument();
       expect(screen.getByText(SIMULATE.thrownIn('trigger'))).toBeInTheDocument();
-      expect(screen.queryByText(SIMULATE.returned)).toBeNull();
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.openTrigger }));
       expect(useDesignV2Store.getState().view).toBe(STEP_ID.logic);
     });
 
-    it('a request that was not valid JSON is shown as not sent, with the state unchanged', () => {
+    it('the State tab of a failed run says the state is unchanged and still shows it', () => {
+      render(<SimulateView />);
+      fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
+      expect(screen.getByText(SIMULATE.stateUnchanged)).toBeInTheDocument();
+      const result = screen.getByRole('region', { name: SIMULATE.resultLabel });
+      expect(result).toHaveTextContent('"count": 2');
+    });
+
+    it('a request that was not valid JSON is shown as not sent', () => {
       useAppStore.setState({ executionHistory: [initRun, okRun, parseFailedRun] });
       render(<SimulateView />);
       expect(runRows()[2]).toHaveTextContent(SIMULATE.summary.invalidRequest);
       expect(screen.getByText(parseFailedRun.error!)).toBeInTheDocument();
       expect(screen.getByText(SIMULATE.notSent)).toBeInTheDocument();
       expect(screen.queryByText(SIMULATE.thrownIn('trigger'))).toBeNull();
-      expect(screen.getByText(`count 2 · owner Alice ${SIMULATE.summary.unchanged}`)).toBeInTheDocument();
     });
 
-    it('selecting a run pins it and shows its request and response', () => {
+    it('selecting a run pins it and shows its request, response, state and events', () => {
       render(<SimulateView />);
       fireEvent.click(runRows()[1]);
       expect(useDesignV2Store.getState().selectedRunId).toBe('#1');
@@ -122,11 +130,23 @@ describe('SimulateView', () => {
 
       const request = screen.getByRole('region', { name: SIMULATE.request });
       expect(request).toHaveTextContent('"increment": 2');
-      const response = screen.getByRole('region', { name: SIMULATE.response });
-      expect(response).toHaveTextContent("Alice's count is now 2 (of 10)");
-      expect(screen.getByText(SIMULATE.returned)).toBeInTheDocument();
-      expect(screen.getByText('count 2 · owner Alice')).toBeInTheDocument();
-      expect(screen.getByText('1 · CounterUpdated')).toBeInTheDocument();
+      const result = screen.getByRole('region', { name: SIMULATE.resultLabel });
+      expect(screen.getByRole('tab', { name: SIMULATE.response })).toHaveAttribute('aria-selected', 'true');
+      expect(result).toHaveTextContent("Alice's count is now 2 (of 10)");
+
+      fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
+      expect(result).toHaveTextContent('"count": 2');
+      expect(screen.queryByText(SIMULATE.stateUnchanged)).toBeNull();
+
+      fireEvent.click(screen.getByRole('tab', { name: SIMULATE.eventsTab(1) }));
+      expect(result).toHaveTextContent('CounterUpdated');
+    });
+
+    it('the Events tab of a run without events says so', () => {
+      useDesignV2Store.setState({ selectedRunId: 'init' });
+      render(<SimulateView />);
+      fireEvent.click(screen.getByRole('tab', { name: SIMULATE.eventsTab(0) }));
+      expect(screen.getByText('No events emitted')).toBeInTheDocument();
     });
 
     it('Send runs the request through triggerContract and follows the new run', async () => {

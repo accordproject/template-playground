@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  describeFields,
-  pretty,
-  runEventsSummary,
-  runStateSummary,
-  runStats,
-  runSummary,
-} from '../../../components/designV2/simulateRuns';
+import { describeFields, pretty, runStats, runSummary } from '../../../components/designV2/simulateRuns';
 import { SIMULATE } from '../../../components/designV2/constants';
 import { failedRun, initRun, okRun, parseFailedRun } from './runFixtures';
 
@@ -28,18 +21,6 @@ describe('simulateRuns helpers', () => {
 
   it('runSummary falls back to the run id when the request has no scalar fields', () => {
     expect(runSummary({ ...okRun, request: {}, response: {} })).toBe('#1 → ok');
-  });
-
-  it('runStateSummary marks the state of a failed run as unchanged', () => {
-    expect(runStateSummary(okRun)).toBe('count 2 · owner Alice');
-    expect(runStateSummary(failedRun)).toBe(`count 2 · owner Alice ${SIMULATE.summary.unchanged}`);
-    expect(runStateSummary({ ...okRun, stateAfter: null })).toBe('—');
-  });
-
-  it('runEventsSummary counts events and names the last one', () => {
-    expect(runEventsSummary(initRun)).toBe(SIMULATE.eventsNone);
-    expect(runEventsSummary(okRun)).toBe('1 · CounterUpdated');
-    expect(runEventsSummary({ ...okRun, events: [{ a: 1 }, { b: 2 }] })).toBe('2 · event');
   });
 
   it('runStats counts ok and failed runs and remembers the last failure', () => {

@@ -3,8 +3,8 @@ import { SIMULATE } from "./constants";
 
 /*
  * Pure helpers that turn a LogicExecutionResult (src/store/store.ts) into the
- * one-line labels the Simulate step shows: run summary, state after, events.
- * Kept free of React so they can be unit-tested and reused by the footer.
+ * one-line labels and counts the Simulate step and the footer show.
+ * Kept free of React so they can be unit-tested.
  */
 
 type Scalar = string | number | boolean;
@@ -26,12 +26,6 @@ export const describeFields = (value: object | null): string =>
     .map(([key, val]) => `${key} ${String(val)}`)
     .join(" · ");
 
-/** "org.acme.counter@1.0.0.CounterUpdated" → "CounterUpdated". */
-const shortClassName = (value: object): string => {
-  const cls = (value as { $class?: unknown }).$class;
-  return typeof cls === "string" ? cls.split(".").pop() ?? cls : "event";
-};
-
 /** One line for the runs list: what was sent and what came back. */
 export const runSummary = (run: LogicExecutionResult): string => {
   if (run.method === "init") {
@@ -42,19 +36,6 @@ export const runSummary = (run: LogicExecutionResult): string => {
   if (run.error) return `${sent} — ${SIMULATE.summary.triggerFailed}`;
   const message = (run.response as { message?: unknown } | null)?.message;
   return typeof message === "string" ? `${sent} → "${message}"` : `${sent} → ok`;
-};
-
-/** "count 3 · owner Alice", with "(unchanged)" appended when the run failed. */
-export const runStateSummary = (run: LogicExecutionResult): string => {
-  const text = describeFields(run.stateAfter);
-  if (!text) return "—";
-  return run.error ? `${text} ${SIMULATE.summary.unchanged}` : text;
-};
-
-/** "1 · CounterUpdated" or "none". */
-export const runEventsSummary = (run: LogicExecutionResult): string => {
-  if (run.events.length === 0) return SIMULATE.eventsNone;
-  return `${run.events.length} · ${shortClassName(run.events[run.events.length - 1])}`;
 };
 
 export interface RunStats {

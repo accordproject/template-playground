@@ -364,17 +364,20 @@ export const SIMULATE = {
   request: "Request",
   requestActions: "copy",
   copied: "copied",
+  /** Tabs under the request — the same three the legacy ContractExecutionTabs shows. */
+  resultLabel: "Result",
   response: "Response",
-  returned: "✓ returned",
-  errorTitle: "Error — no response",
+  errorTab: "Error",
+  stateAfter: "State after",
+  /** "Events (2)" */
+  eventsTab: (count: number) => `Events (${count})`,
   /** "thrown in trigger() — state was left unchanged" */
   thrownIn: (method: string) => `thrown in ${method}() — state was left unchanged`,
   /** Second line of the error pane when the request never reached the logic. */
   notSent: "the request was not sent — fix the JSON and send again",
   openTrigger: "open trigger() ↗",
-  stateAfter: "State after",
-  events: "Events",
-  eventsNone: "none",
+  stateUnchanged: "This run failed, so the state is the same as before it.",
+  noState: "No state — init() did not return one.",
   rerun: "↻ re-run",
   noSelection: "Pick a run on the left to see its request and response.",
   status: { ok: "✓ ok", failed: "✕ failed" },
@@ -383,7 +386,6 @@ export const SIMULATE = {
     initFailed: "init() threw",
     triggerFailed: "trigger() threw",
     invalidRequest: "request is not valid JSON",
-    unchanged: "(unchanged)",
   },
   blocked: {
     title: "Simulate can’t run yet",

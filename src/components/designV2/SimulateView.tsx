@@ -1,30 +1,34 @@
 import { useState } from "react";
-import { Button, Dropdown, Modal, type MenuProps } from "antd";
+import { Button, Dropdown, Modal, Tabs, type MenuProps } from "antd";
 import JSONEditor from "../../editors/JSONEditor";
+import ObligationsList from "../ObligationsList";
 import useAppStore, { type LogicExecutionResult } from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import { STEP_ID } from "../../types/designV2.types";
 import { SIMULATE } from "./constants";
-import { pretty, runEventsSummary, runStateSummary, runStats, runSummary } from "./simulateRuns";
+import { pretty, runStats, runSummary } from "./simulateRuns";
 
 /*
- * Step 6: Simulate.
+ * Step 5: Simulate.
  *
  *   ┌ runs (46%) ───────────────┬ selected run (54%) ─────────────┐
  *   │ Simulate  [3 runs · 2 ok] │ #2  increment 2 → "…"   ✓ ok    │
  *   │ init  contract initialised│ ┌ Request ─────────────────────┐│
  *   │ #1    increment 1 → …     │ │ { "$class": …, "increment" }  ││
- *   │ #2    increment 2 → …  ●  │ ├ Response / Error ────────────┤│
+ *   │ #2    increment 2 → …  ●  │ ├ Response · State · Events ───┤│
  *   │ #3    increment 9 — threw │ │ { "message": … }              ││
  *   │ ┌ New request ─ reuse #2 ┐│ └───────────────────────────────┘│
- *   │ │ { … }          ▶ Send  ││ [State after …] [Events …]       │
+ *   │ │ { … }          ▶ Send  ││                                  │
  *   └───────────────────────────┴─────────────────────────────────┘
  *
  * Execution itself is the legacy runner's: initContract / triggerContract in
  * src/store/store.ts run inside the SandboxFrame and append to
  * executionHistory. This view only renders that history and the request
- * editor (the same JSONEditor the legacy ContractRequestEditor uses).
- * The selected run lives in useDesignV2Store so it survives step changes.
+ * editor (the same JSONEditor the legacy ContractRequestEditor uses). The
+ * Response / State / Events tabs mirror the legacy ContractExecutionTabs,
+ * with ObligationsList rendering the events, but per run instead of only
+ * the latest one. The selected run lives in useDesignV2Store so it survives
+ * step changes.
  */
 
 const RunChip = ({ run }: { run: LogicExecutionResult }) => (
@@ -52,7 +56,6 @@ const RunRow = ({ run, active, onSelect }: RunRowProps) => (
   >
     <RunChip run={run} />
     <span className="nd-run-summary">{runSummary(run)}</span>
-    {run.method === "trigger" && <span className="nd-mono nd-run-ms">{run.durationMs}ms</span>}
     <RunStatus run={run} />
   </button>
 );
@@ -64,7 +67,7 @@ interface RunDetailProps {
   onOpenLogic: () => void;
 }
 
-/** Right-hand column: request, response (or error), state after and events of one run. */
+/** Right-hand column: the run's request on top, then Response / State after / Events tabs. */
 const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
   const [copied, setCopied] = useState(false);
   const copyRequest = () => {
@@ -72,6 +75,46 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
+
+  const failed = run.error !== null;
+  const tabs = [
+    {
+      key: "response",
+      label: failed ? SIMULATE.errorTab : SIMULATE.response,
+      children: failed ? (
+        <div className="nd-sim-error">
+          <span className="nd-sim-error-message">{run.error}</span>
+          <span className="nd-mono nd-sim-error-at">
+            {run.stage === "parse" ? SIMULATE.notSent : SIMULATE.thrownIn(run.method)}
+          </span>
+          <Button type="link" size="small" className="nd-sim-error-link" onClick={onOpenLogic}>
+            {SIMULATE.openTrigger}
+          </Button>
+        </div>
+      ) : (
+        <pre className="nd-sim-code">{pretty(run.response)}</pre>
+      ),
+    },
+    {
+      key: "state",
+      label: SIMULATE.stateAfter,
+      children: (
+        <div className="nd-sim-tab-body">
+          {failed && <div className="nd-sim-note">{SIMULATE.stateUnchanged}</div>}
+          <pre className="nd-sim-code">{run.stateAfter ? pretty(run.stateAfter) : SIMULATE.noState}</pre>
+        </div>
+      ),
+    },
+    {
+      key: "events",
+      label: SIMULATE.eventsTab(run.events.length),
+      children: (
+        <div className="nd-sim-events">
+          <ObligationsList eventsJson={pretty(run.events)} />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="nd-sim-detail">
@@ -84,69 +127,30 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
         </Button>
       </div>
 
-      <div className="nd-sim-panes">
-        <section className="nd-sim-pane" aria-label={SIMULATE.request}>
-          <div className="nd-sim-pane-head">
-            <span className="nd-sim-pane-title">{SIMULATE.request}</span>
-            <span className="nd-mono nd-muted">{SIMULATE.json}</span>
-            <span className="nd-spacer" />
-            <Button type="link" size="small" onClick={copyRequest}>
-              {copied ? SIMULATE.copied : SIMULATE.requestActions}
-            </Button>
-          </div>
-          <pre className="nd-sim-code">{pretty(run.request)}</pre>
-        </section>
-
-        {run.error === null ? (
-          <section className="nd-sim-pane nd-sim-pane-ok" aria-label={SIMULATE.response}>
-            <div className="nd-sim-pane-head">
-              <span className="nd-sim-pane-title">{SIMULATE.response}</span>
-              <span className="nd-mono nd-muted">{SIMULATE.json}</span>
-              <span className="nd-spacer" />
-              <span className="nd-status-ok">{SIMULATE.returned}</span>
-            </div>
-            <pre className="nd-sim-code">{pretty(run.response)}</pre>
-          </section>
-        ) : (
-          <section className="nd-sim-pane nd-sim-pane-failed" aria-label={SIMULATE.errorTitle}>
-            <div className="nd-sim-pane-head">
-              <span className="nd-sim-pane-title nd-sim-error-title">{SIMULATE.errorTitle}</span>
-              <span className="nd-spacer" />
-              <Button type="link" size="small" onClick={onOpenLogic}>
-                {SIMULATE.openTrigger}
-              </Button>
-            </div>
-            <div className="nd-sim-error">
-              <span className="nd-sim-error-message">{run.error}</span>
-              <span className="nd-mono nd-sim-error-at">
-                {run.stage === "parse" ? SIMULATE.notSent : SIMULATE.thrownIn(run.method)}
-              </span>
-            </div>
-          </section>
-        )}
-      </div>
-
-      <div className="nd-sim-facts">
-        <div className="nd-sim-fact">
-          <span className="nd-sim-fact-label">{SIMULATE.stateAfter}</span>
+      <section className="nd-sim-pane" aria-label={SIMULATE.request}>
+        <div className="nd-sim-pane-head">
+          <span className="nd-sim-pane-title">{SIMULATE.request}</span>
+          <span className="nd-mono nd-muted">{SIMULATE.json}</span>
           <span className="nd-spacer" />
-          <span className="nd-mono nd-sim-fact-value" title={pretty(run.stateAfter)}>
-            {runStateSummary(run)}
-          </span>
+          <Button type="link" size="small" onClick={copyRequest}>
+            {copied ? SIMULATE.copied : SIMULATE.requestActions}
+          </Button>
         </div>
-        <div className="nd-sim-fact">
-          <span className="nd-sim-fact-label">{SIMULATE.events}</span>
-          <span className="nd-spacer" />
-          <span className="nd-mono nd-sim-fact-value" title={pretty(run.events)}>
-            {runEventsSummary(run)}
-          </span>
-        </div>
-      </div>
+        <pre className="nd-sim-code">{pretty(run.request)}</pre>
+      </section>
+
+      <section
+        className={`nd-sim-pane nd-sim-pane-tabs ${failed ? "nd-sim-pane-failed" : "nd-sim-pane-ok"}`}
+        aria-label={SIMULATE.resultLabel}
+      >
+        {/* Remount on run change so the tabs go back to Response */}
+        <Tabs key={run.id} size="small" items={tabs} className="nd-sim-tabs" />
+      </section>
     </div>
   );
 };
 
-/** Step 6: Simulate — runs list, request editor and the selected run's request / response. */
+/** Step 5: Simulate — runs list, request editor and the selected run's request / result. */
 const SimulateView = () => {
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
   const history = useAppStore((s) => s.executionHistory);

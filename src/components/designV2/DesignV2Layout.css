@@ -451,7 +451,6 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .nd-run-failed .nd-run-summary { color: #8a2226; }
-.nd-run-ms { flex: none; font-size: 10.5px; color: #7c959b; }
 .nd-run-status { flex: none; font-size: 11px; font-weight: 600; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
 .nd-run-status-ok { color: #0c8b57; background: #e7f7ef; }
 .nd-run-status-failed { color: #b3282d; background: #fceded; }
@@ -467,7 +466,6 @@
 .nd-sim-detail-empty { align-items: center; justify-content: center; font-size: 12.5px; color: var(--nd-text-4); font-weight: 500; }
 .nd-sim-detail-head { flex: none; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
 .nd-sim-detail-summary { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; line-height: 1.4; }
-.nd-sim-panes { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
 .nd-sim-pane {
   flex: 1; min-height: 0; display: flex; flex-direction: column;
   border: 1px solid #e4eff0; border-radius: 8px; background: #fff; overflow: hidden;
@@ -487,16 +485,25 @@
   font-family: var(--nd-mono); font-size: 11.5px; line-height: 1.6; color: var(--nd-ink);
   white-space: pre-wrap; word-break: break-word; overflow-y: auto;
 }
-.nd-sim-error { flex: 1; min-height: 0; padding: 9px 11px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
+.nd-sim-error { flex: 1; min-height: 0; padding: 9px 11px; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; overflow-y: auto; }
 .nd-sim-error-message { font-size: 12.5px; color: #8a2226; line-height: 1.45; font-weight: 600; }
 .nd-sim-error-at { font-size: 10.5px; color: #a9767a; line-height: 1.5; }
-.nd-sim-facts { flex: none; display: flex; gap: 8px; flex-wrap: wrap; }
-.nd-sim-fact {
-  flex: 1; min-width: 145px; display: flex; align-items: center; gap: 9px;
-  border: 1px solid #e4eff0; border-radius: 8px; background: #fff; padding: 7px 10px; font-size: 11.5px;
-}
-.nd-sim-fact-label { font-weight: 600; white-space: nowrap; }
-.nd-sim-fact-value { font-size: 11px; color: var(--nd-text-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nd-sim-error-link { padding-left: 0; margin-top: 4px; }
+
+/* Response / State after / Events tabs — the legacy ContractExecutionTabs, per run */
+.nd-sim-pane-tabs { flex: 1.3; }
+.nd-sim-tabs { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.nd-sim-tabs .ant-tabs-nav { margin: 0; padding: 0 11px; background: var(--nd-surface); }
+.nd-sim-pane-ok .nd-sim-tabs .ant-tabs-nav { background: #f4fcf8; }
+.nd-sim-tabs .ant-tabs-tab { padding: 6px 0; font-size: 11.5px; font-weight: 600; }
+.nd-sim-tabs .ant-tabs-content-holder { flex: 1; min-height: 0; display: flex; }
+.nd-sim-tabs .ant-tabs-content, .nd-sim-tabs .ant-tabs-tabpane { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* keep antd's hidden panes hidden — the flex rule above would otherwise win on specificity */
+.nd-sim-tabs .ant-tabs-tabpane-hidden { display: none; }
+.nd-sim-tab-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.nd-sim-note { flex: none; padding: 7px 11px; font-size: 11.5px; color: #8a2226; background: #fff8f8; border-bottom: 1px solid #f6d9d9; }
+.nd-sim-events { flex: 1; min-height: 0; position: relative; }
+.nd-sim-events .obligations-list-container { padding: 10px 11px; }
 
 /* "Simulate can't run yet" modal */
 .nd-blocked-title { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
