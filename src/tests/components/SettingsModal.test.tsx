@@ -4,6 +4,11 @@ import '@testing-library/jest-dom';
 import SettingsModal from '../../components/SettingsModal';
 import useAppStore from '../../store/store';
 
+// Shared mocks so tests can assert on calls made by the component
+const mocks = vi.hoisted(() => ({
+  setDesignV2Enabled: vi.fn(),
+}));
+
 // Mock the store - use inline functions to avoid hoisting issues
 vi.mock('../../store/store', () => {
   return {
@@ -17,6 +22,8 @@ vi.mock('../../store/store', () => {
       toggleDarkMode: vi.fn(),
       keyProtectionLevel: 'none',
       setKeyProtectionLevel: vi.fn(),
+      isDesignV2Enabled: false,
+      setDesignV2Enabled: mocks.setDesignV2Enabled,
     })),
   };
 });
@@ -70,6 +77,22 @@ describe('SettingsModal', () => {
     
     const toggle = screen.getByRole('switch', { name: /toggle line numbers/i });
     expect(toggle).toBeChecked();
+  });
+
+  it('renders the Design v2 feature flag setting', () => {
+    render(<SettingsModal />);
+
+    expect(screen.getByText('Enable Design v2 (Work in Progress)')).toBeInTheDocument();
+    const toggle = screen.getByTestId('design-v2-toggle');
+    expect(toggle).not.toBeChecked();
+  });
+
+  it('Design v2 toggle calls setDesignV2Enabled with the new value', () => {
+    render(<SettingsModal />);
+
+    fireEvent.click(screen.getByTestId('design-v2-toggle'));
+
+    expect(mocks.setDesignV2Enabled).toHaveBeenCalledWith(true, expect.anything());
   });
 
   it('renders divider between settings', () => {
