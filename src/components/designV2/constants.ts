@@ -115,8 +115,8 @@ export const START = {
   openLabel: (name: string) => `Start with ${name}`,
   /** Tag on the card whose template is currently loaded (shown after coming back from a later step). */
   current: "✓ current",
-  /** Eyebrow above the description: what the reader takes away from the template. */
-  learnLabel: "You'll learn",
+  /** Accessible name of the list of things a card's template demonstrates. */
+  learnLabel: (name: string) => `What ${name} demonstrates`,
 } as const;
 
 export type StartAccent = "teal" | "amber" | "blue";
@@ -132,11 +132,11 @@ export interface StartSample {
   /** One line under the name: what the template is, in plain words. */
   tagline: string;
   /**
-   * What the reader learns from this template — the reason to pick it over
-   * the others. The gallery is a curated set, so this matters more than the
-   * text preview (design review, Sept 2026).
+   * Two or three short points on what the reader learns from this template —
+   * the reason to pick it over the others. The gallery is a curated set, so
+   * this matters more than the text preview (design review, Sept 2026).
    */
-  demonstrates: string;
+  demonstrates: readonly string[];
   /**
    * Preview lines: key facts from the sample's DATA ("Role: …"), then one
    * sentence from its template, so the card is scannable and truthful.
@@ -152,8 +152,11 @@ export const START_SAMPLES: readonly StartSample[] = [
     sampleName: "Counter Contract (with Logic)",
     accent: "teal",
     tagline: "The smallest stateful contract — start here.",
-    demonstrates:
-      "How a contract remembers things over time: init() sets a count, every request adds to it, and the logic refuses to go past the maximum.",
+    demonstrates: [
+      "State that carries over from one request to the next",
+      "init() sets the starting count, trigger() adds to it",
+      "A rule that refuses to go past the maximum",
+    ],
     body: [
       "Owner: Alice",
       "Maximum allowed count: 10",
@@ -168,8 +171,11 @@ export const START_SAMPLES: readonly StartSample[] = [
     sampleName: "Employment Offer Letter",
     accent: "amber",
     tagline: "A letter the candidate answers once.",
-    demonstrates:
-      "Text and data working together: variables in the letter pull from the model, and one accept-or-decline request changes the outcome and emits an event.",
+    demonstrates: [
+      "Variables in the letter filled straight from the model",
+      "One accept-or-decline request that settles the offer",
+      "An event emitted when the candidate answers",
+    ],
     body: [
       "Role: Junior AI Engineer",
       "Company: Accord Project",
@@ -184,8 +190,11 @@ export const START_SAMPLES: readonly StartSample[] = [
     sampleName: "Non-Disclosure Agreement",
     accent: "blue",
     tagline: "A two-party agreement with a fixed term.",
-    demonstrates:
-      "Time-based rules: each disclosure is checked against the 24-month term, counted in state, and recorded as an event whether it was covered or not.",
+    demonstrates: [
+      "Dates: each disclosure is checked against the 24-month term",
+      "State that counts the disclosures made so far",
+      "An event recorded whether or not the disclosure was covered",
+    ],
     body: [
       "Parties: Accord Project · John Doe",
       "Term: 24 months",

@@ -68,8 +68,8 @@ interface SampleCardProps {
 }
 
 /**
- * One gallery card: a miniature document on top; name, tagline, what the
- * template demonstrates, format tags and its own "Start with this template"
+ * One gallery card: a miniature document on top; name, tagline, a short list
+ * of what the template demonstrates and its own "Start with this template"
  * button underneath. Nothing else on the card is clickable — picking and
  * opening a template is one click (design review, Sept 2026).
  */
@@ -99,10 +99,11 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
           {current && <span className="nd-sample-current">{START.current}</span>}
         </div>
         <p className="nd-sample-tagline">{sample.tagline}</p>
-        <div className="nd-sample-learn">
-          <span className="nd-sample-learn-label">{START.learnLabel}</span>
-          <p className="nd-sample-demonstrates">{sample.demonstrates}</p>
-        </div>
+        <ul className="nd-sample-learn" aria-label={START.learnLabel(sample.name)}>
+          {sample.demonstrates.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
         <Button
           type="primary"
           block

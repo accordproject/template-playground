@@ -32,7 +32,8 @@ describe('START_SAMPLES', () => {
 
   it('every card says what it demonstrates', () => {
     for (const card of START_SAMPLES) {
-      expect(card.demonstrates.trim().length, card.name).toBeGreaterThan(20);
+      expect(card.demonstrates.length, card.name).toBeGreaterThanOrEqual(2);
+      for (const point of card.demonstrates) expect(point.trim().length, card.name).toBeGreaterThan(10);
       expect(card.tagline.trim().length, card.name).toBeGreaterThan(0);
     }
   });
@@ -52,7 +53,7 @@ describe('StartView', () => {
     render(<StartView />);
     for (const sample of START_SAMPLES) {
       expect(screen.getByText(sample.name)).toBeInTheDocument();
-      expect(screen.getByText(sample.demonstrates)).toBeInTheDocument();
+      for (const point of sample.demonstrates) expect(screen.getByText(point)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: START.openLabel(sample.name) })).toBeInTheDocument();
     }
     expect(screen.getAllByText(START.open)).toHaveLength(START_SAMPLES.length);

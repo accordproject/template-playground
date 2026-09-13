@@ -195,7 +195,7 @@
 /* Accord Project logo (black on transparent, inverted to white) pinned to the bottom-right of the hero */
 .nd-hero-logo {
   position: absolute; right: 44px; bottom: 30px;
-  height: 46px; width: auto; max-width: 40%; opacity: 0.92;
+  height: 64px; width: auto; max-width: 40%; opacity: 0.92;
   filter: brightness(0) invert(1);
 }
 
@@ -242,7 +242,7 @@
 }
 .nd-sample-body span { min-height: 7px; }
 
-/* Name, tagline, "You'll learn" and the start button under the document */
+/* Name, tagline, what it demonstrates and the start button under the document */
 .nd-sample-foot { flex: none; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 7px; border-top: 1px solid var(--nd-line-soft); }
 .nd-sample-foot-row { display: flex; align-items: baseline; gap: 8px; }
 .nd-sample-name {
@@ -251,16 +251,16 @@
 }
 .nd-sample-current { flex: none; font-size: 10.5px; font-weight: 600; color: var(--nd-teal); white-space: nowrap; }
 .nd-sample-tagline { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--nd-text-3); }
-.nd-sample-learn {
-  display: flex; flex-direction: column; gap: 3px;
-  padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--nd-spine);
-  background: #f5f9fa;
+/* Two or three short points, each led by a dot in the card's accent colour */
+.nd-sample-learn { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.nd-sample-learn li {
+  display: flex; align-items: flex-start; gap: 9px;
+  font-size: 12.5px; line-height: 1.45; color: var(--nd-text-2);
 }
-.nd-sample-learn-label {
-  font-family: var(--nd-mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--nd-text-4);
+.nd-sample-learn li::before {
+  content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--nd-spine); margin-top: 6px;
 }
-.nd-sample-demonstrates { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--nd-text-2); }
 .nd-sample-open { margin-top: 3px; }
 
 /* Editor steps */
