@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Dropdown, type MenuProps } from "antd";
-import { GithubOutlined, SettingOutlined } from "@ant-design/icons";
+import { GithubOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
 import { FaDiscord } from "react-icons/fa";
 import useAppStore from "../../store/store";
 import SettingsModal from "../SettingsModal";
@@ -20,11 +20,12 @@ const MenuItemText = ({ label, hint }: MenuItemTextProps) => (
 
 /**
  * Dark 56px navigation rail on the far left of design v2.
- * The ▲ button opens the Playground menu (demo, tour, samples, docs, reset),
+ * The ☰ button opens the Playground menu (demo, tour, samples, docs, reset),
  * rendered with antd Dropdown so keyboard and focus handling come for free.
  * Menu items are not wired to actions yet.
  * Settings / Discord / GitHub live at the bottom of the rail; Settings opens
  * the shared SettingsModal so every existing toggle is available here too.
+ * The AI assistant button was dropped with the chat feature (design review, Sept 2026).
  */
 const Rail = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -87,13 +88,10 @@ const Rail = () => {
             aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
-            <span className="nd-rail-menu-glyph" />
+            <MenuOutlined className="nd-rail-menu-glyph" />
           </button>
         </Dropdown>
         <div className="nd-spacer" />
-        <button type="button" className="nd-rail-ai" title={RAIL.aiButton} aria-label={RAIL.aiButton}>
-          ✦
-        </button>
         <button
           type="button"
           className="nd-rail-link"

@@ -5,13 +5,14 @@ import { StartView } from '../../../components/designV2/views';
 import useDesignV2Store from '../../../store/designV2Store';
 import useAppStore from '../../../store/store';
 import { START, START_SAMPLES, sampleNameFor } from '../../../components/designV2/constants';
-import { STEPS_AFTER_TEMPLATE } from '../../../types/designV2.types';
+import { FIRST_STEP, STEPS } from '../../../types/designV2.types';
 import { SAMPLES } from '../../../samples';
 
 /**
- * Covers the "Choose a template type" gallery: one card per START_SAMPLES
- * entry, picking a card selects it, and "+ Blank" updates the v2 store.
- * Every card ships logic, so every card walks the same steps.
+ * Covers the "Choose a template" gallery: one card per START_SAMPLES entry,
+ * each with its own "Start with this template" button that picks the
+ * template, loads its sample and opens the next step in one click.
+ * "+ Start blank" does the same with the blank template.
  */
 describe('START_SAMPLES', () => {
   it('every card points at a real sample in src/samples', () => {
@@ -28,70 +29,77 @@ describe('START_SAMPLES', () => {
       expect(sample.REQUEST, card.name).toBeTruthy();
     }
   });
+
+  it('every card says what it demonstrates', () => {
+    for (const card of START_SAMPLES) {
+      expect(card.demonstrates.trim().length, card.name).toBeGreaterThan(20);
+      expect(card.tagline.trim().length, card.name).toBeGreaterThan(0);
+    }
+  });
 });
 
 describe('StartView', () => {
+  const loadSample = vi.fn().mockResolvedValue(undefined);
+  const secondStep = STEPS[1].id;
+
   beforeEach(() => {
-    useDesignV2Store.setState({ selectedTemplate: null });
+    vi.clearAllMocks();
+    useAppStore.setState({ loadSample });
+    useDesignV2Store.setState({ view: FIRST_STEP, selectedTemplate: null });
   });
 
-  const cards = () => screen.getAllByRole('button', { pressed: false }).concat(
-    screen.queryAllByRole('button', { pressed: true })
-  );
-
-  it('renders one card per sample with its name, the full step count and its note', () => {
+  it('renders one card per sample with its name, what it demonstrates and a start button', () => {
     render(<StartView />);
-    const steps = START.stepsLabel(STEPS_AFTER_TEMPLATE);
     for (const sample of START_SAMPLES) {
       expect(screen.getByText(sample.name)).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: START.cardLabel(sample.name, steps, sample.note) })
-      ).toBeInTheDocument();
+      expect(screen.getByText(sample.demonstrates)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: START.openLabel(sample.name) })).toBeInTheDocument();
     }
-    expect(cards()).toHaveLength(START_SAMPLES.length);
+    expect(screen.getAllByText(START.open)).toHaveLength(START_SAMPLES.length);
     expect(screen.getAllByText(START.tags.logic)).toHaveLength(START_SAMPLES.length);
   });
 
-  it('starts with no card selected', () => {
+  it('marks no card as current until a template is picked', () => {
     render(<StartView />);
-    expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(0);
+    expect(screen.queryByText(START.current)).not.toBeInTheDocument();
   });
 
-  it('picking a card selects it, and only it', () => {
+  it('marks the picked template as current when coming back to the gallery', () => {
+    useDesignV2Store.setState({ selectedTemplate: START_SAMPLES[1].name });
     render(<StartView />);
-    const [first, second] = START_SAMPLES;
+    expect(screen.getAllByText(START.current)).toHaveLength(1);
+    expect(screen.getByRole('article', { name: START_SAMPLES[1].name })).toHaveAttribute('aria-current', 'true');
+  });
 
-    fireEvent.click(screen.getByText(first.name));
-    expect(useDesignV2Store.getState().selectedTemplate).toBe(first.name);
-    expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
+  it("a card's button picks its template, loads the sample and opens the next step", () => {
+    render(<StartView />);
+    const [, second] = START_SAMPLES;
 
-    fireEvent.click(screen.getByText(second.name));
+    fireEvent.click(screen.getByRole('button', { name: START.openLabel(second.name) }));
     expect(useDesignV2Store.getState().selectedTemplate).toBe(second.name);
-    expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
+    expect(loadSample).toHaveBeenCalledWith(second.sampleName);
+    expect(useDesignV2Store.getState().view).toBe(secondStep);
   });
 
-  it('"+ Blank" selects the blank template', () => {
+  it('clicking the card body does nothing — only the button opens a template', () => {
+    render(<StartView />);
+    fireEvent.click(screen.getByText(START_SAMPLES[0].name));
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it('"+ Start blank" opens the next step on the blank template', () => {
     render(<StartView />);
     fireEvent.click(screen.getByRole('button', { name: START.blank }));
     expect(useDesignV2Store.getState().selectedTemplate).toBe(START.blankName);
-    expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(0);
+    expect(loadSample).toHaveBeenCalledWith(sampleNameFor(START.blankName));
+    expect(useDesignV2Store.getState().view).toBe(secondStep);
   });
 
-  it('picking a card or Blank loads its sample into the app store right away', () => {
-    const loadSample = vi.fn().mockResolvedValue(undefined);
-    useAppStore.setState({ loadSample });
-    render(<StartView />);
-
-    fireEvent.click(screen.getByText(START_SAMPLES[0].name));
-    expect(loadSample).toHaveBeenLastCalledWith(START_SAMPLES[0].sampleName);
-
-    fireEvent.click(screen.getByRole('button', { name: START.blank }));
-    expect(loadSample).toHaveBeenLastCalledWith(sampleNameFor(START.blankName));
-    expect(loadSample).toHaveBeenCalledTimes(2);
-  });
-
-  it('has no include-logic toggle: logic is part of every template', () => {
+  it('has no include-logic toggle and no AI draft button', () => {
     render(<StartView />);
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.queryByText(/draft with ai/i)).not.toBeInTheDocument();
   });
 });

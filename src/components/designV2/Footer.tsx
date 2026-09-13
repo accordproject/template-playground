@@ -28,8 +28,7 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
   const isCompiling = useAppStore((s) => s.isCompiling);
   const setLogicTs = useAppStore((s) => s.setLogicTs);
   const executionHistory = useAppStore((s) => s.executionHistory);
-  const isFirst = view === FIRST_STEP;
-  const canBack = !isFirst;
+  const canBack = view !== FIRST_STEP;
   const canNext = view !== LAST_STEP;
   const isLogic = view === STEP_ID.logic;
   const isSimulate = view === STEP_ID.simulate;
@@ -69,7 +68,7 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
       )}
       {canNext && (
         <Button type="primary" size="large" onClick={onNext}>
-          {isFirst ? FOOTER.startWithTemplate : FOOTER.next}
+          {FOOTER.next}
         </Button>
       )}
     </footer>

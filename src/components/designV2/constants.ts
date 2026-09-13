@@ -25,7 +25,6 @@ export const ROUTES = {
 export const RAIL = {
   navLabel: "Playground navigation",
   menuButton: "Playground menu",
-  aiButton: "AI assistant",
   settings: "Settings",
   discord: "Discord",
   github: "GitHub",
@@ -47,7 +46,6 @@ export const HEADER = {
   helpMenuLabel: "Help",
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
-  advanced: "Advanced",
   preview: "◧ Preview",
   stepperLabel: "Steps",
   links: {
@@ -69,7 +67,6 @@ export const FOOTER = {
     `✕ ${count} failed ${count === 1 ? "run" : "runs"} · run ${lastId}`,
   back: "← Back",
   applyAndCompile: "Apply & Compile",
-  startWithTemplate: "Start with this template",
   next: "Next →",
 } as const;
 
@@ -94,24 +91,32 @@ export const PREVIEW = {
 } as const;
 
 export const WELCOME = {
+  /** Accessible name of the Accord Project wordmark in the hero. */
+  logoAlt: "Accord Project",
+  logoSrc: "/logo.png",
+  // TODO(copy): headline wording to come from Matt — "contracts that run themselves"
+  // is not a phrase used elsewhere in the Accord Project (design review, Sept 2026).
   titleLine: "Contracts that",
   titleAccent: "run themselves.",
-  subtitleLine1: "Write the agreement once — as data, text and rules — and watch it execute.",
+  subtitleLine1: "Write the agreement once — as text, data and rules — and watch it execute.",
   subtitleLine2: "Six steps, no setup.",
   start: "Start building",
   howItWorks: "How it works ↗",
 } as const;
 
 export const START = {
-  title: "Choose a template type",
-  hint: "everything stays editable later",
-  blank: "+ Blank",
+  title: "Choose a template",
+  hint: "a curated set — everything stays editable later",
+  blank: "+ Start blank",
   blankName: "Blank template",
-  draftWithAi: "✦ Draft with AI",
-  stepsLabel: (count: number) => `${count} steps`,
-  cardLabel: (name: string, steps: string, note: string) => `${name} · ${steps} · ${note}`,
-  /** Short label under the tags: what the card's logic example does. */
-  notes: { startHere: "start here", acceptOrDecline: "accept or decline", termAndDisclosures: "term & disclosures" },
+  /** Primary button on every card: pick the template and open the first editor step. */
+  open: "Start with this template →",
+  /** Accessible name of a card's button, so each one is distinct: "Start with Counter Contract". */
+  openLabel: (name: string) => `Start with ${name}`,
+  /** Tag on the card whose template is currently loaded (shown after coming back from a later step). */
+  current: "✓ current",
+  /** Eyebrow above the description: what the reader takes away from the template. */
+  learnLabel: "You'll learn",
   tags: { text: "text", model: "model", logic: "logic" },
 } as const;
 
@@ -123,10 +128,16 @@ export interface StartSample {
   name: string;
   /** NAME of the matching sample in src/samples, loaded when the user starts with this template. */
   sampleName: string;
-  /** Colour of the page spine and the note. */
+  /** Colour of the page spine. */
   accent: StartAccent;
-  /** Short label under the tags: what the card's logic example does ("start here", "accept or decline"). */
-  note: string;
+  /** One line under the name: what the template is, in plain words. */
+  tagline: string;
+  /**
+   * What the reader learns from this template — the reason to pick it over
+   * the others. The gallery is a curated set, so this matters more than the
+   * text preview (design review, Sept 2026).
+   */
+  demonstrates: string;
   /**
    * Preview lines: key facts from the sample's DATA ("Role: …"), then one
    * sentence from its template, so the card is scannable and truthful.
@@ -141,7 +152,9 @@ export const START_SAMPLES: readonly StartSample[] = [
     name: "Counter Contract",
     sampleName: "Counter Contract (with Logic)",
     accent: "teal",
-    note: START.notes.startHere,
+    tagline: "The smallest stateful contract — start here.",
+    demonstrates:
+      "How a contract remembers things over time: init() sets a count, every request adds to it, and the logic refuses to go past the maximum.",
     body: [
       "Owner: Alice",
       "Maximum allowed count: 10",
@@ -155,7 +168,9 @@ export const START_SAMPLES: readonly StartSample[] = [
     name: "Employment Offer",
     sampleName: "Employment Offer Letter",
     accent: "amber",
-    note: START.notes.acceptOrDecline,
+    tagline: "A letter the candidate answers once.",
+    demonstrates:
+      "Text and data working together: variables in the letter pull from the model, and one accept-or-decline request changes the outcome and emits an event.",
     body: [
       "Role: Junior AI Engineer",
       "Company: Accord Project",
@@ -169,7 +184,9 @@ export const START_SAMPLES: readonly StartSample[] = [
     name: "Non-disclosure",
     sampleName: "Non-Disclosure Agreement",
     accent: "blue",
-    note: START.notes.termAndDisclosures,
+    tagline: "A two-party agreement with a fixed term.",
+    demonstrates:
+      "Time-based rules: each disclosure is checked against the 24-month term, counted in state, and recorded as an event whether it was covered or not.",
     body: [
       "Parties: Accord Project · John Doe",
       "Term: 24 months",
@@ -281,7 +298,7 @@ export const TEXT = {
   },
 } as const;
 
-/** Step 2: model.cto on the left, data.json on the right — both wired to the app store. */
+/** Step "Model & Data": model.cto on the left, data.json on the right — both wired to the app store. */
 export const MODEL_DATA = {
   icon: "⬡",
   title: "Define the model and fill in the data",
