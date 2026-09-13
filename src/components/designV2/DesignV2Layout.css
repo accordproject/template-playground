@@ -227,7 +227,7 @@
 .nd-sample-card-blue { --nd-spine: var(--nd-blue); }
 
 /* Miniature document at the top of the card */
-.nd-sample-thumb { flex: none; height: 168px; display: flex; background: #f2f7f8; padding: 11px 12px 0; overflow: hidden; }
+.nd-sample-thumb { flex: none; height: 132px; display: flex; background: #f2f7f8; padding: 11px 12px 0; overflow: hidden; }
 .nd-sample-page {
   flex: 1; min-width: 0; display: flex; flex-direction: column;
   background: #fff; border: 1px solid #e3edef; border-top: 3px solid var(--nd-spine);
