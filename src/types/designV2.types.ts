@@ -27,10 +27,6 @@ export type StepId = StepDefinition["id"];
 export type StepKey = StepDefinition["key"];
 export type DesignV2View = "welcome" | StepId;
 
-/** Steps rendered with the generic placeholder editor card (none left; kept for future steps). */
-export const EDITOR_STEP_KEYS = [] as const satisfies readonly StepKey[];
-export type EditorStepKey = (typeof EDITOR_STEP_KEYS)[number];
-
 /**
  * Build a lookup from STEPS, failing fast on duplicate keys so a mistake in
  * the step list surfaces at module load instead of hiding behind a cast.
@@ -53,9 +49,6 @@ export const STEP_KEY = stepLookup((s) => [s.id, s.key] as const);
 
 export const FIRST_STEP: StepId = STEPS[0].id;
 export const LAST_STEP: StepId = STEPS[STEPS.length - 1].id;
-
-export const isEditorStep = (key: StepKey): key is EditorStepKey =>
-  (EDITOR_STEP_KEYS as readonly StepKey[]).includes(key);
 
 /** Number of steps a user walks through after picking a template. Every template ships logic, so it is the same for all. */
 export const STEPS_AFTER_TEMPLATE = STEPS.filter((step) => step.key !== "template").length;

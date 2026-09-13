@@ -58,8 +58,8 @@ describe('LogicView', () => {
     render(<LogicView />);
     expect(pane().getByText(LOGIC.file)).toBeInTheDocument();
     expect(pane().getByText(LOGIC.badge)).toBeInTheDocument();
-    expect(pane().getByText(LOGIC.rows.types.label)).toBeInTheDocument();
-    expect(pane().getByText(LOGIC.rows.pair.label)).toBeInTheDocument();
+    expect(pane().getByText(LOGIC.chips.types.label)).toBeInTheDocument();
+    expect(pane().getByText(LOGIC.chips.pair.label)).toBeInTheDocument();
     expect(await pane().findByTestId('monaco-typescript')).toBeInTheDocument();
   });
 
@@ -80,14 +80,14 @@ describe('LogicView', () => {
     // Compiled: the init/trigger chip shows the state.
     expect(pane().getByText(LOGIC.status.compiled)).toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(2, 2))).toBeInTheDocument();
-    expect(rail().getByText(LOGIC.rows.pair.label).closest('li')).toHaveClass('nd-check-done');
+    expect(rail().getByText(LOGIC.chips.pair.label).closest('li')).toHaveClass('nd-check-done');
     second.unmount();
 
     useAppStore.setState({ compiledLogicJs: null, compilationErrors: [{ message: "Cannot find name 'foo'." }] });
     render(<LogicView />);
-    expect(pane().getByText(LOGIC.rows.pair.label).closest('li')).toHaveAttribute('title', "Cannot find name 'foo'.");
+    expect(pane().getByText(LOGIC.chips.pair.label).closest('li')).toHaveAttribute('title', "Cannot find name 'foo'.");
     expect(pane().getByText(LOGIC.status.failed)).toBeInTheDocument();
-    expect(rail().getByText(LOGIC.rows.pair.label).closest('li')).toHaveClass('nd-check-error');
+    expect(rail().getByText(LOGIC.chips.pair.label).closest('li')).toHaveClass('nd-check-error');
   });
 
   it('leaves the types row open when model.cto has no request/response transactions', () => {
@@ -95,12 +95,12 @@ describe('LogicView', () => {
     render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(0, 2))).toBeInTheDocument();
     expect(pane().getByText(LOGIC.typesMissing)).toBeInTheDocument();
-    expect(rail().getByText(LOGIC.rows.types.label).closest('li')).not.toHaveClass('nd-check-done');
+    expect(rail().getByText(LOGIC.chips.types.label).closest('li')).not.toHaveClass('nd-check-done');
   });
 
   it('the types row points back at the Model & Data step', () => {
     render(<LogicView />);
-    fireEvent.click(pane().getByRole('button', { name: LOGIC.rows.types.action }));
+    fireEvent.click(pane().getByRole('button', { name: LOGIC.chips.types.action }));
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.modelData);
   });
 

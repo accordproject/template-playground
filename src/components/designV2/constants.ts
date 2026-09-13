@@ -186,20 +186,6 @@ export const sampleNameFor = (selectedTemplate: string | null): string | undefin
   return START_SAMPLES.find((card) => card.name === selectedTemplate)?.sampleName;
 };
 
-export interface EditorMeta {
-  icon: string;
-  title: string;
-  file: string;
-  badge: string;
-}
-
-export const EDITOR = {
-  format: "≡ format",
-  copy: "⧉ copy",
-  statusOk: "✓ ok",
-  meta: {} satisfies Record<string, EditorMeta>,
-} as const;
-
 /** Step "Logic": logic.ts in the TypeScript editor, compiled through the store on Apply & Compile. */
 export const LOGIC = {
   icon: "ƒ",
@@ -219,7 +205,7 @@ export const LOGIC = {
   typesMissing: "not in model.cto",
   typesMissingHint: "Declare a request and a response transaction in model.cto",
   /** The two parts of the job, as chips in the card head; the hints are their tooltips. */
-  rows: {
+  chips: {
     types: {
       label: "Request & Response types",
       hint: "declared in model.cto",

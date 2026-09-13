@@ -70,8 +70,8 @@ export const LogicView = () => {
 
   // Icon and label only: the chips in the card and the footer carry the detail.
   const checklist: ChecklistItem[] = [
-    { label: LOGIC.rows.types.label, tone: typesOk ? "done" : "todo" },
-    { label: LOGIC.rows.pair.label, tone: pair.tone },
+    { label: LOGIC.chips.types.label, tone: typesOk ? "done" : "todo" },
+    { label: LOGIC.chips.pair.label, tone: pair.tone },
   ];
 
   return (
@@ -95,19 +95,19 @@ export const LogicView = () => {
               <span className="nd-badge nd-badge-blue">{LOGIC.badge}</span>
               <span className="nd-mono nd-editor-file">{LOGIC.file}</span>
               <ol className="nd-logic-chips" aria-label={LOGIC.chipsLabel}>
-                <li className="nd-logic-chip" title={typesOk ? LOGIC.rows.types.hint : LOGIC.typesMissingHint}>
+                <li className="nd-logic-chip" title={typesOk ? LOGIC.chips.types.hint : LOGIC.typesMissingHint}>
                   <span className={`nd-check-icon nd-check-icon-${typesOk ? "done" : "todo"}`} aria-hidden="true">
                     {typesOk ? "✓" : "○"}
                   </span>
-                  <span className="nd-mono nd-logic-chip-label">{LOGIC.rows.types.label}</span>
+                  <span className="nd-mono nd-logic-chip-label">{LOGIC.chips.types.label}</span>
                   <span className={`nd-logic-chip-tag nd-logic-chip-tag-${typesOk ? "done" : "todo"}`}>{typesTag}</span>
                   <Button type="link" size="small" className="nd-logic-chip-action" onClick={() => setView(STEP_ID.modelData)}>
-                    {LOGIC.rows.types.action}
+                    {LOGIC.chips.types.action}
                   </Button>
                 </li>
-                <li className="nd-logic-chip" title={status === "failed" ? compilationErrors[0]?.message : LOGIC.rows.pair.hint}>
+                <li className="nd-logic-chip" title={status === "failed" ? compilationErrors[0]?.message : LOGIC.chips.pair.hint}>
                   <span className={`nd-check-icon nd-check-icon-${pair.tone}`} aria-hidden="true">{pair.icon}</span>
-                  <span className="nd-mono nd-logic-chip-label">{LOGIC.rows.pair.label}</span>
+                  <span className="nd-mono nd-logic-chip-label">{LOGIC.chips.pair.label}</span>
                   <span className={`nd-logic-chip-tag nd-logic-chip-tag-${pair.tone}`}>{LOGIC.status[status]}</span>
                 </li>
               </ol>

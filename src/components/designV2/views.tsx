@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
-import HelpRail, { HelpRailReopen } from "./HelpRail";
 import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
@@ -9,9 +8,7 @@ import { usePickTemplate } from "./usePickTemplate";
 import {
   STEPS,
   STEP_KEY,
-  isEditorStep,
   STEPS_AFTER_TEMPLATE,
-  type EditorStepKey,
   type DesignV2View,
 } from "../../types/designV2.types";
 import {
@@ -19,10 +16,8 @@ import {
   WELCOME,
   START,
   START_SAMPLES,
-  EDITOR,
   SIMULATE,
   DEPLOY,
-  type EditorMeta,
   type StartSample,
 } from "./constants";
 
@@ -91,7 +86,6 @@ const SampleCard = ({ sample, selected, onPick }: SampleCardProps) => {
   const classes = [
     "nd-sample-card",
     `nd-sample-card-${sample.accent}`,
-    "nd-sample-card-logic",
     selected ? "nd-sample-card-selected" : "",
   ]
     .filter(Boolean)
@@ -162,44 +156,6 @@ export const StartView = () => {
   );
 };
 
-interface EditorViewProps {
-  step: EditorStepKey;
-}
-
-/** Editor steps: title block, editor card (header / body / status bar) and the help rail. */
-export const EditorView = ({ step }: EditorViewProps) => {
-  const meta: EditorMeta = EDITOR.meta[step];
-  return (
-    <div className="nd-view nd-view-editor">
-      <div className="nd-editor-column">
-        <div className="nd-editor-title">
-          <div className="nd-editor-icon">{meta.icon}</div>
-          <div className="nd-editor-title-text">
-            <h1>{meta.title}</h1>
-          </div>
-          <HelpRailReopen />
-        </div>
-        <div className="nd-editor-card">
-          <div className="nd-editor-card-head">
-            <span className="nd-mono nd-editor-file">{meta.file}</span>
-            <span className="nd-badge nd-badge-teal">{meta.badge}</span>
-            <div className="nd-spacer" />
-            <Button type="text" size="small">{EDITOR.format}</Button>
-            <Button type="text" size="small">{EDITOR.copy}</Button>
-          </div>
-          <div className="nd-editor-card-body">
-            <div className="nd-placeholder nd-placeholder-block" />
-          </div>
-          <div className="nd-editor-card-foot">
-            <span className="nd-status-ok">{EDITOR.statusOk}</span>
-          </div>
-        </div>
-      </div>
-      <HelpRail />
-    </div>
-  );
-};
-
 /** Step 6: Simulate — empty placeholder until the runner UI is designed. */
 export const SimulateView = () => (
   <div className="nd-view nd-view-simulate">
@@ -242,7 +198,6 @@ export const ViewSwitch = ({ view, onStart }: ViewSwitchProps) => {
   if (key === "modelData") return <ModelDataView />;
   if (key === "text") return <TextView />;
   if (key === "logic") return <LogicView />;
-  if (isEditorStep(key)) return <EditorView step={key} />;
   if (key === "simulate") return <SimulateView />;
   return <DeployView />;
 };
