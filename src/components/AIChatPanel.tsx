@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
+import { Alert, Button, Space, Typography } from "antd";
+import { SettingOutlined } from "@ant-design/icons";
 import useAppStore from "../store/store";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
 
@@ -84,11 +86,6 @@ export const AIChatPanel = () => {
   
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
-    
-    if (!aiConfig) {
-      setSettingsOpen(true);
-      return;
-    }
     
     const prompt = userInput;
     
@@ -312,6 +309,30 @@ export const AIChatPanel = () => {
       </div>
       <div className="w-full h-[calc(100%-3rem)] flex flex-col">
         <div className="flex-1 overflow-y-auto mb-4 px-2 mt-4">
+          {!aiConfig && (
+            <div className="mb-3">
+              <Alert
+                message="AI Provider Not Configured"
+                description={
+                  <Space direction="vertical" size={8} style={{ width: '100%', marginTop: 4 }}>
+                    <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                      Please configure an AI provider and API key in Settings to start using the assistant.
+                    </Typography.Text>
+                    <Button
+                      type="primary"
+                      size="small"
+                      icon={<SettingOutlined />}
+                      onClick={() => setSettingsOpen(true)}
+                    >
+                      Configure Settings
+                    </Button>
+                  </Space>
+                }
+                type="warning"
+                showIcon
+              />
+            </div>
+          )}
           <div className="space-y-2">
             {chatState.messages.length === 0 ? (
               <div className="w-full">
