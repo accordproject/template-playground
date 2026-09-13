@@ -16,7 +16,9 @@ const SettingsModal: React.FC = () => {
     backgroundColor,
     toggleDarkMode,
     isLogicFeatureEnabled,
-    setLogicFeatureEnabled
+    setLogicFeatureEnabled,
+    isDesignV2Enabled,
+    setDesignV2Enabled
   } = useAppStore((state) => ({
     isSettingsOpen: state.isSettingsOpen,
     setSettingsOpen: state.setSettingsOpen,
@@ -26,6 +28,8 @@ const SettingsModal: React.FC = () => {
     toggleDarkMode: state.toggleDarkMode,
     isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     setLogicFeatureEnabled: state.setLogicFeatureEnabled,
+    isDesignV2Enabled: state.isDesignV2Enabled,
+    setDesignV2Enabled: state.setDesignV2Enabled,
   }));
 
   const isDarkMode = backgroundColor === '#121212';
@@ -96,6 +100,26 @@ const SettingsModal: React.FC = () => {
                 checked={isLogicFeatureEnabled}
                 onChange={setLogicFeatureEnabled}
                 aria-label="Toggle template logic"
+              />
+            </Col>
+          </Row>
+
+          <Divider style={{ margin: 0 }} />
+
+          {/* Design v2 feature flag toggle */}
+          <Row justify="space-between" align="middle" style={{ width: '100%' }}>
+            <Col flex="auto">
+              <Text strong style={{ display: 'block' }}>Enable Design v2 (Work in Progress)</Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                Preview the redesigned playground layout. This design is still under development and may be incomplete or change without notice.
+              </Text>
+            </Col>
+            <Col>
+              <Switch
+                data-testid="design-v2-toggle"
+                checked={isDesignV2Enabled}
+                onChange={setDesignV2Enabled}
+                aria-label="Toggle design v2"
               />
             </Col>
           </Row>
