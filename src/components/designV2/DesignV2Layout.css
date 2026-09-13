@@ -207,10 +207,10 @@
 .nd-sample-grid {
   flex: 1; min-height: 0;
   display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  grid-template-rows: minmax(0, 1fr); gap: 16px; align-items: start;
+  grid-template-rows: minmax(0, 1fr); gap: 16px; align-items: stretch;
   overflow-y: auto;
 }
-/* A curated card: the document preview on top, the pitch and its own start button below. */
+/* A curated card: the illustration on top, the pitch and its own start button below. */
 .nd-sample-card {
   --nd-spine: var(--nd-teal);
   text-align: left; min-height: 0;
@@ -222,27 +222,24 @@
 .nd-sample-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(7, 35, 48, 0.14); border-color: #9fd6dc; }
 .nd-sample-card-current,
 .nd-sample-card-current:hover { border-color: #12707b; box-shadow: 0 0 0 3px #dcebec; }
-.nd-sample-card-teal { --nd-spine: var(--nd-teal); }
-.nd-sample-card-amber { --nd-spine: var(--nd-amber); }
-.nd-sample-card-blue { --nd-spine: var(--nd-blue); }
+.nd-sample-card-teal { --nd-spine: var(--nd-teal); --nd-spine-tint: var(--nd-teal-tint); }
+.nd-sample-card-amber { --nd-spine: var(--nd-amber); --nd-spine-tint: var(--nd-amber-tint); }
+.nd-sample-card-blue { --nd-spine: var(--nd-blue); --nd-spine-tint: #e7f2fe; }
 
-/* Miniature document at the top of the card */
-.nd-sample-thumb { flex: none; height: 132px; display: flex; background: #f2f7f8; padding: 11px 12px 0; overflow: hidden; }
-.nd-sample-page {
-  flex: 1; min-width: 0; display: flex; flex-direction: column;
-  background: #fff; border: 1px solid #e3edef; border-top: 3px solid var(--nd-spine);
-  border-radius: 4px 4px 0 0; padding: 10px 12px 0; overflow: hidden;
+/* Illustration at the top of the card: line art in the accent colour on a tinted, faintly gridded ground */
+.nd-sample-art {
+  flex: 1; min-height: 120px; display: flex; align-items: center; justify-content: center;
+  color: var(--nd-spine);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+    radial-gradient(90% 80% at 50% 100%, #fff 0%, var(--nd-spine-tint) 100%);
+  background-size: 22px 22px, 22px 22px, 100% 100%;
+  border-top: 3px solid var(--nd-spine);
 }
-.nd-sample-body {
-  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px;
-  font-family: var(--nd-serif); font-size: 10.5px; line-height: 1.5; color: var(--nd-text-3);
-  overflow: hidden;
-  mask-image: linear-gradient(#000 82%, transparent 100%);
-  -webkit-mask-image: linear-gradient(#000 82%, transparent 100%);
-}
-.nd-sample-body span { min-height: 7px; }
+.nd-sample-art-svg { width: 62%; max-width: 260px; height: auto; max-height: 78%; }
 
-/* Name, tagline, what it demonstrates and the start button under the document */
+/* Name, tagline, what it demonstrates and the start button under the illustration */
 .nd-sample-foot { flex: none; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 7px; border-top: 1px solid var(--nd-line-soft); }
 .nd-sample-foot-row { display: flex; align-items: baseline; gap: 8px; }
 .nd-sample-name {

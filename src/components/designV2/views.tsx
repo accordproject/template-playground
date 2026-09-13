@@ -4,6 +4,7 @@ import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
 import SimulateView from "./SimulateView";
+import SampleArt from "./SampleArt";
 import useDesignV2Store from "../../store/designV2Store";
 import { usePickTemplate } from "./usePickTemplate";
 import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
@@ -68,7 +69,7 @@ interface SampleCardProps {
 }
 
 /**
- * One gallery card: a miniature document on top; name, tagline, a short list
+ * One gallery card: an illustration on top; name, tagline, a short list
  * of what the template demonstrates and its own "Start with this template"
  * button underneath. Nothing else on the card is clickable — picking and
  * opening a template is one click (design review, Sept 2026).
@@ -84,14 +85,8 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
 
   return (
     <article className={classes} aria-current={current ? "true" : undefined} aria-label={sample.name}>
-      <div className="nd-sample-thumb">
-        <div className="nd-sample-page">
-          <div className="nd-sample-body">
-            {sample.body.map((line, i) => (
-              <span key={i}>{line}</span>
-            ))}
-          </div>
-        </div>
+      <div className="nd-sample-art">
+        <SampleArt kind={sample.art} />
       </div>
       <div className="nd-sample-foot">
         <div className="nd-sample-foot-row">

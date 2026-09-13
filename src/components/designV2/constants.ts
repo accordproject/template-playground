@@ -120,6 +120,8 @@ export const START = {
 } as const;
 
 export type StartAccent = "teal" | "amber" | "blue";
+/** Which of the three line-art illustrations (see SampleArt.tsx) a card shows. */
+export type StartArt = "counter" | "offer" | "nda";
 
 /** One card in the "Choose a template type" gallery. */
 export interface StartSample {
@@ -127,8 +129,10 @@ export interface StartSample {
   name: string;
   /** NAME of the matching sample in src/samples, loaded when the user starts with this template. */
   sampleName: string;
-  /** Colour of the page spine. */
+  /** Colour of the card's spine and illustration. */
   accent: StartAccent;
+  /** Illustration at the top of the card. */
+  art: StartArt;
   /** One line under the name: what the template is, in plain words. */
   tagline: string;
   /**
@@ -137,12 +141,6 @@ export interface StartSample {
    * this matters more than the text preview (design review, Sept 2026).
    */
   demonstrates: readonly string[];
-  /**
-   * Preview lines: key facts from the sample's DATA ("Role: …"), then one
-   * sentence from its template, so the card is scannable and truthful.
-   * An empty string is a paragraph break.
-   */
-  body: readonly string[];
 }
 
 /** Gallery cards shown on the Start step. Every card's sample ships logic, so every card walks the same steps. */
@@ -151,51 +149,36 @@ export const START_SAMPLES: readonly StartSample[] = [
     name: "Counter Contract",
     sampleName: "Counter Contract (with Logic)",
     accent: "teal",
+    art: "counter",
     tagline: "Stateful logic — start here.",
     demonstrates: [
       "Remembers state between requests",
       "init() and trigger()",
       "Enforces a maximum",
     ],
-    body: [
-      "Owner: Alice",
-      "Maximum count: 10",
-      "",
-      "Each request increments the counter.",
-    ],
   },
   {
     name: "Employment Offer",
     sampleName: "Employment Offer Letter",
     accent: "amber",
+    art: "offer",
     tagline: "Text and data, one answer.",
     demonstrates: [
       "Variables filled from the model",
       "Accept or decline, once",
       "Emits an event",
     ],
-    body: [
-      "Role: Junior AI Engineer",
-      "Salary: 85,000 USD / year",
-      "",
-      "We are pleased to offer you the position.",
-    ],
   },
   {
     name: "Non-disclosure",
     sampleName: "Non-Disclosure Agreement",
     accent: "blue",
+    art: "nda",
     tagline: "Rules that depend on dates.",
     demonstrates: [
       "Checks dates against the term",
       "Counts disclosures in state",
       "Records every event",
-    ],
-    body: [
-      "Parties: Accord Project · John Doe",
-      "Term: 24 months",
-      "",
-      "This Agreement remains in effect for 24 months.",
     ],
   },
 ];
