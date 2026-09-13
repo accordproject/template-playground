@@ -192,10 +192,11 @@
 }
 .nd-hero-sub { position: relative; margin: 0; font-size: 16.5px; line-height: 1.55; color: #a9cbd3; max-width: 760px; }
 .nd-hero-actions { position: relative; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
-/* Accord Project wordmark (white on transparent) pinned to the top-left of the hero */
+/* Accord Project logo (black on transparent, inverted to white) pinned to the bottom-right of the hero */
 .nd-hero-logo {
-  position: absolute; top: 30px; left: 50px;
-  height: 34px; width: auto; max-width: 60%; opacity: 0.92;
+  position: absolute; right: 44px; bottom: 30px;
+  height: 46px; width: auto; max-width: 40%; opacity: 0.92;
+  filter: brightness(0) invert(1);
 }
 
 /* Start (choose template) */
@@ -241,10 +242,9 @@
 }
 .nd-sample-body span { min-height: 7px; }
 
-/* Name, tagline, "You'll learn", tags and the start button under the document */
+/* Name, tagline, "You'll learn" and the start button under the document */
 .nd-sample-foot { flex: none; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 7px; border-top: 1px solid var(--nd-line-soft); }
 .nd-sample-foot-row { display: flex; align-items: baseline; gap: 8px; }
-.nd-sample-foot-tags { align-items: center; gap: 5px; }
 .nd-sample-name {
   flex: 1; min-width: 0; font-weight: 600; font-size: 15px; letter-spacing: -0.02em;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -262,14 +262,6 @@
 }
 .nd-sample-demonstrates { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--nd-text-2); }
 .nd-sample-open { margin-top: 3px; }
-
-.nd-tag {
-  font-family: var(--nd-mono); font-size: 9.5px; font-weight: 500;
-  border-radius: 5px; padding: 2px 6px; white-space: nowrap;
-}
-.nd-tag-text { background: var(--nd-amber-tint); color: var(--nd-amber); }
-.nd-tag-model { background: var(--nd-teal-tint); color: var(--nd-teal); }
-.nd-tag-logic { background: #e6eef1; color: #0a4a62; }
 
 /* Editor steps */
 .nd-view-editor { align-items: stretch; }

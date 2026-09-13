@@ -74,7 +74,6 @@ interface SampleCardProps {
  * opening a template is one click (design review, Sept 2026).
  */
 const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
-  const tags = [START.tags.text, START.tags.model, START.tags.logic];
   const classes = [
     "nd-sample-card",
     `nd-sample-card-${sample.accent}`,
@@ -103,11 +102,6 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
         <div className="nd-sample-learn">
           <span className="nd-sample-learn-label">{START.learnLabel}</span>
           <p className="nd-sample-demonstrates">{sample.demonstrates}</p>
-        </div>
-        <div className="nd-sample-foot-row nd-sample-foot-tags">
-          {tags.map((tag) => (
-            <span key={tag} className={`nd-tag nd-tag-${tag}`}>{tag}</span>
-          ))}
         </div>
         <Button
           type="primary"

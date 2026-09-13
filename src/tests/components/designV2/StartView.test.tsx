@@ -56,7 +56,6 @@ describe('StartView', () => {
       expect(screen.getByRole('button', { name: START.openLabel(sample.name) })).toBeInTheDocument();
     }
     expect(screen.getAllByText(START.open)).toHaveLength(START_SAMPLES.length);
-    expect(screen.getAllByText(START.tags.logic)).toHaveLength(START_SAMPLES.length);
   });
 
   it('marks no card as current until a template is picked', () => {

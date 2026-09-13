@@ -93,7 +93,7 @@ export const PREVIEW = {
 export const WELCOME = {
   /** Accessible name of the Accord Project wordmark in the hero. */
   logoAlt: "Accord Project",
-  logoSrc: "/logo.png",
+  logoSrc: "/APLogo.png",
   // TODO(copy): headline wording to come from Matt — "contracts that run themselves"
   // is not a phrase used elsewhere in the Accord Project (design review, Sept 2026).
   titleLine: "Contracts that",
@@ -117,7 +117,6 @@ export const START = {
   current: "✓ current",
   /** Eyebrow above the description: what the reader takes away from the template. */
   learnLabel: "You'll learn",
-  tags: { text: "text", model: "model", logic: "logic" },
 } as const;
 
 export type StartAccent = "teal" | "amber" | "blue";
