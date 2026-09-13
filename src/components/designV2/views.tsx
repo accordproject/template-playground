@@ -3,6 +3,7 @@ import { Button } from "antd";
 import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
+import SimulateView from "./SimulateView";
 import useDesignV2Store from "../../store/designV2Store";
 import { usePickTemplate } from "./usePickTemplate";
 import {
@@ -16,7 +17,6 @@ import {
   WELCOME,
   START,
   START_SAMPLES,
-  SIMULATE,
   DEPLOY,
   type StartSample,
 } from "./constants";
@@ -155,20 +155,6 @@ export const StartView = () => {
     </div>
   );
 };
-
-/** Step 6: Simulate — empty placeholder until the runner UI is designed. */
-export const SimulateView = () => (
-  <div className="nd-view nd-view-simulate">
-    <div className="nd-sim-head">
-      <h1>{SIMULATE.title}</h1>
-    </div>
-    <div className="nd-editor-card">
-      <div className="nd-editor-card-body">
-        <div className="nd-placeholder nd-placeholder-block" />
-      </div>
-    </div>
-  </div>
-);
 
 /** Step 7: Deploy — placeholder until the deploy flow is designed. */
 export const DeployView = () => (

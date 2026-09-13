@@ -64,6 +64,9 @@ export const FOOTER = {
   /** Problems pill while the app store reports an error; the full message follows it. */
   problem: "✕ error",
   problemLabel: "Problem",
+  /** Problems pill on the Simulate step: "✕ 1 failed run · run #3" */
+  failedRuns: (count: number, lastId: string) =>
+    `✕ ${count} failed ${count === 1 ? "run" : "runs"} · run ${lastId}`,
   back: "← Back",
   applyAndCompile: "Apply & Compile",
   startWithTemplate: "Start with this template",
@@ -344,6 +347,50 @@ export const MODEL_DATA = {
 
 export const SIMULATE = {
   title: "Simulate",
+  restart: "↺ restart",
+  restartHint: "Initialise the contract again and clear the runs",
+  runsLabel: "Runs",
+  /** "3 runs · 2 ok · 1 failed" — the pill next to the title. */
+  stats: (runs: number, ok: number, failed: number) =>
+    `${runs} ${runs === 1 ? "run" : "runs"} · ${ok} ok · ${failed} failed`,
+  noRuns: "No runs yet — initialise the contract to get a starting state.",
+  init: "▶ Init contract",
+  newRequest: "New request",
+  json: "json",
+  reuse: (id: string) => `reuse ${id} ▾`,
+  reuseMenuLabel: "Reuse an earlier request",
+  send: "▶ Send",
+  sendHintNoInit: "Initialise the contract before sending a request",
+  request: "Request",
+  requestActions: "copy",
+  copied: "copied",
+  response: "Response",
+  returned: "✓ returned",
+  errorTitle: "Error — no response",
+  /** "thrown in trigger() — state was left unchanged" */
+  thrownIn: (method: string) => `thrown in ${method}() — state was left unchanged`,
+  /** Second line of the error pane when the request never reached the logic. */
+  notSent: "the request was not sent — fix the JSON and send again",
+  openTrigger: "open trigger() ↗",
+  stateAfter: "State after",
+  events: "Events",
+  eventsNone: "none",
+  rerun: "↻ re-run",
+  noSelection: "Pick a run on the left to see its request and response.",
+  status: { ok: "✓ ok", failed: "✕ failed" },
+  summary: {
+    init: "contract initialised",
+    initFailed: "init() threw",
+    triggerFailed: "trigger() threw",
+    invalidRequest: "request is not valid JSON",
+    unchanged: "(unchanged)",
+  },
+  blocked: {
+    title: "Simulate can’t run yet",
+    body: "Your logic hasn’t compiled — trigger() is still a stub, so there is nothing to run a request against. Finish the Logic step and hit Apply & Compile.",
+    stay: "Stay here",
+    jump: "Jump back to Logic",
+  },
 } as const;
 
 export const DEPLOY = {

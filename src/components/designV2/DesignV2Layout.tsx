@@ -31,7 +31,8 @@ import "./DesignV2Layout.css";
  * picked sample there, and the Model & Data step edits it through the same
  * containers as the old layout.
  * antd components inside are themed with the v2 palette via ConfigProvider (see theme.ts).
- * Text, Logic, Simulate and Deploy are still placeholders.
+ * Simulate runs the compiled logic through the store's initContract /
+ * triggerContract (see SimulateView.tsx). Deploy is still a placeholder.
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
 const DesignV2Layout = () => {

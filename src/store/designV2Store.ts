@@ -37,6 +37,13 @@ export interface DesignV2State {
   /** Open or close one pane of the Model & Data step. Closing the last open pane is ignored. */
   setPaneOpen: (pane: ModelDataPane, open: boolean) => void;
   setHelpRailOpen: (open: boolean) => void;
+  /**
+   * Id of the run opened in the Simulate step (see LogicExecutionResult.id).
+   * Null means "follow the latest run", which is what happens after every Send.
+   */
+  selectedRunId: string | null;
+  /** Open one run in the Simulate step; pass null to follow the latest run again. */
+  selectRun: (id: string | null) => void;
 }
 
 const stepIndexOf = (view: DesignV2View) => STEPS.findIndex((s) => s.id === view);
@@ -49,6 +56,7 @@ const useDesignV2Store = create<DesignV2State>()(
       selectedTemplate: null,
       modelDataPanes: { model: true, data: true },
       helpRailOpen: true,
+      selectedRunId: null,
 
       setView: (view) => set({ view }, false, "designV2/setView"),
       start: () => set({ view: FIRST_STEP }, false, "designV2/start"),
@@ -77,6 +85,7 @@ const useDesignV2Store = create<DesignV2State>()(
           "designV2/setPaneOpen"
         ),
       setHelpRailOpen: (open) => set({ helpRailOpen: open }, false, "designV2/setHelpRailOpen"),
+      selectRun: (id) => set({ selectedRunId: id }, false, "designV2/selectRun"),
     }),
     { name: "DesignV2Store" }
   )

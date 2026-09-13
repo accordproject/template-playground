@@ -6,8 +6,16 @@ describe('useDesignV2Store', () => {
   beforeEach(() => {
     useDesignV2Store.setState({
       view: 'welcome', previewOpen: false, selectedTemplate: null,
-      modelDataPanes: { model: true, data: true }, helpRailOpen: true,
+      modelDataPanes: { model: true, data: true }, helpRailOpen: true, selectedRunId: null,
     });
+  });
+
+  it('starts by following the latest run and selectRun() pins one', () => {
+    expect(useDesignV2Store.getState().selectedRunId).toBeNull();
+    useDesignV2Store.getState().selectRun('#2');
+    expect(useDesignV2Store.getState().selectedRunId).toBe('#2');
+    useDesignV2Store.getState().selectRun(null);
+    expect(useDesignV2Store.getState().selectedRunId).toBeNull();
   });
 
   it('starts on the welcome view with the preview closed', () => {
