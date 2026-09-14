@@ -25,7 +25,6 @@ const MenuItemText = ({ label, hint }: MenuItemTextProps) => (
  * Menu items are not wired to actions yet.
  * Settings / Discord / GitHub live at the bottom of the rail; Settings opens
  * the shared SettingsModal so every existing toggle is available here too.
- * The AI assistant button was dropped with the chat feature (design review, Sept 2026).
  */
 const Rail = () => {
   const [menuOpen, setMenuOpen] = useState(false);

@@ -28,8 +28,6 @@ interface WelcomeViewProps {
 
 /**
  * Dark hero card: Accord Project wordmark, headline and the two CTAs.
- * The step strip that used to sit under the CTAs was dropped — it was not
- * interactive and the Start step tells the same story (design review, Sept 2026).
  */
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
   const navigate = useNavigate();
@@ -72,7 +70,7 @@ interface SampleCardProps {
  * One gallery card: an illustration on top; name, tagline, a short list
  * of what the template demonstrates and its own "Start with this template"
  * button underneath. Nothing else on the card is clickable — picking and
- * opening a template is one click (design review, Sept 2026).
+ * opening a template is one click.
  */
 const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
   const classes = [

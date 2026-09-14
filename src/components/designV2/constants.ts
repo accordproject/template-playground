@@ -94,8 +94,6 @@ export const WELCOME = {
   /** Accessible name of the Accord Project wordmark in the hero. */
   logoAlt: "Accord Project",
   logoSrc: "/APLogo.png",
-  // TODO(copy): headline wording to come from Matt — "contracts that run themselves"
-  // is not a phrase used elsewhere in the Accord Project (design review, Sept 2026).
   titleLine: "Contracts that",
   titleAccent: "run themselves.",
   subtitleLine1: "Write the agreement once — as text, data and rules — and watch it execute.",
@@ -138,7 +136,7 @@ export interface StartSample {
   /**
    * Two or three short points on what the reader learns from this template —
    * the reason to pick it over the others. The gallery is a curated set, so
-   * this matters more than the text preview (design review, Sept 2026).
+   * this matters more than a text preview.
    */
   demonstrates: readonly string[];
 }

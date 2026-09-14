@@ -10,7 +10,7 @@
  * deploy    → placeholder — contents TBD
  *
  * Text comes before Model & Data: a template can be text only, and the model,
- * logic and simulator are optional additions on top of it (design review, Sept 2026).
+ * logic and simulator are optional additions on top of it.
  *
  * STEPS is the single source of truth for step order. Everything else
  * (ids, keys, first/last step, editor steps) is derived from it so that
