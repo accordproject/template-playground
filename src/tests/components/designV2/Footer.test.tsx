@@ -5,12 +5,32 @@ import Footer from '../../../components/designV2/Footer';
 import { FOOTER } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
 import { STEP_ID } from '../../../types/designV2.types';
+import { failedRun, initRun, okRun } from './runFixtures';
 
-/** The problems pill mirrors the app store's error: green when there is none, red with the message otherwise. */
+/**
+ * The problems pill mirrors the app store's error: green when there is none,
+ * red with the message otherwise. On Simulate it counts the failed runs.
+ */
 describe('Design v2 Footer', () => {
   const noop = vi.fn();
   beforeEach(() => {
-    useAppStore.setState({ error: undefined });
+    useAppStore.setState({ error: undefined, executionHistory: [] });
+  });
+
+  it('on Simulate: names the failed runs, otherwise no problems', () => {
+    useAppStore.setState({ executionHistory: [initRun, okRun] });
+    const { rerender } = render(<Footer view={STEP_ID.simulate} onBack={noop} onNext={noop} />);
+    expect(screen.getByText(FOOTER.noProblems)).toBeInTheDocument();
+
+    useAppStore.setState({ executionHistory: [initRun, okRun, failedRun] });
+    rerender(<Footer view={STEP_ID.simulate} onBack={noop} onNext={noop} />);
+    expect(screen.getByText(FOOTER.failedRuns(1, '#2'))).toHaveClass('nd-problem-pill-err');
+  });
+
+  it('failed runs only show on the Simulate step', () => {
+    useAppStore.setState({ executionHistory: [initRun, failedRun] });
+    render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
+    expect(screen.getByText(FOOTER.noProblems)).toBeInTheDocument();
   });
 
   it('shows "no problems" while the store has no error', () => {

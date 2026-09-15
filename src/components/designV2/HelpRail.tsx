@@ -127,7 +127,7 @@ const HelpRail = ({ checklist, why, how }: HelpRailProps) => {
             <li key={item.label} className={`nd-check nd-check-${item.tone}`}>
               <span className="nd-check-icon" aria-hidden="true">{TONE_ICON[item.tone]}</span>
               <span className="nd-check-label">{item.label}</span>
-              {item.tag && <span className="nd-mono nd-check-tag">{item.tag}</span>}
+              {item.tag && <span className="nd-mono nd-check-tag" title={item.tag}>{item.tag}</span>}
             </li>
           ))}
         </ul>

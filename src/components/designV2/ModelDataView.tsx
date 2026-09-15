@@ -88,7 +88,7 @@ const errorPane = (error: string | undefined): "model" | "data" | null => {
 };
 
 /**
- * Step 3 — Model & Data, side by side.
+ * Model & Data, side by side.
  *
  * Left: model.cto in the Concerto editor. Right: data.json in the JSON editor.
  * Both are the legacy playground containers (TemplateModel / AgreementData),

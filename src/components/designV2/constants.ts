@@ -14,6 +14,7 @@ export const URLS = {
   concertoSite: "https://concerto.accordproject.org/",
   concertoSpec: "https://concerto.accordproject.org/docs/category/specification",
   templateMark: "https://github.com/accordproject/markdown-transform/blob/main/packages/markdown-template/README.md",
+  logicDocs: "https://github.com/accordproject/template-engine/blob/main/README.md#logic",
   concertoIntro: "https://concerto.accordproject.org/docs/intro",
 } as const;
 
@@ -24,7 +25,6 @@ export const ROUTES = {
 export const RAIL = {
   navLabel: "Playground navigation",
   menuButton: "Playground menu",
-  aiButton: "AI assistant",
   settings: "Settings",
   discord: "Discord",
   github: "GitHub",
@@ -46,7 +46,6 @@ export const HEADER = {
   helpMenuLabel: "Help",
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
-  advanced: "Advanced",
   preview: "◧ Preview",
   stepperLabel: "Steps",
   links: {
@@ -59,12 +58,15 @@ export const HEADER = {
 
 export const FOOTER = {
   noProblems: "✓ no problems",
+  applyAndCompileDirty: "Apply & Compile*",
   /** Problems pill while the app store reports an error; the full message follows it. */
   problem: "✕ error",
   problemLabel: "Problem",
+  /** Problems pill on the Simulate step: "✕ 1 failed run · run #3" */
+  failedRuns: (count: number, lastId: string) =>
+    `✕ ${count} failed ${count === 1 ? "run" : "runs"} · run ${lastId}`,
   back: "← Back",
   applyAndCompile: "Apply & Compile",
-  startWithTemplate: "Start with this template",
   next: "Next →",
 } as const;
 
@@ -89,30 +91,35 @@ export const PREVIEW = {
 } as const;
 
 export const WELCOME = {
+  /** Accessible name of the Accord Project wordmark in the hero. */
+  logoAlt: "Accord Project",
+  logoSrc: "/APLogo.png",
   titleLine: "Contracts that",
   titleAccent: "run themselves.",
-  subtitleLine1: "Write the agreement once — as data, text and rules — and watch it execute.",
+  subtitleLine1: "Write the agreement once — as text, data and rules — and watch it execute.",
   subtitleLine2: "Six steps, no setup.",
   start: "Start building",
   howItWorks: "How it works ↗",
 } as const;
 
 export const START = {
-  title: "Choose a template type",
+  title: "Choose a template",
   hint: "everything stays editable later",
-  blank: "+ Blank",
+  blank: "+ Start blank",
   blankName: "Blank template",
-  draftWithAi: "✦ Draft with AI",
-  includeLogic: "include logic",
-  /** "steps 5 & 6" — the ids of the steps that only exist when logic is on. */
-  includeLogicHint: (stepIds: readonly number[]) => `steps ${stepIds.join(" & ")}`,
-  stepsLabel: (count: number) => `${count} steps`,
-  cardLabel: (name: string, steps: string, note: string) => `${name} · ${steps} · ${note}`,
-  notes: { startHere: "start here", noLogic: "no logic" },
-  tags: { text: "text", model: "model", logic: "logic" },
+  /** Primary button on every card: pick the template and open the first editor step. */
+  open: "Start with this template →",
+  /** Accessible name of a card's button, so each one is distinct: "Start with Counter Contract". */
+  openLabel: (name: string) => `Start with ${name}`,
+  /** Tag on the card whose template is currently loaded (shown after coming back from a later step). */
+  current: "✓ current",
+  /** Accessible name of the list of things a card's template demonstrates. */
+  learnLabel: (name: string) => `What ${name} demonstrates`,
 } as const;
 
 export type StartAccent = "teal" | "amber" | "blue";
+/** Which of the three line-art illustrations (see SampleArt.tsx) a card shows. */
+export type StartArt = "counter" | "offer" | "nda";
 
 /** One card in the "Choose a template type" gallery. */
 export interface StartSample {
@@ -120,64 +127,56 @@ export interface StartSample {
   name: string;
   /** NAME of the matching sample in src/samples, loaded when the user starts with this template. */
   sampleName: string;
-  /** Colour of the page spine and, for logic templates, the note. */
+  /** Colour of the card's spine and illustration. */
   accent: StartAccent;
-  /** Whether picking this card turns the logic steps on. */
-  logic: boolean;
-  /** Short label under the tags ("start here", "no logic"). */
-  note: string;
+  /** Illustration at the top of the card. */
+  art: StartArt;
+  /** One line under the name: what the template is, in plain words. */
+  tagline: string;
   /**
-   * Preview lines: key facts from the sample's DATA ("Role: …"), then one
-   * sentence from its template, so the card is scannable and truthful.
-   * An empty string is a paragraph break.
+   * Two or three short points on what the reader learns from this template —
+   * the reason to pick it over the others. The gallery is a curated set, so
+   * this matters more than a text preview.
    */
-  body: readonly string[];
+  demonstrates: readonly string[];
 }
 
-/** Gallery cards shown on the Start step. Loading the matching sample comes later. */
+/** Gallery cards shown on the Start step. Every card's sample ships logic, so every card walks the same steps. */
 export const START_SAMPLES: readonly StartSample[] = [
   {
     name: "Counter Contract",
     sampleName: "Counter Contract (with Logic)",
     accent: "teal",
-    logic: true,
-    note: START.notes.startHere,
-    body: [
-      "Owner: Alice",
-      "Maximum allowed count: 10",
-      "",
-      "This contract tracks a counter for Alice.",
-      "Each request increments the counter by a specified amount.",
-      "The counter cannot exceed 10.",
+    art: "counter",
+    tagline: "Stateful logic — start here.",
+    demonstrates: [
+      "Remembers state between requests",
+      "init() and trigger()",
+      "Enforces a maximum",
     ],
   },
   {
     name: "Employment Offer",
     sampleName: "Employment Offer Letter",
     accent: "amber",
-    logic: false,
-    note: START.notes.noLogic,
-    body: [
-      "Role: Junior AI Engineer",
-      "Company: Accord Project",
-      "Salary: 85,000 USD / year",
-      "Start date: 1 February 2025",
-      "",
-      "We are pleased to offer you the position of Junior AI Engineer.",
+    art: "offer",
+    tagline: "Text and data, one answer.",
+    demonstrates: [
+      "Variables filled from the model",
+      "Accept or decline, once",
+      "Emits an event",
     ],
   },
   {
     name: "Non-disclosure",
     sampleName: "Non-Disclosure Agreement",
     accent: "blue",
-    logic: false,
-    note: START.notes.noLogic,
-    body: [
-      "Parties: Accord Project · John Doe",
-      "Term: 24 months",
-      "Purpose: evaluating a potential business collaboration",
-      "",
-      "This Agreement shall remain in effect for 24 months from the effective date.",
+    art: "nda",
+    tagline: "Rules that depend on dates.",
+    demonstrates: [
+      "Checks dates against the term",
+      "Counts disclosures in state",
+      "Records every event",
     ],
   },
 ];
@@ -191,21 +190,58 @@ export const sampleNameFor = (selectedTemplate: string | null): string | undefin
   return START_SAMPLES.find((card) => card.name === selectedTemplate)?.sampleName;
 };
 
-export interface EditorMeta {
-  icon: string;
-  title: string;
-  file: string;
-  badge: string;
-}
-
-export const EDITOR = {
-  scaffoldFromModel: "✦ Scaffold from model",
-  format: "≡ format",
+/** Step "Logic": logic.ts in the TypeScript editor, compiled through the store on Apply & Compile. */
+export const LOGIC = {
+  icon: "ƒ",
+  title: "Add logic",
+  subtitle:
+    "Three parts, one job: the types a request carries, the starting state, and what a request actually does.",
+  paneLabel: "Logic",
+  file: "logic.ts",
+  badge: "TypeScript",
   copy: "⧉ copy",
-  statusOk: "✓ ok",
-  meta: {
-    logic: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
-  } satisfies Record<string, EditorMeta>,
+  copied: "logic.ts copied",
+  copyFailed: "Couldn't copy — the clipboard is not available here",
+  doneCount: (done: number, total: number) => `${done} of ${total} done`,
+  chipsLabel: "Progress",
+  /** Tag on the types chip: the request/response transactions found in model.cto, or that they are missing. */
+  typesFound: (request: string, response: string) => `${request} → ${response}`,
+  typesMissing: "not in model.cto",
+  typesMissingHint: "Declare a request and a response transaction in model.cto",
+  /** The two parts of the job, as chips in the card head; the hints are their tooltips. */
+  chips: {
+    types: {
+      label: "Request & Response types",
+      hint: "declared in model.cto",
+      action: "model.cto ‣",
+    },
+    pair: {
+      label: "init() & trigger()",
+      hint: "set the starting state, then respond to requests",
+    },
+  },
+  /** Same five states, same order, as the legacy logic panel's badge. */
+  status: {
+    dirty: "unsaved changes",
+    compiling: "compiling…",
+    failed: "compilation failed",
+    compiled: "compiled",
+    notCompiled: "not compiled yet",
+    empty: "nothing to compile",
+  },
+  help: {
+    checklistTitle: "BEFORE SIMULATE",
+    why: {
+      note:
+        "Logic is optional — templates without it still render. With it, the contract responds to requests and keeps state between them.",
+      links: [{ label: "Writing contract logic", href: URLS.logicDocs }],
+    },
+    how: [
+      "Request and Response types define one run's in and out.",
+      "init() returns the starting state, once.",
+      "trigger() reads state + request and returns a response.",
+    ],
+  },
 } as const;
 
 /** Step "Text": text.md in the TemplateMark editor, wired to the app store. */
@@ -246,7 +282,7 @@ export const TEXT = {
   },
 } as const;
 
-/** Step 2: model.cto on the left, data.json on the right — both wired to the app store. */
+/** Step "Model & Data": model.cto on the left, data.json on the right — both wired to the app store. */
 export const MODEL_DATA = {
   icon: "⬡",
   title: "Define the model and fill in the data",
@@ -312,6 +348,52 @@ export const MODEL_DATA = {
 
 export const SIMULATE = {
   title: "Simulate",
+  restart: "↺ restart",
+  restartHint: "Initialise the contract again and clear the runs",
+  runsLabel: "Runs",
+  /** "3 runs · 2 ok · 1 failed" — the pill next to the title. */
+  stats: (runs: number, ok: number, failed: number) =>
+    `${runs} ${runs === 1 ? "run" : "runs"} · ${ok} ok · ${failed} failed`,
+  noRuns: "No runs yet — initialise the contract to get a starting state.",
+  init: "▶ Init contract",
+  newRequest: "New request",
+  json: "json",
+  reuse: (id: string) => `reuse ${id} ▾`,
+  reuseMenuLabel: "Reuse an earlier request",
+  send: "▶ Send",
+  sendHintNoInit: "Initialise the contract before sending a request",
+  request: "Request",
+  requestActions: "copy",
+  copied: "copied",
+  /** Tabs under the request — the same three the legacy ContractExecutionTabs shows. */
+  resultLabel: "Result",
+  response: "Response",
+  errorTab: "Error",
+  stateAfter: "State after",
+  /** "Events (2)" */
+  eventsTab: (count: number) => `Events (${count})`,
+  /** "thrown in trigger() — state was left unchanged" */
+  thrownIn: (method: string) => `thrown in ${method}() — state was left unchanged`,
+  /** Second line of the error pane when the request never reached the logic. */
+  notSent: "the request was not sent — fix the JSON and send again",
+  openTrigger: "open trigger() ↗",
+  stateUnchanged: "This run failed, so the state is the same as before it.",
+  noState: "No state — init() did not return one.",
+  rerun: "↻ re-run",
+  noSelection: "Pick a run on the left to see its request and response.",
+  status: { ok: "✓ ok", failed: "✕ failed" },
+  summary: {
+    init: "contract initialised",
+    initFailed: "init() threw",
+    triggerFailed: "trigger() threw",
+    invalidRequest: "request is not valid JSON",
+  },
+  blocked: {
+    title: "Simulate can’t run yet",
+    body: "Your logic hasn’t compiled — trigger() is still a stub, so there is nothing to run a request against. Finish the Logic step and hit Apply & Compile.",
+    stay: "Stay here",
+    jump: "Jump back to Logic",
+  },
 } as const;
 
 export const DEPLOY = {

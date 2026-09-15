@@ -41,6 +41,8 @@ interface HeaderProps {
 /**
  * White header: eyebrow + sample name row, followed by the stepper (one entry per item in STEPS).
  * The name row shows the template picked on the Start step, falling back to the loaded sample.
+ * On the welcome hero there is nothing to preview yet, so the Preview toggle
+ * only appears once the flow has started (docs and Help stay, so the row keeps its place).
  */
 const Header = ({ view, previewOpen, onNavigate, onTogglePreview }: HeaderProps) => {
   const showChrome = view !== "welcome";
@@ -66,16 +68,17 @@ const Header = ({ view, previewOpen, onNavigate, onTogglePreview }: HeaderProps)
               {HEADER.help} <CaretDownFilled className="nd-help-caret" />
             </Button>
           </Dropdown>
-          <Button size="small">{HEADER.advanced}</Button>
-          <Button
-            size="small"
-            type={previewOpen ? "primary" : "default"}
-            ghost={previewOpen}
-            onClick={onTogglePreview}
-            aria-pressed={previewOpen}
-          >
-            {HEADER.preview}
-          </Button>
+          {showChrome && (
+            <Button
+              size="small"
+              type={previewOpen ? "primary" : "default"}
+              ghost={previewOpen}
+              onClick={onTogglePreview}
+              aria-pressed={previewOpen}
+            >
+              {HEADER.preview}
+            </Button>
+          )}
         </div>
       </div>
 

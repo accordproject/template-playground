@@ -23,14 +23,29 @@ import { sandboxResolvers } from "./sandboxResolvers";
 import tour from "../components/Tour";
 
 /**
- * A single trigger execution result, stored in history to track the evolution
- * of the contract state over time.
+ * One `init` or `trigger` execution, stored in `executionHistory` to track the
+ * evolution of the contract state over time. Failed runs are kept too, so the
+ * UI can show what was sent and why it was rejected.
  */
 export interface LogicExecutionResult {
-  response: object;
-  stateBefore: object;
-  stateAfter: object;
+  /** "init" for the initialisation run, then "#1", "#2", … for triggers. */
+  id: string;
+  method: "init" | "trigger";
+  /** Contract data for `init`, the request payload for `trigger`. */
+  request: object;
+  /** `result` of a trigger, or `{ state, events }` of an init. Null when the run failed. */
+  response: object | null;
+  stateBefore: object | null;
+  stateAfter: object | null;
   events: object[];
+  /** Formatted error message when the run threw; null on success. */
+  error: string | null;
+  /**
+   * Where a failed run stopped: "parse" when the request JSON could not be
+   * read (nothing was sent to the logic), "run" when the logic itself threw.
+   */
+  stage: "parse" | "run";
+  durationMs: number;
   executedAt: string; // ISO timestamp
 }
 
@@ -188,11 +203,18 @@ interface AppState {
    * The active execution response payload (JSON string) for display in the UI.
    */
   executionResponse: string;
-  
+
+  /**
+   * Every run since the last `init`, oldest first. `initContract` starts a
+   * fresh history; `triggerContract` appends one entry per request, failed or not.
+   */
+  executionHistory: LogicExecutionResult[];
+  clearExecutionHistory: () => void;
+
   /** The current request payload (JSON string) used as input for the next trigger. */
   requestJson: string;
   setRequestJson: (json: string) => void;
-  
+
   /**
    * Initializes the contract logic. Dispatches the `init` method to the sandbox
    * using the current contract data, and stores the resulting state and events.
@@ -401,6 +423,8 @@ const useAppStore = create<AppState>()(
         executionState: '',
         executionEvents: '',
         executionResponse: '',
+        executionHistory: [],
+        clearExecutionHistory: () => set({ executionHistory: [] }),
 
         requestJson: '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
         setRequestJson: (json: string) => set({ requestJson: json }),
@@ -517,6 +541,11 @@ const useAppStore = create<AppState>()(
               compiledLogicJs: null,
               compilationErrors: [],
               isCompiling: false,
+              // Runs belong to the previous contract; start the simulator clean
+              executionState: '',
+              executionEvents: '',
+              executionResponse: '',
+              executionHistory: [],
               // Adapt layout based on whether template has logic
               isLogicPanelVisible: hasLogic,
               isContractRunnerVisible: hasLogic,
@@ -1014,18 +1043,44 @@ const useAppStore = create<AppState>()(
             return;
           }
 
+          const startedAt = Date.now();
+          const run = (
+            partial: Pick<LogicExecutionResult, "request" | "response" | "stateAfter" | "events" | "error">,
+          ): LogicExecutionResult => ({
+            id: "init",
+            method: "init",
+            stateBefore: null,
+            stage: "run",
+            durationMs: Date.now() - startedAt,
+            executedAt: new Date(startedAt).toISOString(),
+            ...partial,
+          });
+
+          let parsedData: object = {};
           try {
-            const parsedData = JSON.parse(data);
+            parsedData = JSON.parse(data) as object;
             const output = await get().executeInSandbox(compiledLogicJs, 'init', [parsedData]) as { state?: unknown; events?: unknown[] };
+            const events = Array.isArray(output.events) ? (output.events as object[]) : [];
 
             set({
               executionState: output.state ? JSON.stringify(output.state, null, 2) : '',
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              executionResponse: '',
+              // A new init starts a new run history
+              executionHistory: [run({
+                request: parsedData,
+                response: { state: output.state ?? null, events },
+                stateAfter: (output.state as object | undefined) ?? null,
+                events,
+                error: null,
+              })],
               compilationErrors: []
             });
           } catch (err: unknown) {
+            const message = formatError(err);
             set({
-              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
+              executionHistory: [run({ request: parsedData, response: null, stateAfter: null, events: [], error: message })],
+              compilationErrors: [{ message: `Execution Error: ${message}` }],
               isProblemPanelVisible: true
             });
           }
@@ -1043,12 +1098,35 @@ const useAppStore = create<AppState>()(
             return;
           }
 
+          const startedAt = Date.now();
+          const history = get().executionHistory;
+          const triggerCount = history.filter((r) => r.method === "trigger").length;
+          const run = (
+            partial: Pick<LogicExecutionResult, "request" | "response" | "stateBefore" | "stateAfter" | "events" | "error" | "stage">,
+          ): LogicExecutionResult => ({
+            id: `#${triggerCount + 1}`,
+            method: "trigger",
+            durationMs: Date.now() - startedAt,
+            executedAt: new Date(startedAt).toISOString(),
+            ...partial,
+          });
+
+          let parsedRequest: object = {};
+          let parsedState: object | null = null;
+          let stage: LogicExecutionResult["stage"] = "run";
           try {
-            const parsedData = JSON.parse(data);
-            const parsedRequest = JSON.parse(requestJson);
-            const parsedState = JSON.parse(executionState);
+            const parsedData = JSON.parse(data) as object;
+            parsedState = JSON.parse(executionState) as object;
+            try {
+              parsedRequest = JSON.parse(requestJson) as object;
+            } catch (parseErr) {
+              // Nothing reaches the logic: report it as a request problem, not a trigger() failure
+              stage = "parse";
+              throw parseErr;
+            }
 
             const output = (await executeInSandbox(compiledLogicJs, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] };
+            const events = Array.isArray(output.events) ? (output.events as object[]) : [];
 
             /*
              * Extract and store execution artifacts.
@@ -1059,11 +1137,31 @@ const useAppStore = create<AppState>()(
               executionResponse: output.result ? JSON.stringify(output.result, null, 2) : '',
               executionState: output.state ? JSON.stringify(output.state, null, 2) : executionState,
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              executionHistory: [...history, run({
+                request: parsedRequest,
+                response: (output.result as object | undefined) ?? null,
+                stateBefore: parsedState,
+                stateAfter: (output.state as object | undefined) ?? parsedState,
+                events,
+                error: null,
+                stage: "run",
+              })],
               compilationErrors: []
             });
           } catch (err: unknown) {
+            const message = formatError(err);
             set({
-              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
+              // State is left untouched by a failed trigger, so before === after
+              executionHistory: [...history, run({
+                request: parsedRequest,
+                response: null,
+                stateBefore: parsedState,
+                stateAfter: parsedState,
+                events: [],
+                error: message,
+                stage,
+              })],
+              compilationErrors: [{ message: `Execution Error: ${message}` }],
               isProblemPanelVisible: true
             });
           }
