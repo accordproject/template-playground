@@ -1,4 +1,5 @@
 import { Button } from "antd";
+import useAppStore from "../../store/store";
 import { FIRST_STEP, LAST_STEP, STEP_ID, type DesignV2View } from "../../types/designV2.types";
 import { FOOTER } from "./constants";
 
@@ -8,8 +9,13 @@ interface FooterProps {
   onNext: () => void;
 }
 
-/** Bottom bar: problems pill on the left, Back / Apply & Compile / Next on the right. */
+/**
+ * Bottom bar: problems pill on the left, Back / Apply & Compile / Next on the right.
+ * The pill mirrors the app store's `error`: green "no problems", or a red
+ * "✕ error" followed by the store's full message.
+ */
 const Footer = ({ view, onBack, onNext }: FooterProps) => {
+  const error = useAppStore((s) => s.error);
   const isFirst = view === FIRST_STEP;
   const canBack = !isFirst;
   const canNext = view !== LAST_STEP;
@@ -17,7 +23,14 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
 
   return (
     <footer className="nd-footer">
-      <span className="nd-problem-pill nd-problem-pill-ok">{FOOTER.noProblems}</span>
+      {error ? (
+        <div className="nd-problem" role="status" aria-label={FOOTER.problemLabel}>
+          <span className="nd-problem-pill nd-problem-pill-err">{FOOTER.problem}</span>
+          <span className="nd-problem-text" title={error}>{error}</span>
+        </div>
+      ) : (
+        <span className="nd-problem-pill nd-problem-pill-ok" role="status">{FOOTER.noProblems}</span>
+      )}
       <div className="nd-spacer" />
       {canBack && (
         <Button type="text" onClick={onBack}>

@@ -1,11 +1,13 @@
 /**
  * Views of the step-based onboarding flow (work in progress).
  *
- * welcome  → hero landing
- * template → "Choose a template type" gallery
- * text, model, data, logic → editor steps with the right-hand help rail
- * simulate → runs list + request/response
- * deploy   → placeholder — contents TBD
+ * welcome   → hero landing
+ * template  → "Choose a template type" gallery
+ * modelData → split screen: model.cto on the left, data.json on the right
+ * text      → text.md in the TemplateMark editor, with the help rail
+ * logic     → editor step with the right-hand help rail
+ * simulate  → runs list + request/response
+ * deploy    → placeholder — contents TBD
  *
  * STEPS is the single source of truth for step order. Everything else
  * (ids, keys, first/last step, editor steps) is derived from it so that
@@ -13,12 +15,11 @@
  */
 export const STEPS = [
   { id: 1, key: "template", icon: "1", label: "Template", meta: "pick a starting point" },
-  { id: 2, key: "text", icon: "2", label: "Text", meta: "text.md" },
-  { id: 3, key: "model", icon: "3", label: "Model", meta: "model.cto" },
-  { id: 4, key: "data", icon: "4", label: "Data", meta: "data.json" },
-  { id: 5, key: "logic", icon: "5", label: "Logic", meta: "logic.ts" },
-  { id: 6, key: "simulate", icon: "6", label: "Simulate", meta: "run requests" },
-  { id: 7, key: "deploy", icon: "7", label: "Deploy", meta: "publish & share" },
+  { id: 2, key: "modelData", icon: "2", label: "Model & Data", meta: "model.cto · data.json" },
+  { id: 3, key: "text", icon: "3", label: "Text", meta: "text.md" },
+  { id: 4, key: "logic", icon: "4", label: "Logic", meta: "logic.ts" },
+  { id: 5, key: "simulate", icon: "5", label: "Simulate", meta: "run requests" },
+  { id: 6, key: "deploy", icon: "6", label: "Deploy", meta: "publish & share" },
 ] as const;
 
 export type StepDefinition = (typeof STEPS)[number];
@@ -26,8 +27,8 @@ export type StepId = StepDefinition["id"];
 export type StepKey = StepDefinition["key"];
 export type DesignV2View = "welcome" | StepId;
 
-/** Steps rendered with the generic editor card + help rail. */
-export const EDITOR_STEP_KEYS = ["text", "model", "data", "logic"] as const satisfies readonly StepKey[];
+/** Steps still rendered with the generic placeholder editor card. Model & Data and Text have their own views. */
+export const EDITOR_STEP_KEYS = ["logic"] as const satisfies readonly StepKey[];
 export type EditorStepKey = (typeof EDITOR_STEP_KEYS)[number];
 
 /**

@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
-import HelpRail from "./HelpRail";
+import HelpRail, { HelpRailReopen } from "./HelpRail";
+import { ModelDataView } from "./ModelDataView";
+import { TextView } from "./TextView";
 import useDesignV2Store from "../../store/designV2Store";
 import {
   STEPS,
@@ -33,7 +35,7 @@ interface WelcomeViewProps {
   onStart: () => void;
 }
 
-/** Dark hero card with headline, CTAs and the Text → Model → Data → Logic → Run it strip. */
+/** Dark hero card with headline, CTAs and the Template → Model & Data → Text → … → Deploy strip. */
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
   const navigate = useNavigate();
   return (
@@ -193,6 +195,7 @@ export const EditorView = ({ step }: EditorViewProps) => {
           {step === "logic" && (
             <Button size="small">{EDITOR.scaffoldFromModel}</Button>
           )}
+          <HelpRailReopen />
         </div>
         <div className="nd-editor-card">
           <div className="nd-editor-card-head">
@@ -253,8 +256,10 @@ interface ViewSwitchProps {
 export const ViewSwitch = ({ view, onStart }: ViewSwitchProps) => {
   if (view === "welcome") return <WelcomeView onStart={onStart} />;
   const key = STEP_KEY[view];
-  if (isEditorStep(key)) return <EditorView step={key} />;
   if (key === "template") return <StartView />;
+  if (key === "modelData") return <ModelDataView />;
+  if (key === "text") return <TextView />;
+  if (isEditorStep(key)) return <EditorView step={key} />;
   if (key === "simulate") return <SimulateView />;
   return <DeployView />;
 };

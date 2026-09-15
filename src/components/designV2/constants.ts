@@ -3,6 +3,7 @@
  * Components import from here instead of embedding literals, so copy can be
  * reviewed and changed in one place (and later localised).
  */
+import { NAME as BLANK_SAMPLE_NAME } from "../../samples/blank";
 
 export const URLS = {
   discord: "https://discord.com/invite/Zm99SKhhtA",
@@ -10,6 +11,10 @@ export const URLS = {
   readme: "https://github.com/accordproject/template-playground/blob/main/README.md",
   issues: "https://github.com/accordproject/template-playground/issues",
   engineDocs: "https://github.com/accordproject/template-engine/blob/main/README.md",
+  concertoSite: "https://concerto.accordproject.org/",
+  concertoSpec: "https://concerto.accordproject.org/docs/category/specification",
+  templateMark: "https://github.com/accordproject/markdown-transform/blob/main/packages/markdown-template/README.md",
+  concertoIntro: "https://concerto.accordproject.org/docs/intro",
 } as const;
 
 export const ROUTES = {
@@ -54,6 +59,9 @@ export const HEADER = {
 
 export const FOOTER = {
   noProblems: "✓ no problems",
+  /** Problems pill while the app store reports an error; the full message follows it. */
+  problem: "✕ error",
+  problemLabel: "Problem",
   back: "← Back",
   applyAndCompile: "Apply & Compile",
   startWithTemplate: "Start with this template",
@@ -65,6 +73,11 @@ export const HELP_RAIL = {
   checklist: "CHECKLIST",
   tabWhy: "WHY THIS STEP",
   tabHow: "HOW IT WORKS",
+  /** "2 / 3" done-of-total counter next to the checklist title. */
+  count: (done: number, total: number) => `${done} / ${total}`,
+  close: "Close help",
+  /** Chip next to the step title that brings the rail back. */
+  reopen: "? Help",
 } as const;
 
 export const PREVIEW = {
@@ -79,7 +92,7 @@ export const WELCOME = {
   titleLine: "Contracts that",
   titleAccent: "run themselves.",
   subtitleLine1: "Write the agreement once — as data, text and rules — and watch it execute.",
-  subtitleLine2: "Seven steps, no setup.",
+  subtitleLine2: "Six steps, no setup.",
   start: "Start building",
   howItWorks: "How it works ↗",
 } as const;
@@ -169,6 +182,15 @@ export const START_SAMPLES: readonly StartSample[] = [
   },
 ];
 
+/**
+ * NAME of the sample in src/samples to load for a card picked on the Start
+ * step, or undefined when nothing (or an unknown name) is selected.
+ */
+export const sampleNameFor = (selectedTemplate: string | null): string | undefined => {
+  if (selectedTemplate === START.blankName) return BLANK_SAMPLE_NAME;
+  return START_SAMPLES.find((card) => card.name === selectedTemplate)?.sampleName;
+};
+
 export interface EditorMeta {
   icon: string;
   title: string;
@@ -182,11 +204,110 @@ export const EDITOR = {
   copy: "⧉ copy",
   statusOk: "✓ ok",
   meta: {
-    text: { icon: "¶", title: "Write the contract text", file: "text.md", badge: "TemplateMark" },
-    model: { icon: "◇", title: "Define the data model", file: "model.cto", badge: "Concerto" },
-    data: { icon: "{}", title: "Fill in the data", file: "data.json", badge: "instance" },
     logic: { icon: "ƒ", title: "Add the logic", file: "logic.ts", badge: "TypeScript" },
   } satisfies Record<string, EditorMeta>,
+} as const;
+
+/** Step "Text": text.md in the TemplateMark editor, wired to the app store. */
+export const TEXT = {
+  icon: "¶",
+  title: "Write the agreement text",
+  subtitle: "Plain markdown plus variables in double braces that pull values from your model.",
+  paneLabel: "Text",
+  file: "text.md",
+  badge: "TemplateMark",
+  copy: "⧉ copy",
+  copied: "text.md copied",
+  ok: "✓ renders",
+  error: "✕ error",
+  toolbarLabel: "Formatting",
+  /** Buttons map onto the legacy markdown editor commands. */
+  toolbar: [
+    { key: "toggleBold", label: "B", title: "Bold", className: "nd-tb-bold" },
+    { key: "toggleItalic", label: "I", title: "Italic", className: "nd-tb-italic" },
+    { key: "toggleHeading1", label: "H1", title: "Heading 1", className: "" },
+    { key: "toggleHeading2", label: "H2", title: "Heading 2", className: "" },
+    { key: "toggleUnorderedList", label: "•", title: "Bulleted list", className: "" },
+    { key: "insertLink", label: "↗", title: "Insert link", className: "" },
+  ],
+  help: {
+    checklistTitle: "THIS STEP NEEDS",
+    checks: { renders: "the text renders" },
+    why: {
+      note:
+        "This is what a human signs. Every variable resolves against the model, so a typo surfaces here long before a run.",
+      links: [{ label: "TemplateMark syntax", href: URLS.templateMark }],
+    },
+    how: [
+      "Markdown handles headings, bold and lists.",
+      "Double braces pull a value straight from the model.",
+      "The preview re-renders on every change.",
+    ],
+  },
+} as const;
+
+/** Step 2: model.cto on the left, data.json on the right — both wired to the app store. */
+export const MODEL_DATA = {
+  icon: "⬡",
+  title: "Define the model and fill in the data",
+  subtitle:
+    "Declare every value once as a Concerto concept on the left, then give it a concrete value on the right. Both feed the preview live.",
+  format: "≡ format",
+  copy: "⧉ copy",
+  reset: "↺ reset",
+  /** Accessible name of the × on a pane header. */
+  closePane: (file: string) => `Close ${file}`,
+  /** Label of the chip that brings a closed pane back. */
+  reopenPane: (file: string) => `+ ${file}`,
+  keepOneOpen: "Keep at least one panel open",
+  model: {
+    paneLabel: "Model",
+    file: "model.cto",
+    badge: "Concerto",
+    badgeHref: URLS.concertoSite,
+    badgeTitle: "Open the Concerto site",
+    ok: "✓ parses",
+    copied: "model.cto copied",
+    formatFailed: "Fix Concerto syntax errors before formatting.",
+  },
+  data: {
+    paneLabel: "Data",
+    file: "data.json",
+    badge: "instance",
+    ok: "✓ valid against the model",
+    /** Shown instead of the ✓ while the model itself does not parse. */
+    notChecked: "○ not checked — fix the model first",
+    formatFailed: "Fix JSON syntax errors before formatting.",
+    resetDone: (sample: string) => `data.json reset to the ${sample} sample`,
+    resetTitle: (sample: string) => `Restore the ${sample} sample data`,
+    resetUnavailable: "No sample to reset to.",
+  },
+  /** Status of a pane whose file the app store rejected; the message itself is in the footer. */
+  error: "✕ error",
+  /** Content of the help rail for this step. */
+  help: {
+    checklistTitle: "THIS STEP NEEDS",
+    checks: {
+      modelParses: "the model parses",
+      dataValid: "data matches model",
+      /** Tag on the data check while the model does not parse. */
+      needsModel: "fix model",
+    },
+    why: {
+      note:
+        "The model is the contract’s vocabulary: name a field once and the text and the logic can use it. The data is the instance you test with, checked against the model field by field.",
+      links: [
+        { label: "Concerto site", href: URLS.concertoSite },
+        { label: "Concerto specification", href: URLS.concertoSpec },
+      ],
+    },
+    how: [
+      "A namespace + version names your model so it can be shared.",
+      "Concepts declare the fields of the agreement, each with a type such as String, Integer or DateTime.",
+      "The data gives those fields concrete values and is checked against the model field by field.",
+      "Valid data is what the preview and the simulator run on.",
+    ],
+  },
 } as const;
 
 export const SIMULATE = {

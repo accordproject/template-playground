@@ -84,7 +84,7 @@ describe('StartView', () => {
     render(<StartView />);
     const ids = LOGIC_ONLY_STEP_KEYS.map((key) => STEP_ID[key]);
     expect(screen.getByText(`steps ${ids.join(' & ')}`)).toBeInTheDocument();
-    expect(screen.getByText('steps 5 & 6')).toBeInTheDocument();
+    expect(screen.getByText('steps 4 & 5')).toBeInTheDocument();
   });
 
   it('the include-logic checkbox writes to the store', () => {

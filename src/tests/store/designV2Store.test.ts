@@ -4,7 +4,10 @@ import { STEPS, FIRST_STEP, LAST_STEP, countStepsAfterTemplate, LOGIC_ONLY_STEP_
 
 describe('useDesignV2Store', () => {
   beforeEach(() => {
-    useDesignV2Store.setState({ view: 'welcome', previewOpen: false, selectedTemplate: null, includeLogic: true });
+    useDesignV2Store.setState({
+      view: 'welcome', previewOpen: false, selectedTemplate: null, includeLogic: true,
+      modelDataPanes: { model: true, data: true }, helpRailOpen: true,
+    });
   });
 
   it('starts on the welcome view with the preview closed', () => {
@@ -47,6 +50,24 @@ describe('useDesignV2Store', () => {
   it('setView() jumps directly to a step', () => {
     useDesignV2Store.getState().setView(LAST_STEP);
     expect(useDesignV2Store.getState().view).toBe(LAST_STEP);
+  });
+
+  it('setPaneOpen() closes and reopens a Model & Data pane but never the last one', () => {
+    const store = useDesignV2Store.getState();
+    store.setPaneOpen('data', false);
+    expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: true, data: false });
+    store.setPaneOpen('model', false);
+    expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: true, data: false });
+    store.setPaneOpen('data', true);
+    store.setPaneOpen('model', false);
+    expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: false, data: true });
+  });
+
+  it('setHelpRailOpen() hides and shows the help rail', () => {
+    useDesignV2Store.getState().setHelpRailOpen(false);
+    expect(useDesignV2Store.getState().helpRailOpen).toBe(false);
+    useDesignV2Store.getState().setHelpRailOpen(true);
+    expect(useDesignV2Store.getState().helpRailOpen).toBe(true);
   });
 
   it('togglePreview() and setPreviewOpen() control the preview drawer', () => {
