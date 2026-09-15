@@ -55,3 +55,18 @@ export const LAST_STEP: StepId = STEPS[STEPS.length - 1].id;
 
 export const isEditorStep = (key: StepKey): key is EditorStepKey =>
   (EDITOR_STEP_KEYS as readonly StepKey[]).includes(key);
+
+/** Steps that only make sense when the template includes logic. */
+export const LOGIC_ONLY_STEP_KEYS = ["logic", "simulate"] as const satisfies readonly StepKey[];
+
+/**
+ * Number of steps a user walks through after picking a template.
+ * Without logic the logic-only steps are skipped, so a plain text + model
+ * template has fewer steps than one with rules.
+ */
+export const countStepsAfterTemplate = (includeLogic: boolean): number =>
+  STEPS.filter(
+    (step) =>
+      step.key !== "template" &&
+      (includeLogic || !(LOGIC_ONLY_STEP_KEYS as readonly StepKey[]).includes(step.key))
+  ).length;

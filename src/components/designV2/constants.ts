@@ -88,12 +88,86 @@ export const START = {
   title: "Choose a template type",
   hint: "everything stays editable later",
   blank: "+ Blank",
+  blankName: "Blank template",
   draftWithAi: "✦ Draft with AI",
   includeLogic: "include logic",
-  includeLogicHint: (dataStep: number, logicStep: number) => `steps ${dataStep} & ${logicStep}`,
-  sampleCardLabel: (index: number) => `Template ${index}`,
-  sampleCount: 3,
+  /** "steps 5 & 6" — the ids of the steps that only exist when logic is on. */
+  includeLogicHint: (stepIds: readonly number[]) => `steps ${stepIds.join(" & ")}`,
+  stepsLabel: (count: number) => `${count} steps`,
+  cardLabel: (name: string, steps: string, note: string) => `${name} · ${steps} · ${note}`,
+  notes: { startHere: "start here", noLogic: "no logic" },
+  tags: { text: "text", model: "model", logic: "logic" },
 } as const;
+
+export type StartAccent = "teal" | "amber" | "blue";
+
+/** One card in the "Choose a template type" gallery. */
+export interface StartSample {
+  /** Short display name on the card. */
+  name: string;
+  /** NAME of the matching sample in src/samples, loaded when the user starts with this template. */
+  sampleName: string;
+  /** Colour of the page spine and, for logic templates, the note. */
+  accent: StartAccent;
+  /** Whether picking this card turns the logic steps on. */
+  logic: boolean;
+  /** Short label under the tags ("start here", "no logic"). */
+  note: string;
+  /**
+   * Preview lines: key facts from the sample's DATA ("Role: …"), then one
+   * sentence from its template, so the card is scannable and truthful.
+   * An empty string is a paragraph break.
+   */
+  body: readonly string[];
+}
+
+/** Gallery cards shown on the Start step. Loading the matching sample comes later. */
+export const START_SAMPLES: readonly StartSample[] = [
+  {
+    name: "Counter Contract",
+    sampleName: "Counter Contract (with Logic)",
+    accent: "teal",
+    logic: true,
+    note: START.notes.startHere,
+    body: [
+      "Owner: Alice",
+      "Maximum allowed count: 10",
+      "",
+      "This contract tracks a counter for Alice.",
+      "Each request increments the counter by a specified amount.",
+      "The counter cannot exceed 10.",
+    ],
+  },
+  {
+    name: "Employment Offer",
+    sampleName: "Employment Offer Letter",
+    accent: "amber",
+    logic: false,
+    note: START.notes.noLogic,
+    body: [
+      "Role: Junior AI Engineer",
+      "Company: Accord Project",
+      "Salary: 85,000 USD / year",
+      "Start date: 1 February 2025",
+      "",
+      "We are pleased to offer you the position of Junior AI Engineer.",
+    ],
+  },
+  {
+    name: "Non-disclosure",
+    sampleName: "Non-Disclosure Agreement",
+    accent: "blue",
+    logic: false,
+    note: START.notes.noLogic,
+    body: [
+      "Parties: Accord Project · John Doe",
+      "Term: 24 months",
+      "Purpose: evaluating a potential business collaboration",
+      "",
+      "This Agreement shall remain in effect for 24 months from the effective date.",
+    ],
+  },
+];
 
 export interface EditorMeta {
   icon: string;

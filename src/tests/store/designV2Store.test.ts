@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import useDesignV2Store from '../../store/designV2Store';
-import { STEPS, FIRST_STEP, LAST_STEP } from '../../types/designV2.types';
+import { STEPS, FIRST_STEP, LAST_STEP, countStepsAfterTemplate, LOGIC_ONLY_STEP_KEYS } from '../../types/designV2.types';
 
 describe('useDesignV2Store', () => {
   beforeEach(() => {
-    useDesignV2Store.setState({ view: 'welcome', previewOpen: false });
+    useDesignV2Store.setState({ view: 'welcome', previewOpen: false, selectedTemplate: null, includeLogic: true });
   });
 
   it('starts on the welcome view with the preview closed', () => {
@@ -57,5 +57,47 @@ describe('useDesignV2Store', () => {
     expect(useDesignV2Store.getState().previewOpen).toBe(false);
     store.setPreviewOpen(true);
     expect(useDesignV2Store.getState().previewOpen).toBe(true);
+  });
+
+  it('starts with no template selected and logic included', () => {
+    const state = useDesignV2Store.getState();
+    expect(state.selectedTemplate).toBeNull();
+    expect(state.includeLogic).toBe(true);
+  });
+
+  it('selectTemplate() records the pick and follows the logic flag when given', () => {
+    const store = useDesignV2Store.getState();
+    store.selectTemplate('Employment Offer', false);
+    expect(useDesignV2Store.getState().selectedTemplate).toBe('Employment Offer');
+    expect(useDesignV2Store.getState().includeLogic).toBe(false);
+
+    store.selectTemplate('Counter Contract', true);
+    expect(useDesignV2Store.getState().selectedTemplate).toBe('Counter Contract');
+    expect(useDesignV2Store.getState().includeLogic).toBe(true);
+  });
+
+  it('selectTemplate() without a logic flag leaves the toggle alone', () => {
+    const store = useDesignV2Store.getState();
+    store.setIncludeLogic(false);
+    store.selectTemplate('Blank template');
+    expect(useDesignV2Store.getState().selectedTemplate).toBe('Blank template');
+    expect(useDesignV2Store.getState().includeLogic).toBe(false);
+  });
+
+  it('setIncludeLogic() toggles the logic steps', () => {
+    useDesignV2Store.getState().setIncludeLogic(false);
+    expect(useDesignV2Store.getState().includeLogic).toBe(false);
+    useDesignV2Store.getState().setIncludeLogic(true);
+    expect(useDesignV2Store.getState().includeLogic).toBe(true);
+  });
+});
+
+describe('countStepsAfterTemplate', () => {
+  it('counts every step after "template" when logic is included', () => {
+    expect(countStepsAfterTemplate(true)).toBe(STEPS.length - 1);
+  });
+
+  it('skips the logic-only steps when logic is off', () => {
+    expect(countStepsAfterTemplate(false)).toBe(STEPS.length - 1 - LOGIC_ONLY_STEP_KEYS.length);
   });
 });

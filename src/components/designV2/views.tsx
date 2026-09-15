@@ -1,8 +1,28 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
 import HelpRail from "./HelpRail";
-import { STEPS, STEP_ID, STEP_KEY, isEditorStep, type EditorStepKey, type DesignV2View } from "../../types/designV2.types";
-import { ROUTES, WELCOME, START, EDITOR, SIMULATE, DEPLOY, type EditorMeta } from "./constants";
+import useDesignV2Store from "../../store/designV2Store";
+import {
+  STEPS,
+  STEP_ID,
+  STEP_KEY,
+  isEditorStep,
+  countStepsAfterTemplate,
+  LOGIC_ONLY_STEP_KEYS,
+  type EditorStepKey,
+  type DesignV2View,
+} from "../../types/designV2.types";
+import {
+  ROUTES,
+  WELCOME,
+  START,
+  START_SAMPLES,
+  EDITOR,
+  SIMULATE,
+  DEPLOY,
+  type EditorMeta,
+  type StartSample,
+} from "./constants";
 
 /*
  * Placeholder views for each step of the flow. Only structure — no real
@@ -56,27 +76,104 @@ export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
   );
 };
 
+interface SampleCardProps {
+  sample: StartSample;
+  selected: boolean;
+  onPick: () => void;
+}
+
+/** One gallery card: a miniature document on top, name / steps / tags underneath. */
+const SampleCard = ({ sample, selected, onPick }: SampleCardProps) => {
+  const steps = START.stepsLabel(countStepsAfterTemplate(sample.logic));
+  const tags = sample.logic
+    ? [START.tags.text, START.tags.model, START.tags.logic]
+    : [START.tags.text, START.tags.model];
+  const classes = [
+    "nd-sample-card",
+    `nd-sample-card-${sample.accent}`,
+    sample.logic ? "nd-sample-card-logic" : "",
+    selected ? "nd-sample-card-selected" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <button
+      type="button"
+      className={classes}
+      aria-pressed={selected}
+      aria-label={START.cardLabel(sample.name, steps, sample.note)}
+      onClick={onPick}
+    >
+      <div className="nd-sample-thumb">
+        <div className="nd-sample-page">
+          <div className="nd-sample-body">
+            {sample.body.map((line, i) => (
+              <span key={i}>{line}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="nd-sample-foot">
+        <div className="nd-sample-foot-row">
+          <span className="nd-sample-name">{sample.name}</span>
+          <span className="nd-mono nd-sample-steps">{steps}</span>
+          {selected && <span className="nd-sample-tick" aria-hidden="true">✓</span>}
+        </div>
+        <div className="nd-sample-foot-row nd-sample-foot-tags">
+          {tags.map((tag) => (
+            <span key={tag} className={`nd-tag nd-tag-${tag}`}>{tag}</span>
+          ))}
+          <span className="nd-spacer" />
+          <span className="nd-sample-note">{sample.note}</span>
+        </div>
+      </div>
+    </button>
+  );
+};
+
 /** "Choose a template type" gallery with sample cards. */
-export const StartView = () => (
-  <div className="nd-view nd-view-start">
-    <div className="nd-start-head">
-      <span className="nd-start-title">{START.title}</span>
-      <span className="nd-start-hint">{START.hint}</span>
-      <div className="nd-spacer" />
-      <Button type="dashed" size="small">{START.blank}</Button>
-      <Button size="small">{START.draftWithAi}</Button>
-      <label className="nd-checkbox">
-        <input type="checkbox" defaultChecked /> {START.includeLogic}{" "}
-        <span className="nd-start-hint">{START.includeLogicHint(STEP_ID.data, STEP_ID.logic)}</span>
-      </label>
+export const StartView = () => {
+  const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
+  const includeLogic = useDesignV2Store((s) => s.includeLogic);
+  const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
+  const setIncludeLogic = useDesignV2Store((s) => s.setIncludeLogic);
+
+  return (
+    <div className="nd-view nd-view-start">
+      <div className="nd-start-head">
+        <span className="nd-start-title">{START.title}</span>
+        <span className="nd-start-hint">{START.hint}</span>
+        <div className="nd-spacer" />
+        <Button type="dashed" size="small" onClick={() => selectTemplate(START.blankName)}>
+          {START.blank}
+        </Button>
+        <Button size="small">{START.draftWithAi}</Button>
+        <label className="nd-checkbox">
+          <input
+            type="checkbox"
+            checked={includeLogic}
+            onChange={(e) => setIncludeLogic(e.target.checked)}
+          />{" "}
+          {START.includeLogic}{" "}
+          <span className="nd-start-hint">
+            {START.includeLogicHint(LOGIC_ONLY_STEP_KEYS.map((key) => STEP_ID[key]))}
+          </span>
+        </label>
+      </div>
+      <div className="nd-sample-grid">
+        {START_SAMPLES.map((sample) => (
+          <SampleCard
+            key={sample.name}
+            sample={sample}
+            selected={selectedTemplate === sample.name}
+            onPick={() => selectTemplate(sample.name, sample.logic)}
+          />
+        ))}
+      </div>
     </div>
-    <div className="nd-sample-grid">
-      {Array.from({ length: START.sampleCount }).map((_, i) => (
-        <button key={i} type="button" className="nd-sample-card" aria-label={START.sampleCardLabel(i + 1)} />
-      ))}
-    </div>
-  </div>
-);
+  );
+};
 
 interface EditorViewProps {
   step: EditorStepKey;

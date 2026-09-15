@@ -1,6 +1,7 @@
 import { Button, Dropdown, type MenuProps } from "antd";
 import { QuestionOutlined, UserOutlined, InfoOutlined, BookOutlined, CaretDownFilled } from "@ant-design/icons";
 import useAppStore from "../../store/store";
+import useDesignV2Store from "../../store/designV2Store";
 import { STEPS, type DesignV2View } from "../../types/designV2.types";
 import { HEADER, URLS } from "./constants";
 
@@ -37,10 +38,14 @@ interface HeaderProps {
   onTogglePreview: () => void;
 }
 
-/** White header: eyebrow + sample name row, followed by the stepper (one entry per item in STEPS). */
+/**
+ * White header: eyebrow + sample name row, followed by the stepper (one entry per item in STEPS).
+ * The name row shows the template picked on the Start step, falling back to the loaded sample.
+ */
 const Header = ({ view, previewOpen, onNavigate, onTogglePreview }: HeaderProps) => {
   const showChrome = view !== "welcome";
   const sampleName = useAppStore((s) => s.sampleName);
+  const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
 
   return (
     <header className="nd-header">
@@ -49,7 +54,7 @@ const Header = ({ view, previewOpen, onNavigate, onTogglePreview }: HeaderProps)
           <div className="nd-eyebrow">{HEADER.eyebrow}</div>
           {showChrome && (
             <div className="nd-header-sample">
-              <span className="nd-header-sample-name">{sampleName}</span>
+              <span className="nd-header-sample-name">{selectedTemplate ?? sampleName}</span>
             </div>
           )}
         </div>

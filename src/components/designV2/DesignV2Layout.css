@@ -17,8 +17,12 @@
   --nd-line-soft: #edf4f5;
   --nd-surface: #f8fbfb;
   --nd-placeholder: rgba(15, 32, 39, 0.08);
+  --nd-amber: #a5620c;
+  --nd-amber-tint: #fdeedc;
+  --nd-blue: #1a6bb8;
   --nd-font: "IBM Plex Sans", system-ui, sans-serif;
   --nd-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --nd-serif: "IBM Plex Serif", Georgia, serif;
 
   font-family: var(--nd-font);
   font-size: 14px;
@@ -200,7 +204,7 @@
 .nd-hero-actions { position: relative; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
 .nd-hero-strip {
   position: relative; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  padding-top: 18px; font-family: "IBM Plex Serif", Georgia, serif; font-size: 15px; color: #93b4bd;
+  padding-top: 18px; font-family: var(--nd-serif); font-size: 15px; color: #93b4bd;
 }
 .nd-hero-strip-item { display: inline-flex; align-items: center; gap: 14px; }
 .nd-hero-arrow { color: rgba(147, 180, 189, 0.6); font-family: system-ui, sans-serif; font-size: 13px; }
@@ -220,12 +224,62 @@
   grid-template-rows: minmax(0, 1fr); gap: 14px;
 }
 .nd-sample-card {
+  --nd-spine: var(--nd-teal);
   text-align: left; min-height: 0; max-height: 268px;
-  background: #fff; border: 1px solid var(--nd-line); border-radius: 12px; padding: 0;
+  background: #fff; border: 1px solid #e5eff0; border-radius: 12px; padding: 0;
+  box-shadow: 0 1px 2px rgba(15, 32, 39, 0.04);
   cursor: pointer; display: flex; flex-direction: column; overflow: hidden;
+  font: inherit; color: inherit;
   transition: transform 220ms cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 220ms ease, border-color 220ms ease;
 }
 .nd-sample-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(7, 35, 48, 0.14); border-color: #9fd6dc; }
+.nd-sample-card:focus-visible { outline: 2px solid var(--nd-teal); outline-offset: 2px; }
+.nd-sample-card-selected,
+.nd-sample-card-selected:hover { border-color: #12707b; box-shadow: 0 0 0 3px #dcebec; }
+.nd-sample-card-teal { --nd-spine: var(--nd-teal); }
+.nd-sample-card-amber { --nd-spine: var(--nd-amber); }
+.nd-sample-card-blue { --nd-spine: var(--nd-blue); }
+
+/* Miniature document at the top of the card */
+.nd-sample-thumb { flex: 1; min-height: 0; display: flex; background: #f2f7f8; padding: 11px 12px 0; overflow: hidden; }
+.nd-sample-page {
+  flex: 1; min-width: 0; display: flex; flex-direction: column;
+  background: #fff; border: 1px solid #e3edef; border-top: 3px solid var(--nd-spine);
+  border-radius: 4px 4px 0 0; padding: 10px 12px 0; overflow: hidden;
+}
+.nd-sample-body {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px;
+  font-family: var(--nd-serif); font-size: 10.5px; line-height: 1.5; color: var(--nd-text-3);
+  overflow: hidden;
+  mask-image: linear-gradient(#000 82%, transparent 100%);
+  -webkit-mask-image: linear-gradient(#000 82%, transparent 100%);
+}
+.nd-sample-body span { min-height: 7px; }
+
+/* Name, step count and tags under the document */
+.nd-sample-foot { flex: none; padding: 9px 13px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid var(--nd-line-soft); }
+.nd-sample-foot-row { display: flex; align-items: baseline; gap: 8px; }
+.nd-sample-foot-tags { align-items: center; gap: 5px; }
+.nd-sample-name {
+  flex: 1; min-width: 0; font-weight: 600; font-size: 13.5px; letter-spacing: -0.02em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nd-sample-steps { flex: none; font-size: 10px; color: var(--nd-muted); white-space: nowrap; }
+.nd-sample-tick {
+  flex: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--nd-teal); color: #fff; font-size: 9px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; align-self: center;
+}
+.nd-sample-note { flex: none; font-size: 10px; font-weight: 600; color: var(--nd-text-4); white-space: nowrap; }
+.nd-sample-card-logic .nd-sample-note { color: var(--nd-teal); }
+
+.nd-tag {
+  font-family: var(--nd-mono); font-size: 9.5px; font-weight: 500;
+  border-radius: 5px; padding: 2px 6px; white-space: nowrap;
+}
+.nd-tag-text { background: var(--nd-amber-tint); color: var(--nd-amber); }
+.nd-tag-model { background: var(--nd-teal-tint); color: var(--nd-teal); }
+.nd-tag-logic { background: #e6eef1; color: #0a4a62; }
 
 /* Editor steps */
 .nd-view-editor { align-items: stretch; }
