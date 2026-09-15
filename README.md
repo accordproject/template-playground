@@ -41,7 +41,7 @@ The Accord Project Playground is an open-source project, welcoming contributions
 ## Local Development
 
 **Prerequisites:** Node.js >= 22 (required by the Accord Project dependencies —
-`@accordproject/template-engine` 4.x, `markdown-transform` / `concerto` 4.x).
+`@accordproject/template-engine` 5.x, `markdown-transform` / `concerto` 5.x).
 
 ```bash
 npm install        # install dependencies

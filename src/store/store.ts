@@ -5,7 +5,6 @@ import { debounce } from "ts-debounce";
 import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
-import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
@@ -839,8 +838,7 @@ const useAppStore = create<AppState>()(
                     templateToCompile.getModelManager(),
                     fqn,
                   ).getCompilationContext();
-                  const declarationsStr = atob(SMART_LEGAL_CONTRACT_BASE64);
-                  const prependedText = `\n${contextStr}\n${declarationsStr}\n                `;
+                  const prependedText = `\n${contextStr}\n`;
                   lineOffset = prependedText.split("\n").length - 1;
                 }
               } catch (e) {
