@@ -267,6 +267,8 @@
   padding: 18px 20px 20px; display: flex; flex-direction: column; overflow: hidden;
 }
 .nd-editor-title { flex: none; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+/* Preview toggle in the Text and Data step headers: the one primary control of the row */
+.nd-preview-toggle { flex: none; align-self: center; font-weight: 600; }
 .nd-editor-icon {
   width: 34px; height: 34px; flex: none; border-radius: 8px;
   background: var(--nd-teal-tint); color: var(--nd-teal);
@@ -324,7 +326,7 @@
   color: #a6272c; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* Model & Data: the editor column is split into two panes */
+/* Data step: the editor column is split into model and data panes */
 .nd-split {
   flex: 1; min-height: 0;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;

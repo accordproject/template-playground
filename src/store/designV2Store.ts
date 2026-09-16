@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { STEPS, FIRST_STEP, type DesignV2View } from "../types/designV2.types";
 
-/** The two panes of the Model & Data split screen. */
+/** The two panes of the Data step's split screen. */
 export type ModelDataPane = "model" | "data";
 export type ModelDataPanes = Record<ModelDataPane, boolean>;
 
@@ -20,7 +20,7 @@ export interface DesignV2State {
   previewOpen: boolean;
   /** Name of the template card picked on the Start step; null until the user picks one. */
   selectedTemplate: string | null;
-  /** Which panes of the Model & Data step are open; at least one always is. */
+  /** Which panes of the Data step are open; at least one always is. */
   modelDataPanes: ModelDataPanes;
   /** Whether the right-hand help rail is shown next to the editor steps. */
   helpRailOpen: boolean;
@@ -34,7 +34,7 @@ export interface DesignV2State {
   togglePreview: () => void;
   /** Pick a template card (or the blank template). */
   selectTemplate: (name: string) => void;
-  /** Open or close one pane of the Model & Data step. Closing the last open pane is ignored. */
+  /** Open or close one pane of the Data step. Closing the last open pane is ignored. */
   setPaneOpen: (pane: ModelDataPane, open: boolean) => void;
   setHelpRailOpen: (open: boolean) => void;
   /**

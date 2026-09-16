@@ -16,10 +16,8 @@ export const URLS = {
   templateMark: "https://github.com/accordproject/markdown-transform/blob/main/packages/markdown-template/README.md",
   logicDocs: "https://github.com/accordproject/template-engine/blob/main/README.md#logic",
   concertoIntro: "https://concerto.accordproject.org/docs/intro",
-} as const;
-
-export const ROUTES = {
-  learnIntro: "/learn/intro",
+  /** Docs site: what a template is made of (text, model, logic). "How it works" on the hero opens it. */
+  templateDocs: "https://docs.accordproject.org/docs/accordproject-template/",
 } as const;
 
 export const RAIL = {
@@ -46,7 +44,6 @@ export const HEADER = {
   helpMenuLabel: "Help",
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
-  preview: "◧ Preview",
   stepperLabel: "Steps",
   links: {
     about: "About",
@@ -84,6 +81,8 @@ export const HELP_RAIL = {
 
 export const PREVIEW = {
   ariaLabel: "Preview",
+  /** Toggle in the Text and Data step headers; aria-pressed says whether the drawer is open. */
+  toggle: "◧ Preview",
   title: "Preview",
   liveBadge: "live",
   pdf: "↓ PDF",
@@ -94,11 +93,12 @@ export const WELCOME = {
   /** Accessible name of the Accord Project wordmark in the hero. */
   logoAlt: "Accord Project",
   logoSrc: "/APLogo.png",
-  titleLine: "Contracts that",
-  titleAccent: "run themselves.",
-  subtitleLine1: "Write the agreement once — as text, data and rules — and watch it execute.",
-  subtitleLine2: "Six steps, no setup.",
+  titleLine: "The agreement layer",
+  titleAccent: "for agentic commerce.",
+  subtitleLine1: "Write enforceable terms that humans read and software executes.",
+  subtitleLine2: "Build, test and deploy a template in your browser.",
   start: "Start building",
+  /** Opens URLS.templateDocs in a new tab. */
   howItWorks: "How it works ↗",
 } as const;
 
@@ -271,7 +271,7 @@ export const TEXT = {
     checks: { renders: "the text renders" },
     why: {
       note:
-        "This is what a human signs. Every variable resolves against the model, so a typo surfaces here long before a run.",
+        "This is what a human signs or an agent reads. Every variable resolves against the data model, so a typo surfaces here long before execution.",
       links: [{ label: "TemplateMark syntax", href: URLS.templateMark }],
     },
     how: [
@@ -282,10 +282,10 @@ export const TEXT = {
   },
 } as const;
 
-/** Step "Model & Data": model.cto on the left, data.json on the right — both wired to the app store. */
+/** Step "Data": model.cto on the left, data.json on the right — both wired to the app store. */
 export const MODEL_DATA = {
   icon: "⬡",
-  title: "Define the model and fill in the data",
+  title: "Model the data",
   subtitle:
     "Declare every value once as a Concerto concept on the left, then give it a concrete value on the right. Both feed the preview live.",
   format: "≡ format",
@@ -346,23 +346,28 @@ export const MODEL_DATA = {
   },
 } as const;
 
+/**
+ * Step "Simulate". Plain words on purpose: the contract is "started" and
+ * "sent a message", not initialised and sent a request — the request /
+ * response vocabulary stays on the Logic step where the types are declared.
+ */
 export const SIMULATE = {
   title: "Simulate",
   restart: "↺ restart",
-  restartHint: "Initialise the contract again and clear the runs",
+  restartHint: "Start the contract again and clear the runs",
   runsLabel: "Runs",
   /** "3 runs · 2 ok · 1 failed" — the pill next to the title. */
   stats: (runs: number, ok: number, failed: number) =>
     `${runs} ${runs === 1 ? "run" : "runs"} · ${ok} ok · ${failed} failed`,
-  noRuns: "No runs yet — initialise the contract to get a starting state.",
-  init: "▶ Init contract",
-  newRequest: "New request",
+  noRuns: "Nothing has happened yet — start the contract to get its opening state.",
+  init: "▶ Start the contract",
+  newRequest: "Send a message to the contract",
   json: "json",
   reuse: (id: string) => `reuse ${id} ▾`,
-  reuseMenuLabel: "Reuse an earlier request",
+  reuseMenuLabel: "Reuse an earlier message",
   send: "▶ Send",
-  sendHintNoInit: "Initialise the contract before sending a request",
-  request: "Request",
+  sendHintNoInit: "Start the contract before sending a message",
+  request: "Message",
   requestActions: "copy",
   copied: "copied",
   /** Tabs under the request — the same three the legacy ContractExecutionTabs shows. */
@@ -374,23 +379,23 @@ export const SIMULATE = {
   eventsTab: (count: number) => `Events (${count})`,
   /** "thrown in trigger() — state was left unchanged" */
   thrownIn: (method: string) => `thrown in ${method}() — state was left unchanged`,
-  /** Second line of the error pane when the request never reached the logic. */
-  notSent: "the request was not sent — fix the JSON and send again",
+  /** Second line of the error pane when the message never reached the logic. */
+  notSent: "the message was not sent — fix the JSON and send again",
   openTrigger: "open trigger() ↗",
   stateUnchanged: "This run failed, so the state is the same as before it.",
   noState: "No state — init() did not return one.",
   rerun: "↻ re-run",
-  noSelection: "Pick a run on the left to see its request and response.",
+  noSelection: "Pick a run on the left to see what was sent and what came back.",
   status: { ok: "✓ ok", failed: "✕ failed" },
   summary: {
     init: "contract initialised",
     initFailed: "init() threw",
     triggerFailed: "trigger() threw",
-    invalidRequest: "request is not valid JSON",
+    invalidRequest: "message is not valid JSON",
   },
   blocked: {
     title: "Simulate can’t run yet",
-    body: "Your logic hasn’t compiled — trigger() is still a stub, so there is nothing to run a request against. Finish the Logic step and hit Apply & Compile.",
+    body: "Your logic hasn’t compiled — trigger() is still a stub, so there is nothing to send a message to. Finish the Logic step and hit Apply & Compile.",
     stay: "Stay here",
     jump: "Jump back to Logic",
   },
