@@ -2,7 +2,7 @@
  * AI Configuration form section - can be embedded in SettingsModal or used standalone.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Button,
   Checkbox,
@@ -11,6 +11,7 @@ import {
   Form,
   Input,
   Select,
+  Slider,
   Space,
   Typography,
 } from 'antd';
@@ -28,8 +29,12 @@ import {
   clearStoredKey,
 } from '../utils/secureKeyStorage';
 import { fetchModels } from '../utils/fetchModels';
+import { getProviderCapabilities } from '@accordproject/template-engine/lib/llm';
 
 const { Text } = Typography;
+
+/** Default sampling temperature offered to providers that honour one. */
+const DEFAULT_TEMPERATURE = 0.7;
 
 interface AIConfigSectionProps {
   onSaveSuccess?: () => void;
@@ -47,6 +52,9 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   const [customEndpoint, setCustomEndpoint] = useState<string>('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
   const [maxTokens, setMaxTokens] = useState<string>('');
+  const [effort, setEffort] = useState<string>('');
+  const [temperature, setTemperature] = useState<number>(DEFAULT_TEMPERATURE);
+  const [thinking, setThinking] = useState<boolean>(true);
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
   const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
   const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
@@ -67,6 +75,8 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     const savedModel = localStorage.getItem('aiModel');
     const savedCustomEndpoint = localStorage.getItem('aiCustomEndpoint');
     const savedMaxTokens = localStorage.getItem('aiResMaxTokens');
+    const savedEffort = localStorage.getItem('aiEffort');
+    const savedTemperature = localStorage.getItem('aiTemperature');
 
     const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
     const savedEnableCodeSelection = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
@@ -76,6 +86,14 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     if (savedModel) setModel(savedModel);
     if (savedCustomEndpoint) setCustomEndpoint(savedCustomEndpoint);
     if (savedMaxTokens) setMaxTokens(savedMaxTokens);
+    if (savedEffort) setEffort(savedEffort);
+    if (savedTemperature) {
+      const parsed = Number(savedTemperature);
+      if (Number.isFinite(parsed)) {
+        setTemperature(Math.min(1, Math.max(0, parsed)));
+      }
+    }
+    setThinking(localStorage.getItem('aiThinking') !== 'false');
 
     setShowFullPrompt(savedShowFullPrompt);
     setEnableCodeSelectionMenu(savedEnableCodeSelection);
@@ -151,6 +169,20 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     }
   }, [model, availableModels]);
 
+  /*
+   * Which tuning knobs the selected provider honours. Shared with the LLM
+   * contract executor so the form never offers a control the request would
+   * silently drop.
+   */
+  const capabilities = useMemo(() => getProviderCapabilities(provider), [provider]);
+
+  useEffect(() => {
+    // Drop an effort level the newly selected provider does not accept.
+    setEffort((prev) =>
+      prev && (capabilities.effort as readonly string[] | null)?.includes(prev) ? prev : ''
+    );
+  }, [capabilities]);
+
   const handleSave = async () => {
     setIsEncrypting(true);
 
@@ -167,6 +199,26 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       localStorage.setItem('aiResMaxTokens', maxTokens);
     } else {
       localStorage.removeItem('aiResMaxTokens');
+    }
+
+    // Execution tuning — only persisted for the providers that honour it, so a
+    // stale value can't leak across a provider switch.
+    if (capabilities.effort && effort) {
+      localStorage.setItem('aiEffort', effort);
+    } else {
+      localStorage.removeItem('aiEffort');
+    }
+
+    if (capabilities.temperature) {
+      localStorage.setItem('aiTemperature', String(temperature));
+    } else {
+      localStorage.removeItem('aiTemperature');
+    }
+
+    if (capabilities.thinking) {
+      localStorage.setItem('aiThinking', String(thinking));
+    } else {
+      localStorage.removeItem('aiThinking');
     }
 
     localStorage.setItem('aiShowFullPrompt', showFullPrompt.toString());
@@ -214,6 +266,18 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       config.maxTokens = parseInt(maxTokens);
     }
 
+    if (capabilities.effort && effort) {
+      config.effort = effort;
+    }
+
+    if (capabilities.temperature) {
+      config.temperature = temperature;
+    }
+
+    if (capabilities.thinking) {
+      config.thinking = thinking;
+    }
+
     const { setAIConfig } = useAppStore.getState();
     setAIConfig(config);
     setKeyProtectionLevel(protectionLevel);
@@ -234,6 +298,9 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         'aiModel',
         'aiCustomEndpoint',
         'aiResMaxTokens',
+        'aiEffort',
+        'aiTemperature',
+        'aiThinking',
         'aiShowFullPrompt',
         'aiEnableCodeSelectionMenu',
         'aiEnableInlineSuggestions',
@@ -249,6 +316,9 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       setApiKey('');
       setCustomEndpoint('');
       setMaxTokens('');
+      setEffort('');
+      setTemperature(DEFAULT_TEMPERATURE);
+      setThinking(true);
       setShowFullPrompt(false);
       setEnableCodeSelectionMenu(true);
       setEnableInlineSuggestions(true);
@@ -269,6 +339,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   const providerOptions = [
     { value: 'anthropic', label: 'Anthropic' },
     { value: 'google', label: 'Google' },
+    { value: 'groq', label: 'Groq' },
     { value: 'mistral', label: 'Mistral' },
     { value: 'ollama', label: 'Ollama (Local)' },
     { value: 'openai', label: 'OpenAI' },
@@ -282,6 +353,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     openai: 'Example: gpt-5, gpt-5-mini',
     anthropic: 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929',
     google: 'Example: gemini-3-pro, gemini-2.5-flash',
+    groq: 'Example: llama-3.3-70b-versatile, openai/gpt-oss-120b',
     mistral: 'Example: mistral-large-latest, mistral-medium-latest',
     openrouter: 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct',
     ollama: (
@@ -316,6 +388,58 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
               max={32000}
             />
           </Form.Item>
+
+          {capabilities.effort && (
+            <Form.Item
+              label="Reasoning Effort"
+              extra="How much reasoning the model spends on contract execution"
+              style={{ marginBottom: 8 }}
+            >
+              <Select
+                id="ai-effort-select"
+                value={effort || undefined}
+                onChange={setEffort}
+                placeholder="Provider default"
+                allowClear
+                onClear={() => setEffort('')}
+                options={capabilities.effort.map((level) => ({ value: level, label: level }))}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          )}
+
+          {capabilities.temperature && (
+            <Form.Item
+              label={`Temperature (${temperature.toFixed(1)})`}
+              extra="Lower values make contract execution more deterministic"
+              style={{ marginBottom: 8 }}
+            >
+              <Slider
+                id="ai-temperature"
+                min={0}
+                max={1}
+                step={0.1}
+                value={temperature}
+                onChange={setTemperature}
+              />
+            </Form.Item>
+          )}
+
+          {capabilities.thinking && (
+            <>
+              <Checkbox
+                id="ai-extended-thinking"
+                checked={thinking}
+                onChange={(e) => setThinking(e.target.checked)}
+              >
+                Extended Thinking
+              </Checkbox>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Improves accuracy on the arithmetic contract logic tends to do. Thinking tokens
+                count towards Max Tokens, so keep that generous.
+              </Text>
+            </>
+          )}
 
           <Divider style={{ margin: '4px 0' }} />
 
