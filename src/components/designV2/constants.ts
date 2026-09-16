@@ -270,7 +270,7 @@ export const TEXT = {
     checks: { renders: "the text renders" },
     why: {
       note:
-        "This is what a human signs. Every variable resolves against the model, so a typo surfaces here long before a run.",
+        "This is what a human signs or an agent reads. Every variable resolves against the data model, so a typo surfaces here long before execution.",
       links: [{ label: "TemplateMark syntax", href: URLS.templateMark }],
     },
     how: [
