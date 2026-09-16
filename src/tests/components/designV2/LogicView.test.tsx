@@ -9,7 +9,7 @@ import { DEFAULT_LOGIC_BOILERPLATE, describeLogicModel, scaffoldFromModel } from
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { STEP_ID } from '../../../types/designV2.types';
-import * as counter from '../../../samples/counterLogic';
+import * as latePayment from '../../../samples/latePaymentPenalty';
 import * as helloworld from '../../../samples/helloworld';
 
 /*
@@ -23,9 +23,9 @@ vi.mock('@monaco-editor/react', () => ({
 }));
 
 const base = {
-  modelCto: counter.MODEL,
-  editorLogicTs: counter.LOGIC ?? '',
-  logicTs: counter.LOGIC ?? '',
+  modelCto: latePayment.MODEL,
+  editorLogicTs: latePayment.LOGIC,
+  logicTs: latePayment.LOGIC,
   isCompiling: false,
   compilationErrors: [],
   compiledLogicJs: null,
@@ -67,7 +67,7 @@ describe('LogicView', () => {
     const { unmount } = render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(1, 2))).toBeInTheDocument();
     expect(pane().getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
-    expect(pane().getByText(LOGIC.typesFound('CounterRequest', 'CounterResponse'))).toBeInTheDocument();
+    expect(pane().getByText(LOGIC.typesFound('LatePaymentRequest', 'LatePaymentResponse'))).toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(1, 2))).toBeInTheDocument();
     // The rail shows icon and label only; the state text lives in the card chips.
     expect(rail().queryByText(LOGIC.status.notCompiled)).not.toBeInTheDocument();
@@ -106,14 +106,14 @@ describe('LogicView', () => {
 
   it('leaves existing logic alone', () => {
     render(<LogicView />);
-    expect(useAppStore.getState().editorLogicTs).toBe(counter.LOGIC);
+    expect(useAppStore.getState().editorLogicTs).toBe(latePayment.LOGIC);
   });
 
   it('opens an empty editor with a skeleton built from the model', () => {
     useAppStore.setState({ editorLogicTs: '', logicTs: '' });
     render(<LogicView />);
-    expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(counter.MODEL)));
-    expect(useAppStore.getState().editorLogicTs).toContain("$class: 'org.acme.counter@1.0.0.CounterResponse'");
+    expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(latePayment.MODEL)));
+    expect(useAppStore.getState().editorLogicTs).toContain("$class: 'org.acme.latepayment@1.0.0.LatePaymentResponse'");
   });
 
   it('falls back to the generic skeleton when the model has no request/response', () => {

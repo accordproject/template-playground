@@ -8,7 +8,7 @@ import { SIMULATE } from '../../../components/designV2/constants';
 import { runSummary } from '../../../components/designV2/simulateRuns';
 import { describeLogicModel, scaffoldFromModel } from '../../../editors/logicSource';
 import { STEP_ID } from '../../../types/designV2.types';
-import * as counter from '../../../samples/counterLogic';
+import * as latePayment from '../../../samples/latePaymentPenalty';
 import { failedRun, initRun, okRun, parseFailedRun } from './runFixtures';
 
 // The request editor is the legacy Monaco JSONEditor; a textarea stands in for it here.
@@ -28,23 +28,23 @@ describe('SimulateView', () => {
   const initContract = vi.fn(async () => { await Promise.resolve(); });
   const triggerContract = vi.fn(async () => { await Promise.resolve(); });
   const setLogicTs = vi.fn(async () => { await Promise.resolve(); });
-  const skeleton = scaffoldFromModel(describeLogicModel(counter.MODEL));
+  const skeleton = scaffoldFromModel(describeLogicModel(latePayment.MODEL));
 
   beforeEach(() => {
     initContract.mockClear();
     triggerContract.mockClear();
     setLogicTs.mockClear();
     useAppStore.setState({
-      modelCto: counter.MODEL,
-      editorLogicTs: counter.LOGIC,
-      logicTs: counter.LOGIC,
+      modelCto: latePayment.MODEL,
+      editorLogicTs: latePayment.LOGIC,
+      logicTs: latePayment.LOGIC,
       isCompiling: false,
       compilationErrors: [],
       compiledLogicJs: 'compiled',
       executionHistory: [initRun, okRun, failedRun],
-      executionState: '{"count": 2}',
+      executionState: '{"count": 1}',
       isExecuting: false,
-      requestJson: '{ "increment": 1 }',
+      requestJson: JSON.stringify(latePayment.REQUEST, null, 2),
       initContract,
       triggerContract,
       setLogicTs,
@@ -66,7 +66,7 @@ describe('SimulateView', () => {
     it('compiles logic that was never compiled', () => {
       render(<SimulateView />);
       expect(setLogicTs).toHaveBeenCalledTimes(1);
-      expect(setLogicTs).toHaveBeenCalledWith(counter.LOGIC);
+      expect(setLogicTs).toHaveBeenCalledWith(latePayment.LOGIC);
       noDialog();
     });
 
@@ -194,7 +194,7 @@ describe('SimulateView', () => {
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
       expect(screen.getByText(SIMULATE.stateUnchanged)).toBeInTheDocument();
       const result = screen.getByRole('region', { name: SIMULATE.resultLabel });
-      expect(result).toHaveTextContent('"count": 2');
+      expect(result).toHaveTextContent('"totalPenalty": 210');
     });
 
     it('a request that was not valid JSON is shown as not sent', () => {
@@ -213,17 +213,17 @@ describe('SimulateView', () => {
       expect(runRows()[1]).toHaveAttribute('aria-pressed', 'true');
 
       const request = screen.getByRole('region', { name: SIMULATE.request });
-      expect(request).toHaveTextContent('"increment": 2');
+      expect(request).toHaveTextContent('"invoiceValue": 1000');
       const result = screen.getByRole('region', { name: SIMULATE.resultLabel });
       expect(screen.getByRole('tab', { name: SIMULATE.response })).toHaveAttribute('aria-selected', 'true');
-      expect(result).toHaveTextContent("Alice's count is now 2 (of 10)");
+      expect(result).toHaveTextContent('"penalty": 210');
 
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
-      expect(result).toHaveTextContent('"count": 2');
+      expect(result).toHaveTextContent('"count": 1');
       expect(screen.queryByText(SIMULATE.stateUnchanged)).toBeNull();
 
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.eventsTab(1) }));
-      expect(result).toHaveTextContent('CounterUpdated');
+      expect(result).toHaveTextContent('LatePaymentEvent');
     });
 
     it('the Events tab of a run without events says so', () => {
@@ -249,8 +249,8 @@ describe('SimulateView', () => {
 
     it('the request editor edits requestJson', () => {
       render(<SimulateView />);
-      fireEvent.change(screen.getByLabelText('request editor'), { target: { value: '{ "increment": 5 }' } });
-      expect(useAppStore.getState().requestJson).toBe('{ "increment": 5 }');
+      fireEvent.change(screen.getByLabelText('request editor'), { target: { value: '{ "invoiceValue": 5 }' } });
+      expect(useAppStore.getState().requestJson).toBe('{ "invoiceValue": 5 }');
     });
 
     it('restart re-initialises the contract', () => {
