@@ -1,9 +1,9 @@
 /**
  * What logic.ts is written against, read from model.cto: the @template
  * concept, the request/response transactions and the state asset. From
- * those, a logic skeleton with the right $class names and fields; and the
- * "what to commit on Apply & Compile" rule shared by the legacy LogicEditor
- * and the design-v2 footer.
+ * those, a logic skeleton with the right $class names and fields; the
+ * "what to commit on Apply & Compile" rule of the legacy LogicEditor; and
+ * the "what Simulate compiles on arrival" rule of the design-v2 flow.
  */
 import { ModelManager } from "@accordproject/concerto-core";
 
@@ -221,3 +221,16 @@ export default ContractLogic;
  */
 export const nextLogicSource = (editorLogicTs: string, logicTs: string, modelCto: string): string =>
   editorLogicTs.trim() === '' && logicTs.trim() === '' ? scaffoldFromModel(describeLogicModel(modelCto)) : editorLogicTs;
+
+/**
+ * The logic the design-v2 Simulate step compiles when it opens: whatever is
+ * in the editor — or null when nothing was written: the editor is empty, or
+ * it still holds the untouched skeleton the Logic step offered and nothing
+ * was ever committed. A template without logic is not silently given the
+ * skeleton's stub behaviour; Simulate says it has no logic instead.
+ */
+export const pendingLogic = (editorLogicTs: string, logicTs: string, modelCto: string): string | null => {
+  if (editorLogicTs.trim() === "") return null;
+  if (logicTs.trim() === "" && editorLogicTs === scaffoldFromModel(describeLogicModel(modelCto))) return null;
+  return editorLogicTs;
+};

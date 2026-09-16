@@ -58,7 +58,6 @@ export const HEADER = {
 
 export const FOOTER = {
   noProblems: "✓ no problems",
-  applyAndCompileDirty: "Apply & Compile*",
   /** Problems pill while the app store reports an error; the full message follows it. */
   problem: "✕ error",
   problemLabel: "Problem",
@@ -66,7 +65,6 @@ export const FOOTER = {
   failedRuns: (count: number, lastId: string) =>
     `✕ ${count} failed ${count === 1 ? "run" : "runs"} · run ${lastId}`,
   back: "← Back",
-  applyAndCompile: "Apply & Compile",
   next: "Next →",
 } as const;
 
@@ -208,7 +206,7 @@ export const sampleNameFor = (selectedTemplate: string | null): string | undefin
   return START_SAMPLES.find((card) => card.name === selectedTemplate)?.sampleName;
 };
 
-/** Step "Logic": logic.ts in the TypeScript editor, compiled through the store on Apply & Compile. */
+/** Step "Logic": logic.ts in the TypeScript editor, compiled through the store when the Simulate step opens. */
 export const LOGIC = {
   icon: "ƒ",
   title: "Add logic",
@@ -235,16 +233,16 @@ export const LOGIC = {
     },
     pair: {
       label: "init() & trigger()",
-      hint: "set the starting state, then respond to requests",
+      hint: "set the starting state, then respond to requests — compiled when you open Simulate",
     },
   },
-  /** Same five states, same order, as the legacy logic panel's badge. */
+  /** Same states, same order, as the legacy logic panel's badge; there is no compile button, Simulate compiles. */
   status: {
-    dirty: "unsaved changes",
+    dirty: "edited — compiles on Simulate",
     compiling: "compiling…",
     failed: "compilation failed",
     compiled: "compiled",
-    notCompiled: "not compiled yet",
+    notCompiled: "compiles on Simulate",
     empty: "nothing to compile",
   },
   help: {
@@ -406,11 +404,25 @@ export const SIMULATE = {
     triggerFailed: "trigger() threw",
     invalidRequest: "request is not valid JSON",
   },
+  /** Badge next to the title while the logic compiles on arrival. */
+  compiling: "compiling the logic…",
+  /**
+   * The dialog shown instead of a runnable contract. Opening the step compiles
+   * whatever is in the logic editor, so the only reasons left are: nothing was
+   * written, or what was written does not compile.
+   */
   blocked: {
-    title: "Simulate can’t run yet",
-    body: "Your logic hasn’t compiled — trigger() is still a stub, so there is nothing to run a request against. Finish the Logic step and hit Apply & Compile.",
+    noLogic: {
+      title: "This template has no logic yet",
+      body: "Simulate runs the contract’s logic against the requests you send. This template has none — open the Logic step and write init() and trigger(); a skeleton built from your data model is waiting there.",
+    },
+    failed: {
+      title: "The logic didn’t compile",
+      body: (error: string) => `${error} — fix it on the Logic step. Simulate compiles the logic again when you come back.`,
+    },
     stay: "Stay here",
     jump: "Jump back to Logic",
+    openLogic: "Open the Logic step",
   },
 } as const;
 

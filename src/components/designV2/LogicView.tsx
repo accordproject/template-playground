@@ -26,7 +26,8 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
  * The chips hold label and state; the longer hints live in their tooltips.
  *
  * The editor is LogicMonaco, the store-bound Monaco the legacy panel uses.
- * Compiling happens through the footer's "Apply & Compile" (store.setLogicTs).
+ * There is no compile button: the Simulate step compiles what is in the
+ * editor when it opens (store.setLogicTs, see SimulateView).
  * The types chip reads model.cto (describeLogicModel) for a request and a
  * response transaction and links to the Model & Data step; the init/trigger
  * chip and the help-rail checklist mirror the store's compile state.

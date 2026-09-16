@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Dropdown, Modal, Tabs, type MenuProps } from "antd";
 import JSONEditor from "../../editors/JSONEditor";
 import ObligationsList from "../ObligationsList";
 import useAppStore, { type LogicExecutionResult } from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
+import { pendingLogic } from "../../editors/logicSource";
 import { STEP_ID } from "../../types/designV2.types";
 import { SIMULATE } from "./constants";
 import { pretty, runStats, runSummary } from "./simulateRuns";
@@ -21,6 +22,10 @@ import { pretty, runStats, runSummary } from "./simulateRuns";
  *   │ │ { … }          ▶ Send  ││                                  │
  *   └───────────────────────────┴─────────────────────────────────┘
  *
+ * Opening the step compiles the logic: whatever the Logic editor holds goes
+ * through store.setLogicTs (there is no compile button), unless nothing was
+ * written, in which case a dialog says so. A compile error shows in the
+ * footer's problems pill and in a dialog offering the way back to Logic.
  * Execution itself is the legacy runner's: initContract / triggerContract in
  * src/store/store.ts run inside the SandboxFrame and append to
  * executionHistory. This view only renders that history and the request
@@ -153,6 +158,12 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
 /** Step 5: Simulate — runs list, request editor and the selected run's request / result. */
 const SimulateView = () => {
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
+  const editorLogicTs = useAppStore((s) => s.editorLogicTs);
+  const logicTs = useAppStore((s) => s.logicTs);
+  const modelCto = useAppStore((s) => s.modelCto);
+  const isCompiling = useAppStore((s) => s.isCompiling);
+  const compilationErrors = useAppStore((s) => s.compilationErrors);
+  const setLogicTs = useAppStore((s) => s.setLogicTs);
   const history = useAppStore((s) => s.executionHistory);
   const executionState = useAppStore((s) => s.executionState);
   const isExecuting = useAppStore((s) => s.isExecuting);
@@ -168,6 +179,21 @@ const SimulateView = () => {
   const [blockedDismissed, setBlockedDismissed] = useState(false);
 
   const compiled = Boolean(compiledLogicJs);
+  const pending = pendingLogic(editorLogicTs, logicTs, modelCto);
+
+  // On arrival, compile what the Logic editor holds if it changed or was never compiled. Once per visit.
+  const attempted = useRef(false);
+  useEffect(() => {
+    if (attempted.current) return;
+    attempted.current = true;
+    if (pending === null || isCompiling) return;
+    const stale = pending !== logicTs || (!compiledLogicJs && compilationErrors.length === 0);
+    if (stale) void setLogicTs(pending);
+  }, [pending, logicTs, compiledLogicJs, compilationErrors, isCompiling, setLogicTs]);
+
+  // Why there is nothing to run: no logic written, or it did not compile. Null while compiling or once compiled.
+  const blocked: "noLogic" | "failed" | null =
+    compiled || isCompiling ? null : pending === null ? "noLogic" : compilationErrors.length > 0 ? "failed" : null;
   const stats = runStats(history);
   const selected = history.find((run) => run.id === selectedRunId) ?? history[history.length - 1] ?? null;
   const initialised = Boolean(executionState);
@@ -207,6 +233,7 @@ const SimulateView = () => {
         <div className="nd-sim-head">
           <h1>{SIMULATE.title}</h1>
           <span className="nd-badge nd-badge-grey">{SIMULATE.stats(stats.runs, stats.ok, stats.failed)}</span>
+          {isCompiling && <span className="nd-badge nd-badge-grey" role="status">{SIMULATE.compiling}</span>}
           <span className="nd-spacer" />
           <Button
             size="small"
@@ -286,14 +313,14 @@ const SimulateView = () => {
       )}
 
       <Modal
-        open={!compiled && !blockedDismissed}
+        open={blocked !== null && !blockedDismissed}
         closable={false}
         maskClosable={false}
         width={440}
         title={
           <span className="nd-blocked-title">
             <span className="nd-blocked-icon" aria-hidden="true">⚠</span>
-            {SIMULATE.blocked.title}
+            {blocked === "failed" ? SIMULATE.blocked.failed.title : SIMULATE.blocked.noLogic.title}
           </span>
         }
         footer={[
@@ -301,11 +328,15 @@ const SimulateView = () => {
             {SIMULATE.blocked.stay}
           </Button>,
           <Button key="jump" type="primary" onClick={openLogic}>
-            {SIMULATE.blocked.jump}
+            {blocked === "failed" ? SIMULATE.blocked.jump : SIMULATE.blocked.openLogic}
           </Button>,
         ]}
       >
-        <p className="nd-blocked-body">{SIMULATE.blocked.body}</p>
+        <p className="nd-blocked-body">
+          {blocked === "failed"
+            ? SIMULATE.blocked.failed.body(compilationErrors[0]?.message ?? "")
+            : SIMULATE.blocked.noLogic.body}
+        </p>
       </Modal>
     </div>
   );

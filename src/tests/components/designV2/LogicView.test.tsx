@@ -14,7 +14,7 @@ import * as helloworld from '../../../samples/helloworld';
 
 /*
  * Monaco is replaced by a plain div: the view under test is the chrome around
- * the editor (progress header, job rows, help rail, footer button) and its
+ * the editor (progress header, job rows, help rail, footer pill) and its
  * wiring to the app store, not the editor itself.
  */
 vi.mock('@monaco-editor/react', () => ({
@@ -131,44 +131,34 @@ describe('LogicView', () => {
 });
 
 describe('Footer on the Logic step', () => {
-  const setLogicTs = vi.fn().mockResolvedValue(undefined);
   const noop = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useAppStore.setState({ ...base, error: undefined, setLogicTs });
+    useAppStore.setState({ ...base, error: undefined });
   });
 
-  it('"Apply & Compile" commits the editor content through the store', () => {
+  it('has no compile button — Simulate compiles the logic when it opens', () => {
     useAppStore.setState({ editorLogicTs: 'class X {}' });
     render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
-    fireEvent.click(screen.getByRole('button', { name: FOOTER.applyAndCompileDirty }));
-    expect(setLogicTs).toHaveBeenCalledWith('class X {}');
+    expect(screen.queryByRole('button', { name: /compile/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: FOOTER.next })).toBeInTheDocument();
   });
 
-  it('falls back to a skeleton from the model when there is nothing to compile', () => {
-    useAppStore.setState({ editorLogicTs: '', logicTs: '' });
-    render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
-    fireEvent.click(screen.getByRole('button', { name: FOOTER.applyAndCompile }));
-    expect(setLogicTs).toHaveBeenCalledWith(scaffoldFromModel(describeLogicModel(counter.MODEL)));
-  });
-
-  it('falls back to the generic boilerplate when the model has no request/response', () => {
-    useAppStore.setState({ modelCto: '', editorLogicTs: '', logicTs: '' });
-    render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
-    fireEvent.click(screen.getByRole('button', { name: FOOTER.applyAndCompile }));
-    expect(setLogicTs).toHaveBeenCalledWith(DEFAULT_LOGIC_BOILERPLATE);
-  });
-
-  it('shows the first compilation error in the problems pill', () => {
+  it('shows the first compilation error in the problems pill, on Logic and on Simulate', () => {
     useAppStore.setState({ compilationErrors: [{ message: "Cannot find name 'foo'." }] });
-    render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
+    const { unmount } = render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
     expect(screen.getByText(FOOTER.problem)).toBeInTheDocument();
+    expect(screen.getByText("Cannot find name 'foo'.")).toBeInTheDocument();
+    unmount();
+
+    render(<Footer view={STEP_ID.simulate} onBack={noop} onNext={noop} />);
     expect(screen.getByText("Cannot find name 'foo'.")).toBeInTheDocument();
   });
 
-  it('does not show the Apply & Compile button on other steps', () => {
+  it('keeps compilation errors off the other steps', () => {
+    useAppStore.setState({ compilationErrors: [{ message: "Cannot find name 'foo'." }] });
     render(<Footer view={STEP_ID.text} onBack={noop} onNext={noop} />);
-    expect(screen.queryByRole('button', { name: /Apply & Compile/ })).not.toBeInTheDocument();
+    expect(screen.getByText(FOOTER.noProblems)).toBeInTheDocument();
   });
 });

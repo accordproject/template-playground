@@ -24,7 +24,7 @@ import "./DesignV2Layout.css";
  *   │      │ view (welcome/start/editor/ │ help rail   │  ← preview drawer overlays
  *   │      │  model+data/simulate/deploy)│ (editor steps) │
  *   │      ├─────────────────────────────┴─────────────┤
- *   │      │ footer  (problems · Back · Compile · Next)   — editor steps only
+ *   │      │ footer  (problems · Back · Next)             — editor steps only
  *   └──────┴───────────────────────────────────────────┘
  *
  * View / preview state lives in useDesignV2Store (src/store/designV2Store.ts).
@@ -33,8 +33,9 @@ import "./DesignV2Layout.css";
  * containers as the old layout. The Start step has no footer: each gallery
  * card carries its own "Start with this template" button.
  * antd components inside are themed with the v2 palette via ConfigProvider (see theme.ts).
- * Simulate runs the compiled logic through the store's initContract /
- * triggerContract (see SimulateView.tsx). Deploy is still a placeholder.
+ * Simulate compiles the logic when it opens (no compile button) and runs it
+ * through the store's initContract / triggerContract (see SimulateView.tsx).
+ * Deploy is still a placeholder.
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
 const DesignV2Layout = () => {
