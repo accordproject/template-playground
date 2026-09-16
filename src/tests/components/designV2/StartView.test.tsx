@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { StartView } from '../../../components/designV2/views';
 import useDesignV2Store from '../../../store/designV2Store';
 import useAppStore from '../../../store/store';
-import { START, START_SAMPLES, sampleNameFor } from '../../../components/designV2/constants';
+import { START, START_BLANK, START_SAMPLES, sampleNameFor } from '../../../components/designV2/constants';
 import { FIRST_STEP, STEPS } from '../../../types/designV2.types';
 import { SAMPLES } from '../../../samples';
 
 /**
  * Covers the "Choose a template" gallery: one card per START_SAMPLES entry,
  * each with its own "Start with this template" button that picks the
- * template, loads its sample and opens the next step in one click.
- * "+ Start blank" does the same with the blank template.
+ * template, loads its sample and opens the next step in one click. The
+ * blank template is a fourth card that does the same with the empty sample.
  */
 describe('START_SAMPLES', () => {
   it('every card points at a real sample in src/samples', () => {
@@ -64,7 +64,17 @@ describe('StartView', () => {
       for (const point of sample.demonstrates) expect(screen.getByText(point)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: START.openLabel(sample.name) })).toBeInTheDocument();
     }
-    expect(screen.getAllByText(START.open)).toHaveLength(START_SAMPLES.length);
+    expect(screen.getAllByText(START.open)).toHaveLength(START_SAMPLES.length + 1);
+  });
+
+  it('renders the blank template as a card like the others, without a demonstrates list', () => {
+    render(<StartView />);
+    const card = screen.getByRole('article', { name: START_BLANK.name });
+    expect(card).toHaveClass('nd-sample-card', `nd-sample-card-${START_BLANK.accent}`);
+    expect(within(card).getByText(START_BLANK.tagline)).toBeInTheDocument();
+    expect(within(card).queryByRole('list')).not.toBeInTheDocument();
+    expect(within(card).getByRole('button', { name: START.openLabel(START_BLANK.name) })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /start blank/i })).not.toBeInTheDocument();
   });
 
   it('marks no card as current until a template is picked', () => {
@@ -97,9 +107,9 @@ describe('StartView', () => {
     expect(loadSample).not.toHaveBeenCalled();
   });
 
-  it('"+ Start blank" opens the next step on the blank template', () => {
+  it("the blank card's button opens the next step on the blank template", () => {
     render(<StartView />);
-    fireEvent.click(screen.getByRole('button', { name: START.blank }));
+    fireEvent.click(screen.getByRole('button', { name: START.openLabel(START_BLANK.name) }));
     expect(useDesignV2Store.getState().selectedTemplate).toBe(START.blankName);
     expect(loadSample).toHaveBeenCalledWith(sampleNameFor(START.blankName));
     expect(useDesignV2Store.getState().view).toBe(secondStep);

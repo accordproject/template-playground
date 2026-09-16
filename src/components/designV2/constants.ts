@@ -105,7 +105,6 @@ export const WELCOME = {
 export const START = {
   title: "Choose a template",
   hint: "everything stays editable later",
-  blank: "+ Start blank",
   blankName: "Blank template",
   /** Primary button on every card: pick the template and open the first editor step. */
   open: "Start with this template →",
@@ -117,9 +116,9 @@ export const START = {
   learnLabel: (name: string) => `What ${name} demonstrates`,
 } as const;
 
-export type StartAccent = "teal" | "amber" | "blue";
-/** Which of the three line-art illustrations (see SampleArt.tsx) a card shows. */
-export type StartArt = "variables" | "clauses" | "logic";
+export type StartAccent = "teal" | "amber" | "blue" | "ink";
+/** Which line-art illustration (see SampleArt.tsx) a card shows. */
+export type StartArt = "variables" | "clauses" | "logic" | "blank";
 
 /** One card in the "Choose a template type" gallery. */
 export interface StartSample {
@@ -136,7 +135,7 @@ export interface StartSample {
   /**
    * Two or three short points on what the reader learns from this template —
    * the reason to pick it over the others. The gallery is a curated set, so
-   * this matters more than a text preview.
+   * this matters more than a text preview. Empty on the blank card.
    */
   demonstrates: readonly string[];
 }
@@ -185,6 +184,20 @@ export const START_SAMPLES: readonly StartSample[] = [
     ],
   },
 ];
+
+/**
+ * Fourth gallery card: the empty template, styled like the others so the
+ * choice reads as one set of options. Not in START_SAMPLES because it ships
+ * no logic, so it is not part of the "every card walks the same steps" rule.
+ */
+export const START_BLANK: StartSample = {
+  name: START.blankName,
+  sampleName: BLANK_SAMPLE_NAME,
+  accent: "ink",
+  art: "blank",
+  tagline: "An empty text, model and data — write your own agreement from scratch.",
+  demonstrates: [],
+};
 
 /**
  * NAME of the sample in src/samples to load for a card picked on the Start

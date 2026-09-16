@@ -1,14 +1,15 @@
 import type { StartArt } from "./constants";
 
 /**
- * Line-art illustration at the top of a gallery card, one per template.
- * Drawn in `currentColor`, which the card sets to its accent colour, so the
- * same three drawings follow the teal / amber / blue spine of each card.
+ * Line-art illustration at the top of a gallery card, one per template plus
+ * one for the blank card. Drawn in `currentColor`, which the card sets to its
+ * accent colour, so the drawings follow the spine colour of each card.
  * Each one pictures the feature its template demonstrates, not the agreement.
  */
 const SampleArt = ({ kind }: { kind: StartArt }) => {
   if (kind === "variables") return <VariablesArt />;
   if (kind === "clauses") return <ClausesArt />;
+  if (kind === "blank") return <BlankArt />;
   return <LogicArt />;
 };
 
@@ -76,6 +77,20 @@ const LogicArt = () => (
     </text>
     <path d="M114 90 L122 78 L132 84 L146 66" strokeWidth="3" />
     <path d="M138 66 H146 V74" strokeWidth="3" />
+  </svg>
+);
+
+/** An empty, dashed page with a "+" badge: nothing written yet. */
+const BlankArt = () => (
+  <svg {...svgProps}>
+    <path d="M52 14 H92 L112 34 V104 A4 4 0 0 1 108 108 H52 A4 4 0 0 1 48 104 V18 A4 4 0 0 1 52 14 Z" fill="#fff" strokeDasharray="6 5" />
+    <path d="M92 14 V34 H112" strokeDasharray="6 5" />
+    <line x1="62" y1="52" x2="98" y2="52" opacity="0.35" />
+    <line x1="62" y1="66" x2="90" y2="66" opacity="0.35" />
+    <line x1="62" y1="80" x2="94" y2="80" opacity="0.35" />
+    <circle cx="124" cy="86" r="15" fill="currentColor" stroke="none" />
+    <line x1="124" y1="78" x2="124" y2="94" stroke="#fff" strokeWidth="3" />
+    <line x1="116" y1="86" x2="132" y2="86" stroke="#fff" strokeWidth="3" />
   </svg>
 );
 
