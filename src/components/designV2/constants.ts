@@ -94,10 +94,10 @@ export const WELCOME = {
   /** Accessible name of the Accord Project wordmark in the hero. */
   logoAlt: "Accord Project",
   logoSrc: "/APLogo.png",
-  titleLine: "Contracts that",
-  titleAccent: "run themselves.",
-  subtitleLine1: "Write the agreement once — as text, data and rules — and watch it execute.",
-  subtitleLine2: "Six steps, no setup.",
+  titleLine: "The agreement layer",
+  titleAccent: "for agentic commerce.",
+  subtitleLine1: "Write enforceable terms that humans read and software executes.",
+  subtitleLine2: "Build, test and deploy a template in your browser.",
   start: "Start building",
   howItWorks: "How it works ↗",
 } as const;
