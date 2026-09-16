@@ -29,7 +29,7 @@ import {
   clearStoredKey,
 } from '../utils/secureKeyStorage';
 import { fetchModels } from '../utils/fetchModels';
-import { getProviderCapabilities } from '../ai-assistant/llm/LLMConfig';
+import { getProviderCapabilities } from '@accordproject/template-engine/lib/llm';
 
 const { Text } = Typography;
 
@@ -339,6 +339,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   const providerOptions = [
     { value: 'anthropic', label: 'Anthropic' },
     { value: 'google', label: 'Google' },
+    { value: 'groq', label: 'Groq' },
     { value: 'mistral', label: 'Mistral' },
     { value: 'ollama', label: 'Ollama (Local)' },
     { value: 'openai', label: 'OpenAI' },
@@ -352,6 +353,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     openai: 'Example: gpt-5, gpt-5-mini',
     anthropic: 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929',
     google: 'Example: gemini-3-pro, gemini-2.5-flash',
+    groq: 'Example: llama-3.3-70b-versatile, openai/gpt-oss-120b',
     mistral: 'Example: mistral-large-latest, mistral-medium-latest',
     openrouter: 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct',
     ollama: (

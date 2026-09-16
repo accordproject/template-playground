@@ -5,7 +5,7 @@ import { debounce } from "ts-debounce";
 import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
-import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
+// import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
@@ -20,11 +20,11 @@ import {
 import {
   ExecutionEngine,
   LLMMode,
-} from "../ai-assistant/llm";
+} from "../ai-assistant/llmProviders";
 import type {
   InitResponse,
   TriggerResponse,
-} from "../ai-assistant/llm";
+} from "../ai-assistant/llmProviders";
 import { validateBeforeRebuild } from "../utils/validators";
 import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
@@ -1006,7 +1006,7 @@ const useAppStore = create<AppState>()(
               version: "1.0.0",
               accordproject: {
                 template: "contract",
-                cicero: "^1.0.0",
+                cicero: "^2.1.1",
               },
             };
 
@@ -1033,7 +1033,7 @@ const useAppStore = create<AppState>()(
               { offline: true },
             );
 
-            const { isStatefulTemplate } = await import("../ai-assistant/llm");
+            // const { isStatefulTemplate } = await import("../ai-assistant/llmProviders");
             /*
              * A template is stateful when its model declares a State type — the
              * rule cicero-core's isStateful() applies, and the one the LLM
@@ -1045,7 +1045,7 @@ const useAppStore = create<AppState>()(
             set({
               templateObject: template,
               isTemplateStateful:
-                isStatefulTemplate(template) || logicDefinesInit(logicTs),
+                template.isStateful() || logicDefinesInit(logicTs),
             });
             if (import.meta.env.DEV)
               console.log(
@@ -1121,8 +1121,8 @@ const useAppStore = create<AppState>()(
                     templateToCompile.getModelManager(),
                     fqn,
                   ).getCompilationContext();
-                  const declarationsStr = atob(SMART_LEGAL_CONTRACT_BASE64);
-                  const prependedText = `\n${contextStr}\n${declarationsStr}\n                `;
+                  // const declarationsStr = atob(SMART_LEGAL_CONTRACT_BASE64);
+                  const prependedText = `\n${contextStr}          `;
                   lineOffset = prependedText.split("\n").length - 1;
                 }
               } catch (e) {
@@ -1304,7 +1304,7 @@ const useAppStore = create<AppState>()(
           }
 
           const { buildLLMExecutorConfig, getLLMExecutor } = await import(
-            "../ai-assistant/llm"
+            "../ai-assistant/llmProviders"
           );
           if (!aiConfig) {
             throw new Error('AI is not configured. Open Settings → AI Configuration to set it up.');

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import useAppStore from '../../store/store';
-import { ExecutionEngine, LLMMode } from '../../ai-assistant/llm';
-import type { TriggerResponse } from '../../ai-assistant/llm';
+import { ExecutionEngine, LLMMode } from '../../ai-assistant/llmProviders';
+import type { TriggerResponse } from '../../ai-assistant/llmProviders';
 
 /**
  * Engine selection for init/trigger, mirroring the branch the
@@ -15,7 +15,7 @@ describe('useAppStore - execution engine selection', () => {
 
   let executeInSandbox: Mock<unknown[], Promise<unknown>>;
   let executeWithLLM: Mock<unknown[], Promise<TriggerResponse>>;
-
+  
   beforeEach(() => {
     vi.clearAllMocks();
     executeInSandbox = vi.fn<unknown[], Promise<unknown>>().mockResolvedValue(sandboxOutput);

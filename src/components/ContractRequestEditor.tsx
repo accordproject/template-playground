@@ -7,7 +7,7 @@ import {
   ExecutionEngineTags,
   ExecutionModeSwitch,
 } from "./ExecutionEngineControls";
-import { isLLMConfigured } from "../ai-assistant/llm/LLMConfig";
+import { isLLMConfigured } from "@accordproject/template-engine/lib/llm";
 import "../styles/components/ContractRunnerPanel.css";
 
 /**

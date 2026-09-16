@@ -1,13 +1,9 @@
 import React, { useMemo } from "react";
 import { Segmented, Tag, Tooltip } from "antd";
 import useAppStore from "../store/store";
-import {
-  LLMMode,
-  LLM_MODES,
-  isLLMConfigured,
-} from "../ai-assistant/llm/LLMConfig";
+import { LLMMode } from "../ai-assistant/llmProviders";
+import { isLLMConfigured } from "@accordproject/template-engine/lib/llm";
 import "../styles/components/ContractRunnerPanel.css";
-
 /** Human-readable label and tooltip for each execution mode. */
 const MODE_INFO: Record<LLMMode, { label: string; hint: string }> = {
   disabled: {
@@ -89,7 +85,6 @@ export const ExecutionModeSwitch: React.FC = () => {
     setLLMExecutionMode: s.setLLMExecutionMode,
     isExecuting: s.isExecuting,
   }));
-
   return (
     <Segmented
       size="small"
@@ -98,7 +93,7 @@ export const ExecutionModeSwitch: React.FC = () => {
       disabled={isExecuting}
       aria-label="AI execution mode"
       className="contract-runner-panel-mode-switch tour-execution-mode"
-      options={LLM_MODES.map((mode) => ({
+      options={Object.values(LLMMode).map((mode) => ({
         value: mode,
         label: <Tooltip title={MODE_INFO[mode].hint}>{MODE_INFO[mode].label}</Tooltip>,
       }))}
