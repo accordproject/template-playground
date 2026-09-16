@@ -44,7 +44,6 @@ export const HEADER = {
   helpMenuLabel: "Help",
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
-  preview: "◧ Preview",
   stepperLabel: "Steps",
   links: {
     about: "About",
@@ -82,6 +81,8 @@ export const HELP_RAIL = {
 
 export const PREVIEW = {
   ariaLabel: "Preview",
+  /** Toggle in the Text and Data step headers; aria-pressed says whether the drawer is open. */
+  toggle: "◧ Preview",
   title: "Preview",
   liveBadge: "live",
   pdf: "↓ PDF",

@@ -7,6 +7,7 @@ import TemplateModel from "../../editors/editorsContainer/TemplateModel";
 import AgreementData from "../../editors/editorsContainer/AgreementData";
 import { formatConcertoModel } from "../../utils/formatConcertoModel";
 import HelpRail, { HelpRailReopen, type ChecklistItem } from "./HelpRail";
+import PreviewToggle from "./PreviewToggle";
 import { MODEL_DATA } from "./constants";
 
 interface EditorPaneProps {
@@ -99,7 +100,8 @@ const errorPane = (error: string | undefined): "model" | "data" | null => {
  *
  * Either pane can be closed with its × so the other one takes the full
  * width; a "+ file" chip next to the title brings it back. At least one pane
- * always stays open (see designV2Store.setPaneOpen).
+ * always stays open (see designV2Store.setPaneOpen). The title row carries
+ * the Preview toggle, since the data changes what the preview shows.
  */
 export const ModelDataView = () => {
   const editorModelCto = useAppStore((s) => s.editorModelCto);
@@ -183,6 +185,7 @@ export const ModelDataView = () => {
               {MODEL_DATA.reopenPane(MODEL_DATA[pane].file)}
             </Button>
           ))}
+          <PreviewToggle />
           <HelpRailReopen />
         </div>
 

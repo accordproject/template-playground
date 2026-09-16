@@ -18,7 +18,7 @@ import "./DesignV2Layout.css";
  * Structure follows the "Template Playground v4" design:
  *
  *   ┌ rail ┬───────────────────────────────────────────┐
- *   │      │ header  (eyebrow / sample · docs Help Preview)
+ *   │      │ header  (eyebrow / sample · docs Help)
  *   │      │ stepper (1 Template · 2 Text · 3 Data · 4 Logic · 5 Simulate · 6 Deploy)
  *   │      ├─────────────────────────────┬─────────────┤
  *   │      │ view (welcome/start/editor/ │ help rail   │  ← preview drawer overlays
@@ -27,7 +27,8 @@ import "./DesignV2Layout.css";
  *   │      │ footer  (problems · Back · Compile · Next)   — editor steps only
  *   └──────┴───────────────────────────────────────────┘
  *
- * View / preview state lives in useDesignV2Store (src/store/designV2Store.ts).
+ * View / preview state lives in useDesignV2Store (src/store/designV2Store.ts);
+ * the Text and Data steps carry the Preview toggle (PreviewToggle.tsx).
  * Editor contents live in the legacy app store: picking a card on the Start
  * step loads its sample there, and the editor steps edit it through the same
  * containers as the old layout. The Start step has no footer: each gallery
@@ -46,7 +47,6 @@ const DesignV2Layout = () => {
   const goBack = useDesignV2Store((s) => s.goBack);
   const goNext = useDesignV2Store((s) => s.goNext);
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
-  const togglePreview = useDesignV2Store((s) => s.togglePreview);
   const pick = usePickTemplate();
 
   /** "Start building": enter the flow on a template — the first card unless one was already picked. */
@@ -65,12 +65,7 @@ const DesignV2Layout = () => {
       <SandboxFrame />
       <Rail />
       <div className="nd-main">
-        <Header
-          view={view}
-          previewOpen={previewOpen}
-          onNavigate={setView}
-          onTogglePreview={togglePreview}
-        />
+        <Header view={view} onNavigate={setView} />
         <div className="nd-body">
           <div className="nd-body-content">
             <ViewSwitch view={view} onStart={handleStart} />

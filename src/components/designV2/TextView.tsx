@@ -7,6 +7,7 @@ import {
   type MarkdownEditorCommands,
 } from "../../contexts/MarkdownEditorContext";
 import HelpRail, { HelpRailReopen, type ChecklistItem } from "./HelpRail";
+import PreviewToggle from "./PreviewToggle";
 import { TEXT } from "./constants";
 
 /**
@@ -42,7 +43,8 @@ const TextToolbar = () => {
  *
  * The editor is the legacy TemplateMarkdown container, so edits flow through
  * the app store and rebuild the agreement as in the old layout. The status
- * bar mirrors the store's error; the full message is in the footer.
+ * bar mirrors the store's error; the full message is in the footer. The
+ * title row carries the Preview toggle: this is where the rendered text matters.
  */
 export const TextView = () => {
   const editorValue = useAppStore((s) => s.editorValue);
@@ -65,6 +67,7 @@ export const TextView = () => {
               <h1>{TEXT.title}</h1>
               <p className="nd-editor-subtitle">{TEXT.subtitle}</p>
             </div>
+            <PreviewToggle />
             <HelpRailReopen />
           </div>
 
