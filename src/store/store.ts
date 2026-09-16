@@ -159,9 +159,6 @@ interface AppState {
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
   isLogicFeatureEnabled: boolean;
   setLogicFeatureEnabled: (value: boolean) => void;
-  /** Feature flag for the new playground design (work in progress). */
-  isDesignV2Enabled: boolean;
-  setDesignV2Enabled: (value: boolean) => void;
   /**
    * Updates the live editor value without committing or triggering compilation.
    * @param ts - The current TypeScript source from the editor
@@ -316,7 +313,7 @@ interface AppState {
   /** The current request payload (JSON string) used as input for the next trigger. */
   requestJson: string;
   setRequestJson: (json: string) => void;
-
+  
   /**
    * Initializes the contract logic. Dispatches the `init` method to the sandbox
    * using the current contract data, and stores the resulting state and events.
@@ -564,16 +561,6 @@ const useAppStore = create<AppState>()(
             localStorage.setItem("isLogicFeatureEnabled", String(value));
           }
           set({ isLogicFeatureEnabled: value });
-        },
-        isDesignV2Enabled:
-          typeof window !== "undefined"
-            ? localStorage.getItem("isDesignV2Enabled") === "true"
-            : false,
-        setDesignV2Enabled: (value: boolean) => {
-          if (typeof window !== "undefined") {
-            localStorage.setItem("isDesignV2Enabled", String(value));
-          }
-          set({ isDesignV2Enabled: value });
         },
         logicTs: "",
         editorLogicTs: "",
@@ -1417,10 +1404,8 @@ const useAppStore = create<AppState>()(
             syncChainDisplay(initStep);
             persistChain(chain);
           } catch (err: unknown) {
-            const message = formatError(err);
             set({
-              executionHistory: [run({ request: parsedData, response: null, stateAfter: null, events: [], error: message })],
-              compilationErrors: [{ message: `Execution Error: ${message}` }],
+              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
               isProblemPanelVisible: true
             });
           } finally {
@@ -1523,19 +1508,8 @@ const useAppStore = create<AppState>()(
               persistChain(chain);
             }
           } catch (err: unknown) {
-            const message = formatError(err);
             set({
-              // State is left untouched by a failed trigger, so before === after
-              executionHistory: [...history, run({
-                request: parsedRequest,
-                response: null,
-                stateBefore: parsedState,
-                stateAfter: parsedState,
-                events: [],
-                error: message,
-                stage,
-              })],
-              compilationErrors: [{ message: `Execution Error: ${message}` }],
+              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
               isProblemPanelVisible: true
             });
           } finally {
