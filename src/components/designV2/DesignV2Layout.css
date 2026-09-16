@@ -324,7 +324,7 @@
   color: #a6272c; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* Model & Data: the editor column is split into two panes */
+/* Data step: the editor column is split into model and data panes */
 .nd-split {
   flex: 1; min-height: 0;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;

@@ -281,10 +281,10 @@ export const TEXT = {
   },
 } as const;
 
-/** Step "Model & Data": model.cto on the left, data.json on the right — both wired to the app store. */
+/** Step "Data": model.cto on the left, data.json on the right — both wired to the app store. */
 export const MODEL_DATA = {
   icon: "⬡",
-  title: "Define the model and fill in the data",
+  title: "Model the data",
   subtitle:
     "Declare every value once as a Concerto concept on the left, then give it a concrete value on the right. Both feed the preview live.",
   format: "≡ format",
