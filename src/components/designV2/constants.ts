@@ -16,10 +16,8 @@ export const URLS = {
   templateMark: "https://github.com/accordproject/markdown-transform/blob/main/packages/markdown-template/README.md",
   logicDocs: "https://github.com/accordproject/template-engine/blob/main/README.md#logic",
   concertoIntro: "https://concerto.accordproject.org/docs/intro",
-} as const;
-
-export const ROUTES = {
-  learnIntro: "/learn/intro",
+  /** Docs site: what a template is made of (text, model, logic). "How it works" on the hero opens it. */
+  templateDocs: "https://docs.accordproject.org/docs/accordproject-template/",
 } as const;
 
 export const RAIL = {
@@ -99,6 +97,7 @@ export const WELCOME = {
   subtitleLine1: "Write enforceable terms that humans read and software executes.",
   subtitleLine2: "Build, test and deploy a template in your browser.",
   start: "Start building",
+  /** Opens URLS.templateDocs in a new tab. */
   howItWorks: "How it works ↗",
 } as const;
 

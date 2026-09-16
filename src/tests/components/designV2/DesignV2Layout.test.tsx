@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import DesignV2Layout from '../../../components/designV2/DesignV2Layout';
 import { DEFAULT_TEMPLATE } from '../../../components/designV2/usePickTemplate';
-import { START_SAMPLES, WELCOME, sampleNameFor } from '../../../components/designV2/constants';
+import { START_SAMPLES, URLS, WELCOME, sampleNameFor } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { FIRST_STEP } from '../../../types/designV2.types';
@@ -12,6 +12,7 @@ import { FIRST_STEP } from '../../../types/designV2.types';
 /*
  * Covers entering the flow: "Start building" must land on a template with
  * logic, so the editor steps never open on the app store's startup sample.
+ * Also the hero's "How it works" link.
  */
 vi.mock('@monaco-editor/react', () => ({
   useMonaco: () => null,
@@ -52,5 +53,13 @@ describe('DesignV2Layout — Start building', () => {
     expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
     expect(useDesignV2Store.getState().selectedTemplate).toBe(START_SAMPLES[1].name);
     expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it('"How it works" opens the docs site in a new tab', () => {
+    renderLayout();
+    const link = screen.getByRole('link', { name: WELCOME.howItWorks });
+    expect(link).toHaveAttribute('href', URLS.templateDocs);
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 });
