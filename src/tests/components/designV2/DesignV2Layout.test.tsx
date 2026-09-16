@@ -10,8 +10,8 @@ import useDesignV2Store from '../../../store/designV2Store';
 import { FIRST_STEP } from '../../../types/designV2.types';
 
 /*
- * Covers entering the flow: "Start building" must land on a template with
- * logic, so the editor steps never open on the app store's startup sample.
+ * Covers entering the flow: "Start building" must land on the first gallery
+ * card, so the editor steps never open on the app store's startup sample.
  */
 vi.mock('@monaco-editor/react', () => ({
   useMonaco: () => null,

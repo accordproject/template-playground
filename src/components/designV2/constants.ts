@@ -119,7 +119,7 @@ export const START = {
 
 export type StartAccent = "teal" | "amber" | "blue";
 /** Which of the three line-art illustrations (see SampleArt.tsx) a card shows. */
-export type StartArt = "counter" | "offer" | "nda";
+export type StartArt = "variables" | "clauses" | "logic";
 
 /** One card in the "Choose a template type" gallery. */
 export interface StartSample {
@@ -141,42 +141,47 @@ export interface StartSample {
   demonstrates: readonly string[];
 }
 
-/** Gallery cards shown on the Start step. Every card's sample ships logic, so every card walks the same steps. */
+/**
+ * Gallery cards shown on the Start step: three real agreements, in the order
+ * of a tour of what a template can do — text with variables, then text that
+ * depends on the data, then logic that keeps score. The first two ship no
+ * logic; the Logic step offers a skeleton for them.
+ */
 export const START_SAMPLES: readonly StartSample[] = [
   {
-    name: "Counter Contract",
-    sampleName: "Counter Contract (with Logic)",
+    name: "Consulting Agreement",
+    sampleName: "Consulting Agreement",
     accent: "teal",
-    art: "counter",
-    tagline: "Stateful logic — start here.",
+    art: "variables",
+    tagline: "Agreement text with the details filled in.",
     demonstrates: [
-      "Remembers state between requests",
-      "init() and trigger()",
-      "Enforces a maximum",
+      "Parties, fees and dates as named variables",
+      "Each variable declared once in the data model",
+      "Change the data and the agreement re-renders",
     ],
   },
   {
-    name: "Employment Offer",
-    sampleName: "Employment Offer Letter",
+    name: "Residential Lease",
+    sampleName: "Residential Lease",
     accent: "amber",
-    art: "offer",
-    tagline: "Text and data, one answer.",
+    art: "clauses",
+    tagline: "Clauses that appear only when they apply.",
     demonstrates: [
-      "Variables filled from the model",
-      "Accept or decline, once",
-      "Emits an event",
+      "A parking clause only when there is a space",
+      "Pets allowed or not — one sentence each",
+      "Rent formatted, deposit worked out from it",
     ],
   },
   {
-    name: "Non-disclosure",
-    sampleName: "Non-Disclosure Agreement",
+    name: "Late Payment Penalty",
+    sampleName: "Late Payment Penalty (with Logic)",
     accent: "blue",
-    art: "nda",
-    tagline: "Rules that depend on dates.",
+    art: "logic",
+    tagline: "Terms that compute and keep score.",
     demonstrates: [
-      "Checks dates against the term",
-      "Counts disclosures in state",
-      "Records every event",
+      "A penalty worked out per day overdue",
+      "Capped at a share of the invoice",
+      "Remembers the running total between payments",
     ],
   },
 ];

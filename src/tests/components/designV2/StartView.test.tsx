@@ -22,11 +22,19 @@ describe('START_SAMPLES', () => {
     }
   });
 
-  it('every card points at a sample that ships logic and a default request', () => {
+  it('is a tour: text-only cards first, then one that ships logic with a default request', () => {
+    const samples = START_SAMPLES.map((card) => SAMPLES.find((s) => s.NAME === card.sampleName)!);
+    const withLogic = samples.filter((s) => s.LOGIC);
+    expect(withLogic.length).toBeGreaterThanOrEqual(1);
+    expect(withLogic.length).toBeLessThan(samples.length);
+    for (const sample of withLogic) expect(sample.REQUEST, sample.NAME).toBeTruthy();
+    expect(samples[0].LOGIC).toBeUndefined();
+  });
+
+  it('speaks about the agreement, not the engine', () => {
     for (const card of START_SAMPLES) {
-      const sample = SAMPLES.find((s) => s.NAME === card.sampleName)!;
-      expect(sample.LOGIC, card.name).toBeTruthy();
-      expect(sample.REQUEST, card.name).toBeTruthy();
+      const copy = [card.tagline, ...card.demonstrates].join(' ');
+      expect(copy, card.name).not.toMatch(/init\(\)|trigger\(\)|request|\bstate\b|event/i);
     }
   });
 

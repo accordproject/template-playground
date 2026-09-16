@@ -30,8 +30,8 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
  * The types chip reads model.cto (describeLogicModel) for a request and a
  * response transaction and links to the Model & Data step; the init/trigger
  * chip and the help-rail checklist mirror the store's compile state.
- * Every template ships logic; when the step opens on an empty editor anyway
- * (the blank template), a skeleton built from the model is written into it.
+ * When the step opens on an empty editor (a template without logic, or the
+ * blank one), a skeleton built from the model is written into it.
  */
 export const LogicView = () => {
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
