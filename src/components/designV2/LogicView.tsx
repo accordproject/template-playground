@@ -8,6 +8,7 @@ import { STEP_ID } from "../../types/designV2.types";
 import HelpRail, { HelpRailReopen, type ChecklistItem, type ChecklistTone } from "./HelpRail";
 import { LOGIC } from "./constants";
 import { logicStatus, type LogicStatus } from "./logicStatus";
+import { useCompileOnArrival } from "./useCompileOnArrival";
 
 /** Icon and tone of the "init() & trigger()" chip for each compile state. */
 const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
@@ -26,8 +27,10 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
  * The chips hold label and state; the longer hints live in their tooltips.
  *
  * The editor is LogicMonaco, the store-bound Monaco the legacy panel uses.
- * There is no compile button: the Simulate step compiles what is in the
- * editor when it opens (store.setLogicTs, see SimulateView).
+ * There is no compile button: opening this step, or Simulate, compiles what
+ * the editor holds (useCompileOnArrival → store.setLogicTs). A template that
+ * ships logic therefore opens with both chips ticked and the bar full as
+ * soon as its logic compiles; a compile error turns the chip red.
  * The types chip reads model.cto (describeLogicModel) for a request and a
  * response transaction and links to the Model & Data step; the init/trigger
  * chip and the help-rail checklist mirror the store's compile state.
@@ -43,6 +46,8 @@ export const LogicView = () => {
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
   const setEditorLogicTs = useAppStore((s) => s.setEditorLogicTs);
   const setView = useDesignV2Store((s) => s.setView);
+
+  useCompileOnArrival();
 
   const model = useMemo(() => describeLogicModel(modelCto), [modelCto]);
   const typesOk = Boolean(model?.request && model?.response);

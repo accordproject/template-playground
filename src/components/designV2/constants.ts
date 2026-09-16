@@ -206,7 +206,7 @@ export const sampleNameFor = (selectedTemplate: string | null): string | undefin
   return START_SAMPLES.find((card) => card.name === selectedTemplate)?.sampleName;
 };
 
-/** Step "Logic": logic.ts in the TypeScript editor, compiled through the store when the Simulate step opens. */
+/** Step "Logic": logic.ts in the TypeScript editor, compiled through the store when this step or Simulate opens. */
 export const LOGIC = {
   icon: "ƒ",
   title: "Add logic",
@@ -233,7 +233,7 @@ export const LOGIC = {
     },
     pair: {
       label: "init() & trigger()",
-      hint: "set the starting state, then respond to requests — compiled when you open Simulate",
+      hint: "set the starting state, then respond to requests — compiled when you open this step or Simulate",
     },
   },
   /** Same states, same order, as the legacy logic panel's badge; there is no compile button, Simulate compiles. */
@@ -242,7 +242,7 @@ export const LOGIC = {
     compiling: "compiling…",
     failed: "compilation failed",
     compiled: "compiled",
-    notCompiled: "compiles on Simulate",
+    notCompiled: "not compiled yet",
     empty: "nothing to compile",
   },
   help: {

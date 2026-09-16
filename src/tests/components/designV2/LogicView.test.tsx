@@ -128,6 +128,34 @@ describe('LogicView', () => {
     fireEvent.click(rail().getByRole('tab', { name: HELP_RAIL.tabHow }));
     for (const step of LOGIC.help.how) expect(rail().getByText(step)).toBeInTheDocument();
   });
+
+  describe('compiles on arrival', () => {
+    it('compiles logic that was never compiled, so a template that ships logic opens compiled', () => {
+      render(<LogicView />);
+      expect(setLogicTs).toHaveBeenCalledTimes(1);
+      expect(setLogicTs).toHaveBeenCalledWith(latePayment.LOGIC);
+    });
+
+    it('leaves compiled, unchanged logic alone', () => {
+      useAppStore.setState({ compiledLogicJs: 'js' });
+      render(<LogicView />);
+      expect(setLogicTs).not.toHaveBeenCalled();
+    });
+
+    it('does not retry a compile that failed for the same source', () => {
+      useAppStore.setState({ compilationErrors: [{ message: "Cannot find name 'foo'." }] });
+      render(<LogicView />);
+      expect(setLogicTs).not.toHaveBeenCalled();
+      expect(pane().getByText(LOGIC.status.failed)).toBeInTheDocument();
+    });
+
+    it('does not compile the skeleton it just wrote into an empty editor', () => {
+      useAppStore.setState({ editorLogicTs: '', logicTs: '' });
+      render(<LogicView />);
+      expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(latePayment.MODEL)));
+      expect(setLogicTs).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe('Footer on the Logic step', () => {

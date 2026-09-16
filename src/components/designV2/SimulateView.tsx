@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Button, Dropdown, Modal, Tabs, type MenuProps } from "antd";
 import JSONEditor from "../../editors/JSONEditor";
 import ObligationsList from "../ObligationsList";
 import useAppStore, { type LogicExecutionResult } from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
-import { pendingLogic } from "../../editors/logicSource";
+import { useCompileOnArrival } from "./useCompileOnArrival";
 import { STEP_ID } from "../../types/designV2.types";
 import { SIMULATE } from "./constants";
 import { pretty, runStats, runSummary } from "./simulateRuns";
@@ -22,9 +22,9 @@ import { pretty, runStats, runSummary } from "./simulateRuns";
  *   │ │ { … }          ▶ Send  ││                                  │
  *   └───────────────────────────┴─────────────────────────────────┘
  *
- * Opening the step compiles the logic: whatever the Logic editor holds goes
- * through store.setLogicTs (there is no compile button), unless nothing was
- * written, in which case a dialog says so. A compile error shows in the
+ * Opening the step compiles the logic (useCompileOnArrival, shared with the
+ * Logic step; there is no compile button), unless nothing was written, in
+ * which case a dialog says so. A compile error shows in the
  * footer's problems pill and in a dialog offering the way back to Logic.
  * Execution itself is the legacy runner's: initContract / triggerContract in
  * src/store/store.ts run inside the SandboxFrame and append to
@@ -158,12 +158,8 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
 /** Step 5: Simulate — runs list, request editor and the selected run's request / result. */
 const SimulateView = () => {
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
-  const editorLogicTs = useAppStore((s) => s.editorLogicTs);
-  const logicTs = useAppStore((s) => s.logicTs);
-  const modelCto = useAppStore((s) => s.modelCto);
   const isCompiling = useAppStore((s) => s.isCompiling);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
-  const setLogicTs = useAppStore((s) => s.setLogicTs);
   const history = useAppStore((s) => s.executionHistory);
   const executionState = useAppStore((s) => s.executionState);
   const isExecuting = useAppStore((s) => s.isExecuting);
@@ -179,17 +175,7 @@ const SimulateView = () => {
   const [blockedDismissed, setBlockedDismissed] = useState(false);
 
   const compiled = Boolean(compiledLogicJs);
-  const pending = pendingLogic(editorLogicTs, logicTs, modelCto);
-
-  // On arrival, compile what the Logic editor holds if it changed or was never compiled. Once per visit.
-  const attempted = useRef(false);
-  useEffect(() => {
-    if (attempted.current) return;
-    attempted.current = true;
-    if (pending === null || isCompiling) return;
-    const stale = pending !== logicTs || (!compiledLogicJs && compilationErrors.length === 0);
-    if (stale) void setLogicTs(pending);
-  }, [pending, logicTs, compiledLogicJs, compilationErrors, isCompiling, setLogicTs]);
+  const pending = useCompileOnArrival();
 
   // Why there is nothing to run: no logic written, or it did not compile. Null while compiling or once compiled.
   const blocked: "noLogic" | "failed" | null =
