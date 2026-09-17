@@ -1,25 +1,41 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
-import HelpRail from "./HelpRail";
-import { STEPS, STEP_ID, STEP_KEY, isEditorStep, type EditorStepKey, type DesignV2View } from "../../types/designV2.types";
-import { ROUTES, WELCOME, START, EDITOR, SIMULATE, DEPLOY, type EditorMeta } from "./constants";
+import { ModelDataView } from "./ModelDataView";
+import { TextView } from "./TextView";
+import { LogicView } from "./LogicView";
+import SimulateView from "./SimulateView";
+import SampleArt from "./SampleArt";
+import useDesignV2Store from "../../store/designV2Store";
+import { usePickTemplate } from "./usePickTemplate";
+import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
+import {
+  ROUTES,
+  WELCOME,
+  START,
+  START_SAMPLES,
+  DEPLOY,
+  type StartSample,
+} from "./constants";
 
 /*
- * Placeholder views for each step of the flow. Only structure — no real
- * editors or data yet. Each is swapped in by DesignV2Layout based on `view`.
+ * Welcome hero, template gallery and the Deploy placeholder. Each is swapped
+ * in by DesignV2Layout based on `view`; the editor steps live in their own files.
  */
 
 interface WelcomeViewProps {
   onStart: () => void;
 }
 
-/** Dark hero card with headline, CTAs and the Text → Model → Data → Logic → Run it strip. */
+/**
+ * Dark hero card: Accord Project wordmark, headline and the two CTAs.
+ */
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
   const navigate = useNavigate();
   return (
   <div className="nd-view nd-view-welcome">
     <div className="nd-hero">
       <div className="nd-hero-grid" />
+      <img className="nd-hero-logo" src={WELCOME.logoSrc} alt={WELCOME.logoAlt} />
       <div className="nd-spacer" />
       <h1 className="nd-hero-title">
         {WELCOME.titleLine}
@@ -38,99 +54,99 @@ export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
         <Button ghost size="large" shape="round" onClick={() => navigate(ROUTES.learnIntro)}>{WELCOME.howItWorks}</Button>
       </div>
       <div className="nd-spacer" />
-      <div className="nd-hero-strip">
-        {STEPS.map((step, i) => {
-          const last = i === STEPS.length - 1;
-          return (
-            <span key={String(step.id)} className="nd-hero-strip-item">
-              <span className={last ? "nd-hero-strip-accent" : undefined}>{step.label}</span>
-              {!last && (
-                <span className={`nd-hero-arrow ${i === STEPS.length - 2 ? "nd-hero-arrow-accent" : ""}`}>→</span>
-              )}
-            </span>
-          );
-        })}
-      </div>
     </div>
   </div>
   );
 };
 
-/** "Choose a template type" gallery with sample cards. */
-export const StartView = () => (
-  <div className="nd-view nd-view-start">
-    <div className="nd-start-head">
-      <span className="nd-start-title">{START.title}</span>
-      <span className="nd-start-hint">{START.hint}</span>
-      <div className="nd-spacer" />
-      <Button type="dashed" size="small">{START.blank}</Button>
-      <Button size="small">{START.draftWithAi}</Button>
-      <label className="nd-checkbox">
-        <input type="checkbox" defaultChecked /> {START.includeLogic}{" "}
-        <span className="nd-start-hint">{START.includeLogicHint(STEP_ID.data, STEP_ID.logic)}</span>
-      </label>
-    </div>
-    <div className="nd-sample-grid">
-      {Array.from({ length: START.sampleCount }).map((_, i) => (
-        <button key={i} type="button" className="nd-sample-card" aria-label={START.sampleCardLabel(i + 1)} />
-      ))}
-    </div>
-  </div>
-);
-
-interface EditorViewProps {
-  step: EditorStepKey;
+interface SampleCardProps {
+  sample: StartSample;
+  /** The card's template is the one currently loaded (e.g. after Back from a later step). */
+  current: boolean;
+  onOpen: () => void;
 }
 
-/** Editor steps: title block, editor card (header / body / status bar) and the help rail. */
-export const EditorView = ({ step }: EditorViewProps) => {
-  const meta: EditorMeta = EDITOR.meta[step];
+/**
+ * One gallery card: an illustration on top; name, tagline, a short list
+ * of what the template demonstrates and its own "Start with this template"
+ * button underneath. Nothing else on the card is clickable — picking and
+ * opening a template is one click.
+ */
+const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
+  const classes = [
+    "nd-sample-card",
+    `nd-sample-card-${sample.accent}`,
+    current ? "nd-sample-card-current" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className="nd-view nd-view-editor">
-      <div className="nd-editor-column">
-        <div className="nd-editor-title">
-          <div className="nd-editor-icon">{meta.icon}</div>
-          <div className="nd-editor-title-text">
-            <h1>{meta.title}</h1>
-          </div>
-          {step === "logic" && (
-            <Button size="small">{EDITOR.scaffoldFromModel}</Button>
-          )}
-        </div>
-        <div className="nd-editor-card">
-          <div className="nd-editor-card-head">
-            <span className="nd-mono nd-editor-file">{meta.file}</span>
-            <span className="nd-badge nd-badge-teal">{meta.badge}</span>
-            <div className="nd-spacer" />
-            <Button type="text" size="small">{EDITOR.format}</Button>
-            <Button type="text" size="small">{EDITOR.copy}</Button>
-          </div>
-          <div className="nd-editor-card-body">
-            <div className="nd-placeholder nd-placeholder-block" />
-          </div>
-          <div className="nd-editor-card-foot">
-            <span className="nd-status-ok">{EDITOR.statusOk}</span>
-          </div>
-        </div>
+    <article className={classes} aria-current={current ? "true" : undefined} aria-label={sample.name}>
+      <div className="nd-sample-art">
+        <SampleArt kind={sample.art} />
       </div>
-      <HelpRail />
-    </div>
+      <div className="nd-sample-foot">
+        <div className="nd-sample-foot-row">
+          <span className="nd-sample-name">{sample.name}</span>
+          {current && <span className="nd-sample-current">{START.current}</span>}
+        </div>
+        <p className="nd-sample-tagline">{sample.tagline}</p>
+        <ul className="nd-sample-learn" aria-label={START.learnLabel(sample.name)}>
+          {sample.demonstrates.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
+        <Button
+          type="primary"
+          block
+          className="nd-sample-open"
+          aria-label={START.openLabel(sample.name)}
+          onClick={onOpen}
+        >
+          {START.open}
+        </Button>
+      </div>
+    </article>
   );
 };
 
-/** Step 6: Simulate — empty placeholder until the runner UI is designed. */
-export const SimulateView = () => (
-  <div className="nd-view nd-view-simulate">
-    <div className="nd-sim-head">
-      <h1>{SIMULATE.title}</h1>
-    </div>
-    <div className="nd-editor-card">
-      <div className="nd-editor-card-body">
-        <div className="nd-placeholder nd-placeholder-block" />
+/**
+ * "Choose a template" gallery: a curated set of cards, each opening the flow
+ * on its template in one click. "+ Start blank" does the same with the empty template.
+ */
+export const StartView = () => {
+  const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
+  const goNext = useDesignV2Store((s) => s.goNext);
+  const pick = usePickTemplate();
+  const open = (name: string) => {
+    pick(name);
+    goNext();
+  };
+
+  return (
+    <div className="nd-view nd-view-start">
+      <div className="nd-start-head">
+        <span className="nd-start-title">{START.title}</span>
+        <span className="nd-start-hint">{START.hint}</span>
+        <div className="nd-spacer" />
+        <Button type="dashed" size="small" onClick={() => open(START.blankName)}>
+          {START.blank}
+        </Button>
+      </div>
+      <div className="nd-sample-grid">
+        {START_SAMPLES.map((sample) => (
+          <SampleCard
+            key={sample.name}
+            sample={sample}
+            current={selectedTemplate === sample.name}
+            onOpen={() => open(sample.name)}
+          />
+        ))}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /** Step 7: Deploy — placeholder until the deploy flow is designed. */
 export const DeployView = () => (
@@ -156,8 +172,10 @@ interface ViewSwitchProps {
 export const ViewSwitch = ({ view, onStart }: ViewSwitchProps) => {
   if (view === "welcome") return <WelcomeView onStart={onStart} />;
   const key = STEP_KEY[view];
-  if (isEditorStep(key)) return <EditorView step={key} />;
   if (key === "template") return <StartView />;
+  if (key === "modelData") return <ModelDataView />;
+  if (key === "text") return <TextView />;
+  if (key === "logic") return <LogicView />;
   if (key === "simulate") return <SimulateView />;
   return <DeployView />;
 };

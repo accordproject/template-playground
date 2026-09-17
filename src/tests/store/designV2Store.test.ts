@@ -1,10 +1,21 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import useDesignV2Store from '../../store/designV2Store';
-import { STEPS, FIRST_STEP, LAST_STEP } from '../../types/designV2.types';
+import { STEPS, FIRST_STEP, LAST_STEP, STEPS_AFTER_TEMPLATE } from '../../types/designV2.types';
 
 describe('useDesignV2Store', () => {
   beforeEach(() => {
-    useDesignV2Store.setState({ view: 'welcome', previewOpen: false });
+    useDesignV2Store.setState({
+      view: 'welcome', previewOpen: false, selectedTemplate: null,
+      modelDataPanes: { model: true, data: true }, helpRailOpen: true, selectedRunId: null,
+    });
+  });
+
+  it('starts by following the latest run and selectRun() pins one', () => {
+    expect(useDesignV2Store.getState().selectedRunId).toBeNull();
+    useDesignV2Store.getState().selectRun('#2');
+    expect(useDesignV2Store.getState().selectedRunId).toBe('#2');
+    useDesignV2Store.getState().selectRun(null);
+    expect(useDesignV2Store.getState().selectedRunId).toBeNull();
   });
 
   it('starts on the welcome view with the preview closed', () => {
@@ -49,6 +60,24 @@ describe('useDesignV2Store', () => {
     expect(useDesignV2Store.getState().view).toBe(LAST_STEP);
   });
 
+  it('setPaneOpen() closes and reopens a Model & Data pane but never the last one', () => {
+    const store = useDesignV2Store.getState();
+    store.setPaneOpen('data', false);
+    expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: true, data: false });
+    store.setPaneOpen('model', false);
+    expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: true, data: false });
+    store.setPaneOpen('data', true);
+    store.setPaneOpen('model', false);
+    expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: false, data: true });
+  });
+
+  it('setHelpRailOpen() hides and shows the help rail', () => {
+    useDesignV2Store.getState().setHelpRailOpen(false);
+    expect(useDesignV2Store.getState().helpRailOpen).toBe(false);
+    useDesignV2Store.getState().setHelpRailOpen(true);
+    expect(useDesignV2Store.getState().helpRailOpen).toBe(true);
+  });
+
   it('togglePreview() and setPreviewOpen() control the preview drawer', () => {
     const store = useDesignV2Store.getState();
     store.togglePreview();
@@ -57,5 +86,24 @@ describe('useDesignV2Store', () => {
     expect(useDesignV2Store.getState().previewOpen).toBe(false);
     store.setPreviewOpen(true);
     expect(useDesignV2Store.getState().previewOpen).toBe(true);
+  });
+
+  it('starts with no template selected', () => {
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+  });
+
+  it('selectTemplate() records the pick', () => {
+    const store = useDesignV2Store.getState();
+    store.selectTemplate('Employment Offer');
+    expect(useDesignV2Store.getState().selectedTemplate).toBe('Employment Offer');
+
+    store.selectTemplate('Blank template');
+    expect(useDesignV2Store.getState().selectedTemplate).toBe('Blank template');
+  });
+});
+
+describe('STEPS_AFTER_TEMPLATE', () => {
+  it('counts every step after "template" — every template walks them all', () => {
+    expect(STEPS_AFTER_TEMPLATE).toBe(STEPS.length - 1);
   });
 });
