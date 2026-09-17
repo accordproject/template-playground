@@ -20,13 +20,13 @@ export const V2_PALETTE = {
   fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
 } as const;
 
-export const designV2Theme = (): ThemeConfig => ({
-  algorithm: theme.defaultAlgorithm,
+export const designV2Theme = (isDarkMode: boolean): ThemeConfig => ({
+  algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
   token: {
     colorPrimary: V2_PALETTE.teal,
     colorInfo: V2_PALETTE.teal,
     colorLink: V2_PALETTE.tealDark,
-    colorTextBase: V2_PALETTE.ink,
+    colorTextBase: isDarkMode ? "#e0e0e0" : V2_PALETTE.ink,
     fontFamily: V2_PALETTE.fontFamily,
     fontSize: 13,
     borderRadius: 8,

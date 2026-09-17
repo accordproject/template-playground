@@ -1,5 +1,6 @@
 import { ConfigProvider } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
+import useAppStore from "../../store/store";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
@@ -55,12 +56,15 @@ const DesignV2Layout = () => {
     start();
   };
 
+  const backgroundColor = useAppStore((s) => s.backgroundColor);
+  const isDarkMode = backgroundColor === "#121212";
+
   const showChrome = view !== "welcome";
   const showFooter = showChrome && view !== FIRST_STEP;
 
   return (
-    <ConfigProvider theme={designV2Theme()}>
-    <div className="nd-root">
+    <ConfigProvider theme={designV2Theme(isDarkMode)}>
+    <div className={`nd-root ${isDarkMode ? "nd-dark" : ""}`}>
       {/* Hidden iframe the store runs compiled logic in (initContract / triggerContract). */}
       <SandboxFrame />
       <Rail />
