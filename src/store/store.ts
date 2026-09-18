@@ -26,7 +26,7 @@ export const createTemplateArchive = async (
   templateMarkdown: string,
   modelCto: string,
   logicTs: string,
-) => {
+): Promise<Uint8Array> => {
   const JSZip = (await import("jszip")).default;
   const packageJson = {
     name: "playground-template",
@@ -819,15 +819,20 @@ const useAppStore = create<AppState>()(
             modelCto,
             logicTs,
           );
-          const blobContent = new ArrayBuffer(content.byteLength);
-          new Uint8Array(blobContent).set(content);
-          const blob = new Blob([blobContent], { type: "application/zip" });
+          const blob = new Blob([content as unknown as BlobPart], {
+            type: "application/zip",
+          });
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
           link.download = "playground-template.cta";
-          link.click();
-          setTimeout(() => URL.revokeObjectURL(url),0);
+          try {
+            document.body.appendChild(link);
+            link.click();
+          } finally {
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          }
         },
 
         compileLogic: async () => {
