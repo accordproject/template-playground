@@ -109,17 +109,49 @@ entirely (see below).
 
 ---
 
-## Running the PoC
+## Setup & running the PoC
 
-1. `npm run dev` (http://localhost:5173). Enable **Design v2** in Settings; keep
-   a template with bindings.
-2. Register the relay with your agent:
-   `claude mcp add webmcp-local-relay -- npx -y @mcp-b/webmcp-local-relay@latest --host :: --port 9333`
-   (`--host ::` matters on macOS: the page dials the IPv6 loopback `[::1]`; a
-   127.0.0.1-only bind is refused. `--port 9333` matches the embed, which is
-   pinned in `devRelay.ts`.)
-3. Hard-reload the tab so the tools register. In the agent: `webmcp_list_tools`
-   → the six panel tools; orchestrate `get_template_text` → reason → `set_model`.
+### Prerequisites
+
+- Node 20+ and the repo dependencies installed (`npm ci`, or `yarn`).
+- One of the two host paths below:
+  - **Native:** Chrome with `chrome://flags#enable-webmcp-testing` enabled, or
+  - **Dev relay:** an MCP-capable agent (e.g. Claude Code) + `npx` (the relay is
+    fetched on demand). This is what the PoC was driven with.
+
+### Start the app
+
+```bash
+npm install        # or: yarn
+npm run dev        # http://localhost:5173
+```
+
+Open the app, enable **Design v2** in Settings, and make sure the Text step has a
+template with bindings. The tools register when the Design v2 layout mounts.
+
+### Option A — dev relay + Claude Code (no Chrome flag)
+
+1. Register the relay as an MCP server:
+   ```bash
+   claude mcp add webmcp-local-relay -- npx -y @mcp-b/webmcp-local-relay@latest --host :: --port 9333
+   ```
+   `--host ::` matters on macOS: the page dials the IPv6 loopback `[::1]`, and a
+   `127.0.0.1`-only bind is refused. `--port 9333` matches the embed port pinned
+   in `devRelay.ts`.
+2. Hard-reload the tab (Cmd-Shift-R) so the embed re-registers the tools.
+3. In the agent: `webmcp_list_sources` (confirms the tab is connected) and
+   `webmcp_list_tools` (shows the six panel tools). Orchestrate, e.g.
+   `get_template_text` → reason about the model → `set_model`.
+
+`src/main.tsx` loads the `@mcp-b/global` polyfill and the relay embed under
+`import.meta.env.DEV` only, so none of this ships in a production build.
+
+### Option B — native Chrome flag
+
+1. Enable `chrome://flags#enable-webmcp-testing` and relaunch Chrome.
+2. Load the app with Design v2 on. `navigator.modelContext` is real, so the tools
+   register on mount without the polyfill/relay.
+3. Drive them from Chrome's WebMCP testing surface / an in-browser agent.
 
 ---
 
@@ -190,7 +222,44 @@ tool set that covers them. Version the tool schema deliberately.
   **delete the polyfill/relay**, or keep a vendored fallback for non-Chrome.
 - Remove the CDN/dev-relay scaffolding before anything ships.
 
-### 5. Testing
+### 5. Imperative vs declarative WebMCP — which fits here
+
+WebMCP has two registration styles ([spec](https://webmachinelearning.github.io/webmcp/),
+[declarative explainer](https://github.com/webmachinelearning/webmcp/blob/main/declarative-api-explainer.md)):
+
+- **Imperative** — `document.modelContext.registerTool({ name, description,
+  inputSchema, execute, annotations }, { signal, exposedTo })`. Arbitrary JS runs
+  in `execute`. This is what the PoC uses (via the polyfill's `navigator` alias).
+- **Declarative** — annotate a `<form>` and its controls with `toolname`,
+  `tooldescription`, `toolparamdescription`, `toolautosubmit`; the browser
+  "compiles" the form into a tool + input schema, and the response returns via
+  `SubmitEvent.respondWith()` or a `application/ld+json` block on the navigated
+  page.
+
+**Assessment for the playground:** the core panel writes are **not a good fit for
+the declarative API**. Our panels are Monaco editors that take whole documents
+(a full CTO model, a full JSON instance) and need semantic validation and store
+side effects — exactly the JavaScript-only functionality the spec says the
+imperative API exists for ("WebMCP is not limited to only declarative form
+tools… some of the web's functionality is only possible with JavaScript"). A
+declarative form can't express "parse this CTO, require an `@template` concept,
+rebuild, and reject on error."
+
+Where declarative *could* pay off later: discrete, form-shaped actions the app
+already renders as forms/inputs — e.g. picking a sample from a gallery, a
+parameterised "generate sample data" dialog, or search/filter controls. Those map
+cleanly to `<form>` annotations and get schema synthesis for free. A real
+implementation may end up **hybrid**: imperative for document I/O + validation,
+declarative layered onto existing form UI.
+
+**Adopt regardless of style — tool annotations.** The spec defines
+`ToolAnnotations` (`readOnlyHint`, `consequentialHint`, `untrustedContentHint`,
+`debugging`). Our `get_*` tools should set `readOnlyHint: true` and the `set_*`
+tools `consequentialHint: true` so agents/hosts can gate destructive writes
+behind confirmation. (Requires extending `navigator-modelcontext.d.ts`, which is
+intentionally minimal in the PoC.)
+
+### 6. Testing
 
 - `guardrails.test.ts` is unit-only and runs today. Store-dependent tests are
   currently blocked by an unrelated broken `@accordproject/template-engine`
