@@ -398,5 +398,41 @@ export const SIMULATE = {
 
 export const DEPLOY = {
   title: "Deploy",
-  cards: ["Download PDF", "Share link", "Copy to clipboard"],
+  cards: [
+    {
+      title: "Download PDF",
+      description:"Save the rendered agreement as a PDF to share or sign",
+      href:null,
+    },
+    {
+      title: "Share link",
+      description:"Copy a link that opens this template in the Playground",
+      href:null,
+    },
+    {
+      title: "Copy to clipboard",
+      description:"Copy the rendered agreement text",
+      href:null,
+    },
+    {
+      title: "Download template archive",
+      description:"Save the template as a .cta archive you can version, publish or load anywhere Accord Project tooling runs",
+      href:null,
+    },
+    {
+      title: "Deploy to an APAP server",
+      description:"Publish the template to an Agreement Protocol server so apps and services can create and trigger agreements over REST.",
+      href:"https://docs.accordproject.org/docs/ref-apap/#deploy-a-template",
+    },
+    {
+      title:"Embed in your app",
+      description:"Use the template engine from your own code to draft, validate and execute this template.",
+      href:"https://github.com/accordproject/template-engine#readme",
+    },
+    {
+      title:"Deploy to an MCP server",
+      description:"Expose the template to AI assistants (Claude, Cursor, …) through the Model Context Protocol endpoint of an APAP server.",
+      href:"https://docs.accordproject.org/docs/ref-apap/#mcp-support-experimental",
+    },
+  ],
 } as const;
