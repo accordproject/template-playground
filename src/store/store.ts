@@ -102,6 +102,7 @@ interface AppState {
   rebuild: () => Promise<void>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
+  loadFromArchive: (buffer: Uint8Array, label: string) => Promise<void>;
   generateShareableLink: () => string;
   loadFromLink: (compressedData: string) => Promise<void>;
   toggleDarkMode: () => void;
@@ -576,6 +577,126 @@ const useAppStore = create<AppState>()(
           }
         },
 
+        loadFromArchive: async (buffer: Uint8Array, label: string) => {
+          /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
+          set({ error: undefined });
+          try {
+            const { Template } = await import("@accordproject/cicero-core");
+            const { Buffer } = await import("buffer");
+
+            const template = await Template.fromArchive(Buffer.from(buffer), {
+              offline: true,
+            });
+            loadBundledModels(template.getModelManager());
+            template.validate({ offline: true });
+
+            const templateMarkdown = template.getTemplate() ?? "";
+            const allModels = template.getModelManager().getModels();
+            const userModels = allModels.filter((m: any) => {
+              if (m.isSystemModel || m.systemModel) return false;
+              const fileName = m.name || m.fileName || "";
+              const isBundled = BUNDLED_MODELS.some(
+                (bm) => bm.fileName === fileName || fileName.endsWith(bm.fileName)
+              );
+              return !isBundled;
+            });
+            const modelCto = (userModels.length ? userModels : allModels)
+              .map((m: any) => m.content)
+              .join("\n\n");
+            const scripts = template.getScriptManager().getScripts();
+            const logicTs = scripts.length ? scripts[0].getContents() : "";
+
+            let sampleData = "{}";
+            try {
+              const templateModel = template.getTemplateModel();
+              const factory = template.getFactory();
+              const serializer = template.getSerializer();
+              if (templateModel && factory && serializer) {
+                const resource = factory.newConcept(
+                  templateModel.getNamespace(),
+                  templateModel.getName(),
+                  undefined,
+                  { generate: "sample", includeOptionalFields: true }
+                );
+                const dataJson = serializer.toJSON(resource);
+                sampleData = JSON.stringify(dataJson, null, 2);
+              }
+            } catch (e) {
+              // Fallback: check if rawSample in metadata samples is valid JSON with $class
+              const samples = template.getMetadata().getSamples();
+              const rawSample = samples?.en ?? Object.values(samples ?? {})[0] ?? "";
+              try {
+                if (typeof rawSample === "object" && rawSample !== null) {
+                  sampleData = JSON.stringify(rawSample, null, 2);
+                } else if (typeof rawSample === "string" && rawSample.trim()) {
+                  const parsed = JSON.parse(rawSample) as Record<string, unknown>;
+                  if (parsed && typeof parsed === "object" && parsed.$class) {
+                    sampleData = JSON.stringify(parsed, null, 2);
+                  }
+                }
+              } catch (err) {
+                // ignore
+              }
+            }
+
+            const request = template.getMetadata().getRequest();
+            const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
+            const requestJson = request
+              ? typeof request === "object"
+                ? JSON.stringify(request, null, 2)
+                : String(request)
+              : defaultRequest;
+
+            const hasLogic = !!logicTs && get().isLogicFeatureEnabled;
+            const displayName = template.getMetadata().getDisplayName() || label;
+
+            set(() => ({
+              sampleName: displayName,
+              agreementHtml: undefined,
+              error: undefined,
+              templateMarkdown,
+              editorValue: templateMarkdown,
+              modelCto,
+              editorModelCto: modelCto,
+              data: sampleData,
+              editorAgreementData: sampleData,
+              requestJson,
+              logicTs,
+              editorLogicTs: logicTs,
+              compiledLogicJs: null,
+              compilationErrors: [],
+              isCompiling: false,
+              executionState: "",
+              executionEvents: "",
+              executionResponse: "",
+              executionHistory: [],
+              isLogicPanelVisible: hasLogic,
+              isContractRunnerVisible: hasLogic,
+              isPreviewVisible: !hasLogic,
+            }));
+
+            savePanelState({
+              ...get(),
+              isLogicPanelVisible: hasLogic,
+              isContractRunnerVisible: hasLogic,
+              isPreviewVisible: !hasLogic,
+            });
+
+            await get().rebuild();
+          } catch (err) {
+            const errorMsg =
+              err instanceof Error
+                ? `Couldn't import "${label}": ${err.message}`
+                : `Couldn't import "${label}".`;
+            set({
+              error: errorMsg,
+              isProblemPanelVisible: true,
+            });
+            throw err;
+          }
+          /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
+        },
+
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();
           try {
@@ -753,6 +874,7 @@ const useAppStore = create<AppState>()(
         },
 
         buildTemplateFromMemory: async () => {
+          /* eslint-disable @typescript-eslint/no-unsafe-assignment */
           set({ templateObject: null });
           try {
             const { Template: CiceroTemplate } =
@@ -802,6 +924,7 @@ const useAppStore = create<AppState>()(
           } catch (error) {
             console.error("Error building template from memory:", error);
           }
+          /* eslint-enable @typescript-eslint/no-unsafe-assignment */
         },
 
         compileLogic: async () => {

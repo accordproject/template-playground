@@ -102,4 +102,35 @@ describe('StartView', () => {
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.queryByText(/draft with ai/i)).not.toBeInTheDocument();
   });
+
+  it('renders secondary import buttons for upload, URL, and template library', () => {
+    render(<StartView />);
+    expect(screen.getByRole('button', { name: new RegExp(START.uploadCta, 'i') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: new RegExp(START.loadUrl, 'i') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: new RegExp(START.browseLibrary, 'i') })).toBeInTheDocument();
+  });
+
+  it('displays the imported badge when an imported template is selected', () => {
+    useDesignV2Store.setState({ selectedTemplate: 'my-custom-template.cta' });
+    render(<StartView />);
+    expect(screen.getByText(`${START.importedPrefix}my-custom-template.cta`)).toBeInTheDocument();
+  });
+
+  it('opens the upload modal when clicking Upload .cta file button', () => {
+    render(<StartView />);
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(START.uploadCta, 'i') }));
+    expect(screen.getByText(START.uploadModalTitle)).toBeInTheDocument();
+  });
+
+  it('opens the URL modal when clicking Load from URL button', () => {
+    render(<StartView />);
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(START.loadUrl, 'i') }));
+    expect(screen.getByText(START.urlModalTitle)).toBeInTheDocument();
+  });
+
+  it('opens the library modal when clicking Browse template library button', () => {
+    render(<StartView />);
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(START.browseLibrary, 'i') }));
+    expect(screen.getAllByText(START.libraryModalTitle).length).toBeGreaterThan(0);
+  });
 });
