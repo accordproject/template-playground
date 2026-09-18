@@ -22,7 +22,7 @@ import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
 import tour from "../components/Tour";
 
-const createTemplateArchive = async (
+export const createTemplateArchive = async (
   templateMarkdown: string,
   modelCto: string,
   logicTs: string,
@@ -827,7 +827,7 @@ const useAppStore = create<AppState>()(
           link.href = url;
           link.download = "playground-template.cta";
           link.click();
-          URL.revokeObjectURL(url);
+          setTimeout(() => URL.revokeObjectURL(url),0);
         },
 
         compileLogic: async () => {
