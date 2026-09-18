@@ -240,7 +240,8 @@ export const LOGIC = {
   },
   /** Same states, same order, as the legacy logic panel's badge; there is no compile button, Simulate compiles. */
   status: {
-    dirty: "edited — compiles on Simulate",
+    /** Editing shows no state text; the empty icon says enough until the next compile. */
+    dirty: "",
     compiling: "compiling…",
     failed: "compilation failed",
     compiled: "compiled",

@@ -114,7 +114,9 @@ export const LogicView = () => {
                 <li className="nd-logic-chip" title={status === "failed" ? compilationErrors[0]?.message : LOGIC.chips.pair.hint}>
                   <span className={`nd-check-icon nd-check-icon-${pair.tone}`} aria-hidden="true">{pair.icon}</span>
                   <span className="nd-mono nd-logic-chip-label">{LOGIC.chips.pair.label}</span>
-                  <span className={`nd-logic-chip-tag nd-logic-chip-tag-${pair.tone}`}>{LOGIC.status[status]}</span>
+                  {LOGIC.status[status] && (
+                    <span className={`nd-logic-chip-tag nd-logic-chip-tag-${pair.tone}`}>{LOGIC.status[status]}</span>
+                  )}
                 </li>
               </ol>
               <div className="nd-spacer" />
