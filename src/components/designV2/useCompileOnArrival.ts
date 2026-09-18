@@ -2,37 +2,57 @@ import { useEffect, useRef } from "react";
 import useAppStore from "../../store/store";
 import { pendingLogic } from "../../editors/logicSource";
 
-/**
- * Compiles the logic when a step opens, once per visit: whatever the Logic
- * editor holds goes through store.setLogicTs if it changed since the last
- * compile or was never compiled. Nothing happens for an empty editor or the
- * untouched skeleton (see pendingLogic), while a compile is running, or
- * after a failed compile of the same source — that one shows as failed
- * until the source changes.
- *
- * Used by the Logic step, so a template that ships logic opens with both
- * chips ticked and the bar full as soon as its logic compiles, and by
- * Simulate, so there is something to run. There is no compile button.
- * Returns the pending source, or null when no logic is written.
+/*
+ * There is no compile button. The logic is compiled at two moments:
+ *   - when the Logic step opens (useCompileOnArrival), so a template that
+ *     ships logic shows both chips ticked and the bar full right away;
+ *   - before Simulate opens (ensureLogicCompiles), from Next or the stepper,
+ *     so a compile error keeps the user on Logic with the error in view.
+ * Both skip an empty editor and the untouched skeleton (see pendingLogic).
  */
-export const useCompileOnArrival = (): string | null => {
+
+/** What would be compiled: the editor content, or null when no logic is written. */
+export const usePendingLogic = (): string | null => {
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
   const logicTs = useAppStore((s) => s.logicTs);
   const modelCto = useAppStore((s) => s.modelCto);
+  return pendingLogic(editorLogicTs, logicTs, modelCto);
+};
+
+type LogicState = Pick<ReturnType<typeof useAppStore.getState>, "logicTs" | "compiledLogicJs" | "compilationErrors">;
+
+/** True when the pending source was never compiled, or differs from what was compiled last. */
+const isStale = (pending: string, s: LogicState) =>
+  pending !== s.logicTs || (!s.compiledLogicJs && s.compilationErrors.length === 0);
+
+/** Compiles the logic once when the step opens, if it is written and stale. */
+export const useCompileOnArrival = () => {
+  const pending = usePendingLogic();
+  const logicTs = useAppStore((s) => s.logicTs);
   const isCompiling = useAppStore((s) => s.isCompiling);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
   const setLogicTs = useAppStore((s) => s.setLogicTs);
-
-  const pending = pendingLogic(editorLogicTs, logicTs, modelCto);
   const attempted = useRef(false);
   useEffect(() => {
     if (attempted.current) return;
     attempted.current = true;
     if (pending === null || isCompiling) return;
-    const stale = pending !== logicTs || (!compiledLogicJs && compilationErrors.length === 0);
-    if (stale) void setLogicTs(pending);
+    if (isStale(pending, { logicTs, compiledLogicJs, compilationErrors })) void setLogicTs(pending);
   }, [pending, logicTs, compiledLogicJs, compilationErrors, isCompiling, setLogicTs]);
+};
 
-  return pending;
+/**
+ * Compiles the logic (if written and stale) and says whether Simulate may
+ * open: true when nothing is written — Simulate shows its "no logic" dialog —
+ * or when the logic compiles; false when it does not. Reads the store
+ * directly: it runs from a click handler, not from render.
+ */
+export const ensureLogicCompiles = async (): Promise<boolean> => {
+  const before = useAppStore.getState();
+  const pending = pendingLogic(before.editorLogicTs, before.logicTs, before.modelCto);
+  if (pending === null) return true;
+  if (isStale(pending, before)) await before.setLogicTs(pending);
+  const after = useAppStore.getState();
+  return Boolean(after.compiledLogicJs) && after.compilationErrors.length === 0;
 };

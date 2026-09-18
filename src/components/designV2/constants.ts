@@ -66,6 +66,8 @@ export const FOOTER = {
     `✕ ${count} failed ${count === 1 ? "run" : "runs"} · run ${lastId}`,
   back: "← Back",
   next: "Next →",
+  /** Toast when a move to Simulate is refused because the logic does not compile. */
+  logicBlocked: "The logic doesn’t compile — fix the error on the Logic step before simulating.",
 } as const;
 
 export const HELP_RAIL = {
@@ -404,24 +406,14 @@ export const SIMULATE = {
     triggerFailed: "trigger() threw",
     invalidRequest: "request is not valid JSON",
   },
-  /** Badge next to the title while the logic compiles on arrival. */
-  compiling: "compiling the logic…",
   /**
-   * The dialog shown instead of a runnable contract. Opening the step compiles
-   * whatever is in the logic editor, so the only reasons left are: nothing was
-   * written, or what was written does not compile.
+   * The dialog shown instead of a runnable contract. The logic is compiled
+   * before this step opens, so the only reason left is that none was written.
    */
   blocked: {
-    noLogic: {
-      title: "This template has no logic yet",
-      body: "Simulate runs the contract’s logic against the requests you send. This template has none — open the Logic step and write init() and trigger(); a skeleton built from your data model is waiting there.",
-    },
-    failed: {
-      title: "The logic didn’t compile",
-      body: (error: string) => `${error} — fix it on the Logic step. Simulate compiles the logic again when you come back.`,
-    },
+    title: "This template has no logic yet",
+    body: "Simulate runs the contract’s logic against the requests you send. This template has none — open the Logic step and write init() and trigger(); a skeleton built from your data model is waiting there.",
     stay: "Stay here",
-    jump: "Jump back to Logic",
     openLogic: "Open the Logic step",
   },
 } as const;

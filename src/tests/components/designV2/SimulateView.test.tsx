@@ -19,10 +19,10 @@ vi.mock('../../../editors/JSONEditor', () => ({
 }));
 
 /**
- * Covers the Simulate step: compiling the logic on arrival (there is no
- * compile button), the "no logic" / "didn't compile" gates, the runs list
- * fed by executionHistory, run selection, the request / response detail and
- * the Send / restart / re-run actions that call into the legacy runner.
+ * Covers the Simulate step: the "no logic" dialog, the runs list fed by
+ * executionHistory, run selection, the request / response detail and the
+ * Send / restart / re-run actions that call into the legacy runner. The
+ * logic is compiled before the step opens (DesignV2Layout.test covers that).
  */
 describe('SimulateView', () => {
   const initContract = vi.fn(async () => { await Promise.resolve(); });
@@ -53,44 +53,12 @@ describe('SimulateView', () => {
   });
 
   const runRows = () => within(screen.getByRole('list', { name: SIMULATE.runsLabel })).getAllByRole('button');
-  const noDialog = () => {
-    expect(screen.queryByText(SIMULATE.blocked.noLogic.title)).toBeNull();
-    expect(screen.queryByText(SIMULATE.blocked.failed.title)).toBeNull();
-  };
+  const noDialog = () => expect(screen.queryByText(SIMULATE.blocked.title)).toBeNull();
 
-  describe('on arrival', () => {
-    beforeEach(() => {
-      useAppStore.setState({ compiledLogicJs: null, executionHistory: [], executionState: '' });
-    });
-
-    it('compiles logic that was never compiled', () => {
-      render(<SimulateView />);
-      expect(setLogicTs).toHaveBeenCalledTimes(1);
-      expect(setLogicTs).toHaveBeenCalledWith(latePayment.LOGIC);
-      noDialog();
-    });
-
-    it('compiles what the editor holds when it was edited since the last compile', () => {
-      useAppStore.setState({ editorLogicTs: 'class X {}', compiledLogicJs: 'stale' });
-      render(<SimulateView />);
-      expect(setLogicTs).toHaveBeenCalledWith('class X {}');
-    });
-
-    it('leaves compiled, unchanged logic alone', () => {
-      useAppStore.setState({ compiledLogicJs: 'compiled' });
-      render(<SimulateView />);
-      expect(setLogicTs).not.toHaveBeenCalled();
-      noDialog();
-    });
-
-    it('says so while compiling', () => {
-      useAppStore.setState({ isCompiling: true });
-      render(<SimulateView />);
-      expect(setLogicTs).not.toHaveBeenCalled();
-      expect(screen.getByText(SIMULATE.compiling)).toBeInTheDocument();
-      noDialog();
-      expect(screen.getByRole('button', { name: SIMULATE.send })).toBeDisabled();
-    });
+  it('never compiles on its own — that happens before the step opens', () => {
+    useAppStore.setState({ compiledLogicJs: null, editorLogicTs: 'class X {}' });
+    render(<SimulateView />);
+    expect(setLogicTs).not.toHaveBeenCalled();
   });
 
   describe('when there is no logic', () => {
@@ -98,15 +66,14 @@ describe('SimulateView', () => {
       useAppStore.setState({ compiledLogicJs: null, executionHistory: [], executionState: '', editorLogicTs: '', logicTs: '' });
     });
 
-    it('does not compile; shows the "no logic" dialog and "Stay here" dismisses it', async () => {
+    it('shows the "no logic" dialog and "Stay here" dismisses it', async () => {
       render(<SimulateView />);
-      expect(setLogicTs).not.toHaveBeenCalled();
-      expect(screen.getByText(SIMULATE.blocked.noLogic.title)).toBeInTheDocument();
-      expect(screen.getByText(SIMULATE.blocked.noLogic.body)).toBeInTheDocument();
+      expect(screen.getByText(SIMULATE.blocked.title)).toBeInTheDocument();
+      expect(screen.getByText(SIMULATE.blocked.body)).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.stay }));
       // antd keeps a closed Modal mounted and hides its wrapper
       await waitFor(() =>
-        expect(screen.getByText(SIMULATE.blocked.noLogic.title).closest('.ant-modal-wrap')).toHaveStyle({ display: 'none' })
+        expect(screen.getByText(SIMULATE.blocked.title).closest('.ant-modal-wrap')).toHaveStyle({ display: 'none' })
       );
       expect(screen.getByRole('button', { name: SIMULATE.send })).toBeDisabled();
       expect(screen.getByRole('button', { name: SIMULATE.restart })).toBeDisabled();
@@ -115,37 +82,12 @@ describe('SimulateView', () => {
     it('treats the untouched skeleton from the Logic step as no logic', () => {
       useAppStore.setState({ editorLogicTs: skeleton });
       render(<SimulateView />);
-      expect(setLogicTs).not.toHaveBeenCalled();
-      expect(screen.getByText(SIMULATE.blocked.noLogic.title)).toBeInTheDocument();
+      expect(screen.getByText(SIMULATE.blocked.title)).toBeInTheDocument();
     });
 
     it('"Open the Logic step" opens it', () => {
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.openLogic }));
-      expect(useDesignV2Store.getState().view).toBe(STEP_ID.logic);
-    });
-  });
-
-  describe('when the logic did not compile', () => {
-    beforeEach(() => {
-      useAppStore.setState({
-        compiledLogicJs: null,
-        executionHistory: [],
-        executionState: '',
-        compilationErrors: [{ message: "Cannot find name 'foo'." }],
-      });
-    });
-
-    it('shows the error in a dialog and does not compile again', () => {
-      render(<SimulateView />);
-      expect(setLogicTs).not.toHaveBeenCalled();
-      expect(screen.getByText(SIMULATE.blocked.failed.title)).toBeInTheDocument();
-      expect(screen.getByText(SIMULATE.blocked.failed.body("Cannot find name 'foo'."))).toBeInTheDocument();
-    });
-
-    it('"Jump back to Logic" opens the Logic step', () => {
-      render(<SimulateView />);
-      fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.jump }));
       expect(useDesignV2Store.getState().view).toBe(STEP_ID.logic);
     });
   });

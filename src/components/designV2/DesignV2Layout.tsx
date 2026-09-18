@@ -1,4 +1,4 @@
-import { ConfigProvider } from "antd";
+import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
@@ -8,7 +8,9 @@ import PreviewDrawer from "./PreviewDrawer";
 import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
 import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
-import { FIRST_STEP } from "../../types/designV2.types";
+import { ensureLogicCompiles } from "./useCompileOnArrival";
+import { FOOTER } from "./constants";
+import { FIRST_STEP, STEPS, STEP_ID, type DesignV2View } from "../../types/designV2.types";
 import "./DesignV2Layout.css";
 
 /**
@@ -33,8 +35,11 @@ import "./DesignV2Layout.css";
  * containers as the old layout. The Start step has no footer: each gallery
  * card carries its own "Start with this template" button.
  * antd components inside are themed with the v2 palette via ConfigProvider (see theme.ts).
- * Simulate compiles the logic when it opens (no compile button) and runs it
- * through the store's initContract / triggerContract (see SimulateView.tsx).
+ * There is no compile button: the Logic step compiles its logic when it
+ * opens, and every move to Simulate — Next or the stepper — compiles it
+ * again if it changed; a compile error keeps the user where they are with
+ * the error in view (see useCompileOnArrival.ts). Simulate runs the compiled
+ * logic through the store's initContract / triggerContract (SimulateView.tsx).
  * Deploy is still a placeholder.
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
@@ -45,7 +50,6 @@ const DesignV2Layout = () => {
   const start = useDesignV2Store((s) => s.start);
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const goBack = useDesignV2Store((s) => s.goBack);
-  const goNext = useDesignV2Store((s) => s.goNext);
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const togglePreview = useDesignV2Store((s) => s.togglePreview);
   const pick = usePickTemplate();
@@ -54,6 +58,21 @@ const DesignV2Layout = () => {
   const handleStart = () => {
     if (!selectedTemplate) pick(DEFAULT_TEMPLATE);
     start();
+  };
+
+  /** Any move to another step. Simulate opens only if the logic compiles (or there is none). */
+  const navigate = (target: DesignV2View) => {
+    void (async () => {
+      if (target === STEP_ID.simulate && !(await ensureLogicCompiles())) {
+        void message.error(FOOTER.logicBlocked);
+        return;
+      }
+      setView(target);
+    })();
+  };
+  const next = () => {
+    const index = STEPS.findIndex((step) => step.id === view);
+    if (index >= 0 && index < STEPS.length - 1) navigate(STEPS[index + 1].id);
   };
 
   const showChrome = view !== "welcome";
@@ -69,7 +88,7 @@ const DesignV2Layout = () => {
         <Header
           view={view}
           previewOpen={previewOpen}
-          onNavigate={setView}
+          onNavigate={navigate}
           onTogglePreview={togglePreview}
         />
         <div className="nd-body">
@@ -78,7 +97,7 @@ const DesignV2Layout = () => {
           </div>
           <PreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} />
         </div>
-        {showFooter && <Footer view={view} onBack={goBack} onNext={goNext} />}
+        {showFooter && <Footer view={view} onBack={goBack} onNext={next} />}
       </div>
     </div>
     </ConfigProvider>

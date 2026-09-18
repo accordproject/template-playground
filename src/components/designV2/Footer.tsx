@@ -21,6 +21,7 @@ interface FooterProps {
 const Footer = ({ view, onBack, onNext }: FooterProps) => {
   const rebuildError = useAppStore((s) => s.error);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
+  const isCompiling = useAppStore((s) => s.isCompiling);
   const executionHistory = useAppStore((s) => s.executionHistory);
   const canBack = view !== FIRST_STEP;
   const canNext = view !== LAST_STEP;
@@ -49,7 +50,7 @@ const Footer = ({ view, onBack, onNext }: FooterProps) => {
         </Button>
       )}
       {canNext && (
-        <Button type="primary" size="large" onClick={onNext}>
+        <Button type="primary" size="large" onClick={onNext} loading={isCompiling}>
           {FOOTER.next}
         </Button>
       )}
