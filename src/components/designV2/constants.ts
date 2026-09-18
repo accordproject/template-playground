@@ -107,6 +107,13 @@ export const START = {
   hint: "everything stays editable later",
   blank: "+ Start blank",
   blankName: "Blank template",
+  uploadCta: "Upload .cta file",
+  loadUrl: "Load from URL",
+  browseLibrary: "Browse template library",
+  importedPrefix: "Imported: ",
+  uploadModalTitle: "Upload a template archive (.cta or .zip)",
+  urlModalTitle: "Load template from URL",
+  libraryModalTitle: "Browse template library",
   /** Primary button on every card: pick the template and open the first editor step. */
   open: "Start with this template →",
   /** Accessible name of a card's button, so each one is distinct: "Start with Counter Contract". */
