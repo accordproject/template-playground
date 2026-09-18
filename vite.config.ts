@@ -22,6 +22,9 @@ const viteConfig = defineViteConfig({
   optimizeDeps: {
     include: ["immer"],
     needsInterop: ['@accordproject/template-engine'],
+    esbuildOptions: {
+      sourcemap: false,
+    },
   },
   build: {
     rollupOptions: {
@@ -43,7 +46,8 @@ const viteConfig = defineViteConfig({
 
 
 // https://vitest.dev/config/
-const vitestConfig = defineVitestConfig({  test: {
+const vitestConfig = defineVitestConfig({
+  test: {
     globals: true,
     environment: "jsdom",
     setupFiles: "./src/utils/testing/setup.ts",
