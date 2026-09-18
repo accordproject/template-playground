@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { ConfigProvider } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
+import useAppStore from "../../store/store";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
@@ -9,6 +11,7 @@ import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
 import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
 import { FIRST_STEP } from "../../types/designV2.types";
+import { registerWebMcp } from "../../mcp/registerWebMcp";
 import "./DesignV2Layout.css";
 
 /**
@@ -48,6 +51,13 @@ const DesignV2Layout = () => {
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const togglePreview = useDesignV2Store((s) => s.togglePreview);
   const pick = usePickTemplate();
+  const isDesignV2Enabled = useAppStore((s) => s.isDesignV2Enabled);
+
+  useEffect(() => {
+    if (!isDesignV2Enabled) return;
+    const cleanup = registerWebMcp();
+    return cleanup;
+  }, [isDesignV2Enabled]);
 
   /** "Start building": enter the flow on a template — the first card unless one was already picked. */
   const handleStart = () => {
