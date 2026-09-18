@@ -5,7 +5,7 @@ import { failedRun, initRun, okRun, parseFailedRun } from './runFixtures';
 
 describe('simulateRuns helpers', () => {
   it('describeFields lists scalar fields and skips Concerto metadata', () => {
-    expect(describeFields(okRun.stateAfter)).toBe('count 2 · owner Alice');
+    expect(describeFields(okRun.stateAfter)).toBe('stateId late-payment-state · count 1 · totalPenalty 210 · isTerminated false');
     expect(describeFields({ $class: 'x', $timestamp: 'y', nested: { a: 1 }, flag: true })).toBe('flag true');
     expect(describeFields(null)).toBe('');
   });
@@ -13,9 +13,9 @@ describe('simulateRuns helpers', () => {
   it('runSummary describes init, successful and failed triggers', () => {
     expect(runSummary(initRun)).toBe(SIMULATE.summary.init);
     expect(runSummary({ ...initRun, error: 'boom' })).toBe(SIMULATE.summary.initFailed);
-    expect(runSummary(okRun)).toBe('increment 2 → "Alice\'s count is now 2 (of 10)"');
-    expect(runSummary({ ...okRun, response: { newCount: 2 } })).toBe('increment 2 → ok');
-    expect(runSummary(failedRun)).toBe(`increment 9 — ${SIMULATE.summary.triggerFailed}`);
+    expect(runSummary(okRun)).toBe(`forceMajeure false · agreedPayment 2026-07-01T00:00:00.000Z · invoiceValue 1000 → ok`);
+    expect(runSummary({ ...okRun, response: { message: 'Penalty applied' } })).toBe(`forceMajeure false · agreedPayment 2026-07-01T00:00:00.000Z · invoiceValue 1000 → "Penalty applied"`);
+    expect(runSummary(failedRun)).toBe(`forceMajeure false · agreedPayment 2026-07-01T00:00:00.000Z · invoiceValue 2500 — ${SIMULATE.summary.triggerFailed}`);
     expect(runSummary(parseFailedRun)).toBe(`#3 — ${SIMULATE.summary.invalidRequest}`);
   });
 

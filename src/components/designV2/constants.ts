@@ -58,7 +58,6 @@ export const HEADER = {
 
 export const FOOTER = {
   noProblems: "✓ no problems",
-  applyAndCompileDirty: "Apply & Compile*",
   /** Problems pill while the app store reports an error; the full message follows it. */
   problem: "✕ error",
   problemLabel: "Problem",
@@ -66,8 +65,9 @@ export const FOOTER = {
   failedRuns: (count: number, lastId: string) =>
     `✕ ${count} failed ${count === 1 ? "run" : "runs"} · run ${lastId}`,
   back: "← Back",
-  applyAndCompile: "Apply & Compile",
   next: "Next →",
+  /** Toast when a move to Simulate is refused because the logic does not compile. */
+  logicBlocked: "The logic doesn’t compile — fix the error on the Logic step before simulating.",
 } as const;
 
 export const HELP_RAIL = {
@@ -105,7 +105,6 @@ export const WELCOME = {
 export const START = {
   title: "Choose a template",
   hint: "everything stays editable later",
-  blank: "+ Start blank",
   blankName: "Blank template",
   /** Primary button on every card: pick the template and open the first editor step. */
   open: "Start with this template →",
@@ -117,9 +116,9 @@ export const START = {
   learnLabel: (name: string) => `What ${name} demonstrates`,
 } as const;
 
-export type StartAccent = "teal" | "amber" | "blue";
-/** Which of the three line-art illustrations (see SampleArt.tsx) a card shows. */
-export type StartArt = "counter" | "offer" | "nda";
+export type StartAccent = "teal" | "amber" | "blue" | "ink";
+/** Which line-art illustration (see SampleArt.tsx) a card shows. */
+export type StartArt = "variables" | "clauses" | "logic" | "blank";
 
 /** One card in the "Choose a template type" gallery. */
 export interface StartSample {
@@ -136,50 +135,69 @@ export interface StartSample {
   /**
    * Two or three short points on what the reader learns from this template —
    * the reason to pick it over the others. The gallery is a curated set, so
-   * this matters more than a text preview.
+   * this matters more than a text preview. Empty on the blank card.
    */
   demonstrates: readonly string[];
 }
 
-/** Gallery cards shown on the Start step. Every card's sample ships logic, so every card walks the same steps. */
+/**
+ * Gallery cards shown on the Start step: three real agreements, in the order
+ * of a tour of what a template can do — text with variables, then text that
+ * depends on the data, then logic that keeps score. The first two ship no
+ * logic; the Logic step offers a skeleton for them.
+ */
 export const START_SAMPLES: readonly StartSample[] = [
   {
-    name: "Counter Contract",
-    sampleName: "Counter Contract (with Logic)",
+    name: "Consulting Agreement",
+    sampleName: "Consulting Agreement",
     accent: "teal",
-    art: "counter",
-    tagline: "Stateful logic — start here.",
+    art: "variables",
+    tagline: "Agreement text with the details filled in.",
     demonstrates: [
-      "Remembers state between requests",
-      "init() and trigger()",
-      "Enforces a maximum",
+      "Parties, fees and dates as named variables",
+      "Each variable declared once in the data model",
+      "Change the data and the agreement re-renders",
     ],
   },
   {
-    name: "Employment Offer",
-    sampleName: "Employment Offer Letter",
+    name: "Residential Lease",
+    sampleName: "Residential Lease",
     accent: "amber",
-    art: "offer",
-    tagline: "Text and data, one answer.",
+    art: "clauses",
+    tagline: "Clauses that appear only when they apply.",
     demonstrates: [
-      "Variables filled from the model",
-      "Accept or decline, once",
-      "Emits an event",
+      "A parking clause only when there is a space",
+      "Pets allowed or not — one sentence each",
+      "Rent formatted, deposit worked out from it",
     ],
   },
   {
-    name: "Non-disclosure",
-    sampleName: "Non-Disclosure Agreement",
+    name: "Late Payment Penalty",
+    sampleName: "Late Payment Penalty (with Logic)",
     accent: "blue",
-    art: "nda",
-    tagline: "Rules that depend on dates.",
+    art: "logic",
+    tagline: "Terms that compute and keep score.",
     demonstrates: [
-      "Checks dates against the term",
-      "Counts disclosures in state",
-      "Records every event",
+      "A penalty worked out per day overdue",
+      "Capped at a share of the invoice",
+      "Remembers the running total between payments",
     ],
   },
 ];
+
+/**
+ * Fourth gallery card: the empty template, styled like the others so the
+ * choice reads as one set of options. Not in START_SAMPLES because it ships
+ * no logic, so it is not part of the "every card walks the same steps" rule.
+ */
+export const START_BLANK: StartSample = {
+  name: START.blankName,
+  sampleName: BLANK_SAMPLE_NAME,
+  accent: "ink",
+  art: "blank",
+  tagline: "An empty text, model and data — write your own agreement from scratch.",
+  demonstrates: [],
+};
 
 /**
  * NAME of the sample in src/samples to load for a card picked on the Start
@@ -190,7 +208,7 @@ export const sampleNameFor = (selectedTemplate: string | null): string | undefin
   return START_SAMPLES.find((card) => card.name === selectedTemplate)?.sampleName;
 };
 
-/** Step "Logic": logic.ts in the TypeScript editor, compiled through the store on Apply & Compile. */
+/** Step "Logic": logic.ts in the TypeScript editor, compiled through the store when this step or Simulate opens. */
 export const LOGIC = {
   icon: "ƒ",
   title: "Add logic",
@@ -217,12 +235,13 @@ export const LOGIC = {
     },
     pair: {
       label: "init() & trigger()",
-      hint: "set the starting state, then respond to requests",
+      hint: "set the starting state, then respond to requests — compiled when you open this step or Simulate",
     },
   },
-  /** Same five states, same order, as the legacy logic panel's badge. */
+  /** Same states, same order, as the legacy logic panel's badge; there is no compile button, Simulate compiles. */
   status: {
-    dirty: "unsaved changes",
+    /** Editing shows no state text; the empty icon says enough until the next compile. */
+    dirty: "",
     compiling: "compiling…",
     failed: "compilation failed",
     compiled: "compiled",
@@ -388,11 +407,15 @@ export const SIMULATE = {
     triggerFailed: "trigger() threw",
     invalidRequest: "request is not valid JSON",
   },
+  /**
+   * The dialog shown instead of a runnable contract. The logic is compiled
+   * before this step opens, so the only reason left is that none was written.
+   */
   blocked: {
-    title: "Simulate can’t run yet",
-    body: "Your logic hasn’t compiled — trigger() is still a stub, so there is nothing to run a request against. Finish the Logic step and hit Apply & Compile.",
+    title: "This template has no logic yet",
+    body: "Simulate runs the contract’s logic against the requests you send. This template has none — open the Logic step and write init() and trigger(); a skeleton built from your data model is waiting there.",
     stay: "Stay here",
-    jump: "Jump back to Logic",
+    openLogic: "Open the Logic step",
   },
 } as const;
 

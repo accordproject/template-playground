@@ -204,11 +204,24 @@
 .nd-start-head { flex: none; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .nd-start-title { font-size: 19px; font-weight: 600; letter-spacing: -0.024em; }
 .nd-start-hint { font-size: 12.5px; color: var(--nd-text-4); font-weight: 500; }
+/*
+ * Four equal columns on one row: the three templates and the blank card read
+ * as one set of options. Two grid rows — illustration, then text — that every
+ * card shares through subgrid, so the line between the two sits at the same
+ * height on all cards even though the blank card has no "demonstrates" list.
+ */
 .nd-sample-grid {
   flex: 1; min-height: 0;
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  grid-template-rows: minmax(0, 1fr); gap: 16px; align-items: stretch;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) auto; gap: 16px; align-items: stretch;
   overflow-y: auto;
+}
+/* Narrower: two by two, then one column; each card still spans an illustration row and a text row. */
+@media (max-width: 1180px) {
+  .nd-sample-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: minmax(150px, auto) auto; }
+}
+@media (max-width: 640px) {
+  .nd-sample-grid { grid-template-columns: minmax(0, 1fr); }
 }
 /* A curated card: the illustration on top, the pitch and its own start button below. */
 .nd-sample-card {
@@ -216,7 +229,7 @@
   text-align: left; min-height: 0;
   background: #fff; border: 1px solid #e5eff0; border-radius: 12px; padding: 0;
   box-shadow: 0 1px 2px rgba(15, 32, 39, 0.04);
-  display: flex; flex-direction: column; overflow: hidden;
+  display: grid; grid-template-rows: subgrid; grid-row: span 2; overflow: hidden;
   transition: transform 220ms cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 220ms ease, border-color 220ms ease;
 }
 .nd-sample-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(7, 35, 48, 0.14); border-color: #9fd6dc; }
@@ -225,6 +238,8 @@
 .nd-sample-card-teal { --nd-spine: var(--nd-teal); --nd-spine-tint: var(--nd-teal-tint); }
 .nd-sample-card-amber { --nd-spine: var(--nd-amber); --nd-spine-tint: var(--nd-amber-tint); }
 .nd-sample-card-blue { --nd-spine: var(--nd-blue); --nd-spine-tint: #e7f2fe; }
+/* The blank card: ink spine on a neutral ground, so it reads as "none of the above" */
+.nd-sample-card-ink { --nd-spine: #0a4a62; --nd-spine-tint: #eef3f5; }
 
 /* Illustration at the top of the card: line art in the accent colour on a tinted, faintly gridded ground */
 .nd-sample-art {
@@ -258,7 +273,8 @@
   content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%;
   background: var(--nd-spine); margin-top: 6px;
 }
-.nd-sample-open { margin-top: 3px; }
+/* The button sits at the bottom of every card, so the blank card (no list) lines up with the others */
+.nd-sample-open { margin-top: auto; }
 
 /* Editor steps */
 .nd-view-editor { align-items: stretch; }
@@ -275,13 +291,11 @@
 .nd-editor-icon-amber { background: #fff3e2; color: var(--nd-amber); }
 .nd-editor-icon-ink { background: #f0f5f7; color: #0a4a62; }
 
-/* Logic step: progress header, the two job rows, then the editor */
+/* Logic step: the header with the two job rows, then the editor */
 .nd-logic-head { flex: none; padding: 9px 14px 8px; border-bottom: 1px solid var(--nd-line-soft); }
 .nd-logic-head-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
 .nd-logic-done { font-size: 11px; font-weight: 600; color: #93a9af; }
 .nd-logic-done-all { color: #0c8b57; }
-.nd-logic-progress { height: 4px; margin-top: 8px; border-radius: 999px; background: var(--nd-line-soft); overflow: hidden; }
-.nd-logic-progress-bar { height: 100%; background: linear-gradient(90deg, #0a8188, #0c949c); border-radius: 999px; transition: width 300ms ease; }
 /* The two parts of the job as chips in the head row; they wrap under the file name when the card is narrow. */
 .nd-logic-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; min-width: 0; }
 .nd-logic-chip {

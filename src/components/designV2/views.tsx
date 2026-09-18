@@ -13,6 +13,7 @@ import {
   WELCOME,
   START,
   START_SAMPLES,
+  START_BLANK,
   DEPLOY,
   type StartSample,
 } from "./constants";
@@ -68,9 +69,9 @@ interface SampleCardProps {
 
 /**
  * One gallery card: an illustration on top; name, tagline, a short list
- * of what the template demonstrates and its own "Start with this template"
- * button underneath. Nothing else on the card is clickable — picking and
- * opening a template is one click.
+ * of what the template demonstrates (omitted on the blank card) and its own
+ * "Start with this template" button underneath. Nothing else on the card is
+ * clickable — picking and opening a template is one click.
  */
 const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
   const classes = [
@@ -92,11 +93,13 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
           {current && <span className="nd-sample-current">{START.current}</span>}
         </div>
         <p className="nd-sample-tagline">{sample.tagline}</p>
-        <ul className="nd-sample-learn" aria-label={START.learnLabel(sample.name)}>
-          {sample.demonstrates.map((point) => (
-            <li key={point}>{point}</li>
-          ))}
-        </ul>
+        {sample.demonstrates.length > 0 && (
+          <ul className="nd-sample-learn" aria-label={START.learnLabel(sample.name)}>
+            {sample.demonstrates.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
+        )}
         <Button
           type="primary"
           block
@@ -113,7 +116,8 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
 
 /**
  * "Choose a template" gallery: a curated set of cards, each opening the flow
- * on its template in one click. "+ Start blank" does the same with the empty template.
+ * on its template in one click. The blank template is the last card, styled
+ * like the others, so the choice reads as one set of options.
  */
 export const StartView = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
@@ -129,13 +133,9 @@ export const StartView = () => {
       <div className="nd-start-head">
         <span className="nd-start-title">{START.title}</span>
         <span className="nd-start-hint">{START.hint}</span>
-        <div className="nd-spacer" />
-        <Button type="dashed" size="small" onClick={() => open(START.blankName)}>
-          {START.blank}
-        </Button>
       </div>
       <div className="nd-sample-grid">
-        {START_SAMPLES.map((sample) => (
+        {[...START_SAMPLES, START_BLANK].map((sample) => (
           <SampleCard
             key={sample.name}
             sample={sample}

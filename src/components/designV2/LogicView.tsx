@@ -8,6 +8,7 @@ import { STEP_ID } from "../../types/designV2.types";
 import HelpRail, { HelpRailReopen, type ChecklistItem, type ChecklistTone } from "./HelpRail";
 import { LOGIC } from "./constants";
 import { logicStatus, type LogicStatus } from "./logicStatus";
+import { useCompileOnArrival } from "./useCompileOnArrival";
 
 /** Icon and tone of the "init() & trigger()" chip for each compile state. */
 const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
@@ -26,12 +27,15 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
  * The chips hold label and state; the longer hints live in their tooltips.
  *
  * The editor is LogicMonaco, the store-bound Monaco the legacy panel uses.
- * Compiling happens through the footer's "Apply & Compile" (store.setLogicTs).
+ * There is no compile button: opening this step, or Simulate, compiles what
+ * the editor holds (useCompileOnArrival → store.setLogicTs). A template that
+ * ships logic therefore opens with both chips ticked and the bar full as
+ * soon as its logic compiles; a compile error turns the chip red.
  * The types chip reads model.cto (describeLogicModel) for a request and a
  * response transaction and links to the Model & Data step; the init/trigger
  * chip and the help-rail checklist mirror the store's compile state.
- * Every template ships logic; when the step opens on an empty editor anyway
- * (the blank template), a skeleton built from the model is written into it.
+ * When the step opens on an empty editor (a template without logic, or the
+ * blank one), a skeleton built from the model is written into it.
  */
 export const LogicView = () => {
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
@@ -42,6 +46,8 @@ export const LogicView = () => {
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
   const setEditorLogicTs = useAppStore((s) => s.setEditorLogicTs);
   const setView = useDesignV2Store((s) => s.setView);
+
+  useCompileOnArrival();
 
   const model = useMemo(() => describeLogicModel(modelCto), [modelCto]);
   const typesOk = Boolean(model?.request && model?.response);
@@ -108,16 +114,15 @@ export const LogicView = () => {
                 <li className="nd-logic-chip" title={status === "failed" ? compilationErrors[0]?.message : LOGIC.chips.pair.hint}>
                   <span className={`nd-check-icon nd-check-icon-${pair.tone}`} aria-hidden="true">{pair.icon}</span>
                   <span className="nd-mono nd-logic-chip-label">{LOGIC.chips.pair.label}</span>
-                  <span className={`nd-logic-chip-tag nd-logic-chip-tag-${pair.tone}`}>{LOGIC.status[status]}</span>
+                  {LOGIC.status[status] && (
+                    <span className={`nd-logic-chip-tag nd-logic-chip-tag-${pair.tone}`}>{LOGIC.status[status]}</span>
+                  )}
                 </li>
               </ol>
               <div className="nd-spacer" />
               <span className={`nd-mono nd-logic-done ${done === 2 ? "nd-logic-done-all" : ""}`}>
                 {LOGIC.doneCount(done, 2)}
               </span>
-            </div>
-            <div className="nd-logic-progress" role="progressbar" aria-valuemin={0} aria-valuemax={2} aria-valuenow={done}>
-              <div className="nd-logic-progress-bar" style={{ width: `${(done / 2) * 100}%` }} />
             </div>
           </div>
 
