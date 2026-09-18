@@ -6,6 +6,7 @@ import { LogicView } from "./LogicView";
 import SimulateView from "./SimulateView";
 import SampleArt from "./SampleArt";
 import useDesignV2Store from "../../store/designV2Store";
+import useAppStore from "../../store/store";
 import { usePickTemplate } from "./usePickTemplate";
 import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
 import {
@@ -32,30 +33,30 @@ interface WelcomeViewProps {
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
   const navigate = useNavigate();
   return (
-  <div className="nd-view nd-view-welcome">
-    <div className="nd-hero">
-      <div className="nd-hero-grid" />
-      <img className="nd-hero-logo" src={WELCOME.logoSrc} alt={WELCOME.logoAlt} />
-      <div className="nd-spacer" />
-      <h1 className="nd-hero-title">
-        {WELCOME.titleLine}
-        <br />
-        <span className="nd-hero-title-accent">{WELCOME.titleAccent}</span>
-      </h1>
-      <p className="nd-hero-sub">
-        {WELCOME.subtitleLine1}
-        <br />
-        {WELCOME.subtitleLine2}
-      </p>
-      <div className="nd-hero-actions">
-        <Button type="primary" size="large" shape="round" onClick={onStart}>
-          {WELCOME.start} →
-        </Button>
-        <Button ghost size="large" shape="round" onClick={() => navigate(ROUTES.learnIntro)}>{WELCOME.howItWorks}</Button>
+    <div className="nd-view nd-view-welcome">
+      <div className="nd-hero">
+        <div className="nd-hero-grid" />
+        <img className="nd-hero-logo" src={WELCOME.logoSrc} alt={WELCOME.logoAlt} />
+        <div className="nd-spacer" />
+        <h1 className="nd-hero-title">
+          {WELCOME.titleLine}
+          <br />
+          <span className="nd-hero-title-accent">{WELCOME.titleAccent}</span>
+        </h1>
+        <p className="nd-hero-sub">
+          {WELCOME.subtitleLine1}
+          <br />
+          {WELCOME.subtitleLine2}
+        </p>
+        <div className="nd-hero-actions">
+          <Button type="primary" size="large" shape="round" onClick={onStart}>
+            {WELCOME.start} →
+          </Button>
+          <Button ghost size="large" shape="round" onClick={() => navigate(ROUTES.learnIntro)}>{WELCOME.howItWorks}</Button>
+        </div>
+        <div className="nd-spacer" />
       </div>
-      <div className="nd-spacer" />
     </div>
-  </div>
   );
 };
 
@@ -149,20 +150,55 @@ export const StartView = () => {
 };
 
 /** Step 7: Deploy — placeholder until the deploy flow is designed. */
-export const DeployView = () => (
-  <div className="nd-view nd-view-export">
+export const DeployView = () => {
+  const downloadTemplateArchive = useAppStore((state) => state.downloadTemplateArchive);
+
+  return (
+    <div className="nd-view nd-view-export">
     <div className="nd-export-head">
       <h1>{DEPLOY.title}</h1>
     </div>
+
     <div className="nd-export-grid">
-      {DEPLOY.cards.map((label) => (
-        <div key={label} className="nd-card nd-export-card">
-          <span className="nd-export-label">{label}</span>
-        </div>
-      ))}
+      {DEPLOY.cards.map((card) =>
+        card.href ? (
+          <a
+            key={card.title}
+            href={card.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nd-card nd-export-card"
+          >
+            <div className="nd-export-label">
+              <span>{card.title}</span>
+              <span>↗</span>
+            </div>
+            <span className="nd-step-meta">{card.description}</span>
+          </a>
+        ) : card.title === "Download template archive" ? (
+          <button
+            key={card.title}
+            type="button"
+            className="nd-card nd-export-card"
+            onClick={downloadTemplateArchive}
+          >
+            <span className="nd-export-label">{card.title}</span>
+            <span className="nd-step-meta">{card.description}</span>
+          </button>
+        ) : (
+          <div
+            key={card.title}
+            className="nd-card nd-export-card"
+          >
+            <span className="nd-export-label">{card.title}</span>
+            <span className="nd-step-meta">{card.description}</span>
+          </div>
+        )
+      )}
     </div>
-  </div>
-);
+    </div>
+  );
+};
 
 interface ViewSwitchProps {
   view: DesignV2View;
