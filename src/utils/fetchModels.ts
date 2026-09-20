@@ -11,7 +11,12 @@ export interface FetchModelsOptions {
 
 interface ModelListResponse {
   data?: { id: string }[];
-  models?: { id?: string; name?: string; model?: string }[];
+  models?: {
+    id?: string;
+    name?: string;
+    model?: string;
+    supportedGenerationMethods?: string[];
+  }[];
 }
 
 /**
@@ -66,8 +71,9 @@ export async function fetchModels({
 
       case 'google': {
         if (!apiKey) return [];
+        // v1beta2 is the retired PaLM API and never lists Gemini models.
         const res = await fetch(
-          'https://generativelanguage.googleapis.com/v1beta2/models',
+          'https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000',
           { headers: { 'x-goog-api-key': apiKey }, signal }
         );
         if (!res.ok) {
@@ -75,7 +81,13 @@ export async function fetchModels({
           return [];
         }
         const data = (await res.json()) as ModelListResponse;
-        return data.models?.map((m) => m.name).filter((name): name is string => Boolean(name)) ?? [];
+        return (
+          data.models
+            // The list also contains embedding and image models, which cannot chat.
+            ?.filter((m) => m.supportedGenerationMethods?.includes('generateContent') ?? true)
+            .map((m) => m.name)
+            .filter((name): name is string => Boolean(name)) ?? []
+        );
       }
 
       case 'mistral': {
