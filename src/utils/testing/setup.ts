@@ -15,6 +15,15 @@ vi.mock("monaco-editor", () => ({
     defineTheme: vi.fn(),
   },
   Range: vi.fn(),
+  Selection: class {
+  constructor(
+    public startLineNumber: number,
+    public startColumn: number,
+    public endLineNumber: number,
+    public endColumn: number,
+  ) {}
+},
+
   languages: {
     register: vi.fn(),
     setMonarchTokensProvider: vi.fn(),
