@@ -34,17 +34,22 @@ describe("RebuildSandboxFrame", () => {
     expect(iframe).toHaveClass("sandbox-frame-hidden");
   });
 
-  it("embeds a content policy naming the page origin and the worker bundle", () => {
+  it("embeds a content policy that allows exactly the worker bundle file", () => {
     const { container } = render(<RebuildSandboxFrame />);
     const srcdoc = container.querySelector("iframe")?.getAttribute("srcdoc") ?? "";
+    const workerHref = new URL("/assets/rebuild.worker-test.js", document.baseURI).href;
 
     expect(srcdoc).toContain('http-equiv="Content-Security-Policy"');
     expect(srcdoc).toContain("default-src 'none'");
-    expect(srcdoc).toContain(`script-src 'nonce-`);
-    expect(srcdoc).toContain(window.location.origin);
-    expect(srcdoc).toContain(
-      JSON.stringify(new URL("/assets/rebuild.worker-test.js", document.baseURI).href),
-    );
+    // The bundle's exact URL, not the page origin, is the only script source.
+    const scriptSrc = srcdoc.match(/script-src [^;"]*/)?.[0] ?? "";
+    expect(scriptSrc.split(" ")).toEqual([
+      "script-src",
+      expect.stringMatching(/^'nonce-[0-9a-f]{32}'$/),
+      workerHref,
+      "'unsafe-eval'",
+    ]);
+    expect(srcdoc).toContain(JSON.stringify(workerHref));
   });
 
   it("accepts the ready signal from its own iframe", () => {

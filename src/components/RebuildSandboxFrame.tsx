@@ -19,9 +19,9 @@ import "../styles/components/SandboxFrame.css";
  * `new Function`. A shared link can carry any formula, so that evaluation
  * must not happen in the page: the iframe is loaded from `srcdoc` with
  * `sandbox="allow-scripts"` (no `allow-same-origin`), which gives it a null
- * origin, and its document carries a Content Security Policy that names
- * the playground origin for the worker bundle and allows no other network
- * access. See `rebuildSandboxDocument.ts` for the policy.
+ * origin, and its document carries a Content Security Policy that allows
+ * exactly one script file (the worker bundle) and no network access beyond
+ * the TypeScript CDN. See `rebuildSandboxDocument.ts` for the policy.
  *
  * This component:
  * 1. Builds the sandbox document once, embedding the worker bundle URL
@@ -35,7 +35,6 @@ export default function RebuildSandboxFrame() {
   const srcDoc = useMemo(() => {
     const absoluteWorkerUrl = new URL(workerUrl, document.baseURI).href;
     return buildRebuildSandboxDocument({
-      origin: window.location.origin,
       workerUrl: absoluteWorkerUrl,
       nonce: createNonce(),
     });

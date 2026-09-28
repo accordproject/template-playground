@@ -5,6 +5,7 @@ import {
   createNonce,
   toScriptLiteral,
   TYPESCRIPT_CDN_ORIGIN,
+  workerScriptSource,
 } from "../../sandbox/rebuildSandboxDocument";
 
 const ORIGIN = "https://playground.example";
@@ -20,16 +21,18 @@ function directives(csp: string): Record<string, string> {
 }
 
 describe("buildRebuildSandboxCsp", () => {
-  const csp = directives(buildRebuildSandboxCsp(ORIGIN, "n0nce"));
+  const csp = directives(buildRebuildSandboxCsp(WORKER_URL, "n0nce"));
 
   it("blocks everything by default", () => {
     expect(csp["default-src"]).toBe("'none'");
   });
 
-  it("allows scripts only from the nonced bootstrap, the playground origin and eval", () => {
-    expect(csp["script-src"]).toBe(`'nonce-n0nce' ${ORIGIN} 'unsafe-eval'`);
+  it("allows scripts only from the nonced bootstrap, the one worker bundle file and eval", () => {
+    expect(csp["script-src"]).toBe(`'nonce-n0nce' ${WORKER_URL} 'unsafe-eval'`);
     expect(csp["script-src"]).not.toContain("'unsafe-inline'");
-    // No scheme-wide sources: only the one named origin may serve scripts.
+    // Neither the whole origin nor a scheme: formula code must not be able
+    // to importScripts() any other URL.
+    expect(csp["script-src"].split(" ")).not.toContain(ORIGIN);
     expect(csp["script-src"].split(" ")).not.toContain("https:");
   });
 
@@ -48,9 +51,32 @@ describe("buildRebuildSandboxCsp", () => {
   });
 });
 
+describe("workerScriptSource", () => {
+  it("names exactly the worker file, without query or fragment", () => {
+    expect(workerScriptSource(WORKER_URL)).toBe(WORKER_URL);
+    expect(workerScriptSource(`${WORKER_URL}?v=2#top`)).toBe(WORKER_URL);
+    expect(workerScriptSource("http://localhost:5173/__rebuild-worker.js")).toBe(
+      "http://localhost:5173/__rebuild-worker.js",
+    );
+  });
+
+  it("rejects anything that could widen the policy", () => {
+    // A directory path would allow every script beneath it.
+    expect(() => workerScriptSource("https://playground.example/assets/")).toThrow("not a directory");
+    // Not a plain http(s) URL.
+    expect(() => workerScriptSource("data:text/javascript,alert(1)")).toThrow("http(s)");
+    expect(() => workerScriptSource("blob:https://playground.example/uuid")).toThrow("http(s)");
+    // Relative URLs are not accepted either.
+    expect(() => workerScriptSource("/assets/rebuild.worker.js")).toThrow();
+    // Characters that separate or quote CSP tokens would inject directives.
+    expect(() => workerScriptSource("https://playground.example/a;script-src*.js")).toThrow("unsafe");
+    expect(() => workerScriptSource("https://playground.example/a,b.js")).toThrow("unsafe");
+    expect(() => workerScriptSource("https://playground.example/it's.js")).toThrow("unsafe");
+  });
+});
+
 describe("buildRebuildSandboxDocument", () => {
   const html = buildRebuildSandboxDocument({
-    origin: ORIGIN,
     workerUrl: WORKER_URL,
     nonce: "n0nce",
   });
@@ -60,7 +86,7 @@ describe("buildRebuildSandboxDocument", () => {
     const scriptIndex = html.indexOf("<script");
     expect(metaIndex).toBeGreaterThan(-1);
     expect(scriptIndex).toBeGreaterThan(metaIndex);
-    expect(html).toContain(buildRebuildSandboxCsp(ORIGIN, "n0nce"));
+    expect(html).toContain(buildRebuildSandboxCsp(WORKER_URL, "n0nce"));
   });
 
   it("authorises the bootstrap script with the nonce", () => {
@@ -72,9 +98,10 @@ describe("buildRebuildSandboxDocument", () => {
   });
 
   it("escapes a hostile worker URL so it cannot close the script tag", () => {
+    // The query string is allowed (the policy drops it) but is still embedded
+    // in the bootstrap as written, so it must be escaped there.
     const hostile = buildRebuildSandboxDocument({
-      origin: ORIGIN,
-      workerUrl: 'x";</script><script>alert(1)</script>',
+      workerUrl: `${WORKER_URL}?x=";</script><script>alert(1)</script>`,
       nonce: "n0nce",
     });
     expect(hostile).not.toContain("</script><script>alert(1)");

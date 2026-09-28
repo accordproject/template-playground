@@ -29,27 +29,54 @@ export function toScriptLiteral(value: unknown): string {
 }
 
 export interface RebuildSandboxDocumentOptions {
-  /** Origin of the playground page, e.g. `https://playground.accordproject.org`. */
-  origin: string;
-  /** Absolute URL of the bundled `rebuild.worker.ts` script. */
+  /** Absolute URL of the bundled `rebuild.worker.ts` script; the policy allows exactly this file. */
   workerUrl: string;
   /** Per-document nonce authorising the inline bootstrap script. */
   nonce: string;
 }
 
+/** Whitespace, non-ASCII, and characters that separate or quote CSP tokens. */
+const UNSAFE_SOURCE_CHARACTERS = /[^!-~]|[;,'"]/;
+
+/**
+ * Turns the worker bundle URL into a CSP source expression that matches
+ * that one file and nothing else on the playground origin.
+ *
+ * The query and fragment are dropped, as CSP ignores them when matching. A
+ * URL that is not plain http(s), whose path ends in `/` (which CSP would
+ * treat as a whole directory), or that contains characters with a meaning
+ * in CSP syntax is rejected, so a malformed URL can never widen the policy.
+ */
+export function workerScriptSource(workerUrl: string): string {
+  const url = new URL(workerUrl);
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    throw new Error(`The worker bundle must be served over http(s), got ${url.protocol}`);
+  }
+  if (url.pathname.endsWith("/")) {
+    throw new Error("The worker bundle URL must name a file, not a directory");
+  }
+  const source = url.origin + url.pathname;
+  if (UNSAFE_SOURCE_CHARACTERS.test(source)) {
+    throw new Error("The worker bundle URL contains characters that are unsafe in a CSP");
+  }
+  return source;
+}
+
 /**
  * Builds the Content Security Policy for the rendering sandbox document.
  *
- * The policy is generated at runtime because it must name the playground's
- * own origin: a sandboxed iframe has an opaque origin, so `'self'` would
- * match nothing. Blob workers inherit their creator's policy, which is how
- * these rules reach the code the engine evaluates:
+ * The policy is generated at runtime because it must name the worker
+ * bundle's URL, which is hashed at build time and served from the
+ * playground's own origin (a sandboxed iframe has an opaque origin, so
+ * `'self'` would match nothing). Blob workers inherit their creator's
+ * policy, which is how these rules reach the code the engine evaluates:
  *
  * - `default-src 'none'` blocks everything not listed below, including
  *   images, frames, fonts and form submissions that could carry data out.
- * - `script-src` allows only the nonced bootstrap script, the worker bundle
- *   served from the playground origin, and `'unsafe-eval'` for the
- *   `new Function` the engine uses to run formulas.
+ * - `script-src` allows only the nonced bootstrap script, the one worker
+ *   bundle file, and `'unsafe-eval'` for the `new Function` the engine uses
+ *   to run formulas. Naming the exact file rather than the origin stops
+ *   formula code from using `importScripts()` to request any other URL.
  * - `worker-src blob:` allows the bootstrap to spawn the worker.
  * - `connect-src` allows only the TypeScript CDN.
  *
@@ -57,10 +84,10 @@ export interface RebuildSandboxDocumentOptions {
  * reply as untrusted data: results only become HTML through
  * markdown-transform and are sanitised with DOMPurify before display.
  */
-export function buildRebuildSandboxCsp(origin: string, nonce: string): string {
+export function buildRebuildSandboxCsp(workerUrl: string, nonce: string): string {
   return [
     "default-src 'none'",
-    `script-src 'nonce-${nonce}' ${origin} 'unsafe-eval'`,
+    `script-src 'nonce-${nonce}' ${workerScriptSource(workerUrl)} 'unsafe-eval'`,
     "worker-src blob:",
     `connect-src ${TYPESCRIPT_CDN_ORIGIN}`,
     "base-uri 'none'",
@@ -87,11 +114,10 @@ export function buildRebuildSandboxCsp(origin: string, nonce: string): string {
  * of the worker that sent them; replies from a replaced worker are dropped.
  */
 export function buildRebuildSandboxDocument({
-  origin,
   workerUrl,
   nonce,
 }: RebuildSandboxDocumentOptions): string {
-  const csp = buildRebuildSandboxCsp(origin, nonce);
+  const csp = buildRebuildSandboxCsp(workerUrl, nonce);
   const bootstrap = `
 (function () {
   "use strict";

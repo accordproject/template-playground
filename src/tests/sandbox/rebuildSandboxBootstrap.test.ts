@@ -42,7 +42,6 @@ class FakeWorker {
 
 function extractBootstrap(): string {
   const html = buildRebuildSandboxDocument({
-    origin: "https://playground.example",
     workerUrl: WORKER_URL,
     nonce: "n0nce",
   });

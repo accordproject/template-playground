@@ -45,6 +45,9 @@ test.describe('Template rendering sandbox', () => {
       'const origin = String(g.origin);',
       'const storage = typeof g.localStorage === "undefined" ? "none" : "reachable";',
       'const dom = g.document && typeof g.document.createElement === "function" ? "reachable" : "none";',
+      // importScripts() is governed by script-src, which allows only the
+      // worker bundle file; any other playground URL must not be requested.
+      `try { g.importScripts(${JSON.stringify(`${target}?sandbox-probe=importScripts`)}); } catch (e) {}`,
       'let network = "open";',
       'try {',
       '  const xhr = new g.XMLHttpRequest();',
@@ -55,6 +58,12 @@ test.describe('Template rendering sandbox', () => {
     ].join(' ');
     const template = ['Hello {{name}}.', '', `Verdict: {{% ${probe} %}}`].join('\n');
 
+    // A request blocked by CSP is never sent; one that is allowed shows up here.
+    const probeRequests: string[] = [];
+    page.context().on('request', (request) => {
+      if (request.url().includes('sandbox-probe=importScripts')) probeRequests.push(request.url());
+    });
+
     await page.goto(shareLink(template));
 
     const preview = page.locator('.main-container-agreement');
@@ -63,6 +72,7 @@ test.describe('Template rendering sandbox', () => {
     // probe is meaningful because Vite's dev and preview servers send
     // permissive CORS headers, so only the sandbox's CSP can block it.
     await expect(preview).toContainText('Verdict: "origin=null storage=none dom=none network=blocked"');
+    expect(probeRequests).toEqual([]);
 
     // The assignment landed on the worker's global, not the page's.
     const pwned = await page.evaluate(() => (window as unknown as { __playgroundPwned?: boolean }).__playgroundPwned);
