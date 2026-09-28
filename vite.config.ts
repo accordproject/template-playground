@@ -3,9 +3,10 @@ import { defineConfig as defineVitestConfig, configDefaults } from "vitest/confi
 import react from "@vitejs/plugin-react";
 import nodePolyfills from "vite-plugin-node-stdlib-browser";
 import { visualizer } from "rollup-plugin-visualizer";
+import { spaFallbackCopies } from "./scripts/spaFallbackPlugin";
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
-  plugins: [nodePolyfills(), react(), visualizer({
+  plugins: [nodePolyfills(), react(), spaFallbackCopies(), visualizer({
     emitFile: true,
     filename: "stats.html",
   })],
