@@ -111,6 +111,28 @@ The logic execution engine relies on a multi-layered security model to protect t
   - *Client-side*: `store.executeInSandbox()` enforces a 6000ms timeout to reject the promise in case the iframe itself fails to respond.
 - **Concurrent Guard**: `store.isExecuting` prevents users from flooding the sandbox with overlapping execution requests.
 
+## Template Rendering Sandbox
+
+Rendering the agreement preview is user-code execution too: the Template Engine compiles the template's `{{% ... %}}` formulas and runs them with `new Function`. A shared link carries the template verbatim, so a formula written by whoever made the link would otherwise run in the page of whoever opens it. The rebuild pipeline therefore runs inside its own sandbox, separate from the logic sandbox above.
+
+### Pipeline
+1. `store.rebuild()` validates the inputs on the main thread (`validateBeforeRebuild`; CTO and JSON parsing only, no user code).
+2. It calls `rebuildInSandbox()` (`src/store/rebuildSandbox.ts`), which posts the template, model and data strings to the rendering iframe and returns a Promise keyed by `requestId`.
+3. `RebuildSandboxFrame.tsx` hosts a hidden iframe loaded from `srcdoc` with `sandbox="allow-scripts"`. The document (`src/sandbox/rebuildSandboxDocument.ts`) contains only a small bootstrap script that spawns a classic `blob:` Worker, loads the worker bundle into it with `importScripts()`, and relays messages.
+4. The worker (`src/sandbox/rebuild.worker.ts`) first runs `workerEnvironment.ts`, which exposes the worker global as `window` with an empty `document` so the engine takes its browser code paths (without a `window` it assumes Node and fails to start). It then imports the engine bundle, rebuilds the `ModelManager` from the CTO source, runs `TemplateMarkTransformer` and `TemplateMarkInterpreter.generate()` (`src/sandbox/rebuildPipeline.ts`), and posts the resulting CiceroMark JSON back.
+5. The main thread converts CiceroMark to HTML with `@accordproject/markdown-transform`, which runs no user code, and stores it in `agreementHtml`.
+
+Errors are reduced to plain data in the worker (`serializeRebuildError`) in the exact shape `formatError()` reads, so the Problems panel shows the same text as before.
+
+### Security Model
+- **Null origin**: the iframe omits `allow-same-origin`, so it cannot reach the parent's DOM, cookies or `localStorage` (where the AI provider keys live).
+- **Runtime Content Security Policy**: the policy is generated when the frame mounts because it must name the playground's own origin (`'self'` matches nothing inside an opaque origin). It is `default-src 'none'; script-src 'nonce-…' <origin> 'unsafe-eval'; worker-src blob:; connect-src https://playgroundcdn.typescriptlang.org; base-uri 'none'; form-action 'none'`. `'unsafe-eval'` is required for the engine's `new Function`; the TypeScript CDN is required because the compiler fetches its `lib.*.d.ts` files from there.
+- **Blob worker**: a worker created from a `blob:` URL inherits its creator's policy, so the rules above apply to the code the engine evaluates. A worker has no DOM, so there are no image, script or navigation side channels either; with `connect-src` limited to the CDN, formula code has no way to send data anywhere it controls.
+- **Bundle loading**: the blob worker's only statement is `importScripts(<worker bundle URL>)`. It is a *classic* worker because Chrome cannot start a module worker from a `blob:` URL inside a null-origin document, and it uses `importScripts()` because a null origin is cross-origin to the playground: module scripts would need CORS headers the static production host does not send, `importScripts()` needs none. In production the bundle is the self-contained IIFE emitted by Vite's worker build (`worker` in `vite.config.ts`, which also injects the Node globals the Accord Project libraries expect). The dev server serves workers as ES modules, which a classic worker cannot load, so `vite-plugin-rebuild-worker.ts` (dev only) bundles the worker with esbuild and serves it at `/__rebuild-worker.js`.
+- **Message authentication**: the frame accepts messages only from its parent window; the parent accepts messages only when `event.origin === "null"` **and** `event.source` is the frame's own `contentWindow`. Formula code inside the worker can post anything, so the frame relays only the four rendering reply types (result, pong, worker-ready, worker-error), rebuilt from checked fields; anything else, such as a forged message aimed at the logic sandbox, is dropped. Each relayed message is stamped with the *generation* of the worker that sent it: the page numbers every worker it asks for and ignores messages from any other one. Replies are still treated as untrusted data: a result only becomes HTML through `markdown-transform` and is sanitised with DOMPurify before display, and errors are shown as text.
+- **One worker per template that runs code**: formula code runs in the worker's global scope and could tamper with it, for example by replacing its message handler to fake every later preview. So a render whose template may run code (it contains a formula `{{% ... %}}` or a `condition=` attribute, the only two constructs the engine executes; `templateMayRunCode()` matches them loosely) gets a worker that has never run code, runs alone on it, and that worker is replaced as soon as it answers. The replacement starts loading straight away, so the next render usually does not wait. Templates without code keep sharing the warm worker. A render that is still waiting when a newer one needs a fresh worker settles with the newer render's outcome.
+- **Heartbeat kill-switch**: rendering has no fixed time limit, because the first render downloads the TypeScript `lib.*.d.ts` files and can take a long time on a slow network. Instead, while a render is in progress `rebuildInSandbox()` pings the worker every 2 s. A worker waiting on the network still answers; one stuck in a formula that never returns cannot. If a ping to a worker that has finished loading its bundle (it announces this with `rebuild-worker-ready`) stays unanswered for 30 s, the render fails with a clear message and the frame terminates and respawns the worker. The stall is measured from the unanswered ping rather than from the last reply, so background tabs, where browsers throttle timers to about once a minute, do not trigger it. Before the worker is loaded, `importScripts()` blocks it by design, so it is not held to the heartbeat. A 5-minute ceiling per render catches anything else (a bundle that never loads, a worker that answers pings but never the request). On the main thread such a formula would have frozen the page; here only the preview fails.
+
 ## Shareable Links
 
 The Playground allows sharing full state via URL fragments (`#data=...`).
@@ -133,6 +155,13 @@ The playground implements a dual-layer testing strategy:
 | File | Responsibility |
 | --- | --- |
 | `src/store/store.ts` | Central state management, coordinates compilation and sandbox dispatch. |
+| `src/store/rebuildSandbox.ts` | Main-window bridge to the template rendering sandbox (request routing, timeouts, restart). |
+| `src/components/RebuildSandboxFrame.tsx` | Hidden null-origin iframe that hosts the rendering worker. |
+| `src/sandbox/rebuildSandboxDocument.ts` | Builds the sandbox document and its runtime Content Security Policy. |
+| `src/sandbox/rebuild.worker.ts` | Worker entry: runs the Template Engine and posts CiceroMark JSON back. |
+| `src/sandbox/rebuildPipeline.ts` | The render itself (ModelManager, transformer, interpreter) and error serialisation. |
+| `src/sandbox/workerEnvironment.ts` | Worker prelude: exposes `window`/`document` so the engine takes its browser code paths. |
+| `vite-plugin-rebuild-worker.ts` | Dev server only: serves the worker as the classic script `importScripts()` needs. |
 | `src/components/SandboxFrame.tsx` | Hidden iframe mounting `logic-handler.html`. |
 | `public/logic-handler.html` | The execution environment. Spawns Workers for untrusted code. |
 | `src/store/sandboxResolvers.ts` | Module-scoped map tracking pending execution promises. |

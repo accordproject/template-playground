@@ -2,11 +2,8 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
-import { ModelManager } from "@accordproject/concerto-core";
-import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
 import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
-import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
@@ -18,8 +15,9 @@ import {
   KeyProtectionLevel,
 } from "../types/components/AIAssistant.types";
 import { validateBeforeRebuild } from "../utils/validators";
-import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
+import { BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
+import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
 
 /**
@@ -249,32 +247,15 @@ async function rebuild(
    * This fails fast on invalid JSON or CTO syntax without running network calls
    */
   await validateBeforeRebuild(template, model, dataString);
-  const modelManager = new ModelManager({ offline: true });
   /*
-   * Preload the bundled Accord Project models so imports like
-   * `https://models.accordproject.org/accordproject/contract@0.2.0.cto`
-   * resolve from the bundle without a network round-trip. Combined with
-   * offline:true, any namespace not in the bundle will fail validation
-   * rather than triggering a network fetch.
+   * Rendering runs the Template Engine, which evaluates the template's
+   * `{{% ... %}}` formulas with `new Function`. Shared links can carry any
+   * formula, so that step runs in the rendering sandbox (a null-origin
+   * iframe hosting a worker, see `RebuildSandboxFrame.tsx`) rather than in
+   * the page. Only the resulting CiceroMark JSON comes back.
    */
-  loadBundledModels(modelManager);
-  modelManager.addCTOModel(model, undefined, true);
-  const engine = new TemplateMarkInterpreter(modelManager as any, {});
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-  const templateMarkTransformer = new TemplateMarkTransformer();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-  const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
-    { content: template },
-    modelManager,
-    "contract",
-    { verbose: false },
-  ) as object;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const data = JSON.parse(dataString);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
-  const ciceroMark = await engine.generate(templateMarkDom, data);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-  const ciceroMarkJson = ciceroMark.toJSON() as unknown;
+  const ciceroMarkJson = await rebuildInSandbox(template, model, dataString);
+  // Converting CiceroMark to HTML runs no user code, so it stays on the main thread.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   const result = (await transform(
     ciceroMarkJson,
