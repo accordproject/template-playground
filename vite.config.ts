@@ -3,6 +3,7 @@ import { defineConfig as defineVitestConfig, configDefaults } from "vitest/confi
 import react from "@vitejs/plugin-react";
 import nodePolyfills from "vite-plugin-node-stdlib-browser";
 import { visualizer } from "rollup-plugin-visualizer";
+import { spaFallbackCopies } from "./scripts/spaFallbackPlugin";
 import inject from "@rollup/plugin-inject";
 import { createRequire } from "node:module";
 import rebuildWorkerDevPlugin from "./vite-plugin-rebuild-worker";
@@ -61,7 +62,7 @@ function stubAnthropicNodeToolset(): Plugin {
 
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
-  plugins: [rebuildWorkerDevPlugin(), stubAnthropicNodeToolset(), nodePolyfills(), react(), visualizer({
+  plugins: [rebuildWorkerDevPlugin(), stubAnthropicNodeToolset(), nodePolyfills(), react(), spaFallbackCopies(), visualizer({
     emitFile: true,
     filename: "stats.html",
   })],
