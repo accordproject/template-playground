@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
 import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
@@ -9,7 +8,7 @@ import useDesignV2Store from "../../store/designV2Store";
 import { usePickTemplate } from "./usePickTemplate";
 import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
 import {
-  ROUTES,
+  URLS,
   WELCOME,
   START,
   START_SAMPLES,
@@ -28,10 +27,9 @@ interface WelcomeViewProps {
 
 /**
  * Dark hero card: Accord Project wordmark, headline and the two CTAs.
+ * "How it works" opens the docs site in a new tab (hence the ↗ in its label).
  */
-export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
-  const navigate = useNavigate();
-  return (
+export const WelcomeView = ({ onStart }: WelcomeViewProps) => (
   <div className="nd-view nd-view-welcome">
     <div className="nd-hero">
       <div className="nd-hero-grid" />
@@ -51,13 +49,14 @@ export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
         <Button type="primary" size="large" shape="round" onClick={onStart}>
           {WELCOME.start} →
         </Button>
-        <Button ghost size="large" shape="round" onClick={() => navigate(ROUTES.learnIntro)}>{WELCOME.howItWorks}</Button>
+        <Button ghost size="large" shape="round" href={URLS.templateDocs} target="_blank" rel="noopener noreferrer">
+          {WELCOME.howItWorks}
+        </Button>
       </div>
       <div className="nd-spacer" />
     </div>
   </div>
-  );
-};
+);
 
 interface SampleCardProps {
   sample: StartSample;

@@ -17,7 +17,7 @@ import { pretty, runStats, runSummary } from "./simulateRuns";
  *   │ #1    increment 1 → …     │ │ { "$class": …, "increment" }  ││
  *   │ #2    increment 2 → …  ●  │ ├ Response · State · Events ───┤│
  *   │ #3    increment 9 — threw │ │ { "message": … }              ││
- *   │ ┌ New request ─ reuse #2 ┐│ └───────────────────────────────┘│
+ *   │ ┌ Send a message ─ reuse #2 ┐│ └───────────────────────────────┘│
  *   │ │ { … }          ▶ Send  ││                                  │
  *   └───────────────────────────┴─────────────────────────────────┘
  *
