@@ -60,7 +60,7 @@ describe('useDesignV2Store', () => {
     expect(useDesignV2Store.getState().view).toBe(LAST_STEP);
   });
 
-  it('setPaneOpen() closes and reopens a Model & Data pane but never the last one', () => {
+  it('setPaneOpen() closes and reopens a Data step pane but never the last one', () => {
     const store = useDesignV2Store.getState();
     store.setPaneOpen('data', false);
     expect(useDesignV2Store.getState().modelDataPanes).toEqual({ model: true, data: false });
