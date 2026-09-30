@@ -98,7 +98,7 @@ describe('LogicView', () => {
     expect(rail().getByText(LOGIC.chips.types.label).closest('li')).not.toHaveClass('nd-check-done');
   });
 
-  it('the types row points back at the Model & Data step', () => {
+  it('the types row points back at the Data step', () => {
     render(<LogicView />);
     fireEvent.click(pane().getByRole('button', { name: LOGIC.chips.types.action }));
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.modelData);
