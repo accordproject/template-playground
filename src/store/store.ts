@@ -3,11 +3,6 @@ import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
 import { ModelManager } from "@accordproject/concerto-core";
-import { TemplateMarkInterpreter } from "@accordproject/template-engine";
-import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
-import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
-import { TemplateMarkTransformer } from "@accordproject/markdown-template";
-import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
@@ -259,6 +254,16 @@ async function rebuild(
    */
   loadBundledModels(modelManager);
   modelManager.addCTOModel(model, undefined, true);
+  /*
+   * The engine packages are several MB each, so they are loaded on first use
+   * rather than imported statically; that lets the UI render before they arrive.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const [{ TemplateMarkInterpreter }, { TemplateMarkTransformer }, { transform }] = await Promise.all([
+    import("@accordproject/template-engine"),
+    import("@accordproject/markdown-template"),
+    import("@accordproject/markdown-transform"),
+  ]);
   const engine = new TemplateMarkInterpreter(modelManager as any, {});
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
@@ -864,6 +869,10 @@ const useAppStore = create<AppState>()(
                   const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
                     ? templateModel.getFullyQualifiedName()
                     : undefined;
+                  const [{ TypeScriptCompilationContext }, { SMART_LEGAL_CONTRACT_BASE64 }] = await Promise.all([
+                    import("@accordproject/template-engine/lib/TypeScriptCompilationContext"),
+                    import("@accordproject/template-engine/lib/runtime/declarations"),
+                  ]);
                   const contextStr = new TypeScriptCompilationContext(
                     templateToCompile.getModelManager(),
                     fqn,

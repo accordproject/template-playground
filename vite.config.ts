@@ -26,15 +26,24 @@ const viteConfig = defineViteConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'template-engine': ['@accordproject/template-engine'],
-          'markdown-transform': ['@accordproject/markdown-transform'],
-          'markdown-template': ['@accordproject/markdown-template'],
-          'concerto': ['@accordproject/concerto-core', '@accordproject/concerto-cto'],
-          'anthropic': ['@anthropic-ai/sdk'],
-          'google-genai': ['@google/genai'],
-          'mistral': ['@mistralai/mistralai', '@mistralai/mistralai/models/components/chatcompletionstreamrequest'],
-          'openai': ['openai'],
+        manualChunks(id) {
+          // Rollup's shared CommonJS interop helpers must not live inside a
+          // heavy vendor chunk, or every importer is forced to preload it.
+          if (id.includes("commonjsHelpers")) return "cjs-helpers";
+          const groups: Record<string, string[]> = {
+            "template-engine": ["@accordproject/template-engine"],
+            "markdown-transform": ["@accordproject/markdown-transform"],
+            "markdown-template": ["@accordproject/markdown-template"],
+            concerto: ["@accordproject/concerto-core", "@accordproject/concerto-cto"],
+            anthropic: ["@anthropic-ai/sdk"],
+            "google-genai": ["@google/genai"],
+            mistral: ["@mistralai/mistralai"],
+            openai: ["openai"],
+          };
+          for (const [name, pkgs] of Object.entries(groups)) {
+            if (pkgs.some((pkg) => id.includes(`/node_modules/${pkg}/`))) return name;
+          }
+          return undefined;
         },
       },
     },
