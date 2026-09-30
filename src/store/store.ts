@@ -2,9 +2,6 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
-import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
-import { SMART_LEGAL_CONTRACT_BASE64 } from "@accordproject/template-engine/lib/runtime/declarations";
-import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
@@ -254,8 +251,14 @@ async function rebuild(
    * iframe hosting a worker, see `RebuildSandboxFrame.tsx`) rather than in
    * the page. Only the resulting CiceroMark JSON comes back.
    */
+  // markdown-transform is several MB, so it is loaded on first use rather than
+  // imported statically; that lets the UI render before it arrives. The
+  // download starts here so it overlaps with rendering in the sandbox.
+  const markdownTransform = import("@accordproject/markdown-transform");
   const ciceroMarkJson = await rebuildInSandbox(template, model, dataString);
   // Converting CiceroMark to HTML runs no user code, so it stays on the main thread.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const { transform } = await markdownTransform;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   const result = (await transform(
     ciceroMarkJson,
@@ -845,6 +848,10 @@ const useAppStore = create<AppState>()(
                   const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
                     ? templateModel.getFullyQualifiedName()
                     : undefined;
+                  const [{ TypeScriptCompilationContext }, { SMART_LEGAL_CONTRACT_BASE64 }] = await Promise.all([
+                    import("@accordproject/template-engine/lib/TypeScriptCompilationContext"),
+                    import("@accordproject/template-engine/lib/runtime/declarations"),
+                  ]);
                   const contextStr = new TypeScriptCompilationContext(
                     templateToCompile.getModelManager(),
                     fqn,

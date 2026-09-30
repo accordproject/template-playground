@@ -50,9 +50,47 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Pre-compress assets
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # The bundle visualiser report is a build artefact, not part of the site.
+          rm -f dist/stats.html
+          node scripts/precompress.mjs dist/assets
+
       - name: Deploy to S3
         run: |
-          aws s3 sync dist s3://${{ secrets.AWS_S3_BUCKET }} \
+          BUCKET=s3://${{ secrets.AWS_S3_BUCKET }}
+          IMMUTABLE="public, max-age=31536000, immutable"
+
+          # 1. Content-hashed assets, raw copies. Safe to cache forever.
+          aws s3 sync dist/assets $BUCKET/assets \
+            --acl public-read --follow-symlinks \
+            --exclude "*.br" --exclude "*.gz" \
+            --cache-control "$IMMUTABLE"
+
+          # 2. Pre-compressed copies, served by deploy/cloudfront/compressed-assets.js.
+          for enc in br gz; do
+            [ "$enc" = br ] && encoding=br || encoding=gzip
+            aws s3 cp dist/assets $BUCKET/assets --recursive \
+              --acl public-read --follow-symlinks \
+              --exclude "*" --include "*.js.$enc" \
+              --content-encoding "$encoding" --content-type "text/javascript" \
+              --cache-control "$IMMUTABLE"
+            aws s3 cp dist/assets $BUCKET/assets --recursive \
+              --acl public-read --follow-symlinks \
+              --exclude "*" --include "*.css.$enc" \
+              --content-encoding "$encoding" --content-type "text/css" \
+              --cache-control "$IMMUTABLE"
+          done
+
+          # 3. index.html last, and always revalidated, so it never points at
+          #    assets that have not been uploaded yet.
+          aws s3 cp dist/index.html $BUCKET/index.html \
+            --acl public-read --content-type "text/html" \
+            --cache-control "no-cache"
+
+          # 4. Everything else, and remove files that are no longer in the build.
+          aws s3 sync dist $BUCKET \
             --acl public-read \
             --follow-symlinks \
             --delete
