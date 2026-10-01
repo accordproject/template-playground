@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { vi } from "vitest";
 import Navbar from "../../components/Navbar";
 import { MemoryRouter } from "react-router-dom";
 
@@ -40,4 +41,31 @@ describe("Navbar", () => {
       backgroundColor: "rgba(255, 255, 255, 0.1)",
     });
   });
+
+  it("registers window resize listener on mount and cleans it up on unmount", () => {
+    const addEventListenerSpy = vi.spyOn(window, "addEventListener");
+    const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
+
+    const { unmount } = render(
+      <MemoryRouter>
+        <Navbar />
+      </MemoryRouter>
+    );
+
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      "resize",
+      expect.any(Function)
+    );
+
+    unmount();
+
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      "resize",
+      expect.any(Function)
+    );
+
+    addEventListenerSpy.mockRestore();
+    removeEventListenerSpy.mockRestore();
+  });
 });
+
