@@ -220,7 +220,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
       ref={menuRef}
       className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 flex"
       style={{ 
-        left: Math.max(10, Math.min(225, window.innerWidth - 150)), 
+        left: Math.max(10, Math.min(position.x, window.innerWidth - 150)),
         top: Math.max(10, Math.min(position.y, window.innerHeight - 50)),
         minWidth: '120px'
       }}
