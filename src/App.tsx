@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import { App as AntdApp, Layout, Spin } from "antd";
+import { App as AntdApp, Layout, Spin, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -43,9 +43,25 @@ const App = () => {
           compressedData = searchParams.get("data");
         }
         if (compressedData) {
-          await loadFromLink(compressedData);
-          if (window.location.pathname !== "/") {
-            navigate("/", { replace: true });
+          let success = false;
+          try {
+            const result = await loadFromLink(compressedData);
+            success = result !== false;
+          } catch (error) {
+            console.error("Failed to load from link:", error);
+            success = false;
+          }
+
+          if (success) {
+            if (window.location.pathname !== "/") {
+              navigate("/", { replace: true });
+            }
+          } else {
+            void message.error("Unable to load template from link. The link may be corrupted or invalid.");
+            if (window.location.hash.startsWith("#data=") || searchParams.has("data") || window.location.search.includes("data=")) {
+              window.history.replaceState(null, "", window.location.pathname);
+            }
+            await init();
           }
         } else {
           await init();
