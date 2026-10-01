@@ -8,6 +8,9 @@ import { PREVIEW, START_SAMPLES, URLS, WELCOME, sampleNameFor } from '../../../c
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { FIRST_STEP, STEP_ID } from '../../../types/designV2.types';
+import { designV2Theme } from '../../../components/designV2/theme';
+import { theme as antdTheme } from 'antd';
+import { RAIL } from '../../../components/designV2/constants';
 
 /*
  * Covers entering the flow: "Start building" must land on a template with
@@ -25,6 +28,30 @@ const renderLayout = () =>
       <DesignV2Layout />
     </MemoryRouter>
   );
+
+describe('DesignV2Layout theme', () => {
+  beforeEach(() => {
+    useAppStore.setState({ backgroundColor: '#ffffff', textColor: '#121212' });
+    useDesignV2Store.setState({ view: 'welcome' });
+  });
+
+  it('uses the existing light theme by default', () => {
+    renderLayout();
+    expect(document.querySelector('.nd-root')).toHaveAttribute('data-theme', 'light');
+    expect(designV2Theme(false).algorithm).toBe(antdTheme.defaultAlgorithm);
+  });
+
+  it('uses the dark theme and updates when the app theme changes', () => {
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: RAIL.settings }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Toggle dark mode' }));
+    expect(document.querySelector('.nd-root')).toHaveAttribute('data-theme', 'dark');
+    expect(designV2Theme(true).algorithm).toBe(antdTheme.darkAlgorithm);
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Toggle dark mode' }));
+    expect(document.querySelector('.nd-root')).toHaveAttribute('data-theme', 'light');
+  });
+});
 
 describe('DesignV2Layout — Start building', () => {
   const loadSample = vi.fn().mockResolvedValue(undefined);

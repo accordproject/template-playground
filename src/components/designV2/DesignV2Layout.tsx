@@ -1,4 +1,5 @@
 import { ConfigProvider } from "antd";
+import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
@@ -39,6 +40,8 @@ import "./DesignV2Layout.css";
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
 const DesignV2Layout = () => {
+  const backgroundColor = useAppStore((s) => s.backgroundColor);
+  const isDark = backgroundColor === "#121212";
   const view = useDesignV2Store((s) => s.view);
   const previewOpen = useDesignV2Store((s) => s.previewOpen);
   const setView = useDesignV2Store((s) => s.setView);
@@ -59,8 +62,8 @@ const DesignV2Layout = () => {
   const showFooter = showChrome && view !== FIRST_STEP;
 
   return (
-    <ConfigProvider theme={designV2Theme()}>
-    <div className="nd-root">
+    <ConfigProvider theme={designV2Theme(isDark)}>
+    <div className="nd-root" data-theme={isDark ? "dark" : "light"}>
       {/* Hidden iframe the store runs compiled logic in (initContract / triggerContract). */}
       <SandboxFrame />
       <Rail />
