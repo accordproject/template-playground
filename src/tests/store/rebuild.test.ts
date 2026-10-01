@@ -2,12 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import useAppStore from "../../store/store";
 import { validateBeforeRebuild } from "../../utils/validators";
 import { rebuildInSandbox } from "../../store/rebuildSandbox";
-import { transform } from "@accordproject/markdown-transform";
 import { decompress } from "../../utils/compression/compression";
+
+const { transform } = vi.hoisted(() => ({
+  transform: vi.fn<unknown[], Promise<string>>(),
+}));
 
 vi.mock("../../utils/validators", () => ({ validateBeforeRebuild: vi.fn() }));
 vi.mock("../../store/rebuildSandbox", () => ({ rebuildInSandbox: vi.fn() }));
-vi.mock("@accordproject/markdown-transform", () => ({ transform: vi.fn() }));
+vi.mock("@accordproject/markdown-transform", () => ({ transform }));
 vi.mock("../../utils/compression/compression", () => ({
   compress: vi.fn(),
   decompress: vi.fn(),
@@ -27,7 +30,7 @@ describe("agreement preview after a failed rebuild", () => {
     });
     vi.mocked(validateBeforeRebuild).mockResolvedValue(undefined);
     vi.mocked(rebuildInSandbox).mockResolvedValue({});
-    vi.mocked(transform).mockResolvedValue("<p>Valid agreement</p>");
+    transform.mockResolvedValue("<p>Valid agreement</p>");
   });
 
   afterEach(() => {
@@ -66,7 +69,7 @@ describe("agreement preview after a failed rebuild", () => {
         isProblemPanelVisible: true,
       });
 
-      vi.mocked(transform).mockResolvedValueOnce("<p>Recovered agreement</p>");
+      transform.mockResolvedValueOnce("<p>Recovered agreement</p>");
       await render();
       expect(useAppStore.getState()).toMatchObject({
         agreementHtml: "<p>Recovered agreement</p>",
