@@ -31,8 +31,9 @@ describe("useAppStore loadFromLink", () => {
     // Mock rebuild to avoid side effects
     useAppStore.setState({ rebuild: vi.fn() });
 
-    await useAppStore.getState().loadFromLink("some-compressed-data");
+    const result = await useAppStore.getState().loadFromLink("some-compressed-data");
 
+    expect(result).toBe(true);
     const state = useAppStore.getState();
     expect(state.templateMarkdown).toBe(mockData.templateMarkdown);
     expect(state.modelCto).toBe(mockData.modelCto);
@@ -53,8 +54,9 @@ describe("useAppStore loadFromLink", () => {
 
     useAppStore.setState({ rebuild: vi.fn(), compileLogic: vi.fn(), isLogicPanelVisible: false });
 
-    await useAppStore.getState().loadFromLink("some-compressed-data-with-logic");
+    const result = await useAppStore.getState().loadFromLink("some-compressed-data-with-logic");
 
+    expect(result).toBe(true);
     const state = useAppStore.getState();
     expect(state.logicTs).toBe(mockData.logicTs);
     expect(state.editorLogicTs).toBe(mockData.logicTs);
@@ -63,17 +65,32 @@ describe("useAppStore loadFromLink", () => {
     expect(localStorage.getItem("ui-panels")).toContain('"isLogicPanelVisible":true');
   });
 
-  it("should set an error when mandatory fields are missing", async () => {
+  it("should set an error and return false when mandatory fields are missing", async () => {
     const mockData: Partial<DecompressedData> = {
       templateMarkdown: "Sample Template",
     };
 
     vi.mocked(decompress).mockReturnValue(mockData as DecompressedData);
 
-    await useAppStore.getState().loadFromLink("invalid-data");
+    const result = await useAppStore.getState().loadFromLink("invalid-data");
 
+    expect(result).toBe(false);
     const state = useAppStore.getState();
     expect(state.isProblemPanelVisible).toBe(true);
     expect(state.error).toContain("Invalid share link data");
   });
+
+  it("should set an error and return false when decompression fails", async () => {
+    vi.mocked(decompress).mockImplementation(() => {
+      throw new Error("Failed to decompress data");
+    });
+
+    const result = await useAppStore.getState().loadFromLink("corrupted-compressed-data");
+
+    expect(result).toBe(false);
+    const state = useAppStore.getState();
+    expect(state.isProblemPanelVisible).toBe(true);
+    expect(state.error).toContain("Failed to decompress data");
+  });
 });
+

@@ -98,7 +98,7 @@ interface AppState {
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
   generateShareableLink: () => string;
-  loadFromLink: (compressedData: string) => Promise<void>;
+  loadFromLink: (compressedData: string) => Promise<boolean>;
   toggleDarkMode: () => void;
   setAIChatOpen: (visible: boolean) => void;
   setChatState: (state: ChatState) => void;
@@ -475,9 +475,12 @@ const useAppStore = create<AppState>()(
           const params = new URLSearchParams(window.location.search);
           const compressedData = params.get("data");
           if (compressedData) {
-            await get().loadFromLink(compressedData);
-          } else {
-            // Ensure layout is valid for the initial template if recovering from a logic-based session
+            const success = await get().loadFromLink(compressedData);
+            if (success) {
+              return;
+            }
+          }
+          // Ensure layout is valid for the initial template if recovering from a logic-based session
             const state = get();
             const sampleHasLogic = !!state.samples.find((sample) => sample.NAME === state.sampleName)?.LOGIC;
             const hasLogic = sampleHasLogic || state.logicTs.trim().length > 0 || state.editorLogicTs.trim().length > 0;
@@ -498,7 +501,6 @@ const useAppStore = create<AppState>()(
               });
             }
             await get().rebuild();
-          }
         },
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
@@ -638,10 +640,14 @@ const useAppStore = create<AppState>()(
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
-        loadFromLink: async (compressedData: string) => {
+        loadFromLink: async (compressedData: string): Promise<boolean> => {
           try {
+            const decompressed = decompress(compressedData);
+            if (!decompressed || typeof decompressed !== "object") {
+              throw new Error("Invalid share link data");
+            }
             const { templateMarkdown, modelCto, data, agreementHtml, logicTs } =
-              decompress(compressedData);
+              decompressed;
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
             }
@@ -670,6 +676,7 @@ const useAppStore = create<AppState>()(
             if (hasLogic) {
               await get().compileLogic();
             }
+            return true;
           } catch (error) {
             set(() => ({
               error:
@@ -677,6 +684,7 @@ const useAppStore = create<AppState>()(
                 (error instanceof Error ? error.message : "Unknown error"),
               isProblemPanelVisible: true,
             }));
+            return false;
           }
         },
         toggleDarkMode: () => {

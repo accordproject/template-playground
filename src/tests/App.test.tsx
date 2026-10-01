@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
+import { message } from 'antd';
 import App from '../App';
 
 /**
@@ -15,7 +16,7 @@ import App from '../App';
 const state = vi.hoisted(() => ({
   isDesignV2Enabled: false,
   init: vi.fn().mockResolvedValue(undefined),
-  loadFromLink: vi.fn().mockResolvedValue(undefined),
+  loadFromLink: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock('../store/store', () => ({
@@ -49,6 +50,7 @@ describe('App - Design v2 feature flag routing', () => {
   beforeEach(() => {
     localStorage.setItem('hasVisited', 'true');
     state.isDesignV2Enabled = false;
+    window.location.hash = '';
   });
 
   it('renders the legacy layout on "/" when the flag is off', async () => {
@@ -79,3 +81,92 @@ describe('App - Design v2 feature flag routing', () => {
     expect(screen.queryByTestId('design-v2-shell')).not.toBeInTheDocument();
   });
 });
+
+describe('App - Share link initialization and error handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.setItem('hasVisited', 'true');
+    state.isDesignV2Enabled = false;
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    window.location.hash = '';
+  });
+
+  it('displays error toast, cleans URL, and falls back to init() when #data is corrupted (returns false)', async () => {
+    const errorSpy = vi
+      .spyOn(message, 'error')
+      .mockImplementation(() => undefined as unknown as ReturnType<typeof message.error>);
+    state.loadFromLink.mockResolvedValueOnce(false);
+
+    window.location.hash = '#data=invalid-data';
+
+    renderAt('/');
+
+    await waitFor(() => {
+      expect(state.loadFromLink).toHaveBeenCalledWith('invalid-data');
+    });
+
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Unable to load template from link. The link may be corrupted or invalid.'
+      );
+    });
+
+    await waitFor(() => {
+      expect(state.init).toHaveBeenCalled();
+    });
+
+    expect(window.location.hash).toBe('');
+    expect(await screen.findByTestId('legacy-main')).toBeInTheDocument();
+  });
+
+  it('displays error toast, cleans URL, and falls back to init() when loadFromLink throws an exception', async () => {
+    const errorSpy = vi
+      .spyOn(message, 'error')
+      .mockImplementation(() => undefined as unknown as ReturnType<typeof message.error>);
+    state.loadFromLink.mockRejectedValueOnce(new Error('Decompression error'));
+
+    window.location.hash = '#data=corrupted-error';
+
+    renderAt('/');
+
+    await waitFor(() => {
+      expect(state.loadFromLink).toHaveBeenCalledWith('corrupted-error');
+    });
+
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Unable to load template from link. The link may be corrupted or invalid.'
+      );
+    });
+
+    await waitFor(() => {
+      expect(state.init).toHaveBeenCalled();
+    });
+
+    expect(window.location.hash).toBe('');
+    expect(await screen.findByTestId('legacy-main')).toBeInTheDocument();
+  });
+
+  it('loads template successfully without error when #data is valid', async () => {
+    const errorSpy = vi
+      .spyOn(message, 'error')
+      .mockImplementation(() => undefined as unknown as ReturnType<typeof message.error>);
+    state.loadFromLink.mockResolvedValueOnce(true);
+
+    window.location.hash = '#data=valid-data';
+
+    renderAt('/');
+
+    await waitFor(() => {
+      expect(state.loadFromLink).toHaveBeenCalledWith('valid-data');
+    });
+
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(state.init).not.toHaveBeenCalled();
+    expect(await screen.findByTestId('legacy-main')).toBeInTheDocument();
+  });
+});
+
