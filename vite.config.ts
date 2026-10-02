@@ -134,6 +134,8 @@ const viteConfig = defineViteConfig({
             "google-genai": ["@google/genai"],
             mistral: ["@mistralai/mistralai"],
             openai: ["openai"],
+            groq: ["groq-sdk"],
+            openrouter: ["@openrouter/sdk"],
           };
           for (const [name, pkgs] of Object.entries(groups)) {
             if (pkgs.some((pkg) => id.includes(`/node_modules/${pkg}/`))) return name;
