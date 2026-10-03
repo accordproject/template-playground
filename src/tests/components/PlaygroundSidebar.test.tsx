@@ -1,7 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PlaygroundSidebar from "../../components/PlaygroundSidebar";
 import { vi } from "vitest";
+
+const storeActions = vi.hoisted(() => ({
+    setEditorsVisible: vi.fn(),
+}));
 
 // Mock the store
 vi.mock("../../store/store", () => ({
@@ -10,7 +14,7 @@ vi.mock("../../store/store", () => ({
         isPreviewVisible: true,
         isProblemPanelVisible: false,
         isAIChatOpen: false,
-        setEditorsVisible: vi.fn(),
+        setEditorsVisible: storeActions.setEditorsVisible,
         setPreviewVisible: vi.fn(),
         setProblemPanelVisible: vi.fn(),
         setAIChatOpen: vi.fn(),
@@ -39,6 +43,14 @@ const renderSidebar = () => {
 };
 
 describe("PlaygroundSidebar", () => {
+    it.each(["Enter", " "])("activates sidebar items with the %s key", (key) => {
+        renderSidebar();
+
+        fireEvent.keyDown(screen.getByRole("button", { name: /Editor/i }), { key });
+
+        expect(storeActions.setEditorsVisible).toHaveBeenCalledWith(false);
+    });
+
     it("renders all top navigation items", () => {
         renderSidebar();
 
