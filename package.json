@@ -107,6 +107,12 @@
     "vite-plugin-node-stdlib-browser": "^0.2.1",
     "vitest": "^1.6.0"
   },
+  "vitest": {
+    "environment": "jsdom",
+    "setupFiles": [
+      "./src/tests/setup.ts"
+    ]
+  },
   "browserslist": [
     ">0.2%",
     "not dead",
