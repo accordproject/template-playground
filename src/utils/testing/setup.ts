@@ -4,8 +4,44 @@ import * as matchers from "@testing-library/jest-dom/matchers";
 
 expect.extend(matchers);
 
+// ---------------------------------------------------------------------------
+// localStorage / sessionStorage polyfill
+// Node.js ≥ 22 exposes an experimental `localStorage` that is `undefined`
+// unless --localstorage-file is supplied. jsdom provides its own, but the
+// module-level store initialisation in store.ts runs before jsdom attaches
+// its storage to `window`. We therefore install a simple in-memory shim as
+// early as possible — before any other import can pull in store.ts.
+// ---------------------------------------------------------------------------
+const makeStorage = () => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => { store[key] = String(value); },
+    removeItem: (key: string) => { delete store[key]; },
+    clear: () => { store = {}; },
+    get length() { return Object.keys(store).length; },
+    key: (index: number) => Object.keys(store)[index] ?? null,
+  } as Storage;
+};
+
+const defineStorageProp = (prop: 'localStorage' | 'sessionStorage') => {
+  const storage = makeStorage();
+  try {
+    Object.defineProperty(globalThis, prop, { value: storage, writable: true });
+  } catch {
+    // Already defined and non-configurable — overwrite the value directly.
+    (globalThis as Record<string, unknown>)[prop] = storage;
+  }
+};
+
+defineStorageProp('localStorage');
+defineStorageProp('sessionStorage');
+
 afterEach(() => {
   cleanup();
+  // Reset storage between tests so state doesn't bleed across test cases
+  localStorage.clear();
+  sessionStorage.clear();
 });
 
 // Mock monaco-editor for tests
