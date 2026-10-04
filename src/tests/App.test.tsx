@@ -47,7 +47,27 @@ const renderAt = (path: string) =>
 
 describe('App - Design v2 feature flag routing', () => {
   beforeEach(() => {
-    localStorage.setItem('hasVisited', 'true');
+    const storage: Record<string, string> = {
+      hasVisited: 'true',
+    };
+
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: vi.fn((key: string) => storage[key] ?? null),
+        setItem: vi.fn((key: string, value: string) => {
+          storage[key] = value;
+        }),
+        removeItem: vi.fn((key: string) => {
+          delete storage[key];
+        }),
+        clear: vi.fn(() => {
+          for (const key in storage) delete storage[key];
+        }),
+      },
+      writable: true,
+      configurable: true,
+    });
+
     state.isDesignV2Enabled = false;
   });
 
