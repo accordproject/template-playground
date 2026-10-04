@@ -86,10 +86,11 @@ const viteConfig = defineViteConfig({
 
 
 // https://vitest.dev/config/
-const vitestConfig = defineVitestConfig({  test: {
+const vitestConfig = defineVitestConfig({
+  test: {
     globals: true,
     environment: "jsdom",
-    setupFiles: "./src/utils/testing/setup.ts",
+    setupFiles: "./src/tests/setup.ts",
     exclude: [...configDefaults.exclude, "**/e2e/**"],
     server: {
       deps: {
