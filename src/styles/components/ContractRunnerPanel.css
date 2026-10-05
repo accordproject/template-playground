@@ -119,3 +119,72 @@
   border: none;
   border-radius: 0;
 }
+
+/* Step Indicator Styles */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.step {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  color: #999;
+}
+
+.step.active {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+  font-weight: 600;
+}
+
+.step.completed {
+  color: #52c41a;
+  background: rgba(82, 196, 26, 0.1);
+}
+
+.step-connector {
+  width: 20px;
+  height: 2px;
+  background: #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.step-connector.completed {
+  background: #52c41a;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .step-indicator {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .step {
+  color: #888;
+}
+
+[data-theme="dark"] .step.active {
+  color: #177ddc;
+  background: rgba(23, 125, 220, 0.15);
+}
+
+[data-theme="dark"] .step.completed {
+  color: #49aa19;
+  background: rgba(73, 170, 25, 0.15);
+}
+
+[data-theme="dark"] .step-connector {
+  background: #434343;
+}
+
+[data-theme="dark"] .step-connector.completed {
+  background: #49aa19;
+}
