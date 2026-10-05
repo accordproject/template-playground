@@ -73,32 +73,57 @@ HTMLCanvasElement.prototype.getContext = ((originalGetContext) => {
     if (contextId === '2d') {
       return {
         fillStyle: '',
-        fillRect: () => {},
-        clearRect: () => {},
+        fillRect: () => { },
+        clearRect: () => { },
         getImageData: () => ({ data: [] }),
-        putImageData: () => {},
+        putImageData: () => { },
         createImageData: () => ({ data: [] }),
-        setTransform: () => {},
-        drawImage: () => {},
-        save: () => {},
-        restore: () => {},
-        beginPath: () => {},
-        moveTo: () => {},
-        lineTo: () => {},
-        closePath: () => {},
-        stroke: () => {},
-        fill: () => {},
-        translate: () => {},
-        scale: () => {},
-        rotate: () => {},
-        arc: () => {},
+        setTransform: () => { },
+        drawImage: () => { },
+        save: () => { },
+        restore: () => { },
+        beginPath: () => { },
+        moveTo: () => { },
+        lineTo: () => { },
+        closePath: () => { },
+        stroke: () => { },
+        fill: () => { },
+        translate: () => { },
+        scale: () => { },
+        rotate: () => { },
+        arc: () => { },
         measureText: () => ({ width: 0 }),
-        transform: () => {},
-        rect: () => {},
-        clip: () => {},
+        transform: () => { },
+        rect: () => { },
+        clip: () => { },
         canvas: this,
       } as unknown as CanvasRenderingContext2D;
     }
     return originalGetContext.call(this, contextId as any, options);
   };
 })(HTMLCanvasElement.prototype.getContext);
+// Mock localStorage for tests
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+
+  return {
+    getItem: (key: string) => store[key] ?? null,
+
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+
+    clear: () => {
+      store = {};
+    },
+  };
+})();
+
+Object.defineProperty(window, "localStorage", {
+  value: localStorageMock,
+  writable: true,
+});

@@ -145,13 +145,13 @@ interface AppState {
    * @param ts - The current TypeScript source from the editor
    */
   setEditorLogicTs: (ts: string) => void;
-  
+
   /**
    * Commits the logic source, synchronizes the editor state, and triggers an immediate compilation.
    * @param ts - The new TypeScript source to commit
    */
   setLogicTs: (ts: string) => Promise<void>;
-  
+
   /**
    * Orchestrates the compilation of the currently committed `logicTs` via the
    * TemplateArchiveProcessor. Updates state with the resulting JS code or
@@ -163,20 +163,20 @@ interface AppState {
    * (grammar, model, logic) using JSZip. This object is required by the engine for compilation.
    */
   buildTemplateFromMemory: () => Promise<void>;
-  
+
   /**
    * Registers the reference to the sandboxed iframe element once mounted.
    * @param iframe - The HTMLIFrameElement instance
    */
   setSandboxRef: (iframe: HTMLIFrameElement | null) => void;
-  
+
   /**
    * Marks the sandbox as ready to receive execution requests.
    * Called when the iframe signals it has successfully initialized.
    * @param ready - True if ready, false otherwise
    */
   setSandboxReady: (ready: boolean) => void;
-  
+
   /**
    * Executes a compiled contract logic method inside the isolated iframe sandbox.
    * Coordinates the cross-origin postMessage workflow and registers a resolver
@@ -215,7 +215,7 @@ interface AppState {
    * using the current contract data, and stores the resulting state and events.
    */
   initContract: () => Promise<void>;
-  
+
   /**
    * Triggers the contract logic. Dispatches the `trigger` method to the sandbox
    * using the current data, request, and accumulated state, then updates the UI
@@ -229,6 +229,7 @@ export interface DecompressedData {
   modelCto: string;
   data: string;
   agreementHtml: string;
+  requestJson?: string;
   logicTs?: string;
 }
 
@@ -634,13 +635,14 @@ const useAppStore = create<AppState>()(
             modelCto: state.modelCto,
             data: state.data,
             agreementHtml: state.agreementHtml,
+            requestJson: state.requestJson,
             ...(state.logicTs?.trim() ? { logicTs: state.logicTs } : {}),
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
         loadFromLink: async (compressedData: string) => {
           try {
-            const { templateMarkdown, modelCto, data, agreementHtml, logicTs } =
+            const { templateMarkdown, modelCto, data, agreementHtml, requestJson, logicTs } =
               decompress(compressedData);
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
@@ -649,6 +651,11 @@ const useAppStore = create<AppState>()(
             set(() => ({
               templateMarkdown,
               editorValue: templateMarkdown,
+
+              requestJson:
+                requestJson ??
+                '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
+
               modelCto,
               editorModelCto: modelCto,
               data,
