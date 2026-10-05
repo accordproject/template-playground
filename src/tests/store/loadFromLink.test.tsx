@@ -28,7 +28,7 @@ describe("useAppStore loadFromLink", () => {
 
     vi.mocked(decompress).mockReturnValue(mockData);
 
-    // Mock rebuild to avoid side effects
+
     useAppStore.setState({ rebuild: vi.fn() });
 
     await useAppStore.getState().loadFromLink("some-compressed-data");
@@ -51,16 +51,51 @@ describe("useAppStore loadFromLink", () => {
 
     vi.mocked(decompress).mockReturnValue(mockData);
 
-    useAppStore.setState({ rebuild: vi.fn(), compileLogic: vi.fn(), isLogicPanelVisible: false });
+    useAppStore.setState({
+      rebuild: vi.fn(),
+      compileLogic: vi.fn(),
+      isLogicPanelVisible: false,
+    });
 
-    await useAppStore.getState().loadFromLink("some-compressed-data-with-logic");
+    await useAppStore
+      .getState()
+      .loadFromLink("some-compressed-data-with-logic");
 
     const state = useAppStore.getState();
     expect(state.logicTs).toBe(mockData.logicTs);
     expect(state.editorLogicTs).toBe(mockData.logicTs);
     expect(state.isLogicPanelVisible).toBe(true);
     expect(state.isLogicFeatureEnabled).toBe(true);
-    expect(localStorage.getItem("ui-panels")).toContain('"isLogicPanelVisible":true');
+    expect(localStorage.getItem("ui-panels")).toContain(
+      '"isLogicPanelVisible":true'
+    );
+  });
+
+  it("should restore request JSON from a shared link", async () => {
+    const mockData: DecompressedData = {
+      templateMarkdown: "Sample Template",
+      modelCto: "namespace test@1.0.0",
+      data: '{"key": "value"}',
+      agreementHtml: "<p>Sample</p>",
+      requestJson: JSON.stringify(
+        {
+          $class: "org.example.CustomRequest",
+          amount: 100,
+        },
+        null,
+        2
+      ),
+    };
+
+    vi.mocked(decompress).mockReturnValue(mockData);
+
+    useAppStore.setState({ rebuild: vi.fn() });
+
+    await useAppStore.getState().loadFromLink("shared-link-with-request");
+
+    const state = useAppStore.getState();
+
+    expect(state.requestJson).toBe(mockData.requestJson);
   });
 
   it("should set an error when mandatory fields are missing", async () => {
