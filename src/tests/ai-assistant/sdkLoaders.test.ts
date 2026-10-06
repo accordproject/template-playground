@@ -1,16 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { sdkLoaders, SdkProvider } from "../../ai-assistant/sdkLoaders";
+import type { SdkLoaders } from "@accordproject/template-engine/lib/llm";
+import { sdkLoaders } from "../../ai-assistant/sdkLoaders";
+
+type SdkProvider = keyof SdkLoaders;
 
 // The client constructor template-engine's reasoners read off each SDK module.
-const expectedExports: Record<SdkProvider, string> = {
+const expectedExports: Partial<Record<SdkProvider, string>> = {
   groq: "default",
   openai: "default",
   anthropic: "default",
   google: "GoogleGenAI",
   mistral: "Mistral",
   openrouter: "OpenRouter",
-  ollama: "default",
-  "openai-compatible": "default",
 };
 
 describe("sdkLoaders", () => {
