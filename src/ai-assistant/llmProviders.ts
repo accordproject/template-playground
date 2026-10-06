@@ -3,7 +3,7 @@ import { AIConfig, Message } from '../types/components/AIAssistant.types';
 import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
 import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
-import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
+import type { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components';
 
 export abstract class LLMProvider {
   protected config: AIConfig;
