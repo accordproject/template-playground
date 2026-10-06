@@ -3,9 +3,16 @@ import { defineConfig as defineVitestConfig, configDefaults } from "vitest/confi
 import react from "@vitejs/plugin-react";
 import nodePolyfills from "vite-plugin-node-stdlib-browser";
 import { visualizer } from "rollup-plugin-visualizer";
+import inject from "@rollup/plugin-inject";
+import { createRequire } from "node:module";
+import rebuildWorkerDevPlugin from "./vite-plugin-rebuild-worker";
+
+const require = createRequire(import.meta.url);
+// The same shim vite-plugin-node-stdlib-browser injects into the main bundle.
+const nodeGlobalsShim = require.resolve("node-stdlib-browser/helpers/esbuild/shim");
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
-  plugins: [nodePolyfills(), react(), visualizer({
+  plugins: [rebuildWorkerDevPlugin(), nodePolyfills(), react(), visualizer({
     emitFile: true,
     filename: "stats.html",
   })],
@@ -23,18 +30,54 @@ const viteConfig = defineViteConfig({
     include: ["immer"],
     needsInterop: ['@accordproject/template-engine'],
   },
+  /*
+   * The template rendering sandbox worker (src/sandbox/rebuild.worker.ts)
+   * is bundled by a separate Rollup run that does not see the plugins above,
+   * so the Node globals the Accord Project libraries expect are injected
+   * here explicitly. They must be listed under `worker.plugins`: Vite
+   * replaces any `plugins` given in `worker.rollupOptions` with this list.
+   * `enforce: "post"` runs the injection after the CommonJS conversion, as
+   * it does for the main bundle; injected earlier, its `import` statements
+   * make the libraries' CommonJS files look like ES modules and their
+   * exports are lost. The IIFE format produces the single self-contained
+   * classic script that the sandbox loads with importScripts(); see
+   * vite-plugin-rebuild-worker.ts for why it must be classic, and for the
+   * dev-server equivalent.
+   */
+  worker: {
+    format: "iife",
+    plugins: [
+      {
+        ...inject({
+          global: [nodeGlobalsShim, "global"],
+          process: [nodeGlobalsShim, "process"],
+          Buffer: [nodeGlobalsShim, "Buffer"],
+        }),
+        enforce: "post",
+      },
+    ],
+  },
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'template-engine': ['@accordproject/template-engine'],
-          'markdown-transform': ['@accordproject/markdown-transform'],
-          'markdown-template': ['@accordproject/markdown-template'],
-          'concerto': ['@accordproject/concerto-core', '@accordproject/concerto-cto'],
-          'anthropic': ['@anthropic-ai/sdk'],
-          'google-genai': ['@google/genai'],
-          'mistral': ['@mistralai/mistralai', '@mistralai/mistralai/models/components/chatcompletionstreamrequest'],
-          'openai': ['openai'],
+        manualChunks(id) {
+          // Rollup's shared CommonJS interop helpers must not live inside a
+          // heavy vendor chunk, or every importer is forced to preload it.
+          if (id.includes("commonjsHelpers")) return "cjs-helpers";
+          const groups: Record<string, string[]> = {
+            "template-engine": ["@accordproject/template-engine"],
+            "markdown-transform": ["@accordproject/markdown-transform"],
+            "markdown-template": ["@accordproject/markdown-template"],
+            concerto: ["@accordproject/concerto-core", "@accordproject/concerto-cto"],
+            anthropic: ["@anthropic-ai/sdk"],
+            "google-genai": ["@google/genai"],
+            mistral: ["@mistralai/mistralai"],
+            openai: ["openai"],
+          };
+          for (const [name, pkgs] of Object.entries(groups)) {
+            if (pkgs.some((pkg) => id.includes(`/node_modules/${pkg}/`))) return name;
+          }
+          return undefined;
         },
       },
     },

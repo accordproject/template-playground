@@ -2,11 +2,6 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { debounce } from "ts-debounce";
-import { ModelManager } from "@accordproject/concerto-core";
-import { TemplateMarkInterpreter } from "@accordproject/template-engine";
-import { TypeScriptCompilationContext } from "@accordproject/template-engine/lib/TypeScriptCompilationContext";
-import { TemplateMarkTransformer } from "@accordproject/markdown-template";
-import { transform } from "@accordproject/markdown-transform";
 import { SAMPLES, Sample } from "../samples";
 import * as playground from "../samples/playground";
 import { compress, decompress } from "../utils/compression/compression";
@@ -17,19 +12,35 @@ import {
   KeyProtectionLevel,
 } from "../types/components/AIAssistant.types";
 import { validateBeforeRebuild } from "../utils/validators";
-import { loadBundledModels, BUNDLED_MODELS } from "../utils/modelCache";
+import { BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
+import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
 
 /**
- * A single trigger execution result, stored in history to track the evolution
- * of the contract state over time.
+ * One `init` or `trigger` execution, stored in `executionHistory` to track the
+ * evolution of the contract state over time. Failed runs are kept too, so the
+ * UI can show what was sent and why it was rejected.
  */
 export interface LogicExecutionResult {
-  response: object;
-  stateBefore: object;
-  stateAfter: object;
+  /** "init" for the initialisation run, then "#1", "#2", … for triggers. */
+  id: string;
+  method: "init" | "trigger";
+  /** Contract data for `init`, the request payload for `trigger`. */
+  request: object;
+  /** `result` of a trigger, or `{ state, events }` of an init. Null when the run failed. */
+  response: object | null;
+  stateBefore: object | null;
+  stateAfter: object | null;
   events: object[];
+  /** Formatted error message when the run threw; null on success. */
+  error: string | null;
+  /**
+   * Where a failed run stopped: "parse" when the request JSON could not be
+   * read (nothing was sent to the logic), "run" when the logic itself threw.
+   */
+  stage: "parse" | "run";
+  durationMs: number;
   executedAt: string; // ISO timestamp
 }
 
@@ -187,11 +198,18 @@ interface AppState {
    * The active execution response payload (JSON string) for display in the UI.
    */
   executionResponse: string;
-  
+
+  /**
+   * Every run since the last `init`, oldest first. `initContract` starts a
+   * fresh history; `triggerContract` appends one entry per request, failed or not.
+   */
+  executionHistory: LogicExecutionResult[];
+  clearExecutionHistory: () => void;
+
   /** The current request payload (JSON string) used as input for the next trigger. */
   requestJson: string;
   setRequestJson: (json: string) => void;
-  
+
   /**
    * Initializes the contract logic. Dispatches the `init` method to the sandbox
    * using the current contract data, and stores the resulting state and events.
@@ -226,32 +244,21 @@ async function rebuild(
    * This fails fast on invalid JSON or CTO syntax without running network calls
    */
   await validateBeforeRebuild(template, model, dataString);
-  const modelManager = new ModelManager({ offline: true });
   /*
-   * Preload the bundled Accord Project models so imports like
-   * `https://models.accordproject.org/accordproject/contract@0.2.0.cto`
-   * resolve from the bundle without a network round-trip. Combined with
-   * offline:true, any namespace not in the bundle will fail validation
-   * rather than triggering a network fetch.
+   * Rendering runs the Template Engine, which evaluates the template's
+   * `{{% ... %}}` formulas with `new Function`. Shared links can carry any
+   * formula, so that step runs in the rendering sandbox (a null-origin
+   * iframe hosting a worker, see `RebuildSandboxFrame.tsx`) rather than in
+   * the page. Only the resulting CiceroMark JSON comes back.
    */
-  loadBundledModels(modelManager);
-  modelManager.addCTOModel(model, undefined, true);
-  const engine = new TemplateMarkInterpreter(modelManager as any, {});
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-  const templateMarkTransformer = new TemplateMarkTransformer();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-  const templateMarkDom = templateMarkTransformer.fromMarkdownTemplate(
-    { content: template },
-    modelManager,
-    "contract",
-    { verbose: false },
-  ) as object;
+  // markdown-transform is several MB, so it is loaded on first use rather than
+  // imported statically; that lets the UI render before it arrives. The
+  // download starts here so it overlaps with rendering in the sandbox.
+  const markdownTransform = import("@accordproject/markdown-transform");
+  const ciceroMarkJson = await rebuildInSandbox(template, model, dataString);
+  // Converting CiceroMark to HTML runs no user code, so it stays on the main thread.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const data = JSON.parse(dataString);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
-  const ciceroMark = await engine.generate(templateMarkDom, data);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-  const ciceroMarkJson = ciceroMark.toJSON() as unknown;
+  const { transform } = await markdownTransform;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   const result = (await transform(
     ciceroMarkJson,
@@ -400,6 +407,8 @@ const useAppStore = create<AppState>()(
         executionState: '',
         executionEvents: '',
         executionResponse: '',
+        executionHistory: [],
+        clearExecutionHistory: () => set({ executionHistory: [] }),
 
         requestJson: '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
         setRequestJson: (json: string) => set({ requestJson: json }),
@@ -516,6 +525,11 @@ const useAppStore = create<AppState>()(
               compiledLogicJs: null,
               compilationErrors: [],
               isCompiling: false,
+              // Runs belong to the previous contract; start the simulator clean
+              executionState: '',
+              executionEvents: '',
+              executionResponse: '',
+              executionHistory: [],
               // Adapt layout based on whether template has logic
               isLogicPanelVisible: hasLogic,
               isContractRunnerVisible: hasLogic,
@@ -834,6 +848,9 @@ const useAppStore = create<AppState>()(
                   const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
                     ? templateModel.getFullyQualifiedName()
                     : undefined;
+                  const { TypeScriptCompilationContext } = await import(
+                    "@accordproject/template-engine/lib/TypeScriptCompilationContext"
+                  );
                   const contextStr = new TypeScriptCompilationContext(
                     templateToCompile.getModelManager(),
                     fqn,
@@ -1012,18 +1029,44 @@ const useAppStore = create<AppState>()(
             return;
           }
 
+          const startedAt = Date.now();
+          const run = (
+            partial: Pick<LogicExecutionResult, "request" | "response" | "stateAfter" | "events" | "error">,
+          ): LogicExecutionResult => ({
+            id: "init",
+            method: "init",
+            stateBefore: null,
+            stage: "run",
+            durationMs: Date.now() - startedAt,
+            executedAt: new Date(startedAt).toISOString(),
+            ...partial,
+          });
+
+          let parsedData: object = {};
           try {
-            const parsedData = JSON.parse(data);
+            parsedData = JSON.parse(data) as object;
             const output = await get().executeInSandbox(compiledLogicJs, 'init', [parsedData]) as { state?: unknown; events?: unknown[] };
+            const events = Array.isArray(output.events) ? (output.events as object[]) : [];
 
             set({
               executionState: output.state ? JSON.stringify(output.state, null, 2) : '',
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              executionResponse: '',
+              // A new init starts a new run history
+              executionHistory: [run({
+                request: parsedData,
+                response: { state: output.state ?? null, events },
+                stateAfter: (output.state as object | undefined) ?? null,
+                events,
+                error: null,
+              })],
               compilationErrors: []
             });
           } catch (err: unknown) {
+            const message = formatError(err);
             set({
-              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
+              executionHistory: [run({ request: parsedData, response: null, stateAfter: null, events: [], error: message })],
+              compilationErrors: [{ message: `Execution Error: ${message}` }],
               isProblemPanelVisible: true
             });
           }
@@ -1041,12 +1084,35 @@ const useAppStore = create<AppState>()(
             return;
           }
 
+          const startedAt = Date.now();
+          const history = get().executionHistory;
+          const triggerCount = history.filter((r) => r.method === "trigger").length;
+          const run = (
+            partial: Pick<LogicExecutionResult, "request" | "response" | "stateBefore" | "stateAfter" | "events" | "error" | "stage">,
+          ): LogicExecutionResult => ({
+            id: `#${triggerCount + 1}`,
+            method: "trigger",
+            durationMs: Date.now() - startedAt,
+            executedAt: new Date(startedAt).toISOString(),
+            ...partial,
+          });
+
+          let parsedRequest: object = {};
+          let parsedState: object | null = null;
+          let stage: LogicExecutionResult["stage"] = "run";
           try {
-            const parsedData = JSON.parse(data);
-            const parsedRequest = JSON.parse(requestJson);
-            const parsedState = JSON.parse(executionState);
+            const parsedData = JSON.parse(data) as object;
+            parsedState = JSON.parse(executionState) as object;
+            try {
+              parsedRequest = JSON.parse(requestJson) as object;
+            } catch (parseErr) {
+              // Nothing reaches the logic: report it as a request problem, not a trigger() failure
+              stage = "parse";
+              throw parseErr;
+            }
 
             const output = (await executeInSandbox(compiledLogicJs, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] };
+            const events = Array.isArray(output.events) ? (output.events as object[]) : [];
 
             /*
              * Extract and store execution artifacts.
@@ -1057,11 +1123,31 @@ const useAppStore = create<AppState>()(
               executionResponse: output.result ? JSON.stringify(output.result, null, 2) : '',
               executionState: output.state ? JSON.stringify(output.state, null, 2) : executionState,
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
+              executionHistory: [...history, run({
+                request: parsedRequest,
+                response: (output.result as object | undefined) ?? null,
+                stateBefore: parsedState,
+                stateAfter: (output.state as object | undefined) ?? parsedState,
+                events,
+                error: null,
+                stage: "run",
+              })],
               compilationErrors: []
             });
           } catch (err: unknown) {
+            const message = formatError(err);
             set({
-              compilationErrors: [{ message: `Execution Error: ${formatError(err)}` }],
+              // State is left untouched by a failed trigger, so before === after
+              executionHistory: [...history, run({
+                request: parsedRequest,
+                response: null,
+                stateBefore: parsedState,
+                stateAfter: parsedState,
+                events: [],
+                error: message,
+                stage,
+              })],
+              compilationErrors: [{ message: `Execution Error: ${message}` }],
               isProblemPanelVisible: true
             });
           }
