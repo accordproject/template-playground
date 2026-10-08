@@ -17,6 +17,7 @@ concept SampleModel {
       data: '{"$class": "test@1.0.0.SampleModel", "key": "value"}',
       agreementHtml: "<p>Sample Agreement</p>",
       logicTs: "console.log('test')",
+      requestJson: '{"increment": 1}',
     };
 
     // Mock compress function to return a sample compressed string
@@ -30,6 +31,7 @@ concept SampleModel {
       data: initialState.data,
       agreementHtml: initialState.agreementHtml,
       logicTs: initialState.logicTs,
+      requestJson: initialState.requestJson,
     });
 
     const shareableLink = useAppStore.getState().generateShareableLink();
