@@ -11,7 +11,6 @@
 export const NAME = 'Counter Contract (with Logic)';
 
 export const MODEL = `namespace org.acme.counter@1.0.0
-
 @template
 concept CounterContract {
   o String owner

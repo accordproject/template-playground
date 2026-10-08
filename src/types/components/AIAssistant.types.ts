@@ -17,6 +17,15 @@ export interface AIConfig {
   apiKey: string;
   customEndpoint?: string;
   maxTokens?: number;
+  /**
+   * Reasoning effort for LLM contract execution. Only sent to providers that
+   * accept one — see `PROVIDER_CAPABILITIES` in `ai-assistant/llm/LLMConfig`.
+   */
+  effort?: string;
+  /** Sampling temperature, for the providers that honour it. */
+  temperature?: number;
+  /** Whether Anthropic runs with extended thinking. Defaults to true. */
+  thinking?: boolean;
   showFullPrompt?: boolean;
   includeTemplateMarkContent: boolean;
   includeConcertoModelContent: boolean;

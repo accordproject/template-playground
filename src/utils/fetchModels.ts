@@ -78,6 +78,23 @@ export async function fetchModels({
         return data.models?.map((m) => m.name).filter((name): name is string => Boolean(name)) ?? [];
       }
 
+      case 'groq': {
+        // Groq's API is OpenAI-compatible — same request shape and response
+        // envelope (`{ data: [{ id }] }`) as OpenAI/OpenRouter below, just
+        // against Groq's own base URL.
+        if (!apiKey) return [];
+        const res = await fetch('https://api.groq.com/openai/v1/models', {
+          headers: { Authorization: `Bearer ${apiKey}` },
+          signal,
+        });
+        if (!res.ok) {
+          console.error(`Fetch error (${res.status}): ${res.statusText}`);
+          return [];
+        }
+        const data = (await res.json()) as ModelListResponse;
+        return data.data?.map((m) => m.id).filter((id): id is string => Boolean(id)) ?? [];
+      }
+
       case 'mistral': {
         if (!apiKey) return [];
         const res = await fetch('https://api.mistral.ai/v1/models', {

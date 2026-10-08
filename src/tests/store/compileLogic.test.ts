@@ -66,20 +66,22 @@ describe('useAppStore - compileLogic', () => {
     const state = useAppStore.getState();
     expect(state.isCompiling).toBe(false);
     expect(state.isProblemPanelVisible).toBe(true);
-    
-    // Offset is: 1 (leading newline) + 2 (newlines in context) + 1 (newline between) + 1 (newline in declarations) + 1 (trailing newline) = 6 newlines.
-    // Line 10 (0-indexed) - 6 offset = 4 (0-indexed). Mapped to 1-indexed = 5.
-    // Line 15 (0-indexed) - 6 offset = 9 (0-indexed). Mapped to 1-indexed = 10.
+
+    // The prepended text is `\n${contextStr}          ` — the declarations
+    // block is not currently included. Offset is: 1 (leading newline) + 2
+    // (newlines inside contextStr's "line 1\nline 2\nline 3") = 3 newlines.
+    // Line 10 (0-indexed) - 3 offset = 7 (0-indexed). Mapped to 1-indexed = 8.
+    // Line 15 (0-indexed) - 3 offset = 12 (0-indexed). Mapped to 1-indexed = 13.
     expect(state.compilationErrors).toHaveLength(2);
     expect(state.compilationErrors[0]).toEqual({
       message: 'Error 1',
-      line: 5,
+      line: 8,
       column: 11,
       length: 4,
     });
     expect(state.compilationErrors[1]).toEqual({
       message: 'Error 2',
-      line: 10,
+      line: 13,
       column: 6,
       length: 8,
     });

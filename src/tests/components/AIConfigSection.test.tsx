@@ -119,12 +119,47 @@ function makeFetchMock(models: string[], format: 'openai' | 'ollama' = 'openai')
   } as unknown as Response);
 }
 
+/*
+ * Query helpers. getByRole is slow in jsdom (it computes accessibility for every
+ * element), and antd renders a large DOM. These helpers use cheaper lookups so the
+ * longer save-flow tests stay well inside the timeout.
+ */
+const WAIT = { timeout: 8000 };
+
+/** Provider <select> (the first native select) */
+const providerSelect = () => document.querySelectorAll('select')[0] as HTMLSelectElement;
+
+/** Model <select> (the second native select) */
+const modelSelect = () => document.querySelectorAll('select')[1] as HTMLSelectElement;
+
+/** Save button, found without the expensive accessibility checks */
+const saveButton = () =>
+  screen.getByRole('button', { name: /Save Configuration/i, hidden: true });
+
+/** Resolves once a model <option> with the given label has been rendered */
+const waitForModelOption = (label: string) =>
+  waitFor(() => {
+    expect(screen.getByText(label, { selector: 'option' })).toBeInTheDocument();
+  }, WAIT);
+
+/** Picks a model in the model select and clicks Save. */
+async function selectModelAndSave(model: string) {
+  await act(async () => {
+    fireEvent.change(modelSelect(), { target: { value: model } });
+  });
+  await act(async () => {
+    fireEvent.click(saveButton());
+  });
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('AIConfigSection', () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
+    // Rendering antd under jsdom is slow, and the suite runs many files in parallel.
+    vi.setConfig({ testTimeout: 20000 });
     localStorageMock.clear();
     vi.clearAllMocks();
     // Re-apply default mock implementations after clearAllMocks
@@ -156,8 +191,7 @@ describe('AIConfigSection', () => {
       render(<AIConfigSection />);
     });
 
-    const saveBtn = screen.getByRole('button', { name: /Save Configuration/i });
-    expect(saveBtn).toBeDisabled();
+    expect(saveButton()).toBeDisabled();
   });
 
   // ── Provider selection impacts required fields ─────────────────────────────
@@ -172,7 +206,7 @@ describe('AIConfigSection', () => {
 
     // Select openai-compatible
     await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
+      fireEvent.change(providerSelect(), {
         target: { value: 'openai-compatible' },
       });
     });
@@ -185,15 +219,13 @@ describe('AIConfigSection', () => {
       render(<AIConfigSection />);
     });
 
-    const providerSelect = screen.getByDisplayValue('Select a provider');
-
     await act(async () => {
-      fireEvent.change(providerSelect, { target: { value: 'openai-compatible' } });
+      fireEvent.change(providerSelect(), { target: { value: 'openai-compatible' } });
     });
     expect(screen.getByPlaceholderText('https://your-api-endpoint/v1')).toBeInTheDocument();
 
     await act(async () => {
-      fireEvent.change(providerSelect, { target: { value: 'openai' } });
+      fireEvent.change(providerSelect(), { target: { value: 'openai' } });
     });
     expect(screen.queryByPlaceholderText('https://your-api-endpoint/v1')).not.toBeInTheDocument();
   });
@@ -206,7 +238,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
+      fireEvent.change(providerSelect(), {
         target: { value: 'ollama' },
       });
     });
@@ -222,13 +254,13 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
+      fireEvent.change(providerSelect(), {
         target: { value: 'ollama' },
       });
     });
 
     // No model selected yet → save still disabled
-    expect(screen.getByRole('button', { name: /Save Configuration/i })).toBeDisabled();
+    expect(saveButton()).toBeDisabled();
   });
 
   // ── localStorage loading on mount ─────────────────────────────────────────
@@ -245,9 +277,8 @@ describe('AIConfigSection', () => {
 
     // The provider <select> should have its value set to 'openai'
     await waitFor(() => {
-      const [providerSelect] = screen.getAllByRole('combobox');
-      expect(providerSelect).toHaveValue('openai');
-    });
+      expect(providerSelect()).toHaveValue('openai');
+    }, WAIT);
   });
 
   it('loads in-memory API key from Zustand store when available', async () => {
@@ -259,20 +290,22 @@ describe('AIConfigSection', () => {
       setAIConfig: mockSetAIConfig,
     });
 
-    await act(async () => {
-      render(<AIConfigSection />);
-    });
+    try {
+      await act(async () => {
+        render(<AIConfigSection />);
+      });
 
-    await waitFor(() => {
-      const apiKeyInput = screen.getByPlaceholderText('Enter API key') as HTMLInputElement;
-      expect(apiKeyInput.value).toBe('my-stored-key');
-    });
-
-    // Restore default
-    (useAppStore as unknown as { getState: () => object }).getState = () => ({
-      aiConfig: null,
-      setAIConfig: mockSetAIConfig,
-    });
+      await waitFor(() => {
+        const apiKeyInput = screen.getByPlaceholderText('Enter API key') as HTMLInputElement;
+        expect(apiKeyInput.value).toBe('my-stored-key');
+      }, WAIT);
+    } finally {
+      // Restore default even if the assertion above fails, so later tests are not affected
+      (useAppStore as unknown as { getState: () => object }).getState = () => ({
+        aiConfig: null,
+        setAIConfig: mockSetAIConfig,
+      });
+    }
   });
 
   it('shows security message when legacy-plaintext key is loaded', async () => {
@@ -286,10 +319,8 @@ describe('AIConfigSection', () => {
     });
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/stored unencrypted/i)
-      ).toBeInTheDocument();
-    });
+      expect(screen.getByText(/stored unencrypted/i)).toBeInTheDocument();
+    }, WAIT);
   });
 
   // ── Save persistence ───────────────────────────────────────────────────────
@@ -303,7 +334,7 @@ describe('AIConfigSection', () => {
 
     // Select provider
     await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
+      fireEvent.change(providerSelect(), {
         target: { value: 'openai' },
       });
     });
@@ -315,26 +346,14 @@ describe('AIConfigSection', () => {
       });
     });
 
-    // Wait for models to be populated in the select, then choose one
-    await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'gpt-4' })).toBeInTheDocument();
-    });
-
-    await act(async () => {
-      const [, modelSelect] = screen.getAllByRole('combobox');
-      fireEvent.change(modelSelect, {
-        target: { value: 'gpt-4' },
-      });
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
-    });
+    // Wait for models to be populated in the select, then choose one and save
+    await waitForModelOption('gpt-4');
+    await selectModelAndSave('gpt-4');
 
     await waitFor(() => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith('aiProvider', 'openai');
       expect(localStorageMock.setItem).toHaveBeenCalledWith('aiModel', 'gpt-4');
-    });
+    }, WAIT);
   });
 
   it('removes aiCustomEndpoint from localStorage when provider is not openai-compatible', async () => {
@@ -346,7 +365,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
+      fireEvent.change(providerSelect(), {
         target: { value: 'openai' },
       });
       fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
@@ -354,24 +373,12 @@ describe('AIConfigSection', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'gpt-4' })).toBeInTheDocument();
-    });
-
-    await act(async () => {
-      const [, modelSelect] = screen.getAllByRole('combobox');
-      fireEvent.change(modelSelect, {
-        target: { value: 'gpt-4' },
-      });
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
-    });
+    await waitForModelOption('gpt-4');
+    await selectModelAndSave('gpt-4');
 
     await waitFor(() => {
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('aiCustomEndpoint');
-    });
+    }, WAIT);
   });
 
   it('calls onSaveSuccess callback after saving with Ollama', async () => {
@@ -383,30 +390,18 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
+      fireEvent.change(providerSelect(), {
         target: { value: 'ollama' },
       });
     });
 
     // Wait for Ollama models to be fetched
-    await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'tinyllama' })).toBeInTheDocument();
-    });
-
-    await act(async () => {
-      const [, modelSelect] = screen.getAllByRole('combobox');
-      fireEvent.change(modelSelect, {
-        target: { value: 'tinyllama' },
-      });
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
-    });
+    await waitForModelOption('tinyllama');
+    await selectModelAndSave('tinyllama');
 
     await waitFor(() => {
       expect(onSaveSuccess).toHaveBeenCalledTimes(1);
-    });
+    }, WAIT);
   });
 
   // ── Reset clears state ─────────────────────────────────────────────────────
@@ -456,7 +451,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
+      fireEvent.change(providerSelect(), {
         target: { value: 'openai' },
       });
       fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
@@ -466,7 +461,7 @@ describe('AIConfigSection', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/WebAuthn not available/i)).toBeInTheDocument();
-    });
+    }, WAIT);
   });
 
   it('uses WebAuthn encryption when available during save', async () => {
@@ -479,7 +474,7 @@ describe('AIConfigSection', () => {
     });
 
     await act(async () => {
-      fireEvent.change(screen.getByDisplayValue('Select a provider'), {
+      fireEvent.change(providerSelect(), {
         target: { value: 'openai' },
       });
       fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
@@ -487,24 +482,12 @@ describe('AIConfigSection', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'gpt-4' })).toBeInTheDocument();
-    });
-
-    await act(async () => {
-      const [, modelSelect] = screen.getAllByRole('combobox');
-      fireEvent.change(modelSelect, {
-        target: { value: 'gpt-4' },
-      });
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
-    });
+    await waitForModelOption('gpt-4');
+    await selectModelAndSave('gpt-4');
 
     await waitFor(() => {
       expect(encryptAndStoreApiKey).toHaveBeenCalledWith('my-api-key');
-    });
+    }, WAIT);
   });
 
   // ── API key visibility toggle ──────────────────────────────────────────────
