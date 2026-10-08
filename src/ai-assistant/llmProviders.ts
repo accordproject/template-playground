@@ -18,8 +18,9 @@ import { AIConfig, Message } from '../types/components/AIAssistant.types';
 import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
 import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
-import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
+import type { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components';
 import type { Template } from '@accordproject/cicero-core';
+import { sdkLoaders } from './sdkLoaders';
 import {
   LLMExecutor,
   LLMExecutorConfig,
@@ -444,7 +445,7 @@ export function getLLMExecutor(template: Template, config: LLMExecutorConfig): L
   if (cached && cached.key === key) {
     return cached.executor;
   }
-  const executor = new LLMExecutor(template, config);
+  const executor = new LLMExecutor(template, config, sdkLoaders);
   executorCache.set(template as unknown as object, { key, executor });
   return executor;
 }

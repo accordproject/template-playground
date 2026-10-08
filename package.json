@@ -5,7 +5,7 @@
   "type": "commonjs",
   "engines": {
     "node": ">=22",
-    "npm": ">=6"
+    "npm": ">=10"
   },
   "scripts": {
     "dev": "vite",
@@ -18,14 +18,13 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@accordproject/cicero-core": "^2.1.1",
-    "@accordproject/concerto-codegen": "6.3.0",
+    "@accordproject/cicero-core": "^2.2.0",
     "@accordproject/concerto-core": "^5.0.0",
     "@accordproject/concerto-cto": "^5.0.0",
-    "@accordproject/markdown-common": "^1.0.1",
-    "@accordproject/markdown-template": "^1.0.1",
-    "@accordproject/markdown-transform": "^1.0.1",
-    "@accordproject/template-engine": "5.1.0",
+    "@accordproject/markdown-common": "^1.1.0",
+    "@accordproject/markdown-template": "^1.1.0",
+    "@accordproject/markdown-transform": "^1.1.0",
+    "@accordproject/template-engine": "^5.2.0",
     "@ant-design/icons": "^5.3.7",
     "@anthropic-ai/sdk": "^0.100.1",
     "@google/genai": "^2.10.0",
@@ -66,7 +65,6 @@
     "rehype-raw": "^7.0.0",
     "shepherd.js": "^13.0.3",
     "styled-components": "^6.1.12",
-    "traverse": "^0.6.11",
     "ts-debounce": "^4.0.0",
     "use-debounce": "^10.1.0",
     "uuid": "^11.1.0",
