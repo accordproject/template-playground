@@ -5,73 +5,19 @@ import { defineConfig as defineVitestConfig, configDefaults } from "vitest/confi
 import react from "@vitejs/plugin-react";
 import nodePolyfills from "vite-plugin-node-stdlib-browser";
 import { visualizer } from "rollup-plugin-visualizer";
-import type { Plugin as EsbuildPlugin } from "esbuild";
+import inject from "@rollup/plugin-inject";
+import { createRequire } from "node:module";
+import rebuildWorkerDevPlugin from "./vite-plugin-rebuild-worker";
 
-function replaceFunctionBody(source: string, fnSignature: string, newBody: string): string {
-  const startIdx = source.indexOf(fnSignature);
-  if (startIdx === -1) return source;
-
-  const braceStart = source.indexOf("{", startIdx);
-  if (braceStart === -1) return source;
-
-  let depth = 0;
-  let i = braceStart;
-  for (; i < source.length; i++) {
-    if (source[i] === "{") depth++;
-    else if (source[i] === "}") {
-      depth--;
-      if (depth === 0) break;
-    }
-  }
-  const fnEnd = i + 1;
-
-  return source.slice(0, startIdx) + newBody + source.slice(fnEnd);
-}
-
-// @accordproject/template-engine's loadOptionalModule() does import(specifier)
-// with a variable, so esbuild's dependency scanner can't discover
-// @mistralai/mistralai, @anthropic-ai/sdk, etc. This onLoad hook rewrites
-// Reasoners.js at pre-bundle time to use literal, analyzable imports.
-// Only affects dev (optimizeDeps); the alias below handles both dev and build.
-function fixDynamicOptionalImportsEsbuild(): EsbuildPlugin {
-  return {
-    name: "fix-template-engine-dynamic-imports",
-    setup(build) {
-      build.onLoad({ filter: /template-engine[\\/]lib[\\/]llm[\\/]Reasoners\.js$/ }, (args) => {
-        let contents = readFileSync(args.path, "utf8");
-        if (contents.includes("loadOptionalModule")) {
-          contents = replaceFunctionBody(
-            contents,
-            "function loadOptionalModule(specifier)",
-            `function loadOptionalModule(specifier) {
-              switch (specifier) {
-                case '@mistralai/mistralai': return import('@mistralai/mistralai');
-                case '@anthropic-ai/sdk': return import('@anthropic-ai/sdk');
-                case '@google/genai': return import('@google/genai');
-                case 'openai': return import('openai');
-                case 'groq-sdk': return import('groq-sdk');
-                case '@openrouter/sdk': return import('@openrouter/sdk');
-                default: return import(/* @vite-ignore */ specifier);
-              }
-            }`
-          );
-        }
-        return { contents, loader: "js" };
-      });
-    },
-  };
-}
-
+const require = createRequire(import.meta.url);
+// The same shim vite-plugin-node-stdlib-browser injects into the main bundle.
+const nodeGlobalsShim = require.resolve("node-stdlib-browser/helpers/esbuild/shim");
 // https://vitejs.dev/config/
 const viteConfig = defineViteConfig({
-  plugins: [
-    nodePolyfills(),
-    react(),
-    visualizer({
-      emitFile: true,
-      filename: "stats.html",
-    }),
-  ],
+  plugins: [rebuildWorkerDevPlugin(), nodePolyfills(), react(), visualizer({
+    emitFile: true,
+    filename: "stats.html",
+  })],
   resolve: {
     alias: {
       // Defensive safeguard: forces axios to use the browser-safe XHR adapter
@@ -106,19 +52,54 @@ const viteConfig = defineViteConfig({
       plugins: [fixDynamicOptionalImportsEsbuild()],
     },
   },
+  /*
+   * The template rendering sandbox worker (src/sandbox/rebuild.worker.ts)
+   * is bundled by a separate Rollup run that does not see the plugins above,
+   * so the Node globals the Accord Project libraries expect are injected
+   * here explicitly. They must be listed under `worker.plugins`: Vite
+   * replaces any `plugins` given in `worker.rollupOptions` with this list.
+   * `enforce: "post"` runs the injection after the CommonJS conversion, as
+   * it does for the main bundle; injected earlier, its `import` statements
+   * make the libraries' CommonJS files look like ES modules and their
+   * exports are lost. The IIFE format produces the single self-contained
+   * classic script that the sandbox loads with importScripts(); see
+   * vite-plugin-rebuild-worker.ts for why it must be classic, and for the
+   * dev-server equivalent.
+   */
+  worker: {
+    format: "iife",
+    plugins: [
+      {
+        ...inject({
+          global: [nodeGlobalsShim, "global"],
+          process: [nodeGlobalsShim, "process"],
+          Buffer: [nodeGlobalsShim, "Buffer"],
+        }),
+        enforce: "post",
+      },
+    ],
+  },
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'template-engine': ['@accordproject/template-engine'],
-          'markdown-transform': ['@accordproject/markdown-transform'],
-          'markdown-template': ['@accordproject/markdown-template'],
-          'concerto': ['@accordproject/concerto-core', '@accordproject/concerto-cto'],
-          'anthropic': ['@anthropic-ai/sdk'],
-          'google-genai': ['@google/genai'],
-          'mistral': ['@mistralai/mistralai'],
-          'openai': ['openai'],
-          'groq': ['groq-sdk'],
+        manualChunks(id) {
+          // Rollup's shared CommonJS interop helpers must not live inside a
+          // heavy vendor chunk, or every importer is forced to preload it.
+          if (id.includes("commonjsHelpers")) return "cjs-helpers";
+          const groups: Record<string, string[]> = {
+            "template-engine": ["@accordproject/template-engine"],
+            "markdown-transform": ["@accordproject/markdown-transform"],
+            "markdown-template": ["@accordproject/markdown-template"],
+            concerto: ["@accordproject/concerto-core", "@accordproject/concerto-cto"],
+            anthropic: ["@anthropic-ai/sdk"],
+            "google-genai": ["@google/genai"],
+            mistral: ["@mistralai/mistralai"],
+            openai: ["openai"],
+          };
+          for (const [name, pkgs] of Object.entries(groups)) {
+            if (pkgs.some((pkg) => id.includes(`/node_modules/${pkg}/`))) return name;
+          }
+          return undefined;
         },
       },
     },
