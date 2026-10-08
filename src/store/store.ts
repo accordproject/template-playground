@@ -1160,10 +1160,9 @@ const useAppStore = create<AppState>()(
                   const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
                     ? templateModel.getFullyQualifiedName()
                     : undefined;
-                  const [{ TypeScriptCompilationContext }, { SMART_LEGAL_CONTRACT_BASE64 }] = await Promise.all([
-                    import("@accordproject/template-engine/lib/TypeScriptCompilationContext"),
-                    import("@accordproject/template-engine/lib/runtime/declarations"),
-                  ]);
+                  const { TypeScriptCompilationContext } = await import(
+                    "@accordproject/template-engine/lib/TypeScriptCompilationContext"
+                  );
                   const contextStr = new TypeScriptCompilationContext(
                     templateToCompile.getModelManager(),
                     fqn,
