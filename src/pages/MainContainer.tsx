@@ -9,6 +9,7 @@ import ProblemPanel from "../components/ProblemPanel";
 import SandboxFrame from "../components/SandboxFrame";
 import ContractRunnerPanel from "../components/ContractRunnerPanel";
 import ConcertoFormatButton from "../components/ConcertoFormatButton";
+import SnippetLibraryPanel from "../components/SnippetLibraryPanel";
 import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
@@ -22,7 +23,7 @@ import DOMPurify from "dompurify";
 const MainContainer = () => {
   const agreementHtml = useAppStore((state) => state.agreementHtml);
   const downloadRef = useRef<HTMLDivElement>(null);
-  const jsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const localJsonEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const backgroundColor = useAppStore((state) => state.backgroundColor);
   const textColor = useAppStore((state) => state.textColor);
@@ -72,8 +73,8 @@ const MainContainer = () => {
   }
 
   const handleJsonFormat = () => {
-    if (jsonEditorRef.current) {
-      void jsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
+    if (localJsonEditorRef.current) {
+      void localJsonEditorRef.current.getAction('editor.action.formatDocument')?.run();
     }
   };
 
@@ -92,9 +93,55 @@ const MainContainer = () => {
 
 
   const isLogicFeatureEnabled = useAppStore((s) => s.isLogicFeatureEnabled);
-  
+  const isSnippetPanelVisible = useAppStore((s) => s.isSnippetPanelVisible);
+  const templateMarkdownEditorRef = useAppStore((s) => s.templateMarkdownEditorRef);
+  const concertoEditorRef = useAppStore((s) => s.concertoEditorRef);
+  const jsonEditorRef = useAppStore((s) => s.jsonEditorRef);
 
-  
+  // Handler to insert snippet at cursor position
+  const handleInsertSnippet = (code: string, editorType: 'templatemark' | 'concerto' | 'typescript') => {
+    let editor: monaco.editor.IStandaloneCodeEditor | null = null;
+
+    if (editorType === 'templatemark') {
+      editor = templateMarkdownEditorRef;
+    } else if (editorType === 'concerto') {
+      editor = concertoEditorRef;
+    } else if (editorType === 'typescript') {
+      editor = jsonEditorRef;
+    }
+
+    if (!editor) {
+      void message.warning('Please focus on an editor first');
+      return;
+    }
+
+    const selection = editor.getSelection();
+    const position = selection ? selection.getStartPosition() : editor.getPosition();
+
+    if (!position) return;
+
+    editor.executeEdits('snippet-insert', [
+      {
+        range: new monaco.Range(
+          position.lineNumber,
+          position.column,
+          position.lineNumber,
+          position.column
+        ),
+        text: code,
+      },
+    ]);
+
+    editor.focus();
+    const lines = code.split('\n');
+    const lastLine = lines[lines.length - 1];
+    const newPosition = new monaco.Position(
+      position.lineNumber + lines.length - 1,
+      lines.length === 1 ? position.column + code.length : lastLine.length + 1
+    );
+    editor.setPosition(newPosition);
+  };
+
   /*
    * Calculate dynamic panel sizes based on visible editors and collapse states.
    * This keeps initial editor heights equal (4 editors => 25% each, 3 editors => 33.33% each).
@@ -110,7 +157,7 @@ const MainContainer = () => {
 
   const activeLogicWorkspace = isLogicPanelVisible && isLogicFeatureEnabled ;
   const activeRunnerWorkspace = isContractRunnerVisible && isLogicFeatureEnabled ;
-  const horizontalPanelKey = `${String(isEditorsVisible)}-${String(activeLogicWorkspace)}-${String(activeRunnerWorkspace)}-${String(isPreviewVisible)}-${String(isAIChatOpen)}`;
+  const horizontalPanelKey = `${String(isEditorsVisible)}-${String(activeLogicWorkspace)}-${String(activeRunnerWorkspace)}-${String(isPreviewVisible)}-${String(isAIChatOpen)}-${String(isSnippetPanelVisible)}`;
 
   // Create distinct preview background for better visual separation
   const previewBackgroundColor = backgroundColor === '#ffffff'
@@ -225,7 +272,7 @@ const MainContainer = () => {
                         <button
                           onClick={handleJsonFormat}
                           className="px-1 pt-1 border-gray-300 bg-white hover:bg-gray-200 rounded shadow-md"
-                          disabled={!jsonEditorRef.current || isDataCollapsed}
+                          disabled={!localJsonEditorRef.current || isDataCollapsed}
                           title="Format JSON"
                         >
                           <MdFormatAlignLeft size={16} />
@@ -233,7 +280,7 @@ const MainContainer = () => {
                       </div>
                       {!isDataCollapsed && (
                         <div className="main-container-editor-content" style={{ backgroundColor }}>
-                          <AgreementData editorRef={jsonEditorRef} />
+                          <AgreementData editorRef={localJsonEditorRef} />
                         </div>
                       )}
                     </div>
@@ -310,8 +357,29 @@ const MainContainer = () => {
             <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
         )}
         {isAIChatOpen && (
-            <Panel id="panel-ai-chat" order={4} defaultSize={30} minSize={20}>
+            <Panel id="panel-ai-chat" order={5} defaultSize={30} minSize={20}>
               <AIChatPanel />
+            </Panel>
+        )}
+        {(isAIChatOpen || isPreviewVisible || activeRunnerWorkspace || activeLogicWorkspace || isEditorsVisible) && isSnippetPanelVisible && (
+            <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
+        )}
+        {isSnippetPanelVisible && (
+            <Panel id="panel-snippet-library" order={6} defaultSize={25} minSize={20} maxSize={40}>
+              <SnippetLibraryPanel
+                editorType="templatemark"
+                onInsertSnippet={(code) => {
+                  if (templateMarkdownEditorRef && !isTemplateCollapsed) {
+                    handleInsertSnippet(code, 'templatemark');
+                  } else if (concertoEditorRef && !isModelCollapsed) {
+                    handleInsertSnippet(code, 'concerto');
+                  } else if (jsonEditorRef && !isDataCollapsed) {
+                    handleInsertSnippet(code, 'typescript');
+                  } else {
+                    void message.warning('Please expand an editor panel first');
+                  }
+                }}
+              />
             </Panel>
         )}
       </PanelGroup>
