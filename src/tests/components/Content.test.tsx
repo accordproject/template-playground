@@ -15,7 +15,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import LearnContent from "../../components/Content";
 import useAppStore from "../../store/store";
