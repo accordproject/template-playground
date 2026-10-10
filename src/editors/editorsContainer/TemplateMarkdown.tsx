@@ -33,6 +33,7 @@ function TemplateMarkdown() {
     editorRef.current = editor;
     const commands = createMarkdownCommands(editorRef);
     setCommands(commands);
+    useAppStore.getState().setTemplateMarkdownEditorRef(editor);
   };
 
   return (
