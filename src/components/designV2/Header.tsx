@@ -60,7 +60,7 @@ const Header = ({ view, onNavigate }: HeaderProps) => {
         </div>
         <div className="nd-spacer" />
         <div className="nd-header-actions">
-          <Button type="text" size="small">{HEADER.docs}</Button>
+          <Button type="link" size="small" href={URLS.templateDocs} target="_blank" rel="noopener noreferrer" > {HEADER.docs}</Button>
           <Dropdown menu={{ items: HELP_MENU }} trigger={["click"]} placement="bottomRight">
             <Button type="text" size="small" aria-label={HEADER.helpMenuLabel}>
               {HEADER.help} <CaretDownFilled className="nd-help-caret" />
