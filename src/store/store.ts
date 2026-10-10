@@ -477,6 +477,19 @@ const useAppStore = create<AppState>()(
           if (compressedData) {
             await get().loadFromLink(compressedData);
           } else {
+            const sampleQuery = params.get("sample") || params.get("template");
+            if (sampleQuery) {
+              const matched = SAMPLES.find(
+                (s) =>
+                  s.NAME.toLowerCase() === sampleQuery.toLowerCase() ||
+                  s.NAME.toLowerCase().replace(/\s+/g, "") === sampleQuery.toLowerCase().replace(/\s+/g, "")
+              );
+              if (matched) {
+                await get().loadSample(matched.NAME);
+                return;
+              }
+            }
+
             // Ensure layout is valid for the initial template if recovering from a logic-based session
             const state = get();
             const sampleHasLogic = !!state.samples.find((sample) => sample.NAME === state.sampleName)?.LOGIC;
