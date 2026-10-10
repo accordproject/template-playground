@@ -13,8 +13,8 @@ import { useState, useRef } from "react";
 import { TemplateMarkdownToolbar } from "../components/TemplateMarkdownToolbar";
 import { MarkdownEditorProvider } from "../contexts/MarkdownEditorContext";
 import "../styles/pages/MainContainer.css";
-import html2pdf from "html2pdf.js";
-import { Button, message } from "antd";
+import { downloadElementAsPdf } from "../utils/downloadPdf";
+import { Button } from "antd";
 import * as monaco from "monaco-editor";
 import { MdFormatAlignLeft, MdChevronRight, MdExpandMore } from "react-icons/md";
 import DOMPurify from "dompurify";
@@ -28,48 +28,13 @@ const MainContainer = () => {
   const textColor = useAppStore((state) => state.textColor);
 
   const handleDownloadPdf = async () => {
-    const element = downloadRef.current;
-    if (!element) return;
-
+    setIsDownloading(true);
     try {
-      setIsDownloading(true);
-      
-      /* 
-       * Store original styles and force white background / black text
-       * for PDF export to ensure readability.
-       */
-      const originalBg = element.style.backgroundColor;
-      const originalColor = element.style.color;
-      
-      element.style.backgroundColor = '#ffffff';
-      element.style.color = '#000000';
-
-      const options = {
-        margin: 10,
-        filename: 'agreement.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          logging: true,
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      } as const;
-
-      await html2pdf().set(options).from(element).save();
-      
-      // Restore original styles
-      element.style.backgroundColor = originalBg;
-      element.style.color = originalColor;
-
-    } catch (error) {
-      console.error("PDF generation failed:", error);
-      void message.error("Failed to generate PDF. Please check the console.");
+      await downloadElementAsPdf(downloadRef.current);
     } finally {
       setIsDownloading(false);
     }
-  }
+  };
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
