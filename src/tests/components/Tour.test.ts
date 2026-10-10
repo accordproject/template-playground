@@ -48,7 +48,7 @@ describe("Guided Tour - Step Counter and Back Button Navigation", () => {
 
       expect(buttonTexts).toContain("Back");
       const backButton = buttons.find((b: any) => b.text === "Back");
-      expect(backButton.classes).toBe("shepherd-button-secondary");
+      expect(backButton?.classes).toBe("shepherd-button-secondary");
 
       // Verify Back is the first button in the step's button array
       expect(buttons[0].text).toBe("Back");
@@ -64,16 +64,19 @@ describe("Guided Tour - Step Counter and Back Button Navigation", () => {
 
     expect(buttonTexts).toEqual(["Back", "Finish Tour"]);
     const backButton = buttons.find((b: any) => b.text === "Back");
-    expect(backButton.classes).toBe("shepherd-button-secondary");
+    expect(backButton?.classes).toBe("shepherd-button-secondary");
   });
 
   it("triggers tour.back() when the Back button is clicked", () => {
     const secondStep = tour.steps[1];
-    const backButton = secondStep.options.buttons.find((b: any) => b.text === "Back");
+    const buttons = secondStep.options.buttons || [];
+    const backButton = buttons.find((b: any) => b.text === "Back");
     expect(backButton).toBeDefined();
 
     const backSpy = vi.spyOn(tour, "back").mockImplementation(() => {});
-    backButton.action.call(tour);
+    if (backButton && typeof backButton.action === "function") {
+      (backButton.action as (this: typeof tour) => void).call(tour);
+    }
 
     expect(backSpy).toHaveBeenCalledTimes(1);
     backSpy.mockRestore();
