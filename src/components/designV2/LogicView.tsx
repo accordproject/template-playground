@@ -32,7 +32,7 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
  * ships logic therefore opens with both chips ticked and the bar full as
  * soon as its logic compiles; a compile error turns the chip red.
  * The types chip reads model.cto (describeLogicModel) for a request and a
- * response transaction and links to the Model & Data step; the init/trigger
+ * response transaction and links to the Data step; the init/trigger
  * chip and the help-rail checklist mirror the store's compile state.
  * When the step opens on an empty editor (a template without logic, or the
  * blank one), a skeleton built from the model is written into it.
