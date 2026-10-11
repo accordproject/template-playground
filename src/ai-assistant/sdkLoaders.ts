@@ -1,30 +1,25 @@
- /*
- * Provider ids accepted by template-engine's `LLMProviderConfig['provider']`.
- * Declared locally because the loader types only exist in an unreleased
- * template-engine version.
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-export type SdkProvider =
-  | 'groq'
-  | 'openai'
-  | 'anthropic'
-  | 'google'
-  | 'mistral'
-  | 'openrouter'
-  | 'ollama'
-  | 'openai-compatible';
 
-export type SdkLoader = () => Promise<unknown>;
-export type SdkLoaders = Partial<Record<SdkProvider, SdkLoader>>;
+import type { SdkLoaders } from '@accordproject/template-engine/lib/llm';
 
 /**
- * Loads each LLM provider SDK on demand. The import specifiers are literals
- * so Vite can resolve them and split each SDK into its own lazy chunk (see
- * `manualChunks` in vite.config.ts).
- *
- * Pass this as `sdkLoaders` to template-engine's `LLMExecutor` once the
- * release that accepts injected loaders is available; the engine's own
- * `import(specifier)` cannot be followed by bundlers.
- * See https://github.com/accordproject/template-playground/issues/1005
+ * Loads each LLM provider SDK on demand, for template-engine's `LLMExecutor`.
+ * The import specifiers are literals so Vite can resolve them and split each
+ * SDK into its own lazy chunk (see `manualChunks` in vite.config.ts); the
+ * engine's own fallback, `import(specifier)`, cannot be followed by bundlers.
+ * See https://github.com/accordproject/template-engine/pull/189
  */
 export const sdkLoaders: SdkLoaders = {
   groq: () => import('groq-sdk'),
