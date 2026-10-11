@@ -73,7 +73,7 @@ const REQUEST = {
 
 const LOGIC = `// Non-Disclosure Agreement Logic
 // The term runs from the effective date; a disclosure is covered while the term lasts.
-import type { INDA, IDisclosureRequest } from './org.accordproject.nda@0.0.2';
+import type { INDA, IDisclosureRequest } from './generated/org.accordproject.nda@0.0.2';
 
 class NDALogic extends TemplateLogic<any> {
 
@@ -107,7 +107,7 @@ class NDALogic extends TemplateLogic<any> {
     return {
       result: {
         $class: 'org.accordproject.nda@0.0.2.DisclosureResponse',
-        $timestamp: new Date(),
+        $timestamp: new Date().toISOString(),
         covered,
         disclosures,
         message,
@@ -119,7 +119,7 @@ class NDALogic extends TemplateLogic<any> {
       events: [
         {
           $class: 'org.accordproject.nda@0.0.2.DisclosureRecorded',
-          $timestamp: new Date(),
+          $timestamp: new Date().toISOString(),
           description: request.description,
           covered,
         },

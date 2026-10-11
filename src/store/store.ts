@@ -1193,8 +1193,11 @@ const useAppStore = create<AppState>()(
 
               /*
                * Strip export keywords so we can evaluate natively via new Function().
-               * This handles: export class Foo, export default class Foo, export default Foo.
+               * This handles: export class Foo, export default class Foo, export default Foo,
+               * and the `export {};` marker TypeScript emits for a module whose only
+               * imports are type-only and which has no exports of its own.
                */
+              code = code.replace(/^export\s*\{\s*\};?\s*$/gm, "");
               code = code.replace(/^export\s+class/gm, "class");
               code = code.replace(/^export\s+default/gm, "");
 
