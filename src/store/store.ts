@@ -848,16 +848,14 @@ const useAppStore = create<AppState>()(
                   const fqn = templateModel && typeof templateModel.getFullyQualifiedName === "function"
                     ? templateModel.getFullyQualifiedName()
                     : undefined;
-                  const [{ TypeScriptCompilationContext }, { SMART_LEGAL_CONTRACT_BASE64 }] = await Promise.all([
-                    import("@accordproject/template-engine/lib/TypeScriptCompilationContext"),
-                    import("@accordproject/template-engine/lib/runtime/declarations"),
-                  ]);
+                  const { TypeScriptCompilationContext } = await import(
+                    "@accordproject/template-engine/lib/TypeScriptCompilationContext"
+                  );
                   const contextStr = new TypeScriptCompilationContext(
                     templateToCompile.getModelManager(),
                     fqn,
                   ).getCompilationContext();
-                  const declarationsStr = atob(SMART_LEGAL_CONTRACT_BASE64);
-                  const prependedText = `\n${contextStr}\n${declarationsStr}\n                `;
+                  const prependedText = `\n${contextStr}\n`;
                   lineOffset = prependedText.split("\n").length - 1;
                 }
               } catch (e) {

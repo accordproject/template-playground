@@ -1,9 +1,11 @@
-import OpenAI from 'openai';
+// The SDKs are imported only as types here and loaded with dynamic import()
+// when a provider is first used, so their chunks stay off the initial page
+// load (see `manualChunks` in vite.config.ts).
+import type OpenAI from 'openai';
 import { AIConfig, Message } from '../types/components/AIAssistant.types';
-import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
-import { Mistral } from '@mistralai/mistralai';
-import Anthropic from '@anthropic-ai/sdk';
-import { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components/chatcompletionstreamrequest';
+import type { GenerateContentConfig } from '@google/genai';
+import type Anthropic from '@anthropic-ai/sdk';
+import type { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components';
 
 export abstract class LLMProvider {
   protected config: AIConfig;
@@ -40,6 +42,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
         content: msg.content
       }));
 
+      const { default: OpenAI } = await import('openai');
       const openai = new OpenAI({
         apiKey: this.config.apiKey,
         baseURL: this.apiEndpoint,
@@ -99,6 +102,7 @@ export class AnthropicProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
+      const { default: Anthropic } = await import('@anthropic-ai/sdk');
       const client = new Anthropic({
         apiKey: this.config.apiKey,
         dangerouslyAllowBrowser: true
@@ -158,6 +162,7 @@ export class GoogleProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
+      const { GoogleGenAI } = await import('@google/genai');
       const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
       const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
@@ -219,6 +224,7 @@ export class MistralProvider extends LLMProvider {
         content: msg.content
       }));
 
+      const { Mistral } = await import('@mistralai/mistralai');
       const mistral = new Mistral({apiKey: this.config.apiKey});
 
       const options: ChatCompletionStreamRequest = {
