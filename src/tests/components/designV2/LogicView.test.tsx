@@ -9,12 +9,12 @@ import { DEFAULT_LOGIC_BOILERPLATE, describeLogicModel, scaffoldFromModel } from
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { STEP_ID } from '../../../types/designV2.types';
-import * as counter from '../../../samples/counterLogic';
+import * as latePayment from '../../../samples/latePaymentPenalty';
 import * as helloworld from '../../../samples/helloworld';
 
 /*
  * Monaco is replaced by a plain div: the view under test is the chrome around
- * the editor (progress header, job rows, help rail, footer button) and its
+ * the editor (progress header, job rows, help rail, footer pill) and its
  * wiring to the app store, not the editor itself.
  */
 vi.mock('@monaco-editor/react', () => ({
@@ -23,9 +23,9 @@ vi.mock('@monaco-editor/react', () => ({
 }));
 
 const base = {
-  modelCto: counter.MODEL,
-  editorLogicTs: counter.LOGIC ?? '',
-  logicTs: counter.LOGIC ?? '',
+  modelCto: latePayment.MODEL,
+  editorLogicTs: latePayment.LOGIC,
+  logicTs: latePayment.LOGIC,
   isCompiling: false,
   compilationErrors: [],
   compiledLogicJs: null,
@@ -66,8 +66,7 @@ describe('LogicView', () => {
   it('counts the types row as done when model.cto declares request/response, and init/trigger once compiled', () => {
     const { unmount } = render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(1, 2))).toBeInTheDocument();
-    expect(pane().getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
-    expect(pane().getByText(LOGIC.typesFound('CounterRequest', 'CounterResponse'))).toBeInTheDocument();
+    expect(pane().getByText(LOGIC.typesFound('LatePaymentRequest', 'LatePaymentResponse'))).toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(1, 2))).toBeInTheDocument();
     // The rail shows icon and label only; the state text lives in the card chips.
     expect(rail().queryByText(LOGIC.status.notCompiled)).not.toBeInTheDocument();
@@ -76,7 +75,6 @@ describe('LogicView', () => {
     useAppStore.setState({ compiledLogicJs: 'js' });
     const second = render(<LogicView />);
     expect(pane().getByText(LOGIC.doneCount(2, 2))).toBeInTheDocument();
-    expect(pane().getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2');
     // Compiled: the init/trigger chip shows the state.
     expect(pane().getByText(LOGIC.status.compiled)).toBeInTheDocument();
     expect(rail().getByText(HELP_RAIL.count(2, 2))).toBeInTheDocument();
@@ -106,14 +104,14 @@ describe('LogicView', () => {
 
   it('leaves existing logic alone', () => {
     render(<LogicView />);
-    expect(useAppStore.getState().editorLogicTs).toBe(counter.LOGIC);
+    expect(useAppStore.getState().editorLogicTs).toBe(latePayment.LOGIC);
   });
 
   it('opens an empty editor with a skeleton built from the model', () => {
     useAppStore.setState({ editorLogicTs: '', logicTs: '' });
     render(<LogicView />);
-    expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(counter.MODEL)));
-    expect(useAppStore.getState().editorLogicTs).toContain("$class: 'org.acme.counter@1.0.0.CounterResponse'");
+    expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(latePayment.MODEL)));
+    expect(useAppStore.getState().editorLogicTs).toContain("$class: 'org.acme.latepayment@1.0.0.LatePaymentResponse'");
   });
 
   it('falls back to the generic skeleton when the model has no request/response', () => {
@@ -128,47 +126,65 @@ describe('LogicView', () => {
     fireEvent.click(rail().getByRole('tab', { name: HELP_RAIL.tabHow }));
     for (const step of LOGIC.help.how) expect(rail().getByText(step)).toBeInTheDocument();
   });
+
+  describe('compiles on arrival', () => {
+    it('compiles logic that was never compiled, so a template that ships logic opens compiled', () => {
+      render(<LogicView />);
+      expect(setLogicTs).toHaveBeenCalledTimes(1);
+      expect(setLogicTs).toHaveBeenCalledWith(latePayment.LOGIC);
+    });
+
+    it('leaves compiled, unchanged logic alone', () => {
+      useAppStore.setState({ compiledLogicJs: 'js' });
+      render(<LogicView />);
+      expect(setLogicTs).not.toHaveBeenCalled();
+    });
+
+    it('does not retry a compile that failed for the same source', () => {
+      useAppStore.setState({ compilationErrors: [{ message: "Cannot find name 'foo'." }] });
+      render(<LogicView />);
+      expect(setLogicTs).not.toHaveBeenCalled();
+      expect(pane().getByText(LOGIC.status.failed)).toBeInTheDocument();
+    });
+
+    it('does not compile the skeleton it just wrote into an empty editor', () => {
+      useAppStore.setState({ editorLogicTs: '', logicTs: '' });
+      render(<LogicView />);
+      expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(latePayment.MODEL)));
+      expect(setLogicTs).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe('Footer on the Logic step', () => {
-  const setLogicTs = vi.fn().mockResolvedValue(undefined);
   const noop = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useAppStore.setState({ ...base, error: undefined, setLogicTs });
+    useAppStore.setState({ ...base, error: undefined });
   });
 
-  it('"Apply & Compile" commits the editor content through the store', () => {
+  it('has no compile button — Simulate compiles the logic when it opens', () => {
     useAppStore.setState({ editorLogicTs: 'class X {}' });
     render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
-    fireEvent.click(screen.getByRole('button', { name: FOOTER.applyAndCompileDirty }));
-    expect(setLogicTs).toHaveBeenCalledWith('class X {}');
+    expect(screen.queryByRole('button', { name: /compile/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: FOOTER.next })).toBeInTheDocument();
   });
 
-  it('falls back to a skeleton from the model when there is nothing to compile', () => {
-    useAppStore.setState({ editorLogicTs: '', logicTs: '' });
-    render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
-    fireEvent.click(screen.getByRole('button', { name: FOOTER.applyAndCompile }));
-    expect(setLogicTs).toHaveBeenCalledWith(scaffoldFromModel(describeLogicModel(counter.MODEL)));
-  });
-
-  it('falls back to the generic boilerplate when the model has no request/response', () => {
-    useAppStore.setState({ modelCto: '', editorLogicTs: '', logicTs: '' });
-    render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
-    fireEvent.click(screen.getByRole('button', { name: FOOTER.applyAndCompile }));
-    expect(setLogicTs).toHaveBeenCalledWith(DEFAULT_LOGIC_BOILERPLATE);
-  });
-
-  it('shows the first compilation error in the problems pill', () => {
+  it('shows the first compilation error in the problems pill, on Logic and on Simulate', () => {
     useAppStore.setState({ compilationErrors: [{ message: "Cannot find name 'foo'." }] });
-    render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
+    const { unmount } = render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
     expect(screen.getByText(FOOTER.problem)).toBeInTheDocument();
+    expect(screen.getByText("Cannot find name 'foo'.")).toBeInTheDocument();
+    unmount();
+
+    render(<Footer view={STEP_ID.simulate} onBack={noop} onNext={noop} />);
     expect(screen.getByText("Cannot find name 'foo'.")).toBeInTheDocument();
   });
 
-  it('does not show the Apply & Compile button on other steps', () => {
+  it('keeps compilation errors off the other steps', () => {
+    useAppStore.setState({ compilationErrors: [{ message: "Cannot find name 'foo'." }] });
     render(<Footer view={STEP_ID.text} onBack={noop} onNext={noop} />);
-    expect(screen.queryByRole('button', { name: /Apply & Compile/ })).not.toBeInTheDocument();
+    expect(screen.getByText(FOOTER.noProblems)).toBeInTheDocument();
   });
 });

@@ -53,5 +53,5 @@ export const STEP_KEY = stepLookup((s) => [s.id, s.key] as const);
 export const FIRST_STEP: StepId = STEPS[0].id;
 export const LAST_STEP: StepId = STEPS[STEPS.length - 1].id;
 
-/** Number of steps a user walks through after picking a template. Every template ships logic, so it is the same for all. */
+/** Number of steps a user walks through after picking a template. The same for every template: the ones without logic get a skeleton on the Logic step. */
 export const STEPS_AFTER_TEMPLATE = STEPS.filter((step) => step.key !== "template").length;

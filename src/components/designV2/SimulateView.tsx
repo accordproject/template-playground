@@ -4,6 +4,7 @@ import JSONEditor from "../../editors/JSONEditor";
 import ObligationsList from "../ObligationsList";
 import useAppStore, { type LogicExecutionResult } from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
+import { usePendingLogic } from "./useCompileOnArrival";
 import { STEP_ID } from "../../types/designV2.types";
 import { SIMULATE } from "./constants";
 import { pretty, runStats, runSummary } from "./simulateRuns";
@@ -21,6 +22,9 @@ import { pretty, runStats, runSummary } from "./simulateRuns";
  *   │ │ { … }          ▶ Send  ││                                  │
  *   └───────────────────────────┴─────────────────────────────────┘
  *
+ * The logic is compiled before this step opens (see useCompileOnArrival.ts:
+ * a compile error keeps the user on Logic), so the only thing that can be
+ * missing here is the logic itself — a dialog says so and points at Logic.
  * Execution itself is the legacy runner's: initContract / triggerContract in
  * src/store/store.ts run inside the SandboxFrame and append to
  * executionHistory. This view only renders that history and the request
@@ -168,6 +172,7 @@ const SimulateView = () => {
   const [blockedDismissed, setBlockedDismissed] = useState(false);
 
   const compiled = Boolean(compiledLogicJs);
+  const noLogic = usePendingLogic() === null;
   const stats = runStats(history);
   const selected = history.find((run) => run.id === selectedRunId) ?? history[history.length - 1] ?? null;
   const initialised = Boolean(executionState);
@@ -286,7 +291,7 @@ const SimulateView = () => {
       )}
 
       <Modal
-        open={!compiled && !blockedDismissed}
+        open={noLogic && !blockedDismissed}
         closable={false}
         maskClosable={false}
         width={440}
@@ -301,7 +306,7 @@ const SimulateView = () => {
             {SIMULATE.blocked.stay}
           </Button>,
           <Button key="jump" type="primary" onClick={openLogic}>
-            {SIMULATE.blocked.jump}
+            {SIMULATE.blocked.openLogic}
           </Button>,
         ]}
       >

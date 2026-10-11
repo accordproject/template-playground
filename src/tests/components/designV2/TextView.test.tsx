@@ -5,7 +5,7 @@ import { TextView } from '../../../components/designV2/TextView';
 import { HELP_RAIL, TEXT } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
-import * as counter from '../../../samples/counterLogic';
+import * as latePayment from '../../../samples/latePaymentPenalty';
 
 /*
  * Monaco is replaced by a plain div: the view under test is the chrome around
@@ -20,7 +20,7 @@ vi.mock('@monaco-editor/react', () => ({
 describe('TextView', () => {
   beforeEach(() => {
     useDesignV2Store.setState({ helpRailOpen: true });
-    useAppStore.setState({ editorValue: counter.TEMPLATE, templateMarkdown: counter.TEMPLATE, error: undefined });
+    useAppStore.setState({ editorValue: latePayment.TEMPLATE, templateMarkdown: latePayment.TEMPLATE, error: undefined });
   });
 
   const pane = () => within(screen.getByRole('region', { name: TEXT.paneLabel }));
@@ -68,6 +68,6 @@ describe('TextView', () => {
     Object.assign(navigator, { clipboard: { writeText } });
     render(<TextView />);
     fireEvent.click(pane().getByRole('button', { name: TEXT.copy }));
-    expect(writeText).toHaveBeenCalledWith(counter.TEMPLATE);
+    expect(writeText).toHaveBeenCalledWith(latePayment.TEMPLATE);
   });
 });
