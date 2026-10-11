@@ -16,6 +16,9 @@ import * as employmentOffer from "./employmentOffer";
 import * as nda from "./nda";
 import * as counterLogic from "./counterLogic";
 import * as latePaymentPenalty from "./latePaymentPenalty";
+import * as perishableGoods from "./perishableGoods";
+import * as copyrightLicense from "./copyrightLicense";
+
 
 export type Sample = {
   NAME: string;
@@ -30,6 +33,8 @@ export type Sample = {
 
 export const SAMPLES: Array<Sample> = [
   playground,
+  copyrightLicense,
+  perishableGoods,
   latePaymentPenalty,
   counterLogic,   // Logic sample — listed near the top to showcase the new feature
   helloworld,
