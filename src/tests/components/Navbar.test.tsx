@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { vi } from "vitest";
 import Navbar from "../../components/Navbar";
 import { MemoryRouter } from "react-router-dom";
 
@@ -12,6 +13,20 @@ const renderNavbar = () => {
 };
 
 describe("Navbar", () => {
+  it("removes its resize listener when unmounted", () => {
+    const removeEventListener = vi.spyOn(window, "removeEventListener");
+    const { unmount } = render(
+      <MemoryRouter>
+        <Navbar />
+      </MemoryRouter>
+    );
+
+    unmount();
+
+    expect(removeEventListener).toHaveBeenCalledWith("resize", expect.any(Function));
+    removeEventListener.mockRestore();
+  });
+
   it("renders logo and title on small screens", () => {
     renderNavbar();
 
