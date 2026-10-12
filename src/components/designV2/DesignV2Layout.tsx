@@ -1,5 +1,7 @@
 import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
+import useAppStore from "../../store/store";
+import { downloadElementAsPdf } from "../../utils/downloadPdf";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
@@ -52,6 +54,7 @@ const DesignV2Layout = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const goBack = useDesignV2Store((s) => s.goBack);
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
+  const agreementHtml = useAppStore((s) => s.agreementHtml);
   const pick = usePickTemplate();
 
   /** "Start building": enter the flow on a template — the first card unless one was already picked. */
@@ -90,7 +93,12 @@ const DesignV2Layout = () => {
           <div className="nd-body-content">
             <ViewSwitch view={view} onStart={handleStart} />
           </div>
-          <PreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} />
+          <PreviewDrawer
+            open={previewOpen}
+            onClose={() => setPreviewOpen(false)}
+            agreementHtml={agreementHtml}
+            onDownloadPdf={downloadElementAsPdf}
+          />
         </div>
         {showFooter && <Footer view={view} onBack={goBack} onNext={next} />}
       </div>
