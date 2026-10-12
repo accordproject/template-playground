@@ -144,6 +144,11 @@ const SettingsModal: React.FC = () => {
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           colorPrimary: colors.primary,
+          colorTextBase: isDarkMode ? "#ffffff" : "#121212",
+          colorText: isDarkMode ? "#ffffff" : "#121212",
+          colorTextSecondary: isDarkMode ? "#bfbfbf" : "#595959",
+          colorBgContainer: isDarkMode ? "#1f1f1f" : "#ffffff",
+          colorBgElevated: isDarkMode ? "#1f1f1f" : "#ffffff",
         },
       }}
     >
