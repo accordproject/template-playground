@@ -4,6 +4,7 @@ import { VscOutput } from "react-icons/vsc";
 import { FiTerminal, FiShare2, FiSettings, FiCpu, FiPlayCircle } from "react-icons/fi";
 import { FaCirclePlay } from "react-icons/fa6";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
+import { MdLibraryBooks } from "react-icons/md";
 import useAppStore from "../store/store";
 import { message, Tooltip } from "antd";
 import FullScreenModal from "./FullScreenModal";
@@ -19,6 +20,8 @@ const PlaygroundSidebar = () => {
     isLogicPanelVisible,
     isLogicFeatureEnabled,
     isAIChatOpen,
+    isSnippetPanelVisible,
+    toggleSnippetPanel,
     isContractRunnerVisible,
     setEditorsVisible,
     setPreviewVisible,
@@ -36,6 +39,8 @@ const PlaygroundSidebar = () => {
     isContractRunnerVisible: state.isContractRunnerVisible,
     isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     isAIChatOpen: state.isAIChatOpen,
+    isSnippetPanelVisible: state.isSnippetPanelVisible,
+    toggleSnippetPanel: state.toggleSnippetPanel,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
     setProblemPanelVisible: state.setProblemPanelVisible,
@@ -157,6 +162,12 @@ const PlaygroundSidebar = () => {
       ),
       onClick: () => setAIChatOpen(!isAIChatOpen),
       active: isAIChatOpen
+    },
+    {
+      title: "Snippets",
+      icon: MdLibraryBooks,
+      onClick: toggleSnippetPanel,
+      active: isSnippetPanelVisible
     },
     { 
       title: "Fullscreen", 

@@ -116,12 +116,14 @@ interface ConcertoEditorProps {
   value: string;
   onChange?: (value: string | undefined) => void;
   editorRef?: MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
+  onEditorReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
 }
 
 export default function ConcertoEditor({
   value,
   onChange,
   editorRef,
+  onEditorReady,
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
@@ -164,6 +166,10 @@ export default function ConcertoEditor({
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     if (editorRef) {
       editorRef.current = editor;
+    }
+    useAppStore.getState().setConcertoEditorRef(editor);
+    if (onEditorReady) {
+      onEditorReady(editor);
     }
     registerEditor('concerto', editor);
     editor.onDidChangeCursorSelection(() => {

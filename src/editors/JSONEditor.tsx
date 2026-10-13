@@ -80,6 +80,7 @@ export default function JSONEditor({
       editor.setValue(value);
     }
     if (!readOnly) {
+      useAppStore.getState().setJsonEditorRef(editor);
       registerEditor('json', editor);
       editor.onDidChangeCursorSelection(() => {
         handleSelection(editor);

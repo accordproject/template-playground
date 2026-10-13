@@ -15,8 +15,12 @@ function TemplateModel() {
     }
   };
 
+  const handleEditorReady = (editor: import("monaco-editor").editor.IStandaloneCodeEditor) => {
+    useAppStore.getState().setConcertoEditorRef(editor);
+  };
+
   return (
-    <ConcertoEditor value={editorModelCto} onChange={handleChange} />
+    <ConcertoEditor value={editorModelCto} onChange={handleChange} onEditorReady={handleEditorReady} />
   );
 }
 

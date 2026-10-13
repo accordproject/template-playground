@@ -23,6 +23,7 @@ import { validateBeforeRebuild } from "../utils/validators";
 import { BUNDLED_MODELS } from "../utils/modelCache";
 import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox } from "./rebuildSandbox";
+import type * as MonacoEditor from "monaco-editor";
 import tour from "../components/Tour";
 
 /**
@@ -158,6 +159,14 @@ interface AppState {
   isPreviewVisible: boolean;
   isProblemPanelVisible: boolean;
   isLogicPanelVisible: boolean;
+  isSnippetPanelVisible: boolean;
+  toggleSnippetPanel: () => void;
+  templateMarkdownEditorRef: MonacoEditor.editor.IStandaloneCodeEditor | null;
+  concertoEditorRef: MonacoEditor.editor.IStandaloneCodeEditor | null;
+  jsonEditorRef: MonacoEditor.editor.IStandaloneCodeEditor | null;
+  setTemplateMarkdownEditorRef: (editor: MonacoEditor.editor.IStandaloneCodeEditor | null) => void;
+  setConcertoEditorRef: (editor: MonacoEditor.editor.IStandaloneCodeEditor | null) => void;
+  setJsonEditorRef: (editor: MonacoEditor.editor.IStandaloneCodeEditor | null) => void;
   setEditorsVisible: (value: boolean) => void;
   setPreviewVisible: (value: boolean) => void;
   setLogicPanelVisible: (value: boolean) => void;
@@ -434,6 +443,7 @@ const getInitialPanelState = () => {
     isLogicPanelVisible: false,
     isContractRunnerVisible: false,
     isAIChatOpen: false,
+    isSnippetPanelVisible: false,
   };
   if (typeof window !== "undefined") {
     try {
@@ -457,6 +467,7 @@ const savePanelState = (state: Partial<AppState>) => {
       isLogicPanelVisible: state.isLogicPanelVisible,
       isContractRunnerVisible: state.isContractRunnerVisible,
       isAIChatOpen: state.isAIChatOpen,
+      isSnippetPanelVisible: state.isSnippetPanelVisible,
     };
     localStorage.setItem("ui-panels", JSON.stringify(panels));
   }
@@ -570,6 +581,10 @@ const useAppStore = create<AppState>()(
         isProblemPanelVisible: initialPanels.isProblemPanelVisible,
         isLogicPanelVisible: initialPanels.isLogicPanelVisible,
         isContractRunnerVisible: initialPanels.isContractRunnerVisible,
+        isSnippetPanelVisible: initialPanels.isSnippetPanelVisible,
+        templateMarkdownEditorRef: null,
+        concertoEditorRef: null,
+        jsonEditorRef: null,
         isModelCollapsed: false,
         isTemplateCollapsed: false,
         isDataCollapsed: false,
@@ -754,6 +769,14 @@ const useAppStore = create<AppState>()(
           }
           set({ isLogicPanelVisible: value });
           savePanelState({ ...get(), isLogicPanelVisible: value }); // Save change
+        },
+        setTemplateMarkdownEditorRef: (editor) => set({ templateMarkdownEditorRef: editor }),
+        setConcertoEditorRef: (editor) => set({ concertoEditorRef: editor }),
+        setJsonEditorRef: (editor) => set({ jsonEditorRef: editor }),
+        toggleSnippetPanel: () => {
+          const newValue = !get().isSnippetPanelVisible;
+          set({ isSnippetPanelVisible: newValue });
+          savePanelState({ ...get(), isSnippetPanelVisible: newValue });
         },
         init: async () => {
           const params = new URLSearchParams(window.location.search);
