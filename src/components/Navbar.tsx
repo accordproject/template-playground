@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, createContext, useContext } from "react";
 import { colors } from '../utils/theme';
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
@@ -19,6 +19,9 @@ import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
+
+/** Context that lets a MenuItem close the Dropdown it lives inside. */
+const DropdownCloseContext = createContext<(() => void) | null>(null);
 
 interface DropdownProps {
   children: React.ReactNode;
@@ -48,27 +51,31 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
     }
   };
 
+  const close = useCallback(() => setIsOpen(false), []);
+
   return (
-    <div 
-      className={`relative ${className}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div onClick={handleClick}>
-        {children}
+    <DropdownCloseContext.Provider value={close}>
+      <div 
+        className={`relative ${className}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div onClick={handleClick}>
+          {children}
+        </div>
+        {isOpen && (
+          <>
+            <div 
+              className="fixed inset-0 z-10" 
+              onClick={() => setIsOpen(false)}
+            />
+            <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
+              {overlay}
+            </div>
+          </>
+        )}
       </div>
-      {isOpen && (
-        <>
-          <div 
-            className="fixed inset-0 z-10" 
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
-            {overlay}
-          </div>
-        </>
-      )}
-    </div>
+    </DropdownCloseContext.Provider>
   );
 };
 
@@ -91,11 +98,17 @@ const MenuItem = ({
   href?: string;
   className?: string;
 }) => {
+  const closeDropdown = useContext(DropdownCloseContext);
   const baseClasses = `px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`;
+
+  const handleClick = useCallback(() => {
+    onClick?.();
+    closeDropdown?.();
+  }, [onClick, closeDropdown]);
 
   if (to) {
     return (
-      <Link to={to} className={baseClasses} onClick={onClick}>
+      <Link to={to} className={baseClasses} onClick={handleClick}>
         {children}
       </Link>
     );
@@ -108,7 +121,7 @@ const MenuItem = ({
         target="_blank"
         rel="noopener noreferrer"
         className={baseClasses}
-        onClick={onClick}
+        onClick={handleClick}
       >
         {children}
       </a>
@@ -119,7 +132,7 @@ const MenuItem = ({
     <button
       type="button"
       className={`w-full text-left bg-transparent border-none ${baseClasses}`}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {children}
     </button>
