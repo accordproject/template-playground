@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import {
   SidebarContainer,
   SidebarTitle,
@@ -38,12 +37,8 @@ const LearningPathwaySidebar: React.FC<SidebarProps> = ({ steps }) => {
           <BulbOutlined />
         </HelperIcon>
         <HelperText>
-          Welcome to the Learning Pathway! Use the sidebar to follow the guide.
-          Open the
-          <Link to="/" target="_blank" rel="noopener noreferrer">
-            Template Playground
-          </Link>{" "}
-          in another tab to experiment as you learn.
+          Welcome to the Learning Pathway! Follow the guide step-by-step.
+          Use the <strong>Open in Playground</strong> button inside each module to experiment with the template directly.
         </HelperText>
       </HelperBox>
     </SidebarContainer>
