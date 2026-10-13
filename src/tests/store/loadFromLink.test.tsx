@@ -47,6 +47,7 @@ describe("useAppStore loadFromLink", () => {
       data: '{"key": "value"}',
       agreementHtml: "<p>Sample</p>",
       logicTs: "console.log('logic code');",
+      requestJson: '{"test":"request"}'
     };
 
     vi.mocked(decompress).mockReturnValue(mockData);
@@ -58,6 +59,7 @@ describe("useAppStore loadFromLink", () => {
     const state = useAppStore.getState();
     expect(state.logicTs).toBe(mockData.logicTs);
     expect(state.editorLogicTs).toBe(mockData.logicTs);
+    expect(state.requestJson).toBe(mockData.requestJson);
     expect(state.isLogicPanelVisible).toBe(true);
     expect(state.isLogicFeatureEnabled).toBe(true);
     expect(localStorage.getItem("ui-panels")).toContain('"isLogicPanelVisible":true');
@@ -75,5 +77,44 @@ describe("useAppStore loadFromLink", () => {
     const state = useAppStore.getState();
     expect(state.isProblemPanelVisible).toBe(true);
     expect(state.error).toContain("Invalid share link data");
+  });
+
+  it("should fallback to the default request if requestJson is absent (backwards compatibility)", async () => {
+    const mockData: DecompressedData = {
+      templateMarkdown: "Sample Template",
+      modelCto: "namespace test@1.0.0",
+      data: '{"key": "value"}',
+      agreementHtml: "<p>Sample</p>",
+      logicTs: "console.log('logic code');",
+      // requestJson is omitted
+    };
+
+    vi.mocked(decompress).mockReturnValue(mockData);
+
+    useAppStore.setState({ rebuild: vi.fn(), compileLogic: vi.fn(), isLogicPanelVisible: false });
+
+    await useAppStore.getState().loadFromLink("some-compressed-data-without-request");
+
+    const state = useAppStore.getState();
+    expect(state.requestJson).toBe('{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}');
+  });
+
+  it("should preserve an explicitly empty requestJson", async () => {
+    const mockData: DecompressedData = {
+      templateMarkdown: "Sample Template",
+      modelCto: "namespace test@1.0.0",
+      data: '{"key": "value"}',
+      agreementHtml: "<p>Sample</p>",
+      requestJson: "",
+    };
+
+    vi.mocked(decompress).mockReturnValue(mockData);
+
+    useAppStore.setState({ rebuild: vi.fn(), compileLogic: vi.fn() });
+
+    await useAppStore.getState().loadFromLink("some-compressed-empty-request");
+
+    const state = useAppStore.getState();
+    expect(state.requestJson).toBe("");
   });
 });
