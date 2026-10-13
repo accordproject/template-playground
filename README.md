@@ -56,6 +56,19 @@ The playground runs the [Template-Engine](https://github.com/accordproject/templ
 compiled, and evaluated client-side to produce the live agreement preview.
 
 ## Demo
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 18 (LTS recommended)
+- npm >= 9
+
+### Installation
+
+```bash
+git clone https://github.com/accordproject/template-playground.git
+cd template-playground
+npm install
 
 The Template Playground is deployed at: [https://playground.accordproject.org](https://playground.accordproject.org)
 
