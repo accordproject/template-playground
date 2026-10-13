@@ -24,6 +24,7 @@ describe("useAppStore loadFromLink", () => {
       modelCto: "namespace test@1.0.0",
       data: '{"key": "value"}',
       agreementHtml: "<p>Sample</p>",
+      requestJson: '{"increment": 2}',
     };
 
     vi.mocked(decompress).mockReturnValue(mockData);
@@ -37,6 +38,7 @@ describe("useAppStore loadFromLink", () => {
     expect(state.templateMarkdown).toBe(mockData.templateMarkdown);
     expect(state.modelCto).toBe(mockData.modelCto);
     expect(state.logicTs).toBe("");
+    expect(state.requestJson).toBe(mockData.requestJson);
     expect(state.isLogicPanelVisible).toBe(false);
   });
 

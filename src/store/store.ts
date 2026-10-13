@@ -372,6 +372,7 @@ export interface DecompressedData {
   data: string;
   agreementHtml: string;
   logicTs?: string;
+  requestJson?: string;
 }
 
 const rebuildDeBounce = debounce(rebuild, 500);
@@ -925,12 +926,13 @@ const useAppStore = create<AppState>()(
             data: state.data,
             agreementHtml: state.agreementHtml,
             ...(state.logicTs?.trim() ? { logicTs: state.logicTs } : {}),
+            ...(state.requestJson ? { requestJson: state.requestJson } : {}),
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
         loadFromLink: async (compressedData: string) => {
           try {
-            const { templateMarkdown, modelCto, data, agreementHtml, logicTs } =
+            const { templateMarkdown, modelCto, data, agreementHtml, logicTs, requestJson } =
               decompress(compressedData);
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
@@ -957,6 +959,7 @@ const useAppStore = create<AppState>()(
               logicTs: logicTs || "",
               editorLogicTs: logicTs || "",
               compiledLogicJs: null,
+              ...(requestJson !== undefined && { requestJson }),
               compilationErrors: [],
               isCompiling: false,
               isLogicPanelVisible: hasLogic,
