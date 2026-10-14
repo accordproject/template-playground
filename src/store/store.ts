@@ -376,6 +376,18 @@ export interface DecompressedData {
 
 const rebuildDeBounce = debounce(rebuild, 500);
 
+/**
+ * Monotonically increasing ticket counter for rebuild operations.
+ * Ensures that an older, slow rebuild does not overwrite the result or error
+ * of a newer edit (e.g. when an earlier valid edit finishes rendering after
+ * a subsequent invalid edit fails fast in validation).
+ */
+let latestRebuildTicket = 0;
+
+export function resetRebuildTicketForTests(): void {
+  latestRebuildTicket = 0;
+}
+
 async function rebuild(
   template: string,
   model: string,
@@ -851,6 +863,7 @@ const useAppStore = create<AppState>()(
         },
 
         rebuild: async () => {
+          const ticket = ++latestRebuildTicket;
           const { templateMarkdown, modelCto, data } = get();
           try {
             const result = await rebuildDeBounce(
@@ -858,47 +871,62 @@ const useAppStore = create<AppState>()(
               modelCto,
               data,
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            if (ticket === latestRebuildTicket) {
+              set(() => ({ agreementHtml: result, error: undefined }));
+            }
           } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+            if (ticket === latestRebuildTicket) {
+              set(() => ({
+                error: formatError(error),
+                isProblemPanelVisible: true,
+              }));
+            }
           }
         },
         setTemplateMarkdown: async (template: string) => {
+          const ticket = ++latestRebuildTicket;
           set(() => ({ templateMarkdown: template }));
           const { modelCto, data } = get();
           try {
             const result = await rebuildDeBounce(template, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            if (ticket === latestRebuildTicket) {
+              set(() => ({ agreementHtml: result, error: undefined }));
+            }
           } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+            if (ticket === latestRebuildTicket) {
+              set(() => ({
+                error: formatError(error),
+                isProblemPanelVisible: true,
+              }));
+            }
           }
         },
         setEditorValue: (value: string) => {
           set(() => ({ editorValue: value }));
         },
         setModelCto: async (model: string) => {
+          const ticket = ++latestRebuildTicket;
           set(() => ({ modelCto: model }));
           const { templateMarkdown, data } = get();
           try {
             const result = await rebuildDeBounce(templateMarkdown, model, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            if (ticket === latestRebuildTicket) {
+              set(() => ({ agreementHtml: result, error: undefined }));
+            }
           } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+            if (ticket === latestRebuildTicket) {
+              set(() => ({
+                error: formatError(error),
+                isProblemPanelVisible: true,
+              }));
+            }
           }
         },
         setEditorModelCto: (value: string) => {
           set(() => ({ editorModelCto: value }));
         },
         setData: async (data: string) => {
+          const ticket = ++latestRebuildTicket;
           set(() => ({ data }));
           try {
             const result = await rebuildDeBounce(
@@ -906,12 +934,16 @@ const useAppStore = create<AppState>()(
               get().modelCto,
               data,
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            if (ticket === latestRebuildTicket) {
+              set(() => ({ agreementHtml: result, error: undefined }));
+            }
           } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+            if (ticket === latestRebuildTicket) {
+              set(() => ({
+                error: formatError(error),
+                isProblemPanelVisible: true,
+              }));
+            }
           }
         },
         setEditorAgreementData: (value: string) => {
