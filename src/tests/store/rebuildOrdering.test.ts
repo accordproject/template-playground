@@ -53,4 +53,27 @@ describe("rebuild results arriving out of order", () => {
     expect(useAppStore.getState().agreementHtml).toBe("<p>Acme</p>");
     expect(useAppStore.getState().error).toMatch(/Invalid JSON data/);
   });
+
+  it("keeps the newer model's validation error when an older render finishes later", async () => {
+    let finishOlderRender!: (ciceroMark: unknown) => void;
+    vi.mocked(rebuildInSandbox).mockImplementationOnce(
+      () => new Promise((resolve) => { finishOlderRender = resolve; }),
+    );
+    const { setModelCto } = useAppStore.getState();
+
+    const older = setModelCto(`${MODEL}\n// reviewed`);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(rebuildInSandbox).toHaveBeenCalledTimes(1);
+
+    const newer = setModelCto(MODEL.slice(0, -1));
+    await vi.advanceTimersByTimeAsync(500);
+    await newer;
+    expect(useAppStore.getState().error).toMatch(/Invalid CTO model/);
+
+    finishOlderRender({ text: "Zeta" });
+    await older;
+
+    expect(useAppStore.getState().agreementHtml).toBe("<p>Acme</p>");
+    expect(useAppStore.getState().error).toMatch(/Invalid CTO model/);
+  });
 });
