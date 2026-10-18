@@ -3,7 +3,7 @@ import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import { START_SAMPLES, sampleNameFor } from "./constants";
 
-/** The card the flow starts on when the user has not picked one: the first in the gallery. */
+/** The card the flow starts on when the user has not picked one: the first in the gallery, the simplest template. */
 export const DEFAULT_TEMPLATE = START_SAMPLES[0].name;
 
 /**

@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
 import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
@@ -10,10 +9,11 @@ import useAppStore from "../../store/store";
 import { usePickTemplate } from "./usePickTemplate";
 import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
 import {
-  ROUTES,
+  URLS,
   WELCOME,
   START,
   START_SAMPLES,
+  START_BLANK,
   DEPLOY,
   type StartSample,
 } from "./constants";
@@ -29,36 +29,35 @@ interface WelcomeViewProps {
 
 /**
  * Dark hero card: Accord Project wordmark, headline and the two CTAs.
+ * "How it works" opens the docs site in a new tab (hence the ↗ in its label).
  */
-export const WelcomeView = ({ onStart }: WelcomeViewProps) => {
-  const navigate = useNavigate();
-  return (
-    <div className="nd-view nd-view-welcome">
-      <div className="nd-hero">
-        <div className="nd-hero-grid" />
-        <img className="nd-hero-logo" src={WELCOME.logoSrc} alt={WELCOME.logoAlt} />
-        <div className="nd-spacer" />
-        <h1 className="nd-hero-title">
-          {WELCOME.titleLine}
-          <br />
-          <span className="nd-hero-title-accent">{WELCOME.titleAccent}</span>
-        </h1>
-        <p className="nd-hero-sub">
-          {WELCOME.subtitleLine1}
-          <br />
-          {WELCOME.subtitleLine2}
-        </p>
-        <div className="nd-hero-actions">
-          <Button type="primary" size="large" shape="round" onClick={onStart}>
-            {WELCOME.start} →
-          </Button>
-          <Button ghost size="large" shape="round" onClick={() => navigate(ROUTES.learnIntro)}>{WELCOME.howItWorks}</Button>
-        </div>
-        <div className="nd-spacer" />
+export const WelcomeView = ({ onStart }: WelcomeViewProps) => (
+  <div className="nd-view nd-view-welcome">
+    <div className="nd-hero">
+      <div className="nd-hero-grid" />
+      <img className="nd-hero-logo" src={WELCOME.logoSrc} alt={WELCOME.logoAlt} />
+      <div className="nd-spacer" />
+      <h1 className="nd-hero-title">
+        {WELCOME.titleLine}
+        <br />
+        <span className="nd-hero-title-accent">{WELCOME.titleAccent}</span>
+      </h1>
+      <p className="nd-hero-sub">
+        {WELCOME.subtitleLine1}
+        <br />
+        {WELCOME.subtitleLine2}
+      </p>
+      <div className="nd-hero-actions">
+        <Button type="primary" size="large" shape="round" onClick={onStart}>
+          {WELCOME.start} →
+        </Button>
+        <Button ghost size="large" shape="round" href={URLS.templateDocs} target="_blank" rel="noopener noreferrer">
+          {WELCOME.howItWorks}
+        </Button>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 interface SampleCardProps {
   sample: StartSample;
@@ -69,9 +68,9 @@ interface SampleCardProps {
 
 /**
  * One gallery card: an illustration on top; name, tagline, a short list
- * of what the template demonstrates and its own "Start with this template"
- * button underneath. Nothing else on the card is clickable — picking and
- * opening a template is one click.
+ * of what the template demonstrates (omitted on the blank card) and its own
+ * "Start with this template" button underneath. Nothing else on the card is
+ * clickable — picking and opening a template is one click.
  */
 const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
   const classes = [
@@ -93,11 +92,13 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
           {current && <span className="nd-sample-current">{START.current}</span>}
         </div>
         <p className="nd-sample-tagline">{sample.tagline}</p>
-        <ul className="nd-sample-learn" aria-label={START.learnLabel(sample.name)}>
-          {sample.demonstrates.map((point) => (
-            <li key={point}>{point}</li>
-          ))}
-        </ul>
+        {sample.demonstrates.length > 0 && (
+          <ul className="nd-sample-learn" aria-label={START.learnLabel(sample.name)}>
+            {sample.demonstrates.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
+        )}
         <Button
           type="primary"
           block
@@ -114,7 +115,8 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
 
 /**
  * "Choose a template" gallery: a curated set of cards, each opening the flow
- * on its template in one click. "+ Start blank" does the same with the empty template.
+ * on its template in one click. The blank template is the last card, styled
+ * like the others, so the choice reads as one set of options.
  */
 export const StartView = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
@@ -130,13 +132,9 @@ export const StartView = () => {
       <div className="nd-start-head">
         <span className="nd-start-title">{START.title}</span>
         <span className="nd-start-hint">{START.hint}</span>
-        <div className="nd-spacer" />
-        <Button type="dashed" size="small" onClick={() => open(START.blankName)}>
-          {START.blank}
-        </Button>
       </div>
       <div className="nd-sample-grid">
-        {START_SAMPLES.map((sample) => (
+        {[...START_SAMPLES, START_BLANK].map((sample) => (
           <SampleCard
             key={sample.name}
             sample={sample}
