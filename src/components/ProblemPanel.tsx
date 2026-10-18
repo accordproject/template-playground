@@ -26,7 +26,7 @@ const ProblemPanel: React.FC = () => {
   const parseError = (errorMessage: string) => {
     const errors: Omit<ProblemItem, 'id' | 'timestamp'>[] = [];
 
-    const errorParts = errorMessage.split(/\n(?=Error:|TypeError:|SyntaxError:|ReferenceError:)/);
+    const errorParts = errorMessage.split(/\n(?=(?:Error|TypeError|SyntaxError|ReferenceError|ParseException|ValidationException|TypeNotFoundException|TemplateException|Invalid\s+(?:JSON|CTO)):?)/);
 
     errorParts.forEach((part) => {
       if (!part.trim()) return;
@@ -45,22 +45,43 @@ const ProblemPanel: React.FC = () => {
 
       // Detect source based on error content
       // c: prefix indicates Concerto/CTO errors
-      if (part.startsWith('c:') || part.includes('CTO') || part.includes('.cto') ||
-        (part.includes('model') && !part.includes('grammar'))) {
+      if (
+        part.startsWith('c:') ||
+        part.includes('CTO') ||
+        part.includes('.cto') ||
+        part.includes('ParseException') ||
+        (part.includes('model') && !part.includes('grammar'))
+      ) {
         source = 'Concerto Model';
-      } else if (part.includes('JSON') || part.includes('json') || part.includes('data')) {
+      } else if (
+        part.includes('JSON') ||
+        part.includes('json') ||
+        part.includes('data') ||
+        part.includes('value at path') ||
+        part.includes('ValidationException') ||
+        part.includes('TypeNotFoundException')
+      ) {
         source = 'JSON Data';
-      } else if (part.includes('template') || part.includes('Template') ||
-        part.includes('grammar') || part.includes('mark')) {
+      } else if (
+        part.includes('template') ||
+        part.includes('Template') ||
+        part.includes('grammar') ||
+        part.includes('mark')
+      ) {
         source = 'TemplateMark';
       }
+
+      const parsedLine = lineMatch ? parseInt(lineMatch[1], 10) : undefined;
+      const parsedColumn = columnMatch ? parseInt(columnMatch[1], 10) : undefined;
+      const line = parsedLine !== undefined && parsedLine > 0 ? parsedLine : undefined;
+      const column = parsedColumn !== undefined && parsedColumn > 0 ? parsedColumn : undefined;
 
       errors.push({
         type,
         message: part.trim(),
         source,
-        line: lineMatch ? parseInt(lineMatch[1]) : undefined,
-        column: columnMatch ? parseInt(columnMatch[1]) : undefined,
+        line,
+        column,
       });
     });
 

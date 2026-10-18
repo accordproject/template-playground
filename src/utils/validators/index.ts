@@ -11,16 +11,19 @@ import { loadBundledModels } from "../modelCache";
  * @param data - JSON data string
  * @throws Error with specific validation message if any input is invalid
  */
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function validateBeforeRebuild(
   _template: string,
   model: string,
   data: string
 ): Promise<void> {
+  const errors: string[] = [];
+
   // 1. Validate JSON (fastest check)
   try {
     JSON.parse(data);
   } catch (error) {
-    throw new Error(`Invalid JSON data: ${error instanceof Error ? error.message : String(error)}`);
+    errors.push(`Invalid JSON data: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   // 2. Validate CTO model syntax using ModelManager. The bundled Accord
@@ -34,6 +37,10 @@ export async function validateBeforeRebuild(
     // missing-namespace error instead of slipping through to the full rebuild.
     modelManager.addCTOModel(model, undefined, false);
   } catch (error) {
-    throw new Error(`Invalid CTO model: ${error instanceof Error ? error.message : String(error)}`);
+    errors.push(`Invalid CTO model: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  if (errors.length > 0) {
+    throw new Error(errors.join("\n"));
   }
 }
