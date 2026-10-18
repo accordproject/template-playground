@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
+import { Button, Space, Typography, message } from "antd";
+import { CopyOutlined, ThunderboltOutlined } from "@ant-design/icons";
 import useAppStore from "../store/store";
 import { sendMessage, stopMessage } from "../ai-assistant/chatRelay";
 
@@ -15,7 +17,22 @@ export const AIChatPanel = () => {
     editorAgreementData: state.editorAgreementData,
   }));
   
-  const { chatState, resetChat, aiConfig, setAIConfig, setSettingsOpen, setAIChatOpen, textColor, backgroundColor } = useAppStore((state) => ({
+  const {
+    chatState,
+    resetChat,
+    aiConfig,
+    setAIConfig,
+    setSettingsOpen,
+    setAIChatOpen,
+    textColor,
+    backgroundColor,
+    setEditorValue,
+    setTemplateMarkdown,
+    setEditorModelCto,
+    setModelCto,
+    setEditorAgreementData,
+    setData,
+  } = useAppStore((state) => ({
     chatState: state.chatState,
     resetChat: state.resetChat,
     aiConfig: state.aiConfig,
@@ -23,8 +40,34 @@ export const AIChatPanel = () => {
     setSettingsOpen: state.setSettingsOpen,
     setAIChatOpen: state.setAIChatOpen,
     textColor: state.textColor,
-    backgroundColor: state.backgroundColor
+    backgroundColor: state.backgroundColor,
+    setEditorValue: state.setEditorValue,
+    setTemplateMarkdown: state.setTemplateMarkdown,
+    setEditorModelCto: state.setEditorModelCto,
+    setModelCto: state.setModelCto,
+    setEditorAgreementData: state.setEditorAgreementData,
+    setData: state.setData,
   }));
+
+  const handleApplyCode = (target: "templatemark" | "concerto" | "json", code: string) => {
+    switch (target) {
+      case "templatemark":
+        setEditorValue(code);
+        void setTemplateMarkdown(code);
+        void message.success("Applied to TemplateMark editor!");
+        break;
+      case "concerto":
+        setEditorModelCto(code);
+        void setModelCto(code);
+        void message.success("Applied to Concerto Model editor!");
+        break;
+      case "json":
+        setEditorAgreementData(code);
+        void setData(code);
+        void message.success("Applied to JSON Data editor!");
+        break;
+    }
+  };
   
   const latestMessageRef = useRef<HTMLDivElement>(null);
 
@@ -195,15 +238,93 @@ export const AIChatPanel = () => {
       if (i % 2 === 1 && segments[i]) {
         const firstLineBreak = segments[i].indexOf('\n');
         let code = segments[i];
-        
+        let lang = "";
+
         if (firstLineBreak > -1) {
+          lang = segments[i].substring(0, firstLineBreak).trim();
           code = segments[i].substring(firstLineBreak + 1);
         }
-        
+
+        const trimmedCode = code.trim();
+        const lowerLang = lang.toLowerCase();
+
+        let target: "templatemark" | "concerto" | "json" | null = null;
+        let targetName = "";
+
+        if (lowerLang.includes("templatemark")) {
+          target = "templatemark";
+          targetName = "TemplateMark";
+        } else if (lowerLang.includes("concerto")) {
+          target = "concerto";
+          targetName = "Concerto Model";
+        } else if (lowerLang.includes("json")) {
+          target = "json";
+          targetName = "JSON Data";
+        }
+
         parts.push(
-          <div key={key++} className="relative mt-2 mb-2">
-            <pre className="bg-gray-800 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">
-              {code.trim()}
+          <div
+            key={key++}
+            style={{
+              marginTop: 8,
+              marginBottom: 8,
+              borderRadius: 8,
+              overflow: "hidden",
+              border: "1px solid #374151",
+              backgroundColor: "#111827",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "6px 12px",
+                backgroundColor: "#1f2937",
+                borderBottom: "1px solid #374151",
+              }}
+            >
+              <Typography.Text style={{ fontFamily: "monospace", fontSize: 12, color: "#9ca3af" }}>
+                {lang || "code"}
+              </Typography.Text>
+              <Space size={8}>
+                <Button
+                  size="small"
+                  type="text"
+                  icon={<CopyOutlined />}
+                  style={{ color: "#d1d5db" }}
+                  onClick={() => {
+                    void (async () => {
+                      await navigator.clipboard.writeText(trimmedCode);
+                      void message.success("Code copied to clipboard!");
+                    })();
+                  }}
+                >
+                  Copy
+                </Button>
+                {target && (
+                  <Button
+                    size="small"
+                    type="primary"
+                    icon={<ThunderboltOutlined />}
+                    onClick={() => handleApplyCode(target, trimmedCode)}
+                  >
+                    Apply to {targetName}
+                  </Button>
+                )}
+              </Space>
+            </div>
+            <pre
+              style={{
+                margin: 0,
+                padding: 12,
+                fontSize: 12,
+                overflowX: "auto",
+                color: "#f3f4f6",
+                fontFamily: "monospace",
+              }}
+            >
+              {trimmedCode}
             </pre>
           </div>
         );
@@ -222,17 +343,24 @@ export const AIChatPanel = () => {
   };
 
   useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
     if (chatState.messages.length > 0 && latestMessageRef.current) {
       const messageContainer = latestMessageRef.current.closest('.overflow-y-auto');
       
       if (messageContainer) {
-        setTimeout(() => {
-          const messageTop = latestMessageRef.current!.offsetTop;
-          
-          messageContainer.scrollTop = messageTop - 50;
+        timer = setTimeout(() => {
+          if (latestMessageRef.current) {
+            const messageTop = latestMessageRef.current.offsetTop;
+            messageContainer.scrollTop = messageTop - 50;
+          }
         }, 100);
       }
     }
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [chatState.messages, chatState.isLoading]);
 
   return (
@@ -327,7 +455,7 @@ export const AIChatPanel = () => {
                 const isError = message.content.startsWith('[ERROR]');
                 return (
                   <div
-                    key={message.id}
+                    key={message.id || index}
                     className="w-full"
                     ref={
                       ((index === chatState.messages.length - 1) || (index === chatState.messages.length - 2))  
