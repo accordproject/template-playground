@@ -188,6 +188,13 @@ const PlaygroundSidebar = () => {
     },
   ];
 
+  const handleKeyDown = (e: React.KeyboardEvent, action?: () => void) => {
+    if (action && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      action();
+    }
+  };
+
   return [
     <aside key="sidebar" className="playground-sidebar">
       <nav className="playground-sidebar-nav">
@@ -198,6 +205,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => handleKeyDown(e, onClick)}
             className={`playground-sidebar-nav-item ${
               active ? 'playground-sidebar-nav-item-active' : 'playground-sidebar-nav-item-inactive'
             } tour-${title.toLowerCase().replace(' ', '-')}`}
@@ -223,6 +231,7 @@ const PlaygroundSidebar = () => {
             aria-label={title}
             tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => handleKeyDown(e, onClick)}
             className={`playground-sidebar-nav-bottom-item tour-${title.toLowerCase().replace(' ', '-')}`}
           >
             <Icon size={18} />
