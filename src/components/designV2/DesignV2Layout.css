@@ -198,6 +198,13 @@
   height: 64px; width: auto; max-width: 40%; opacity: 0.92;
   filter: brightness(0) invert(1);
 }
+/* Phones: a title size that fits "Agreements" on one line, and the logo below the buttons instead of over them. */
+@media (max-width: 640px) {
+  .nd-hero { padding: 28px 22px; justify-content: flex-start; }
+  .nd-hero-title { font-size: 36px; }
+  .nd-hero-sub { font-size: 15px; }
+  .nd-hero-logo { position: static; order: 1; align-self: flex-end; height: 44px; margin-top: auto; }
+}
 
 /* Start (choose template) */
 .nd-view-start { flex-direction: column; padding: 12px 14px 14px; gap: 12px; }

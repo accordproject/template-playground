@@ -100,9 +100,9 @@ export const WELCOME = {
   /** Accessible name of the Accord Project wordmark in the hero. */
   logoAlt: "Accord Project",
   logoSrc: "/APLogo.png",
-  titleLine: "The agreement layer",
-  titleAccent: "for agentic commerce.",
-  subtitleLine1: "Write enforceable terms that humans read and software executes.",
+  titleLine: "Agreements for people,",
+  titleAccent: "agents and systems.",
+  subtitleLine1: "Write terms that people and agents can read, and that agents and systems can execute.",
   subtitleLine2: "Build, test and deploy a template in your browser.",
   start: "Start building",
   /** Opens URLS.templateDocs in a new tab. */
