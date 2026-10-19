@@ -10,6 +10,7 @@ import Footer from "./Footer";
 import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
 import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
+import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
 import { ensureLogicCompiles, usePendingLogic } from "./useCompileOnArrival";
 import { FOOTER } from "./constants";
 import { FIRST_STEP, STEPS, STEP_ID, type DesignV2View } from "../../types/designV2.types";
@@ -54,11 +55,18 @@ const DesignV2Layout = () => {
   const setView = useDesignV2Store((s) => s.setView);
   const start = useDesignV2Store((s) => s.start);
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
+  const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
   const pick = usePickTemplate();
 
-  /** "Start building": enter the flow on a template — the first card unless one was already picked. */
+  /**
+   * "Start building": enter the flow on a template — the first card unless
+   * one was already picked, or a share link already loaded one.
+   */
   const handleStart = () => {
-    if (!selectedTemplate) pick(DEFAULT_TEMPLATE);
+    if (!selectedTemplate) {
+      if (useAppStore.getState().sampleName === SHARED_TEMPLATE_NAME) selectTemplate(SHARED_TEMPLATE_NAME);
+      else pick(DEFAULT_TEMPLATE);
+    }
     start();
   };
 

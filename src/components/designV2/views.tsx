@@ -1,13 +1,11 @@
-import { useState } from "react";
-import { Button, Typography, message } from "antd";
-import useAppStore from "../../store/store";
-import { pendingLogic } from "../../editors/logicSource";
-import { buildTemplateArchiveBlob, templateSlug } from "../../utils/templateArchive";
+import { Button } from "antd";
 import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
 import SimulateView from "./SimulateView";
 import SampleArt from "./SampleArt";
+import ImportTemplates from "./ImportTemplates";
+import { DeployView } from "./DeployView";
 import useDesignV2Store from "../../store/designV2Store";
 import { usePickTemplate } from "./usePickTemplate";
 import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
@@ -17,12 +15,11 @@ import {
   START,
   START_SAMPLES,
   START_BLANK,
-  DEPLOY,
   type StartSample,
 } from "./constants";
 
 /*
- * Welcome hero, template gallery and the Deploy step. Each is swapped
+ * Welcome hero and template gallery. Each is swapped
  * in by DesignV2Layout based on `view`; the editor steps live in their own files.
  */
 
@@ -155,66 +152,10 @@ export const StartView = () => {
           />
         ))}
       </div>
+      <ImportTemplates />
     </div>
   );
 };
-
-/**
- * Saves the template as a .cta archive named after the sample. The logic is
- * what the Logic editor holds (none when it is empty); text and model are
- * the ones the preview renders.
- */
-const DownloadTemplateCard = () => {
-  const [isSaving, setIsSaving] = useState(false);
-
-  const download = async () => {
-    setIsSaving(true);
-    try {
-      const { sampleName, templateMarkdown, modelCto, editorLogicTs } = useAppStore.getState();
-      const name = templateSlug(sampleName);
-      const logic = pendingLogic(editorLogicTs) ?? "";
-      const archive = await buildTemplateArchiveBlob({ templateMarkdown, modelCto, logicTs: logic }, name);
-      const url = URL.createObjectURL(archive);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${name}.cta`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Template archive failed:", error);
-      void message.error(DEPLOY.download.failed);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <div className="nd-card nd-export-card">
-      <span className="nd-export-label">{DEPLOY.download.label}</span>
-      <Typography.Text type="secondary">{DEPLOY.download.hint}</Typography.Text>
-      <Button type="primary" loading={isSaving} onClick={() => void download()}>
-        {DEPLOY.download.button}
-      </Button>
-    </div>
-  );
-};
-
-/** Step 7: Deploy — the template download; the other cards are placeholders until the deploy flow is designed. */
-export const DeployView = () => (
-  <div className="nd-view nd-view-export">
-    <div className="nd-export-head">
-      <h1>{DEPLOY.title}</h1>
-    </div>
-    <div className="nd-export-grid">
-      <DownloadTemplateCard />
-      {DEPLOY.cards.map((label) => (
-        <div key={label} className="nd-card nd-export-card">
-          <span className="nd-export-label">{label}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 interface ViewSwitchProps {
   view: DesignV2View;
