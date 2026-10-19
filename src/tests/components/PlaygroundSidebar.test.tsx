@@ -1,22 +1,24 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PlaygroundSidebar from "../../components/PlaygroundSidebar";
 import { vi } from "vitest";
 
+const mockStore = {
+    isEditorsVisible: true,
+    isPreviewVisible: true,
+    isProblemPanelVisible: false,
+    isAIChatOpen: false,
+    setEditorsVisible: vi.fn(),
+    setPreviewVisible: vi.fn(),
+    setProblemPanelVisible: vi.fn(),
+    setAIChatOpen: vi.fn(),
+    setSettingsOpen: vi.fn(),
+    generateShareableLink: vi.fn(() => "https://example.com"),
+};
+
 // Mock the store
 vi.mock("../../store/store", () => ({
-    default: () => ({
-        isEditorsVisible: true,
-        isPreviewVisible: true,
-        isProblemPanelVisible: false,
-        isAIChatOpen: false,
-        setEditorsVisible: vi.fn(),
-        setPreviewVisible: vi.fn(),
-        setProblemPanelVisible: vi.fn(),
-        setAIChatOpen: vi.fn(),
-        setSettingsOpen: vi.fn(),
-        generateShareableLink: vi.fn(() => "https://example.com"),
-    }),
+    default: () => mockStore,
 }));
 
 // Mock the Tour
@@ -65,5 +67,21 @@ describe("PlaygroundSidebar", () => {
     it("renders FullScreen modal component", () => {
         renderSidebar();
         expect(screen.getByTestId("fullscreen-modal")).toBeInTheDocument();
+    });
+
+    it("activates navigation items on Enter and Space keydown", () => {
+        renderSidebar();
+
+        const problemsButton = screen.getByRole("button", { name: /Problems/i });
+        fireEvent.keyDown(problemsButton, { key: "Enter" });
+        expect(mockStore.setProblemPanelVisible).toHaveBeenCalled();
+
+        const aiButton = screen.getByRole("button", { name: /AI Assistant/i });
+        fireEvent.keyDown(aiButton, { key: " " });
+        expect(mockStore.setAIChatOpen).toHaveBeenCalled();
+
+        const settingsButton = screen.getByRole("button", { name: /Settings/i });
+        fireEvent.keyDown(settingsButton, { key: "Enter" });
+        expect(mockStore.setSettingsOpen).toHaveBeenCalledWith(true);
     });
 });
