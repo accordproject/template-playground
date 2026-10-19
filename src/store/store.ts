@@ -396,24 +396,19 @@ async function rebuild(
   // markdown-transform is several MB, so it is loaded on first use rather than
   // imported statically; that lets the UI render before it arrives. The
   // download starts here so it overlaps with rendering in the sandbox.
-  const markdownTransform = import("@accordproject/markdown-transform");
+  const markdownTransform = import("@accordproject/markdown-html");
   const ciceroMarkJson = await rebuildInSandbox(template, model, dataString);
   // Converting CiceroMark to HTML runs no user code, so it stays on the main thread.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const { transform } = await markdownTransform;
+  const { HtmlTransformer } = await markdownTransform;
+  const htmlTransformer = new HtmlTransformer();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  const result = (await transform(
-    ciceroMarkJson,
-    "ciceromark_parsed",
-    ["html"],
-    {},
-    { verbose: false },
-  )) as string;
+  const result = htmlTransformer.toHtml(ciceroMarkJson) as string;
   return result;
 }
 
 const getInitialTheme = () => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       return { backgroundColor: "#121212", textColor: "#ffffff" };
@@ -463,13 +458,13 @@ const savePanelState = (state: Partial<AppState>) => {
 };
 
 const getInitialLineNumbers = () => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
     const saved = localStorage.getItem("showLineNumbers");
     if (saved !== null) {
       return saved === "true";
     }
   }
-  return true; // Default to showing line numbers
+  return true;
 };
 
 /**
@@ -580,21 +575,21 @@ const useAppStore = create<AppState>()(
         isSettingsOpen: false,
         keyProtectionLevel: null,
         isLogicFeatureEnabled:
-          typeof window !== "undefined"
+          typeof window !== "undefined" && typeof window.localStorage !== "undefined"
             ? localStorage.getItem("isLogicFeatureEnabled") === "true"
             : false,
         setLogicFeatureEnabled: (value: boolean) => {
-          if (typeof window !== "undefined") {
+          if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
             localStorage.setItem("isLogicFeatureEnabled", String(value));
           }
           set({ isLogicFeatureEnabled: value });
         },
         isDesignV2Enabled:
-          typeof window !== "undefined"
+          typeof window !== "undefined" && typeof window.localStorage !== "undefined"
             ? localStorage.getItem("isDesignV2Enabled") === "true"
             : false,
         setDesignV2Enabled: (value: boolean) => {
-          if (typeof window !== "undefined") {
+          if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
             localStorage.setItem("isDesignV2Enabled", String(value));
           }
           set({ isDesignV2Enabled: value });
