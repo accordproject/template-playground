@@ -10,6 +10,7 @@ import {
   Divider,
   Form,
   Input,
+  Modal,
   Select,
   Slider,
   Space,
@@ -62,6 +63,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   const [isEncrypting, setIsEncrypting] = useState<boolean>(false);
   const [securityMessage, setSecurityMessage] = useState<string>('');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
   const [debouncedApiKey] = useDebounce(apiKey, 1000);
 
   // Check WebAuthn PRF support on mount
@@ -286,49 +288,49 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   };
 
   const handleReset = () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to reset all AI configuration? This will clear your API key and all settings.'
-    );
+    setIsResetConfirmOpen(true);
+  };
 
-    if (confirmed) {
-      // Clear all AI-related localStorage items (including encrypted key data)
-      clearStoredKey();
-      const keysToRemove = [
-        'aiProvider',
-        'aiModel',
-        'aiCustomEndpoint',
-        'aiResMaxTokens',
-        'aiEffort',
-        'aiTemperature',
-        'aiThinking',
-        'aiShowFullPrompt',
-        'aiEnableCodeSelectionMenu',
-        'aiEnableInlineSuggestions',
-        'aiIncludeTemplateMark',
-        'aiIncludeConcertoModel',
-        'aiIncludeData',
-      ];
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+  const confirmReset = () => {
+    setIsResetConfirmOpen(false);
 
-      // Reset all state variables to default
-      setProvider('');
-      setModel('');
-      setApiKey('');
-      setCustomEndpoint('');
-      setMaxTokens('');
-      setEffort('');
-      setTemperature(DEFAULT_TEMPERATURE);
-      setThinking(true);
-      setShowFullPrompt(false);
-      setEnableCodeSelectionMenu(true);
-      setEnableInlineSuggestions(true);
-      setKeyProtectionLevel(null);
-      setSecurityMessage('');
+    // Clear all AI-related localStorage items (including encrypted key data)
+    clearStoredKey();
+    const keysToRemove = [
+      'aiProvider',
+      'aiModel',
+      'aiCustomEndpoint',
+      'aiResMaxTokens',
+      'aiEffort',
+      'aiTemperature',
+      'aiThinking',
+      'aiShowFullPrompt',
+      'aiEnableCodeSelectionMenu',
+      'aiEnableInlineSuggestions',
+      'aiIncludeTemplateMark',
+      'aiIncludeConcertoModel',
+      'aiIncludeData',
+    ];
+    keysToRemove.forEach(key => localStorage.removeItem(key));
 
-      // Clear the in-memory AI config in Zustand so stale keys don't persist
-      const { setAIConfig } = useAppStore.getState();
-      setAIConfig(null);
-    }
+    // Reset all state variables to default
+    setProvider('');
+    setModel('');
+    setApiKey('');
+    setCustomEndpoint('');
+    setMaxTokens('');
+    setEffort('');
+    setTemperature(DEFAULT_TEMPERATURE);
+    setThinking(true);
+    setShowFullPrompt(false);
+    setEnableCodeSelectionMenu(true);
+    setEnableInlineSuggestions(true);
+    setKeyProtectionLevel(null);
+    setSecurityMessage('');
+
+    // Clear the in-memory AI config in Zustand so stale keys don't persist
+    const { setAIConfig } = useAppStore.getState();
+    setAIConfig(null);
   };
 
   const isSaveDisabled = isEncrypting || !provider || !model ||
@@ -584,6 +586,28 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       >
         Reset Configuration
       </Button>
+
+      <Modal
+        title="Reset AI Configuration?"
+        open={isResetConfirmOpen}
+        onCancel={() => setIsResetConfirmOpen(false)}
+        onOk={confirmReset}
+        okText="Reset Configuration"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+        closable={false}
+        maskClosable={false}
+        destroyOnClose
+      >
+        <Space direction="vertical" size={8} style={{ width: '100%' }}>
+          <Text>
+            This will clear your API key and all AI configuration settings.
+          </Text>
+          <Text type="secondary">
+            You can save a new configuration afterward if needed.
+          </Text>
+        </Space>
+      </Modal>
     </Form>
   );
 };
