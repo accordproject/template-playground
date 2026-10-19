@@ -1,4 +1,8 @@
-import { Button } from "antd";
+import { useState } from "react";
+import { Button, Typography, message } from "antd";
+import useAppStore from "../../store/store";
+import { pendingLogic } from "../../editors/logicSource";
+import { buildTemplateArchiveBlob, templateSlug } from "../../utils/templateArchive";
 import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
@@ -18,7 +22,7 @@ import {
 } from "./constants";
 
 /*
- * Welcome hero, template gallery and the Deploy placeholder. Each is swapped
+ * Welcome hero, template gallery and the Deploy step. Each is swapped
  * in by DesignV2Layout based on `view`; the editor steps live in their own files.
  */
 
@@ -29,6 +33,8 @@ interface WelcomeViewProps {
 /**
  * Dark hero card: Accord Project wordmark, headline and the two CTAs.
  * "How it works" opens the docs site in a new tab (hence the ↗ in its label).
+ * A note under the buttons says what the playground is for — learning the
+ * structure of a template and prototyping — and points developers to VS Code.
  */
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => (
   <div className="nd-view nd-view-welcome">
@@ -54,6 +60,12 @@ export const WelcomeView = ({ onStart }: WelcomeViewProps) => (
           {WELCOME.howItWorks}
         </Button>
       </div>
+      <p className="nd-hero-note">
+        {WELCOME.ideNote}{" "}
+        <a href={URLS.vscodeTutorial} target="_blank" rel="noopener noreferrer">
+          {WELCOME.ideNoteLink}
+        </a>
+      </p>
       <div className="nd-spacer" />
     </div>
   </div>
@@ -147,13 +159,55 @@ export const StartView = () => {
   );
 };
 
-/** Step 7: Deploy — placeholder until the deploy flow is designed. */
+/**
+ * Saves the template as a .cta archive named after the sample. The logic is
+ * what the Logic editor holds, unless that is still the untouched skeleton
+ * (the rule Simulate uses, see pendingLogic); text and model are the ones
+ * the preview renders.
+ */
+const DownloadTemplateCard = () => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const download = async () => {
+    setIsSaving(true);
+    try {
+      const { sampleName, templateMarkdown, modelCto, logicTs, editorLogicTs } = useAppStore.getState();
+      const name = templateSlug(sampleName);
+      const logic = pendingLogic(editorLogicTs, logicTs, modelCto) ?? "";
+      const archive = await buildTemplateArchiveBlob({ templateMarkdown, modelCto, logicTs: logic }, name);
+      const url = URL.createObjectURL(archive);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${name}.cta`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Template archive failed:", error);
+      void message.error(DEPLOY.download.failed);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="nd-card nd-export-card">
+      <span className="nd-export-label">{DEPLOY.download.label}</span>
+      <Typography.Text type="secondary">{DEPLOY.download.hint}</Typography.Text>
+      <Button type="primary" loading={isSaving} onClick={() => void download()}>
+        {DEPLOY.download.button}
+      </Button>
+    </div>
+  );
+};
+
+/** Step 7: Deploy — the template download; the other cards are placeholders until the deploy flow is designed. */
 export const DeployView = () => (
   <div className="nd-view nd-view-export">
     <div className="nd-export-head">
       <h1>{DEPLOY.title}</h1>
     </div>
     <div className="nd-export-grid">
+      <DownloadTemplateCard />
       {DEPLOY.cards.map((label) => (
         <div key={label} className="nd-card nd-export-card">
           <span className="nd-export-label">{label}</span>

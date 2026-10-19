@@ -65,6 +65,15 @@ describe('DesignV2Layout — Start building', () => {
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
+
+  it('says it is a playground, not an IDE, and links developers to the VS Code tutorial', () => {
+    renderLayout();
+    expect(screen.getByText(WELCOME.ideNote, { exact: false })).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: WELCOME.ideNoteLink });
+    expect(link).toHaveAttribute('href', URLS.vscodeTutorial);
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
 });
 
 describe('DesignV2Layout — Preview toggle', () => {

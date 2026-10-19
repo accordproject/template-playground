@@ -18,6 +18,8 @@ export const URLS = {
   concertoIntro: "https://concerto.accordproject.org/docs/intro",
   /** Docs site: what a template is made of (text, model, logic). "How it works" on the hero opens it. */
   templateDocs: "https://docs.accordproject.org/docs/accordproject-template/",
+  /** Docs site tutorial for developing templates in VS Code; the hero's note links to it. */
+  vscodeTutorial: "https://docs.accordproject.org/docs/tutorial-vscode/",
 } as const;
 
 export const RAIL = {
@@ -104,6 +106,11 @@ export const WELCOME = {
   titleAccent: "agents and systems.",
   subtitleLine1: "Write terms that people and agents can read, and that agents and systems can execute.",
   subtitleLine2: "Build, test and deploy a template in your browser.",
+  /** Muted note under the buttons: what the playground is for, and where development continues. */
+  ideNote:
+    "A playground, not an IDE: it walks you through how a template is built and lets you prototype and experiment quickly. When a template is ready for more, download it from the Deploy step and keep developing in VS Code.",
+  /** Opens URLS.vscodeTutorial in a new tab. */
+  ideNoteLink: "VS Code tutorial ↗",
   start: "Start building",
   /** Opens URLS.templateDocs in a new tab. */
   howItWorks: "How it works ↗",
@@ -433,5 +440,13 @@ export const SIMULATE = {
 
 export const DEPLOY = {
   title: "Deploy",
+  /** Downloads the template as a .cta archive (see utils/templateArchive.ts). */
+  download: {
+    label: "Download template",
+    hint: "A .cta archive with the text, model and logic. Unzip it and keep developing in VS Code.",
+    button: "↓ Download .cta",
+    failed: "Couldn’t create the template archive — try again.",
+  },
+  /** Not built yet. */
   cards: ["Download PDF", "Share link", "Copy to clipboard"],
 } as const;

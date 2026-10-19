@@ -20,7 +20,7 @@ import type {
   TriggerResponse,
 } from "../ai-assistant/llmProviders";
 import { validateBeforeRebuild } from "../utils/validators";
-import { BUNDLED_MODELS } from "../utils/modelCache";
+import { buildTemplateArchive } from "../utils/templateArchive";
 import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
@@ -1059,35 +1059,9 @@ const useAppStore = create<AppState>()(
           try {
             const { Template: CiceroTemplate } =
               await import("@accordproject/cicero-core");
-            const JSZip = (await import("jszip")).default;
 
-            // Construct package.json required by the Template archive
-            const packageJson = {
-              name: "playground-template",
-              version: "1.0.0",
-              accordproject: {
-                template: "contract",
-                cicero: "^2.1.1",
-              },
-            };
-
-            // Build an in-memory zip file (.cta archive equivalent)
-            const zip = new JSZip();
-            zip.file("package.json", JSON.stringify(packageJson));
-            zip.file("text/grammar.tem.md", templateMarkdown);
-            zip.file("model/model.cto", modelCto);
-
-            // Inject offline models so fromArchive resolves external imports locally
-            for (const bundledModel of BUNDLED_MODELS) {
-              zip.file(`model/${bundledModel.fileName}`, bundledModel.source);
-            }
-
-            if (logicTs) {
-              zip.file("logic/logic.ts", logicTs);
-            }
-
-            // Generate buffer and load via fromArchive API
-            const content = await zip.generateAsync({ type: "uint8array" });
+            // The same .cta archive the Deploy step downloads, loaded via fromArchive.
+            const content = await buildTemplateArchive({ templateMarkdown, modelCto, logicTs });
             const { Buffer } = await import("buffer");
             const template = await CiceroTemplate.fromArchive(
               Buffer.from(content),

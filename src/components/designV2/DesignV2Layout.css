@@ -192,6 +192,9 @@
 }
 .nd-hero-sub { position: relative; margin: 0; font-size: 16.5px; line-height: 1.55; color: #a9cbd3; max-width: 760px; }
 .nd-hero-actions { position: relative; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+.nd-hero-note { position: relative; margin: 0; max-width: 640px; font-size: 13.5px; line-height: 1.6; color: #7fa3ad; }
+.nd-hero-note a { color: #9fe3dc; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.nd-hero-note a:hover { color: #c6f3ee; }
 /* Accord Project logo (black on transparent, inverted to white) pinned to the bottom-right of the hero */
 .nd-hero-logo {
   position: absolute; right: 44px; bottom: 30px;
@@ -203,6 +206,7 @@
   .nd-hero { padding: 28px 22px; justify-content: flex-start; }
   .nd-hero-title { font-size: 36px; }
   .nd-hero-sub { font-size: 15px; }
+  .nd-hero-note { font-size: 13px; }
   .nd-hero-logo { position: static; order: 1; align-self: flex-end; height: 44px; margin-top: auto; }
 }
 
