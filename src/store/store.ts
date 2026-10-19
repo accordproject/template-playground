@@ -375,6 +375,7 @@ export interface DecompressedData {
 }
 
 const rebuildDeBounce = debounce(rebuild, 500);
+let latestRebuild = 0;
 
 async function rebuild(
   template: string,
@@ -852,14 +853,17 @@ const useAppStore = create<AppState>()(
 
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();
+          const ticket = ++latestRebuild;
           try {
             const result = await rebuildDeBounce(
               templateMarkdown,
               modelCto,
               data,
             );
+            if (ticket !== latestRebuild) return;
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
+            if (ticket !== latestRebuild) return;
             set(() => ({
               error: formatError(error),
               isProblemPanelVisible: true,
@@ -869,10 +873,13 @@ const useAppStore = create<AppState>()(
         setTemplateMarkdown: async (template: string) => {
           set(() => ({ templateMarkdown: template }));
           const { modelCto, data } = get();
+          const ticket = ++latestRebuild;
           try {
             const result = await rebuildDeBounce(template, modelCto, data);
+            if (ticket !== latestRebuild) return;
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
+            if (ticket !== latestRebuild) return;
             set(() => ({
               error: formatError(error),
               isProblemPanelVisible: true,
@@ -885,10 +892,13 @@ const useAppStore = create<AppState>()(
         setModelCto: async (model: string) => {
           set(() => ({ modelCto: model }));
           const { templateMarkdown, data } = get();
+          const ticket = ++latestRebuild;
           try {
             const result = await rebuildDeBounce(templateMarkdown, model, data);
+            if (ticket !== latestRebuild) return;
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
+            if (ticket !== latestRebuild) return;
             set(() => ({
               error: formatError(error),
               isProblemPanelVisible: true,
@@ -900,14 +910,17 @@ const useAppStore = create<AppState>()(
         },
         setData: async (data: string) => {
           set(() => ({ data }));
+          const ticket = ++latestRebuild;
           try {
             const result = await rebuildDeBounce(
               get().templateMarkdown,
               get().modelCto,
               data,
             );
+            if (ticket !== latestRebuild) return;
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
+            if (ticket !== latestRebuild) return;
             set(() => ({
               error: formatError(error),
               isProblemPanelVisible: true,
