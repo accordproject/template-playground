@@ -919,11 +919,22 @@ const useAppStore = create<AppState>()(
 
         renderAgreement: async () => {
           const { templateMarkdown, modelCto, data } = get();
+          let html: string;
           try {
-            return await rebuild(templateMarkdown, modelCto, data);
+            html = await rebuild(templateMarkdown, modelCto, data);
           } catch (error: unknown) {
             throw new Error(formatError(error));
           }
+          /*
+           * The sandbox answers a superseded request with the newer render's
+           * result. If the sources changed while this one was in flight, the
+           * HTML may be of another template, so it is not handed out.
+           */
+          const now = get();
+          if (now.templateMarkdown !== templateMarkdown || now.modelCto !== modelCto || now.data !== data) {
+            throw new Error("The template changed while it was being rendered — try again.");
+          }
+          return html;
         },
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();

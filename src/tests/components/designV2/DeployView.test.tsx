@@ -123,6 +123,8 @@ describe('DeployView', () => {
     );
     // An empty edge cell keeps its column.
     expect(agreementText('<table><tr><td></td><td>100</td></tr><tr><td>Total</td><td></td></tr></table>')).toBe('\t100\n\nTotal\t');
+    // Pretty-printed HTML: the whitespace between cells and rows is not content.
+    expect(agreementText('<table>\n  <tbody>\n    <tr>\n      <td>USD</td>\n      <td>100</td>\n    </tr>\n  </tbody>\n</table>')).toBe('USD\t100');
   });
 
   it('starts the clipboard write inside the click, for Safari', async () => {

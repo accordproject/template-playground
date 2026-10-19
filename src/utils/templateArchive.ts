@@ -239,10 +239,39 @@ export const incompatibilityReason = (pkg: PackageJson, paths: string[], hasType
     return "This template’s logic is written in Ergo, for an older version of Cicero. The playground runs TypeScript templates (Cicero 1.0 and later).";
   }
   const cicero = pkg.accordproject?.cicero;
-  if (pkg.accordproject?.runtime !== "typescript" && majorOf(cicero) === 0) {
+  // The declared engine target decides, whatever the runtime field says.
+  if (majorOf(cicero) === 0) {
     return `This template targets Cicero ${String(cicero)}. The playground runs TypeScript templates (Cicero 1.0 and later).`;
   }
   return null;
+};
+
+/**
+ * Rewrites imports of `./<namespace>` (archives exported before the Logic
+ * step's scaffold moved to `./generated/`) to `./generated/<namespace>`,
+ * where the template engine puts the model's generated types. Only real
+ * import specifiers are touched — positions come from TypeScript's
+ * pre-processor, so comments and strings stay as they are.
+ */
+export const normalizeModelImports = async (logicTs: string, modelCto: string): Promise<string> => {
+  const ts = (await import("typescript")).default;
+  const namespaces = generatedNamespaces(modelCto);
+  const legacy = ts
+    .preProcessFile(logicTs, true, true)
+    .importedFiles.filter((f) => {
+      const module = /^\.\/([^/]+?)(?:\.(?:js|ts))?$/.exec(f.fileName)?.[1];
+      return !!module && namespaces.has(module);
+    })
+    .sort((a, b) => b.pos - a.pos);
+  let out = logicTs;
+  for (const f of legacy) {
+    // `pos` is the opening quote; the specifier follows it verbatim.
+    const start = f.pos + 1;
+    const end = start + f.fileName.length;
+    if (out.slice(start, end) !== f.fileName) continue;
+    out = `${out.slice(0, start)}./generated/${f.fileName.slice(2)}${out.slice(end)}`;
+  }
+  return out;
 };
 
 /**
@@ -378,5 +407,13 @@ export const readTemplateArchive = async (
 
   const requestJson = await read("request.json");
 
-  return { name, templateMarkdown, modelCto, data, logicTs, requestJson, warnings };
+  return {
+    name,
+    templateMarkdown,
+    modelCto,
+    data,
+    logicTs: logicTs === undefined ? undefined : await normalizeModelImports(logicTs, rawModel),
+    requestJson,
+    warnings,
+  };
 };

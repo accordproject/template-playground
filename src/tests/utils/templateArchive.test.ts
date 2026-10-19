@@ -17,6 +17,7 @@ import {
   sampleDataFromModel,
   ensureTemplateDecorator,
   unsupportedLogicImports,
+  normalizeModelImports,
   findLogicEntry,
 } from "../../utils/templateArchive";
 import * as copyright from "../../samples/copyrightLicense";
@@ -98,6 +99,14 @@ describe("template archive", () => {
     old.file("text/grammar.tem.md", "Hello {{name}}.");
     old.file("model/model.cto", libraryModel);
     await expect(readTemplateArchive(await old.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/Cicero \^0\.21\.0/);
+
+    // A TypeScript runtime does not change the engine the template targets.
+    const tsOld = new JSZip();
+    tsOld.file("package.json", JSON.stringify({ name: "old-ts", accordproject: { runtime: "typescript", cicero: "^0.25.0" } }));
+    tsOld.file("text/grammar.tem.md", "Hello {{name}}.");
+    tsOld.file("model/model.cto", libraryModel);
+    tsOld.file("logic/logic.ts", "export default class {}");
+    await expect(readTemplateArchive(await tsOld.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/Cicero \^0\.25\.0/);
   });
 
   it("imports a library-style archive: no data.json, undecorated model, dependency models alongside", async () => {
@@ -188,6 +197,23 @@ describe("template archive", () => {
     await expect(readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/\.\/helpers/);
   }, TIMEOUT);
 
+  it("rewrites only real legacy imports, leaving comments, strings and other modules alone", async () => {
+    const logic = [
+      "// see './org.acme.counter@1.0.0'",
+      "import type { ICounter } from './org.acme.counter@1.0.0';",
+      "import { v4 } from 'uuid';",
+      "const s = \"./org.acme.counter@1.0.0\";",
+    ].join("\n");
+    expect(await normalizeModelImports(logic, counter.MODEL)).toBe(
+      [
+        "// see './org.acme.counter@1.0.0'",
+        "import type { ICounter } from './generated/org.acme.counter@1.0.0';",
+        "import { v4 } from 'uuid';",
+        "const s = \"./org.acme.counter@1.0.0\";",
+      ].join("\n"),
+    );
+  }, TIMEOUT);
+
   it("ignores comments and strings that only look like imports", async () => {
     const logic = [
       "// import { help } from './helpers'",
@@ -202,8 +228,18 @@ describe("template archive", () => {
   it("round-trips the Logic step's scaffold, and still accepts the older './<namespace>' imports", async () => {
     const scaffold = scaffoldFromModel(describeLogicModel(counter.MODEL));
     expect(scaffold).toMatch(/from '\.\/generated\/org\.acme\.counter@1\.0\.0'/);
-    // Archives exported before the scaffold moved to ./generated/ import the namespace directly.
-    expect(await unsupportedLogicImports(scaffold.replace("./generated/", "./"), counter.MODEL)).toEqual([]);
+    // Archives exported before the scaffold moved to ./generated/ import the namespace directly;
+    // they are accepted and rewritten to ./generated/, where the engine generates the types.
+    const legacy = scaffold.replace("./generated/", "./");
+    expect(await unsupportedLogicImports(legacy, counter.MODEL)).toEqual([]);
+    expect(await normalizeModelImports(legacy, counter.MODEL)).toBe(scaffold);
+    const legacyZip = new JSZip();
+    legacyZip.file("package.json", JSON.stringify({ name: "x", accordproject: { cicero: "^2.0.0" } }));
+    legacyZip.file("text/grammar.tem.md", counter.TEMPLATE);
+    legacyZip.file("model/model.cto", counter.MODEL);
+    legacyZip.file("data.json", JSON.stringify(counter.DATA));
+    legacyZip.file("logic/logic.ts", legacy);
+    expect((await readTemplateArchive(await legacyZip.generateAsync({ type: "uint8array" }), "x")).logicTs).toBe(scaffold);
     const edited = scaffold.replace("ContractLogic", "EditedLogic");
     expect(await unsupportedLogicImports(edited, counter.MODEL)).toEqual([]);
     const bytes = await buildTemplateArchive(

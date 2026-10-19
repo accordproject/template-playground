@@ -50,6 +50,13 @@ const CELLS = "td,th";
 export const agreementText = (html: string): string => {
   const doc = new DOMParser().parseFromString(DOMPurify.sanitize(html), "text/html");
   doc.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
+  // Pretty-printed tables carry whitespace-only text between their rows and
+  // cells; it is layout, not content, and would put columns on new lines.
+  doc.querySelectorAll("table, thead, tbody, tfoot, tr").forEach((container) => {
+    container.childNodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE && !node.textContent?.trim()) node.remove();
+    });
+  });
   // Cells of a row are tab-separated, so "USD | 100" doesn't copy as "USD100".
   doc.querySelectorAll(CELLS).forEach((cell) => {
     if (cell.nextElementSibling) cell.append("\t");
