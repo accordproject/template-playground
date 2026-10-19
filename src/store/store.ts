@@ -522,6 +522,9 @@ const persistChain = (chain: ChainStep[]) => {
   }
 };
 
+/** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
+let latestCompileRun = 0;
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
@@ -1104,16 +1107,28 @@ const useAppStore = create<AppState>()(
         },
 
         compileLogic: async () => {
+          /*
+           * Compilations can overlap (a model edit, then Simulate, while one
+           * is still running). Only the latest run publishes, and it
+           * publishes the model it compiled against with its result, so an
+           * older run finishing late cannot pass off old-model output as
+           * current.
+           */
+          const run = ++latestCompileRun;
+          const compiledModelCto = get().modelCto;
+          const publish = (result: Partial<AppState>) => {
+            if (run === latestCompileRun) set({ ...result, compiledModelCto });
+          };
           set({
             isCompiling: true,
             compilationErrors: [],
             compiledLogicJs: null,
-            compiledModelCto: get().modelCto,
+            compiledModelCto: null,
           });
           try {
             const state = get();
             if (!state.logicTs || !state.modelCto) {
-              set({ isCompiling: false, compilationErrors: [] });
+              publish({ isCompiling: false, compilationErrors: [] });
               return;
             }
 
@@ -1125,10 +1140,12 @@ const useAppStore = create<AppState>()(
              * to ensure the compiler has the most up-to-date grammar and model.
              */
             await get().buildTemplateFromMemory();
+            // A newer run has started; its template object is the one in the store now.
+            if (run !== latestCompileRun) return;
 
             const templateToCompile = get().templateObject;
             if (!templateToCompile) {
-              set({
+              publish({
                 isCompiling: false,
                 compilationErrors: [
                   {
@@ -1179,7 +1196,7 @@ const useAppStore = create<AppState>()(
                 console.error("Failed to calculate compilation line offset", e);
               }
 
-              set({
+              publish({
                 isCompiling: false,
                 isProblemPanelVisible: true,
                 compilationErrors: actualErrors.map((e: any) => {
@@ -1215,7 +1232,7 @@ const useAppStore = create<AppState>()(
                 /class\s+(\w+)\s+extends\s+TemplateLogic/,
               );
               if (!match) {
-                set({
+                publish({
                   isCompiling: false,
                   isProblemPanelVisible: true,
                   compilationErrors: [
@@ -1229,14 +1246,14 @@ const useAppStore = create<AppState>()(
               }
               code += `\nreturn ${match[1]};\n`;
 
-              set({
+              publish({
                 isCompiling: false,
                 compiledLogicJs: code,
                 compilationErrors: [],
               });
             }
           } catch (error: unknown) {
-            set({
+            publish({
               isCompiling: false,
               isProblemPanelVisible: true,
               compilationErrors: [

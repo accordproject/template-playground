@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import useAppStore from '../../store/store';
+import { TemplateArchiveProcessor } from '@accordproject/template-engine';
 
 vi.mock('@accordproject/template-engine', () => {
   return {
@@ -96,5 +97,76 @@ describe('useAppStore - compileLogic', () => {
     await useAppStore.getState().compileLogic();
 
     expect(useAppStore.getState().compiledModelCto).toBe('namespace org.example');
+  });
+});
+
+describe('useAppStore - overlapping compileLogic runs', () => {
+  type Compiled = { 'logic/logic.ts': { errors: unknown[]; code?: string } };
+  type Processor = InstanceType<typeof TemplateArchiveProcessor>;
+  type Template = NonNullable<ReturnType<typeof useAppStore.getState>['templateObject']>;
+  /** A processor stand-in whose compileLogic returns the given promise. */
+  const processorFor = (compiled: Promise<Compiled>) =>
+    (() => ({ compileLogic: () => compiled }) as unknown as Processor);
+
+  const compiledAs = (name: string): Compiled => ({
+    'logic/logic.ts': { errors: [], code: `class ${name} extends TemplateLogic {}` },
+  });
+
+  /*
+   * Run A compiles model A but its compiler only answers when `finishA` is
+   * called; run B, on model B, is started meanwhile and answers at once.
+   * Each run's template object says which model it was built from.
+   */
+  const startOutOfOrder = async (finishA: Promise<Compiled>) => {
+    useAppStore.setState({
+      logicTs: 'class X {}',
+      modelCto: 'model A',
+      buildTemplateFromMemory: vi.fn(() => {
+        useAppStore.setState({ templateObject: { model: useAppStore.getState().modelCto } as unknown as Template });
+        return Promise.resolve();
+      }),
+    });
+    vi.mocked(TemplateArchiveProcessor)
+      .mockImplementationOnce(processorFor(finishA))
+      .mockImplementationOnce(processorFor(Promise.resolve(compiledAs('FromModelB'))));
+
+    const runA = useAppStore.getState().compileLogic();
+    await vi.waitFor(() => expect(TemplateArchiveProcessor).toHaveBeenCalledTimes(1));
+    useAppStore.setState({ modelCto: 'model B' });
+    await useAppStore.getState().compileLogic();
+    // Wrapped: returning the promise itself would make this helper wait for run A.
+    return { runA };
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAppStore.setState({ compiledLogicJs: null, compiledModelCto: null, compilationErrors: [], isCompiling: false });
+  });
+
+  it('keeps the newer result when an older run succeeds after it', async () => {
+    let resolveA!: (value: Compiled) => void;
+    const { runA } = await startOutOfOrder(new Promise<Compiled>((resolve) => { resolveA = resolve; }));
+    expect(useAppStore.getState().compiledLogicJs).toContain('FromModelB');
+
+    resolveA(compiledAs('FromModelA'));
+    await runA;
+
+    const state = useAppStore.getState();
+    expect(state.compiledLogicJs).toContain('FromModelB');
+    expect(state.compiledModelCto).toBe('model B');
+    expect(state.isCompiling).toBe(false);
+  });
+
+  it('keeps the newer result when an older run fails after it', async () => {
+    let rejectA!: (error: Error) => void;
+    const { runA } = await startOutOfOrder(new Promise<Compiled>((_, reject) => { rejectA = reject; }));
+
+    rejectA(new Error('compiled against model A'));
+    await runA;
+
+    const state = useAppStore.getState();
+    expect(state.compiledLogicJs).toContain('FromModelB');
+    expect(state.compiledModelCto).toBe('model B');
+    expect(state.compilationErrors).toEqual([]);
   });
 });
