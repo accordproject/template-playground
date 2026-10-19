@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
-import useAppStore from "../../store/store";
+import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
 import { pendingLogic } from "../../editors/logicSource";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
@@ -10,7 +10,6 @@ import Footer from "./Footer";
 import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
 import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
-import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
 import { ensureLogicCompiles, usePendingLogic } from "./useCompileOnArrival";
 import { FOOTER } from "./constants";
 import { FIRST_STEP, STEPS, STEP_ID, type DesignV2View } from "../../types/designV2.types";
