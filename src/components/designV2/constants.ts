@@ -86,15 +86,16 @@ export const HELP_RAIL = {
 
 export const PREVIEW = {
   ariaLabel: "Preview",
-  /** Toggle in the Text and Data step headers; aria-pressed says whether the drawer is open. */
-  toggle: "◧ Preview",
+  /** The Write | Preview switch in the Text and Data step headers, and its accessible name. */
+  write: "Write",
+  preview: "Preview",
+  toggleLabel: "Write or preview",
   title: "Preview",
   liveBadge: "live",
   pdf: "↓ PDF",
-  /** File name of the PDF the drawer's PDF button saves. */
+  /** File name of the PDF the preview's PDF button saves. */
   pdfFile: "agreement.pdf",
   pdfFailed: "Couldn’t create the PDF — try again.",
-  close: "Close preview",
   /** Shown until the first render arrives. */
   rendering: "Rendering the agreement…",
   /** Shown when nothing has rendered and the last render failed; the footer carries the error. */

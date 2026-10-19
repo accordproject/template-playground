@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { message } from 'antd';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import DesignV2Layout from '../../../components/designV2/DesignV2Layout';
 import { DEFAULT_TEMPLATE } from '../../../components/designV2/usePickTemplate';
-import { FOOTER, HEADER, PREVIEW, START_SAMPLES, URLS, WELCOME, sampleNameFor } from '../../../components/designV2/constants';
+import { FOOTER, HEADER, HELP_RAIL, PREVIEW, START_SAMPLES, URLS, WELCOME, sampleNameFor } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { FIRST_STEP, STEP_ID } from '../../../types/designV2.types';
@@ -76,7 +77,7 @@ describe('DesignV2Layout — Start building', () => {
   });
 });
 
-describe('DesignV2Layout — Preview toggle', () => {
+describe('DesignV2Layout — Write | Preview switch', () => {
   beforeEach(() => {
     useAppStore.setState({ loadSample: vi.fn().mockResolvedValue(undefined) });
     useDesignV2Store.setState({ selectedTemplate: START_SAMPLES[0].name, previewOpen: false, helpRailOpen: true });
@@ -85,20 +86,29 @@ describe('DesignV2Layout — Preview toggle', () => {
   it('is not in the header on the Start step', () => {
     useDesignV2Store.setState({ view: FIRST_STEP });
     renderLayout();
-    expect(screen.queryByRole('button', { name: PREVIEW.toggle })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: PREVIEW.preview })).not.toBeInTheDocument();
   });
 
-  it.each([STEP_ID.text, STEP_ID.modelData])('on step %s it opens and closes the drawer', (view) => {
-    useDesignV2Store.setState({ view });
-    renderLayout();
-    const toggle = screen.getByRole('button', { name: PREVIEW.toggle });
-    expect(toggle).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(toggle);
-    expect(useDesignV2Store.getState().previewOpen).toBe(true);
-    expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    fireEvent.click(toggle);
-    expect(useDesignV2Store.getState().previewOpen).toBe(false);
-  });
+  it.each([STEP_ID.text, STEP_ID.modelData])(
+    'on step %s Preview shows the agreement in the editors\' place, keeping the help rail',
+    (view) => {
+      useDesignV2Store.setState({ view });
+      useAppStore.setState({ agreementHtml: '<h1>Consulting Agreement</h1>' });
+      renderLayout();
+      expect(screen.queryByRole('region', { name: PREVIEW.ariaLabel })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('radio', { name: PREVIEW.preview }));
+      expect(useDesignV2Store.getState().previewOpen).toBe(true);
+      expect(screen.getByRole('region', { name: PREVIEW.ariaLabel })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Consulting Agreement' })).toBeInTheDocument();
+      expect(screen.queryByTestId('monaco-markdown')).not.toBeInTheDocument();
+      expect(screen.getByRole('complementary', { name: HELP_RAIL.ariaLabel })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('radio', { name: PREVIEW.write }));
+      expect(useDesignV2Store.getState().previewOpen).toBe(false);
+      expect(screen.queryByRole('region', { name: PREVIEW.ariaLabel })).not.toBeInTheDocument();
+    },
+  );
 });
 
 describe('DesignV2Layout — moving to Simulate', () => {
@@ -224,13 +234,14 @@ describe('DesignV2Layout — moving to Simulate', () => {
     useDesignV2Store.setState({ view: STEP_ID.text });
     renderLayout();
     const simulate = screen.getByRole('button', { name: /Simulate/ });
-    // antd toasts outlive a test's render, so count rather than expect none.
-    const toastsBefore = screen.queryAllByText(FOOTER.logicBlocked).length;
+    // antd toasts outlive a test's render (and expire mid-test), so watch the call instead.
+    const showError = vi.spyOn(message, 'error');
     fireEvent.click(simulate);
     fireEvent.click(simulate);
     await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.simulate));
     expect(setLogicTs).toHaveBeenCalledTimes(1);
-    expect(screen.queryAllByText(FOOTER.logicBlocked)).toHaveLength(toastsBefore);
+    expect(showError).not.toHaveBeenCalled();
+    showError.mockRestore();
   });
 
   it('passes over Simulate when there is no logic: Next goes to Deploy, Back returns to Logic', async () => {

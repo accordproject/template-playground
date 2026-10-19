@@ -4,7 +4,6 @@ import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
 import Footer from "./Footer";
-import PreviewDrawer from "./PreviewDrawer";
 import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
 import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
@@ -23,14 +22,15 @@ import "./DesignV2Layout.css";
  *   │      │ header  (eyebrow / sample · docs Help)
  *   │      │ stepper (1 Template · 2 Text · 3 Data · 4 Logic · 5 Simulate · 6 Deploy)
  *   │      ├─────────────────────────────┬─────────────┤
- *   │      │ view (welcome/start/editor/ │ help rail   │  ← preview drawer overlays
+ *   │      │ view (welcome/start/editor/ │ help rail   │
  *   │      │  model+data/simulate/deploy)│ (editor steps) │
  *   │      ├─────────────────────────────┴─────────────┤
  *   │      │ footer  (problems · Back · Next)             — editor steps only
  *   └──────┴───────────────────────────────────────────┘
  *
  * View / preview state lives in useDesignV2Store (src/store/designV2Store.ts);
- * the Text and Data steps carry the Preview toggle (PreviewToggle.tsx).
+ * the Text and Data steps carry a Write | Preview switch (PreviewToggle.tsx)
+ * that shows the rendered agreement in place of their editors.
  * Editor contents live in the legacy app store: picking a card on the Start
  * step loads its sample there, and the editor steps edit it through the same
  * containers as the old layout. The Start step has no footer: each gallery
@@ -48,11 +48,9 @@ import "./DesignV2Layout.css";
  */
 const DesignV2Layout = () => {
   const view = useDesignV2Store((s) => s.view);
-  const previewOpen = useDesignV2Store((s) => s.previewOpen);
   const setView = useDesignV2Store((s) => s.setView);
   const start = useDesignV2Store((s) => s.start);
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
-  const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const pick = usePickTemplate();
 
   /** "Start building": enter the flow on a template — the first card unless one was already picked. */
@@ -109,7 +107,6 @@ const DesignV2Layout = () => {
           <div className="nd-body-content">
             <ViewSwitch view={view} onStart={handleStart} />
           </div>
-          <PreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} />
         </div>
         {showFooter && <Footer view={view} onBack={back} onNext={next} />}
       </div>

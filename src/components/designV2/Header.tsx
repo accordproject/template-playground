@@ -41,8 +41,8 @@ interface HeaderProps {
 /**
  * White header: eyebrow + sample name row, followed by the stepper (one entry per item in STEPS).
  * The name row shows the template picked on the Start step, falling back to the loaded sample.
- * The Preview toggle is not here: it sits on the Text and Data steps, where
- * the preview matters (see PreviewToggle.tsx).
+ * The Write | Preview switch is not here: it sits on the Text and Data
+ * steps, where the preview matters (see PreviewToggle.tsx).
  */
 const Header = ({ view, onNavigate, isSkipped = () => false }: HeaderProps) => {
   const showChrome = view !== "welcome";
