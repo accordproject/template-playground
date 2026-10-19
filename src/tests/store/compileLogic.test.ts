@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import useAppStore from '../../store/store';
 import { TemplateArchiveProcessor } from '@accordproject/template-engine';
+import { Template as CiceroTemplate } from '@accordproject/cicero-core';
+import JSZip from 'jszip';
 
 vi.mock('@accordproject/template-engine', () => {
   return {
@@ -36,29 +38,52 @@ vi.mock('@accordproject/template-engine/lib/runtime/declarations', () => {
   };
 });
 
+vi.mock('@accordproject/cicero-core', () => ({
+  Template: { fromArchive: vi.fn() },
+}));
+
+type Template = NonNullable<ReturnType<typeof useAppStore.getState>['templateObject']>;
+type Compiled = { 'logic/logic.ts': { errors: unknown[]; code?: string } };
+type Processor = InstanceType<typeof TemplateArchiveProcessor>;
+
+// A static stand-in: fromArchive never uses `this`.
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const fromArchive = vi.mocked(CiceroTemplate.fromArchive);
+
+// The store's own builder, kept before any test swaps in a stand-in.
+const realBuildTemplateFromMemory = useAppStore.getState().buildTemplateFromMemory;
+
+/** A promise with its resolve/reject handles, to finish async steps in a chosen order. */
+const deferred = <T,>() => {
+  let resolve!: (value: T) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+  return { promise, resolve, reject };
+};
+
 describe('useAppStore - compileLogic', () => {
+  const mockModelManager = {};
+  const mockTemplateModel = {
+    getFullyQualifiedName: () => 'org.example.TemplateModel'
+  };
+  const mockTemplateObject = {
+    getModelManager: () => mockModelManager,
+    getTemplateModel: () => mockTemplateModel
+  } as unknown as Template;
+
   beforeEach(() => {
-    const mockModelManager = {};
-    const mockTemplateModel = {
-      getFullyQualifiedName: () => 'org.example.TemplateModel'
-    };
-    const mockTemplateObject = {
-      getModelManager: () => mockModelManager,
-      getTemplateModel: () => mockTemplateModel
-    };
     useAppStore.setState({
       logicTs: 'const x = 1;',
       modelCto: 'namespace org.example',
       isCompiling: false,
       compilationErrors: [],
-      templateObject: mockTemplateObject as any
     });
     vi.clearAllMocks();
   });
 
   it('maps and keeps all compilation errors except 2391, adjusting line offset', async () => {
     useAppStore.setState({
-      buildTemplateFromMemory: vi.fn().mockResolvedValue(undefined)
+      buildTemplateFromMemory: vi.fn().mockResolvedValue(mockTemplateObject)
     });
 
     const store = useAppStore.getState();
@@ -90,7 +115,7 @@ describe('useAppStore - compileLogic', () => {
 
   it('records the model.cto it compiled against, so a later model edit makes the logic stale', async () => {
     useAppStore.setState({
-      buildTemplateFromMemory: vi.fn().mockResolvedValue(undefined),
+      buildTemplateFromMemory: vi.fn().mockResolvedValue(mockTemplateObject),
       compiledModelCto: null,
     });
 
@@ -98,57 +123,122 @@ describe('useAppStore - compileLogic', () => {
 
     expect(useAppStore.getState().compiledModelCto).toBe('namespace org.example');
   });
+
+  it('builds from the sources as they were when it started, whatever is edited meanwhile', async () => {
+    const build = vi.fn().mockResolvedValue(mockTemplateObject);
+    useAppStore.setState({ buildTemplateFromMemory: build, templateMarkdown: 'text A', compiledModelCto: null });
+
+    const run = useAppStore.getState().compileLogic();
+    useAppStore.setState({ modelCto: 'edited model', logicTs: 'edited logic', templateMarkdown: 'edited text' });
+    await run;
+
+    expect(build).toHaveBeenCalledWith({ templateMarkdown: 'text A', modelCto: 'namespace org.example', logicTs: 'const x = 1;' });
+    expect(useAppStore.getState().compiledModelCto).toBe('namespace org.example');
+  });
+});
+
+describe('useAppStore - buildTemplateFromMemory', () => {
+  const sources = (model: string) => ({ templateMarkdown: 'Hello', modelCto: model, logicTs: '' });
+  const templateFor = (model: string) => ({ model, isStateful: () => false }) as unknown as Template;
+  /** The model.cto inside the archive a fromArchive call received. */
+  const archivedModel = async (call: number) => {
+    const archive = fromArchive.mock.calls[call][0] as Uint8Array;
+    return (await JSZip.loadAsync(archive)).file('model/model.cto')!.async('string');
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAppStore.setState({
+      buildTemplateFromMemory: realBuildTemplateFromMemory,
+      templateObject: null,
+      modelCto: 'store model',
+      templateMarkdown: 'Hello',
+      logicTs: '',
+    });
+  });
+
+  it('returns its own template, and a superseded build does not overwrite the newer one', async () => {
+    const a = deferred<Template>();
+    fromArchive
+      .mockReturnValueOnce(a.promise)
+      .mockResolvedValueOnce(templateFor('model B'));
+
+    const buildA = useAppStore.getState().buildTemplateFromMemory(sources('model A'));
+    await vi.waitFor(() => expect(fromArchive).toHaveBeenCalledTimes(1));
+    const templateB = await useAppStore.getState().buildTemplateFromMemory(sources('model B'));
+    a.resolve(templateFor('model A'));
+    const templateA = await buildA;
+
+    expect(templateA).toEqual(expect.objectContaining({ model: 'model A' }));
+    expect(templateB).toEqual(expect.objectContaining({ model: 'model B' }));
+    expect(useAppStore.getState().templateObject).toBe(templateB);
+  });
+
+  it('returns null when the build fails', async () => {
+    fromArchive.mockRejectedValueOnce(new Error('Invalid CTO model'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    expect(await useAppStore.getState().buildTemplateFromMemory(sources('model A'))).toBeNull();
+    expect(useAppStore.getState().templateObject).toBeNull();
+  });
+
+  it('reads the store sources when called, not after its own awaits', async () => {
+    fromArchive.mockResolvedValueOnce(templateFor('store model'));
+
+    const build = useAppStore.getState().buildTemplateFromMemory();
+    useAppStore.setState({ modelCto: 'edited model' });
+    await build;
+
+    expect(await archivedModel(0)).toBe('store model');
+  });
 });
 
 describe('useAppStore - overlapping compileLogic runs', () => {
-  type Compiled = { 'logic/logic.ts': { errors: unknown[]; code?: string } };
-  type Processor = InstanceType<typeof TemplateArchiveProcessor>;
-  type Template = NonNullable<ReturnType<typeof useAppStore.getState>['templateObject']>;
-  /** A processor stand-in whose compileLogic returns the given promise. */
-  const processorFor = (compiled: Promise<Compiled>) =>
-    (() => ({ compileLogic: () => compiled }) as unknown as Processor);
-
   const compiledAs = (name: string): Compiled => ({
     'logic/logic.ts': { errors: [], code: `class ${name} extends TemplateLogic {}` },
   });
 
-  /*
-   * Run A compiles model A but its compiler only answers when `finishA` is
-   * called; run B, on model B, is started meanwhile and answers at once.
-   * Each run's template object says which model it was built from.
-   */
-  const startOutOfOrder = async (finishA: Promise<Compiled>) => {
+  /** Per model, what its build returns and what compiling its template returns. */
+  let builds: Record<string, Promise<Template | null>>;
+  let compiles: Record<string, Promise<Compiled>>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    builds = {};
+    compiles = {};
     useAppStore.setState({
       logicTs: 'class X {}',
       modelCto: 'model A',
-      buildTemplateFromMemory: vi.fn(() => {
-        useAppStore.setState({ templateObject: { model: useAppStore.getState().modelCto } as unknown as Template });
-        return Promise.resolve();
-      }),
+      compiledLogicJs: null,
+      compiledModelCto: null,
+      compilationErrors: [],
+      isCompiling: false,
+      buildTemplateFromMemory: vi.fn((s?: { modelCto: string }) => builds[s!.modelCto]),
     });
-    vi.mocked(TemplateArchiveProcessor)
-      .mockImplementationOnce(processorFor(finishA))
-      .mockImplementationOnce(processorFor(Promise.resolve(compiledAs('FromModelB'))));
+    // The compiler's output names the model of the template it was given.
+    vi.mocked(TemplateArchiveProcessor).mockImplementation(((template: { model: string }) => ({
+      compileLogic: () => compiles[template.model],
+    })) as unknown as (t: Template) => Processor);
+  });
 
+  /** Starts run A on model A, then edits the model and runs B to completion. */
+  const runAThenB = async () => {
     const runA = useAppStore.getState().compileLogic();
-    await vi.waitFor(() => expect(TemplateArchiveProcessor).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(useAppStore.getState().buildTemplateFromMemory).toHaveBeenCalledTimes(1));
     useAppStore.setState({ modelCto: 'model B' });
     await useAppStore.getState().compileLogic();
     // Wrapped: returning the promise itself would make this helper wait for run A.
     return { runA };
   };
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    useAppStore.setState({ compiledLogicJs: null, compiledModelCto: null, compilationErrors: [], isCompiling: false });
-  });
-
   it('keeps the newer result when an older run succeeds after it', async () => {
-    let resolveA!: (value: Compiled) => void;
-    const { runA } = await startOutOfOrder(new Promise<Compiled>((resolve) => { resolveA = resolve; }));
-    expect(useAppStore.getState().compiledLogicJs).toContain('FromModelB');
+    const compileA = deferred<Compiled>();
+    builds = { 'model A': Promise.resolve(templateOf('model A')), 'model B': Promise.resolve(templateOf('model B')) };
+    compiles = { 'model A': compileA.promise, 'model B': Promise.resolve(compiledAs('FromModelB')) };
 
-    resolveA(compiledAs('FromModelA'));
+    const { runA } = await runAThenB();
+    expect(useAppStore.getState().compiledLogicJs).toContain('FromModelB');
+    compileA.resolve(compiledAs('FromModelA'));
     await runA;
 
     const state = useAppStore.getState();
@@ -158,10 +248,12 @@ describe('useAppStore - overlapping compileLogic runs', () => {
   });
 
   it('keeps the newer result when an older run fails after it', async () => {
-    let rejectA!: (error: Error) => void;
-    const { runA } = await startOutOfOrder(new Promise<Compiled>((_, reject) => { rejectA = reject; }));
+    const compileA = deferred<Compiled>();
+    builds = { 'model A': Promise.resolve(templateOf('model A')), 'model B': Promise.resolve(templateOf('model B')) };
+    compiles = { 'model A': compileA.promise, 'model B': Promise.resolve(compiledAs('FromModelB')) };
 
-    rejectA(new Error('compiled against model A'));
+    const { runA } = await runAThenB();
+    compileA.reject(new Error('compiled against model A'));
     await runA;
 
     const state = useAppStore.getState();
@@ -169,4 +261,22 @@ describe('useAppStore - overlapping compileLogic runs', () => {
     expect(state.compiledModelCto).toBe('model B');
     expect(state.compilationErrors).toEqual([]);
   });
+
+  it('never compiles an older build for a newer run whose own build failed', async () => {
+    const buildA = deferred<Template | null>();
+    builds = { 'model A': buildA.promise, 'model B': Promise.resolve(null) };
+    compiles = { 'model A': Promise.resolve(compiledAs('FromModelA')) };
+
+    const { runA } = await runAThenB();
+    buildA.resolve(templateOf('model A'));
+    await runA;
+
+    const state = useAppStore.getState();
+    expect(TemplateArchiveProcessor).not.toHaveBeenCalled();
+    expect(state.compiledLogicJs).toBeNull();
+    expect(state.compiledModelCto).toBe('model B');
+    expect(state.compilationErrors[0]?.message).toBe('Failed to initialize Template object from memory.');
+  });
 });
+
+const templateOf = (model: string) => ({ model }) as unknown as Template;

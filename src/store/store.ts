@@ -212,7 +212,12 @@ interface AppState {
    * Builds an official Template object from the current in-memory string contents
    * (grammar, model, logic) using JSZip. This object is required by the engine for compilation.
    */
-  buildTemplateFromMemory: () => Promise<void>;
+  /**
+   * Builds a Template object from the given sources (default: the store's,
+   * read at call time) and returns it, or null when the build fails. Only
+   * the latest build updates templateObject.
+   */
+  buildTemplateFromMemory: (sources?: TemplateSources) => Promise<import("@accordproject/cicero-core").Template | null>;
 
   /**
    * Registers the reference to the sandboxed iframe element once mounted.
@@ -522,8 +527,13 @@ const persistChain = (chain: ChainStep[]) => {
   }
 };
 
+/** The sources a Template object is built from. */
+export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "logicTs">;
+
 /** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
 let latestCompileRun = 0;
+/** Id of the latest buildTemplateFromMemory call; older builds do not update templateObject. */
+let latestTemplateBuild = 0;
 
 const useAppStore = create<AppState>()(
   immer(
@@ -1041,13 +1051,15 @@ const useAppStore = create<AppState>()(
           await get().compileLogic();
         },
 
-        buildTemplateFromMemory: async () => {
+        buildTemplateFromMemory: async (sources) => {
+          // Read the sources before any await, so a later edit cannot slip into this build.
+          const { templateMarkdown, modelCto, logicTs } = sources ?? get();
+          const build = ++latestTemplateBuild;
           set({ templateObject: null });
           try {
             const { Template: CiceroTemplate } =
               await import("@accordproject/cicero-core");
             const JSZip = (await import("jszip")).default;
-            const { templateMarkdown, modelCto, logicTs } = get();
 
             // Construct package.json required by the Template archive
             const packageJson = {
@@ -1091,31 +1103,38 @@ const useAppStore = create<AppState>()(
              * extend the runtime base is malformed, but its sandboxed logic
              * still has state to seed, and hiding Init would strand it.
              */
-            set({
-              templateObject: template,
-              isTemplateStateful:
-                template.isStateful() || logicDefinesInit(logicTs),
-            });
+            if (build === latestTemplateBuild) {
+              set({
+                templateObject: template,
+                isTemplateStateful:
+                  template.isStateful() || logicDefinesInit(logicTs),
+              });
+            }
             if (import.meta.env.DEV)
               console.log(
                 "Successfully built Template object from JSZip archive!",
                 template,
               );
+            return template as AppState["templateObject"];
           } catch (error) {
             console.error("Error building template from memory:", error);
+            return null;
           }
         },
 
         compileLogic: async () => {
           /*
            * Compilations can overlap (a model edit, then Simulate, while one
-           * is still running). Only the latest run publishes, and it
-           * publishes the model it compiled against with its result, so an
-           * older run finishing late cannot pass off old-model output as
-           * current.
+           * is still running). Each run compiles one snapshot of the sources,
+           * taken before any await: it builds its own Template object from
+           * it and records that snapshot's model with its result. Only the
+           * latest run publishes, so an older run finishing late cannot pass
+           * off old-model output as current.
            */
           const run = ++latestCompileRun;
-          const compiledModelCto = get().modelCto;
+          const { templateMarkdown, modelCto, logicTs } = get();
+          const sources: TemplateSources = { templateMarkdown, modelCto, logicTs };
+          const compiledModelCto = modelCto;
           const publish = (result: Partial<AppState>) => {
             if (run === latestCompileRun) set({ ...result, compiledModelCto });
           };
@@ -1126,8 +1145,7 @@ const useAppStore = create<AppState>()(
             compiledModelCto: null,
           });
           try {
-            const state = get();
-            if (!state.logicTs || !state.modelCto) {
+            if (!logicTs || !modelCto) {
               publish({ isCompiling: false, compilationErrors: [] });
               return;
             }
@@ -1136,14 +1154,13 @@ const useAppStore = create<AppState>()(
               await import("@accordproject/template-engine");
 
             /*
-             * Always rebuild the Template object from the latest in-memory sources
-             * to ensure the compiler has the most up-to-date grammar and model.
+             * Build the Template object from this run's snapshot and compile
+             * that one — never the shared templateObject, which another run's
+             * build may have replaced. A failed build is reported as such.
              */
-            await get().buildTemplateFromMemory();
-            // A newer run has started; its template object is the one in the store now.
+            const templateToCompile = await get().buildTemplateFromMemory(sources);
             if (run !== latestCompileRun) return;
 
-            const templateToCompile = get().templateObject;
             if (!templateToCompile) {
               publish({
                 isCompiling: false,
@@ -1387,8 +1404,7 @@ const useAppStore = create<AppState>()(
            * what usually builds one), and an edited model would otherwise be
            * executed against a stale schema.
            */
-          await get().buildTemplateFromMemory();
-          const template = get().templateObject;
+          const template = await get().buildTemplateFromMemory();
           if (!template) {
             throw new Error(
               "Could not build a template from the current model and grammar.",
