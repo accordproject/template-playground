@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { act } from 'react-dom/test-utils';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { LogicView } from '../../../components/designV2/LogicView';
@@ -122,6 +123,14 @@ describe('LogicView', () => {
     fireEvent.click(pane().getByRole('button', { name: LOGIC.empty.start }));
     expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(latePayment.MODEL)));
     expect(useAppStore.getState().editorLogicTs).toContain("$class: 'org.acme.latepayment@1.0.0.LatePaymentResponse'");
+  });
+
+  it('keeps the editor when it is cleared to be retyped', () => {
+    render(<LogicView />);
+    expect(pane().getByTestId('monaco-typescript')).toBeInTheDocument();
+    act(() => useAppStore.setState({ editorLogicTs: '' }));
+    expect(pane().getByTestId('monaco-typescript')).toBeInTheDocument();
+    expect(pane().queryByText(LOGIC.empty.title)).not.toBeInTheDocument();
   });
 
   it('bootstraps the generic skeleton when the model has no request/response', () => {
