@@ -41,7 +41,7 @@ The Accord Project Playground is an open-source project, welcoming contributions
 ## Local Development
 
 **Prerequisites:** Node.js >= 22 and npm >= 10, as required by the Accord Project
-dependencies (`@accordproject/template-engine` 5.x, `@accordproject/cicero-core` 2.x,
+dependencies (`@accordproject/template-engine` 5.x, `@accordproject/cicero-core` 3.x,
 `@accordproject/concerto-*` 5.x and `@accordproject/markdown-*` 2.x).
 
 ```bash
