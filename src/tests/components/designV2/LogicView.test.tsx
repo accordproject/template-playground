@@ -29,6 +29,7 @@ const base = {
   isCompiling: false,
   compilationErrors: [],
   compiledLogicJs: null,
+  compiledModelCto: latePayment.MODEL,
 };
 
 describe('logicStatus', () => {
@@ -138,6 +139,13 @@ describe('LogicView', () => {
       useAppStore.setState({ compiledLogicJs: 'js' });
       render(<LogicView />);
       expect(setLogicTs).not.toHaveBeenCalled();
+    });
+
+    it('compiles again when model.cto changed since the logic was compiled', () => {
+      useAppStore.setState({ compiledLogicJs: 'js', modelCto: latePayment.MODEL + '\n// edited' });
+      render(<LogicView />);
+      expect(setLogicTs).toHaveBeenCalledTimes(1);
+      expect(setLogicTs).toHaveBeenCalledWith(latePayment.LOGIC);
     });
 
     it('does not retry a compile that failed for the same source', () => {

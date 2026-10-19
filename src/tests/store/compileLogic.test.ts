@@ -86,4 +86,15 @@ describe('useAppStore - compileLogic', () => {
       length: 8,
     });
   });
+
+  it('records the model.cto it compiled against, so a later model edit makes the logic stale', async () => {
+    useAppStore.setState({
+      buildTemplateFromMemory: vi.fn().mockResolvedValue(undefined),
+      compiledModelCto: null,
+    });
+
+    await useAppStore.getState().compileLogic();
+
+    expect(useAppStore.getState().compiledModelCto).toBe('namespace org.example');
+  });
 });

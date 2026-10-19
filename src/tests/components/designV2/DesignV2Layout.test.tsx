@@ -99,8 +99,8 @@ describe('DesignV2Layout — moving to Simulate', () => {
       await Promise.resolve();
       useAppStore.setState(
         outcome === 'ok'
-          ? { logicTs: ts, editorLogicTs: ts, compiledLogicJs: 'js', compilationErrors: [] }
-          : { logicTs: ts, editorLogicTs: ts, compiledLogicJs: null, compilationErrors: [{ message: "Cannot find name 'foo'." }] }
+          ? { logicTs: ts, editorLogicTs: ts, compiledModelCto: useAppStore.getState().modelCto, compiledLogicJs: 'js', compilationErrors: [] }
+          : { logicTs: ts, editorLogicTs: ts, compiledModelCto: useAppStore.getState().modelCto, compiledLogicJs: null, compilationErrors: [{ message: "Cannot find name 'foo'." }] }
       );
     });
   const edited = latePayment.LOGIC + '\n// edited';
@@ -112,6 +112,7 @@ describe('DesignV2Layout — moving to Simulate', () => {
       editorLogicTs: edited,
       logicTs: latePayment.LOGIC,
       compiledLogicJs: 'js',
+      compiledModelCto: latePayment.MODEL,
       compilationErrors: [],
       isCompiling: false,
       executionHistory: [],
@@ -156,6 +157,17 @@ describe('DesignV2Layout — moving to Simulate', () => {
     fireEvent.click(screen.getByRole('button', { name: FOOTER.next }));
     await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.simulate));
     expect(setLogicTs).not.toHaveBeenCalled();
+  });
+
+  it('compiles again when the model changed since the logic was compiled', async () => {
+    const setLogicTs = compileTo('ok');
+    const editedModel = latePayment.MODEL + '\n// edited';
+    useAppStore.setState({ setLogicTs, editorLogicTs: latePayment.LOGIC, modelCto: editedModel });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: FOOTER.next }));
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.simulate));
+    expect(setLogicTs).toHaveBeenCalledWith(latePayment.LOGIC);
+    expect(useAppStore.getState().compiledModelCto).toBe(editedModel);
   });
 
   it('lets Simulate open when there is no logic — it says so itself', async () => {

@@ -19,16 +19,27 @@ export const usePendingLogic = (): string | null => {
   return pendingLogic(editorLogicTs, logicTs, modelCto);
 };
 
-type LogicState = Pick<ReturnType<typeof useAppStore.getState>, "logicTs" | "compiledLogicJs" | "compilationErrors">;
+type LogicState = Pick<
+  ReturnType<typeof useAppStore.getState>,
+  "logicTs" | "modelCto" | "compiledModelCto" | "compiledLogicJs" | "compilationErrors"
+>;
 
-/** True when the pending source was never compiled, or differs from what was compiled last. */
+/**
+ * True when the pending source was never compiled, differs from what was
+ * compiled last, or was compiled against a model.cto edited since (the
+ * logic is type-checked against the model, so its result no longer holds).
+ */
 const isStale = (pending: string, s: LogicState) =>
-  pending !== s.logicTs || (!s.compiledLogicJs && s.compilationErrors.length === 0);
+  pending !== s.logicTs ||
+  s.modelCto !== s.compiledModelCto ||
+  (!s.compiledLogicJs && s.compilationErrors.length === 0);
 
 /** Compiles the logic once when the step opens, if it is written and stale. */
 export const useCompileOnArrival = () => {
   const pending = usePendingLogic();
   const logicTs = useAppStore((s) => s.logicTs);
+  const modelCto = useAppStore((s) => s.modelCto);
+  const compiledModelCto = useAppStore((s) => s.compiledModelCto);
   const isCompiling = useAppStore((s) => s.isCompiling);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
@@ -38,8 +49,8 @@ export const useCompileOnArrival = () => {
     if (attempted.current) return;
     attempted.current = true;
     if (pending === null || isCompiling) return;
-    if (isStale(pending, { logicTs, compiledLogicJs, compilationErrors })) void setLogicTs(pending);
-  }, [pending, logicTs, compiledLogicJs, compilationErrors, isCompiling, setLogicTs]);
+    if (isStale(pending, { logicTs, modelCto, compiledModelCto, compiledLogicJs, compilationErrors })) void setLogicTs(pending);
+  }, [pending, logicTs, modelCto, compiledModelCto, compiledLogicJs, compilationErrors, isCompiling, setLogicTs]);
 };
 
 /**

@@ -110,6 +110,8 @@ interface AppState {
   editorLogicTs: string;
   // Resulting compiled JS payload. Null while compilation is stale/failed.
   compiledLogicJs: string | null;
+  // model.cto the last compilation ran against; logic compiled against an older model is stale.
+  compiledModelCto: string | null;
   // True while compilation is running.
   isCompiling: boolean;
   // Compilation diagnostics.
@@ -602,6 +604,7 @@ const useAppStore = create<AppState>()(
         logicTs: "",
         editorLogicTs: "",
         compiledLogicJs: null,
+        compiledModelCto: null,
         isCompiling: false,
         compilationErrors: [],
         templateObject: null,
@@ -1105,6 +1108,7 @@ const useAppStore = create<AppState>()(
             isCompiling: true,
             compilationErrors: [],
             compiledLogicJs: null,
+            compiledModelCto: get().modelCto,
           });
           try {
             const state = get();
