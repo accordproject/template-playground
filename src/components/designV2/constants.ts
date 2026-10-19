@@ -86,7 +86,14 @@ export const PREVIEW = {
   title: "Preview",
   liveBadge: "live",
   pdf: "↓ PDF",
+  /** File name of the PDF the drawer's PDF button saves. */
+  pdfFile: "agreement.pdf",
+  pdfFailed: "Couldn’t create the PDF — try again.",
   close: "Close preview",
+  /** Shown until the first render arrives. */
+  rendering: "Rendering the agreement…",
+  /** Shown when nothing has rendered and the last render failed; the footer carries the error. */
+  failed: "The agreement can’t be rendered yet — the problem is shown at the bottom.",
 } as const;
 
 export const WELCOME = {
