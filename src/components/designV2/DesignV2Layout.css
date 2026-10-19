@@ -204,7 +204,8 @@
 }
 /* Phones: a title size that fits "Agreements" on one line, and the logo below the buttons instead of over them. */
 @media (max-width: 640px) {
-  .nd-hero { padding: 28px 22px; justify-content: flex-start; }
+  /* Short phones: the wrapped content can outgrow the hero, so let it scroll rather than clip. */
+  .nd-hero { padding: 28px 22px; justify-content: flex-start; overflow-y: auto; }
   .nd-hero-title { font-size: 36px; }
   .nd-hero-sub { font-size: 15px; }
   .nd-hero-note { font-size: 13px; }
