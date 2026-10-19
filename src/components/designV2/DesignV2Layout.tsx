@@ -1,5 +1,7 @@
 import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
+import useAppStore from "../../store/store";
+import { pendingLogic } from "../../editors/logicSource";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
@@ -67,9 +69,14 @@ const DesignV2Layout = () => {
   const navigate = (target: DesignV2View) => {
     if (isSkipped(target)) return;
     void (async () => {
-      if (target === STEP_ID.simulate && !(await ensureLogicCompiles())) {
-        void message.error(FOOTER.logicBlocked);
-        return;
+      if (target === STEP_ID.simulate) {
+        if (!(await ensureLogicCompiles())) {
+          void message.error(FOOTER.logicBlocked);
+          return;
+        }
+        // The editor may have been emptied while the compile ran: then there is
+        // no logic to simulate. Read the store now, not this render's hasLogic.
+        if (pendingLogic(useAppStore.getState().editorLogicTs) === null) return;
       }
       setView(target);
     })();

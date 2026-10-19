@@ -265,6 +265,21 @@ describe('DesignV2Layout — moving to Simulate', () => {
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.logic);
   });
 
+  it('does not open Simulate when the logic is emptied while it compiles', async () => {
+    const compile = compileTo('ok');
+    const setLogicTs = vi.fn(async (ts: string) => {
+      await compile(ts);
+      useAppStore.setState({ editorLogicTs: '' });
+    });
+    useAppStore.setState({ setLogicTs });
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: /Simulate/ }));
+    await waitFor(() => expect(setLogicTs).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByRole('button', { name: /Simulate/ })).toBeDisabled());
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
+  });
+
   it('greys out Simulate in the stepper when there is no logic', () => {
     useAppStore.setState({ editorLogicTs: '', logicTs: '' });
     renderLayout();
