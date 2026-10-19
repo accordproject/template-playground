@@ -2,9 +2,10 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Navbar from "../../components/Navbar";
 import { MemoryRouter } from "react-router-dom";
+import { vi } from "vitest";
 
 const renderNavbar = () => {
-  render(
+  return render(
     <MemoryRouter>
       <Navbar />
     </MemoryRouter>
@@ -39,5 +40,19 @@ describe("Navbar", () => {
     expect(homeMenuItem).not.toHaveStyle({
       backgroundColor: "rgba(255, 255, 255, 0.1)",
     });
+  });
+
+  it("removes the resize listener on unmount", () => {
+    const removeEventListener = vi.spyOn(window, "removeEventListener");
+    const { unmount } = renderNavbar();
+
+    unmount();
+
+    expect(removeEventListener).toHaveBeenCalledWith(
+      "resize",
+      expect.any(Function)
+    );
+
+    removeEventListener.mockRestore();
   });
 });
