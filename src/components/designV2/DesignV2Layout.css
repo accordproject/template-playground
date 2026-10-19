@@ -345,6 +345,8 @@
 .nd-editor-card-foot { border-top: 1px solid var(--nd-line-soft); padding: 11px 15px; }
 .nd-editor-file { color: var(--nd-ink); }
 .nd-editor-card-body { flex: 1; min-height: 0; padding: 17px; }
+/* Editors hidden under Preview stay mounted (undo history); their display:flex would otherwise beat [hidden]. */
+.nd-editor-column > [hidden] { display: none; }
 /* Body hosting a Monaco editor: no padding, the editor fills the card. */
 .nd-editor-card-body-editor { padding: 0; display: flex; }
 .nd-editor-card-body-editor .editorwrapper { flex: 1; min-width: 0; min-height: 0; height: 100%; width: 100%; }

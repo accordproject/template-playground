@@ -91,22 +91,32 @@ describe('DesignV2Layout — Write | Preview switch', () => {
 
   it.each([STEP_ID.text, STEP_ID.modelData])(
     'on step %s Preview shows the agreement in the editors\' place, keeping the help rail',
-    (view) => {
+    async (view) => {
       useDesignV2Store.setState({ view });
       useAppStore.setState({ agreementHtml: '<h1>Consulting Agreement</h1>' });
       renderLayout();
       expect(screen.queryByRole('region', { name: PREVIEW.ariaLabel })).not.toBeInTheDocument();
+      // The editors load lazily (Suspense), so wait for them.
+      const editors = await screen.findAllByTestId(/^monaco-/);
+      expect(editors.length).toBeGreaterThan(0);
 
       fireEvent.click(screen.getByRole('radio', { name: PREVIEW.preview }));
       expect(useDesignV2Store.getState().previewOpen).toBe(true);
       expect(screen.getByRole('region', { name: PREVIEW.ariaLabel })).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'Consulting Agreement' })).toBeInTheDocument();
-      expect(screen.queryByTestId('monaco-markdown')).not.toBeInTheDocument();
+      // The editors are hidden, not unmounted, so their undo history survives.
+      for (const editor of editors) {
+        expect(editor).toBeInTheDocument();
+        expect(editor).not.toBeVisible();
+      }
       expect(screen.getByRole('complementary', { name: HELP_RAIL.ariaLabel })).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('radio', { name: PREVIEW.write }));
       expect(useDesignV2Store.getState().previewOpen).toBe(false);
       expect(screen.queryByRole('region', { name: PREVIEW.ariaLabel })).not.toBeInTheDocument();
+      // The very same editor instances are back: nothing was remounted.
+      expect(screen.getAllByTestId(/^monaco-/)).toEqual(editors);
+      for (const editor of editors) expect(editor).toBeVisible();
     },
   );
 });

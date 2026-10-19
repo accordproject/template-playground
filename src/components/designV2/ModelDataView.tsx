@@ -103,7 +103,8 @@ const errorPane = (error: string | undefined): "model" | "data" | null => {
  * width; a "+ file" chip next to the title brings it back. At least one pane
  * always stays open (see designV2Store.setPaneOpen). The title row carries
  * the Write | Preview switch, since the data changes what the preview shows;
- * Preview shows the agreement in the panes' place.
+ * Preview shows the agreement in the panes' place. The panes stay mounted
+ * (only hidden), so their editors keep their undo history.
  */
 export const ModelDataView = () => {
   const editorModelCto = useAppStore((s) => s.editorModelCto);
@@ -192,10 +193,8 @@ export const ModelDataView = () => {
           <HelpRailReopen />
         </div>
 
-        {previewOpen ? (
-          <PreviewPane />
-        ) : (
-        <div className={`nd-split ${openCount === 1 ? "nd-split-single" : ""}`}>
+        {previewOpen && <PreviewPane />}
+        <div className={`nd-split ${openCount === 1 ? "nd-split-single" : ""}`} hidden={previewOpen}>
           {panes.model && (
           <EditorPane
             label={MODEL_DATA.model.paneLabel}
@@ -255,7 +254,6 @@ export const ModelDataView = () => {
           </EditorPane>
           )}
         </div>
-        )}
       </div>
       <HelpRail
         checklist={{ title: MODEL_DATA.help.checklistTitle, items: checklist }}

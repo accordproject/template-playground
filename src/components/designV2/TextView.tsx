@@ -47,7 +47,8 @@ const TextToolbar = () => {
  * the app store and rebuild the agreement as in the old layout. The status
  * bar mirrors the store's error; the full message is in the footer. The
  * title row carries the Write | Preview switch: this is where the rendered
- * text matters. Preview shows the agreement in the editor's place.
+ * text matters. Preview shows the agreement in the editor's place; the
+ * editor stays mounted (only hidden), so its undo history survives.
  */
 export const TextView = () => {
   const editorValue = useAppStore((s) => s.editorValue);
@@ -75,10 +76,8 @@ export const TextView = () => {
             <HelpRailReopen />
           </div>
 
-          {previewOpen ? (
-            <PreviewPane />
-          ) : (
-          <section className="nd-editor-card nd-pane nd-pane-amber" aria-label={TEXT.paneLabel}>
+          {previewOpen && <PreviewPane />}
+          <section className="nd-editor-card nd-pane nd-pane-amber" aria-label={TEXT.paneLabel} hidden={previewOpen}>
             <div className="nd-editor-card-head">
               <span className="nd-mono nd-editor-file">{TEXT.file}</span>
               <span className="nd-badge nd-badge-amber">{TEXT.badge}</span>
@@ -99,7 +98,6 @@ export const TextView = () => {
               )}
             </div>
           </section>
-          )}
         </div>
         <HelpRail
           checklist={{ title: TEXT.help.checklistTitle, items: checklist }}
