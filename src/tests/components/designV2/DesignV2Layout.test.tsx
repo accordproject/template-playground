@@ -209,6 +209,21 @@ describe('DesignV2Layout — moving to Simulate', () => {
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
   });
 
+  it('shares one compile between moves to Simulate made while it runs', async () => {
+    const setLogicTs = compileTo('ok');
+    useAppStore.setState({ setLogicTs });
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    const simulate = screen.getByRole('button', { name: /Simulate/ });
+    // antd toasts outlive a test's render, so count rather than expect none.
+    const toastsBefore = screen.queryAllByText(FOOTER.logicBlocked).length;
+    fireEvent.click(simulate);
+    fireEvent.click(simulate);
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.simulate));
+    expect(setLogicTs).toHaveBeenCalledTimes(1);
+    expect(screen.queryAllByText(FOOTER.logicBlocked)).toHaveLength(toastsBefore);
+  });
+
   it('lets Simulate open when there is no logic — it says so itself', async () => {
     const setLogicTs = compileTo('ok');
     useAppStore.setState({ setLogicTs, editorLogicTs: '', logicTs: '', compiledLogicJs: null });

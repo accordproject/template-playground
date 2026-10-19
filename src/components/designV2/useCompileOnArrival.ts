@@ -65,7 +65,18 @@ const MAX_COMPILE_ATTEMPTS = 3;
  * (to the logic or to model.cto) is compiled too, so Simulate never opens on
  * logic compiled from sources that have since changed.
  */
-export const ensureLogicCompiles = async (): Promise<boolean> => {
+export const ensureLogicCompiles = (): Promise<boolean> => {
+  // Concurrent moves (Next, then the stepper, while compiling) share one gate:
+  // separate loops would keep superseding each other's compiles.
+  inFlightGate ??= runLogicGate().finally(() => {
+    inFlightGate = null;
+  });
+  return inFlightGate;
+};
+
+let inFlightGate: Promise<boolean> | null = null;
+
+const runLogicGate = async (): Promise<boolean> => {
   for (let attempt = 0; attempt < MAX_COMPILE_ATTEMPTS; attempt++) {
     const s = useAppStore.getState();
     const pending = pendingLogic(s.editorLogicTs, s.logicTs, s.modelCto);
