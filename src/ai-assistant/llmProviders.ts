@@ -12,12 +12,10 @@
  * limitations under the License.
  */
 
-import OpenAI from 'openai';
-import Groq from 'groq-sdk';
+import type OpenAI from 'openai';
 import { AIConfig, Message } from '../types/components/AIAssistant.types';
-import { GoogleGenAI, GenerateContentConfig } from '@google/genai';
-import { Mistral } from '@mistralai/mistralai';
-import Anthropic from '@anthropic-ai/sdk';
+import type { GenerateContentConfig } from '@google/genai';
+import type Anthropic from '@anthropic-ai/sdk';
 import type { ChatCompletionStreamRequest } from '@mistralai/mistralai/models/components';
 import type { Template } from '@accordproject/cicero-core';
 import { sdkLoaders } from './sdkLoaders';
@@ -72,6 +70,7 @@ export class OpenAICompatibleProvider extends LLMProvider {
         content: msg.content
       }));
 
+      const { default: OpenAI } = await import('openai');
       const openai = new OpenAI({
         apiKey: this.config.apiKey,
         baseURL: this.apiEndpoint,
@@ -142,6 +141,7 @@ export class GroqProvider extends LLMProvider {
         content: msg.content
       }));
 
+      const { default: Groq } = await import('groq-sdk');
       const groq = new Groq({
         apiKey: this.config.apiKey,
         dangerouslyAllowBrowser: true
@@ -176,6 +176,7 @@ export class AnthropicProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
+      const { default: Anthropic } = await import('@anthropic-ai/sdk');
       const client = new Anthropic({
         apiKey: this.config.apiKey,
         dangerouslyAllowBrowser: true
@@ -235,6 +236,7 @@ export class GoogleProvider extends LLMProvider {
     onComplete: () => void
   ): Promise<void> {
     try {
+      const { GoogleGenAI } = await import('@google/genai');
       const genAI = new GoogleGenAI({apiKey: this.config.apiKey});
       const systemInstruction = messages.slice(-2, -1)[0]?.content || '';
       const geminiMessages = this.convertToGeminiFormat(messages);
@@ -296,6 +298,7 @@ export class MistralProvider extends LLMProvider {
         content: msg.content
       }));
 
+      const { Mistral } = await import('@mistralai/mistralai');
       const mistral = new Mistral({apiKey: this.config.apiKey});
 
       const options: ChatCompletionStreamRequest = {
