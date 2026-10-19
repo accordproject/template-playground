@@ -3,6 +3,7 @@ import useAppStore from '../../store/store';
 import { TemplateArchiveProcessor } from '@accordproject/template-engine';
 import { Template as CiceroTemplate } from '@accordproject/cicero-core';
 import JSZip from 'jszip';
+import * as latePayment from '../../samples/latePaymentPenalty';
 
 vi.mock('@accordproject/template-engine', () => {
   return {
@@ -254,6 +255,26 @@ describe('useAppStore - overlapping compileLogic runs', () => {
     expect(state.compiledLogicJs).toContain('FromModelB');
     expect(state.compiledModelCto).toBe('model B');
     expect(state.compilationErrors).toEqual([]);
+  });
+
+  it('drops a compile still running when a sample is loaded over it', async () => {
+    const compileA = deferred<Compiled>();
+    builds = { 'model A': Promise.resolve(templateOf('model A')) };
+    compiles = { 'model A': compileA.promise };
+    // loadSample re-renders and may offer the logic tour; neither matters here.
+    useAppStore.setState({ rebuild: vi.fn().mockResolvedValue(undefined) });
+    localStorage.setItem('hasVisitedLogicTour', 'true');
+
+    const runA = useAppStore.getState().compileLogic();
+    await vi.waitFor(() => expect(TemplateArchiveProcessor).toHaveBeenCalledTimes(1));
+    await useAppStore.getState().loadSample(latePayment.NAME);
+    compileA.resolve(compiledAs('FromDiscardedEdits'));
+    await runA;
+
+    const state = useAppStore.getState();
+    expect(state.logicTs).toBe(latePayment.LOGIC);
+    expect(state.compiledLogicJs).toBeNull();
+    expect(state.isCompiling).toBe(false);
   });
 
   it('never compiles an older build for a newer run whose own build failed', async () => {

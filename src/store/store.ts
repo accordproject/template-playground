@@ -532,6 +532,14 @@ export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "
 
 /** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
 let latestCompileRun = 0;
+/**
+ * Drops the result of any compilation still running: called when the
+ * template sources are replaced (a sample or a shared link is loaded), so a
+ * compile of the discarded logic cannot publish into the new template.
+ */
+const invalidateCompilations = () => {
+  latestCompileRun++;
+};
 /** Id of the latest buildTemplateFromMemory call; older builds do not update templateObject. */
 let latestTemplateBuild = 0;
 
@@ -808,6 +816,7 @@ const useAppStore = create<AppState>()(
             const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
             const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
             const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
+            invalidateCompilations();
             set(() => ({
               sampleName: sample.NAME,
               agreementHtml: undefined,
@@ -961,6 +970,7 @@ const useAppStore = create<AppState>()(
              * template.
              */
             get().resetExecution();
+            invalidateCompilations();
             set(() => ({
               templateMarkdown,
               editorValue: templateMarkdown,
