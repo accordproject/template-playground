@@ -8,15 +8,13 @@ import { pendingLogic } from "../../editors/logicSource";
  *     ships logic shows both chips ticked and the bar full right away;
  *   - before Simulate opens (ensureLogicCompiles), from Next or the stepper,
  *     so a compile error keeps the user on Logic with the error in view.
- * Both skip an empty editor and the untouched skeleton (see pendingLogic).
+ * Both skip an empty editor (see pendingLogic).
  */
 
 /** What would be compiled: the editor content, or null when no logic is written. */
 export const usePendingLogic = (): string | null => {
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
-  const logicTs = useAppStore((s) => s.logicTs);
-  const modelCto = useAppStore((s) => s.modelCto);
-  return pendingLogic(editorLogicTs, logicTs, modelCto);
+  return pendingLogic(editorLogicTs);
 };
 
 type LogicState = Pick<
@@ -79,13 +77,13 @@ let inFlightGate: Promise<boolean> | null = null;
 const runLogicGate = async (): Promise<boolean> => {
   for (let attempt = 0; attempt < MAX_COMPILE_ATTEMPTS; attempt++) {
     const s = useAppStore.getState();
-    const pending = pendingLogic(s.editorLogicTs, s.logicTs, s.modelCto);
+    const pending = pendingLogic(s.editorLogicTs);
     if (pending === null) return true;
     if (!isStale(pending, s)) return Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0;
     await s.setLogicTs(pending);
   }
   const s = useAppStore.getState();
-  const pending = pendingLogic(s.editorLogicTs, s.logicTs, s.modelCto);
+  const pending = pendingLogic(s.editorLogicTs);
   if (pending === null) return true;
   return !isStale(pending, s) && Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0;
 };

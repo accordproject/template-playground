@@ -256,14 +256,11 @@ export const nextLogicSource = (editorLogicTs: string, logicTs: string, modelCto
   editorLogicTs.trim() === '' && logicTs.trim() === '' ? scaffoldFromModel(describeLogicModel(modelCto)) : editorLogicTs;
 
 /**
- * The logic the design-v2 Simulate step compiles when it opens: whatever is
- * in the editor — or null when nothing was written: the editor is empty, or
- * it still holds the untouched skeleton the Logic step offered and nothing
- * was ever committed. A template without logic is not silently given the
- * skeleton's stub behaviour; Simulate says it has no logic instead.
+ * The logic the design-v2 flow compiles before Simulate: whatever is in the
+ * editor, or null when it is empty. The Logic step never fills an empty
+ * editor by itself — the skeleton is written only when the user asks for it
+ * ("Start from boilerplate") — so a template without logic stays without
+ * logic, and Simulate is skipped for it.
  */
-export const pendingLogic = (editorLogicTs: string, logicTs: string, modelCto: string): string | null => {
-  if (editorLogicTs.trim() === "") return null;
-  if (logicTs.trim() === "" && editorLogicTs === scaffoldFromModel(describeLogicModel(modelCto))) return null;
-  return editorLogicTs;
-};
+export const pendingLogic = (editorLogicTs: string): string | null =>
+  editorLogicTs.trim() === "" ? null : editorLogicTs;

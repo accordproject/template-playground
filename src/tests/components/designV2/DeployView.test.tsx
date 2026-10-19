@@ -5,7 +5,6 @@ import JSZip from 'jszip';
 import { DeployView } from '../../../components/designV2/views';
 import { DEPLOY } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
-import { describeLogicModel, scaffoldFromModel } from '../../../editors/logicSource';
 import * as latePayment from '../../../samples/latePaymentPenalty';
 
 /*
@@ -69,8 +68,8 @@ describe('DeployView — Download template', () => {
     expect(await zip.file('logic/logic.ts')!.async('string')).toBe(latePayment.LOGIC + '\n// edited');
   });
 
-  it('leaves out the untouched logic skeleton of a template without logic', async () => {
-    useAppStore.setState({ logicTs: '', editorLogicTs: scaffoldFromModel(describeLogicModel(latePayment.MODEL)) });
+  it('leaves logic out of a template without logic', async () => {
+    useAppStore.setState({ logicTs: '', editorLogicTs: '' });
     const { zip } = await download();
     expect(zip.file('logic/logic.ts')).toBeNull();
   });

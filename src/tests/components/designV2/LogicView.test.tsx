@@ -108,16 +108,26 @@ describe('LogicView', () => {
     expect(useAppStore.getState().editorLogicTs).toBe(latePayment.LOGIC);
   });
 
-  it('opens an empty editor with a skeleton built from the model', () => {
+  it('says a template without logic has none, and writes nothing by itself', () => {
     useAppStore.setState({ editorLogicTs: '', logicTs: '' });
     render(<LogicView />);
+    expect(pane().getByText(LOGIC.empty.title)).toBeInTheDocument();
+    expect(pane().queryByTestId('monaco-typescript')).not.toBeInTheDocument();
+    expect(useAppStore.getState().editorLogicTs).toBe('');
+  });
+
+  it('"Start from boilerplate" writes a skeleton built from the model', () => {
+    useAppStore.setState({ editorLogicTs: '', logicTs: '' });
+    render(<LogicView />);
+    fireEvent.click(pane().getByRole('button', { name: LOGIC.empty.start }));
     expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(latePayment.MODEL)));
     expect(useAppStore.getState().editorLogicTs).toContain("$class: 'org.acme.latepayment@1.0.0.LatePaymentResponse'");
   });
 
-  it('falls back to the generic skeleton when the model has no request/response', () => {
+  it('bootstraps the generic skeleton when the model has no request/response', () => {
     useAppStore.setState({ modelCto: helloworld.MODEL, editorLogicTs: '', logicTs: '' });
     render(<LogicView />);
+    fireEvent.click(pane().getByRole('button', { name: LOGIC.empty.start }));
     expect(useAppStore.getState().editorLogicTs).toBe(DEFAULT_LOGIC_BOILERPLATE);
   });
 
@@ -155,10 +165,9 @@ describe('LogicView', () => {
       expect(pane().getByText(LOGIC.status.failed)).toBeInTheDocument();
     });
 
-    it('does not compile the skeleton it just wrote into an empty editor', () => {
+    it('compiles nothing for a template without logic', () => {
       useAppStore.setState({ editorLogicTs: '', logicTs: '' });
       render(<LogicView />);
-      expect(useAppStore.getState().editorLogicTs).toBe(scaffoldFromModel(describeLogicModel(latePayment.MODEL)));
       expect(setLogicTs).not.toHaveBeenCalled();
     });
   });

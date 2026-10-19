@@ -34,6 +34,8 @@ const HELP_MENU: MenuProps["items"] = [
 interface HeaderProps {
   view: DesignV2View;
   onNavigate: (view: DesignV2View) => void;
+  /** Steps the flow passes over; shown greyed out and not clickable. */
+  isSkipped?: (view: DesignV2View) => boolean;
 }
 
 /**
@@ -42,7 +44,7 @@ interface HeaderProps {
  * The Preview toggle is not here: it sits on the Text and Data steps, where
  * the preview matters (see PreviewToggle.tsx).
  */
-const Header = ({ view, onNavigate }: HeaderProps) => {
+const Header = ({ view, onNavigate, isSkipped = () => false }: HeaderProps) => {
   const showChrome = view !== "welcome";
   const sampleName = useAppStore((s) => s.sampleName);
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
@@ -73,18 +75,21 @@ const Header = ({ view, onNavigate }: HeaderProps) => {
         <nav className="nd-stepper" aria-label={HEADER.stepperLabel}>
           {STEPS.map((step) => {
             const active = step.id === view;
+            const skipped = isSkipped(step.id);
             return (
               <button
                 key={String(step.id)}
                 type="button"
                 aria-current={active ? "step" : undefined}
-                className={`nd-step ${active ? "nd-step-active" : ""}`}
+                className={`nd-step ${active ? "nd-step-active" : ""} ${skipped ? "nd-step-skipped" : ""}`}
+                disabled={skipped}
+                title={skipped ? HEADER.skippedHint : undefined}
                 onClick={() => onNavigate(step.id)}
               >
                 <span className="nd-step-badge">{step.icon}</span>
                 <span className="nd-step-text">
                   <span className="nd-step-label">{step.label}</span>
-                  <span className="nd-step-meta">{step.meta}</span>
+                  <span className="nd-step-meta">{skipped ? HEADER.skippedMeta : step.meta}</span>
                 </span>
               </button>
             );

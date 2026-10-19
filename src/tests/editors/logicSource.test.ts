@@ -109,22 +109,15 @@ describe('nextLogicSource', () => {
 });
 
 describe('pendingLogic', () => {
-  const skeleton = scaffoldFromModel(describeLogicModel(counter.MODEL));
-
-  it('is the editor content when something was written', () => {
-    expect(pendingLogic('class X {}', '', counter.MODEL)).toBe('class X {}');
-    expect(pendingLogic(counter.LOGIC, counter.LOGIC, counter.MODEL)).toBe(counter.LOGIC);
+  it('is the editor content when something is written, the skeleton included', () => {
+    const skeleton = scaffoldFromModel(describeLogicModel(counter.MODEL));
+    expect(pendingLogic('class X {}')).toBe('class X {}');
+    expect(pendingLogic(counter.LOGIC)).toBe(counter.LOGIC);
+    expect(pendingLogic(skeleton)).toBe(skeleton);
   });
 
-  it('is null for an empty editor or the untouched skeleton', () => {
-    expect(pendingLogic('', '', counter.MODEL)).toBeNull();
-    expect(pendingLogic('  \n', '', counter.MODEL)).toBeNull();
-    expect(pendingLogic(skeleton, '', counter.MODEL)).toBeNull();
-    expect(pendingLogic(DEFAULT_LOGIC_BOILERPLATE, '', helloworld.MODEL)).toBeNull();
-  });
-
-  it('counts the skeleton once it was committed, or edited', () => {
-    expect(pendingLogic(skeleton, skeleton, counter.MODEL)).toBe(skeleton);
-    expect(pendingLogic(skeleton + '\n// mine', '', counter.MODEL)).toBe(skeleton + '\n// mine');
+  it('is null for an empty editor', () => {
+    expect(pendingLogic('')).toBeNull();
+    expect(pendingLogic('  \n')).toBeNull();
   });
 });

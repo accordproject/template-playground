@@ -161,9 +161,8 @@ export const StartView = () => {
 
 /**
  * Saves the template as a .cta archive named after the sample. The logic is
- * what the Logic editor holds, unless that is still the untouched skeleton
- * (the rule Simulate uses, see pendingLogic); text and model are the ones
- * the preview renders.
+ * what the Logic editor holds (none when it is empty); text and model are
+ * the ones the preview renders.
  */
 const DownloadTemplateCard = () => {
   const [isSaving, setIsSaving] = useState(false);
@@ -171,9 +170,9 @@ const DownloadTemplateCard = () => {
   const download = async () => {
     setIsSaving(true);
     try {
-      const { sampleName, templateMarkdown, modelCto, logicTs, editorLogicTs } = useAppStore.getState();
+      const { sampleName, templateMarkdown, modelCto, editorLogicTs } = useAppStore.getState();
       const name = templateSlug(sampleName);
-      const logic = pendingLogic(editorLogicTs, logicTs, modelCto) ?? "";
+      const logic = pendingLogic(editorLogicTs) ?? "";
       const archive = await buildTemplateArchiveBlob({ templateMarkdown, modelCto, logicTs: logic }, name);
       const url = URL.createObjectURL(archive);
       const link = document.createElement("a");

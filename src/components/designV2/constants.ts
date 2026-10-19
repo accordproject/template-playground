@@ -47,6 +47,9 @@ export const HEADER = {
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
   stepperLabel: "Steps",
+  /** Under a step the flow passes over (Simulate for a template without logic), and its tooltip. */
+  skippedMeta: "no logic",
+  skippedHint: "This template has no logic. Add some on the Logic step to simulate it.",
   links: {
     about: "About",
     community: "Community",
@@ -240,6 +243,13 @@ export const LOGIC = {
   typesFound: (request: string, response: string) => `${request} → ${response}`,
   typesMissing: "not in model.cto",
   typesMissingHint: "Declare a request and a response transaction in model.cto",
+  /** Shown in place of the editor while there is no logic; the button writes the model-based skeleton. */
+  empty: {
+    title: "This template has no logic",
+    body:
+      "It renders its text from the data alone, so Simulate is skipped. Add logic to give the contract state and let it respond to requests.",
+    start: "Start from boilerplate",
+  },
   /** The two parts of the job, as chips in the card head; the hints are their tooltips. */
   chips: {
     types: {

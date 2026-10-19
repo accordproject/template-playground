@@ -8,7 +8,7 @@ import PreviewDrawer from "./PreviewDrawer";
 import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
 import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
-import { ensureLogicCompiles } from "./useCompileOnArrival";
+import { ensureLogicCompiles, usePendingLogic } from "./useCompileOnArrival";
 import { FOOTER } from "./constants";
 import { FIRST_STEP, STEPS, STEP_ID, type DesignV2View } from "../../types/designV2.types";
 import "./DesignV2Layout.css";
@@ -41,6 +41,8 @@ import "./DesignV2Layout.css";
  * again if it changed; a compile error keeps the user where they are with
  * the error in view (see useCompileOnArrival.ts). Simulate runs the compiled
  * logic through the store's initContract / triggerContract (SimulateView.tsx).
+ * A template without logic has nothing to simulate: Next and Back pass over
+ * Simulate, and the stepper shows it greyed out.
  * Deploy is still a placeholder.
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
@@ -50,7 +52,6 @@ const DesignV2Layout = () => {
   const setView = useDesignV2Store((s) => s.setView);
   const start = useDesignV2Store((s) => s.start);
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
-  const goBack = useDesignV2Store((s) => s.goBack);
   const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const pick = usePickTemplate();
 
@@ -60,8 +61,13 @@ const DesignV2Layout = () => {
     start();
   };
 
-  /** Any move to another step. Simulate opens only if the logic compiles (or there is none). */
+  /** Steps the flow passes over: Simulate, while the template has no logic. */
+  const hasLogic = usePendingLogic() !== null;
+  const isSkipped = (id: DesignV2View) => id === STEP_ID.simulate && !hasLogic;
+
+  /** Any move to another step. Simulate opens only if the logic compiles. */
   const navigate = (target: DesignV2View) => {
+    if (isSkipped(target)) return;
     void (async () => {
       if (target === STEP_ID.simulate && !(await ensureLogicCompiles())) {
         void message.error(FOOTER.logicBlocked);
@@ -70,9 +76,22 @@ const DesignV2Layout = () => {
       setView(target);
     })();
   };
-  const next = () => {
+  /** The nearest step before (-1) or after (+1) the current one that is not skipped. */
+  const neighbour = (direction: -1 | 1) => {
     const index = STEPS.findIndex((step) => step.id === view);
-    if (index >= 0 && index < STEPS.length - 1) navigate(STEPS[index + 1].id);
+    if (index < 0) return undefined;
+    for (let i = index + direction; i >= 0 && i < STEPS.length; i += direction) {
+      if (!isSkipped(STEPS[i].id)) return STEPS[i].id;
+    }
+    return undefined;
+  };
+  const next = () => {
+    const target = neighbour(1);
+    if (target !== undefined) navigate(target);
+  };
+  const back = () => {
+    const target = neighbour(-1);
+    if (target !== undefined) setView(target);
   };
 
   const showChrome = view !== "welcome";
@@ -85,14 +104,14 @@ const DesignV2Layout = () => {
       <SandboxFrame />
       <Rail />
       <div className="nd-main">
-        <Header view={view} onNavigate={navigate} />
+        <Header view={view} onNavigate={navigate} isSkipped={isSkipped} />
         <div className="nd-body">
           <div className="nd-body-content">
             <ViewSwitch view={view} onStart={handleStart} />
           </div>
           <PreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} />
         </div>
-        {showFooter && <Footer view={view} onBack={goBack} onNext={next} />}
+        {showFooter && <Footer view={view} onBack={back} onNext={next} />}
       </div>
     </div>
     </ConfigProvider>

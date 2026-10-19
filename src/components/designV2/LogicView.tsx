@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from "react";
-import { Button, message } from "antd";
+import { useMemo } from "react";
+import { Button, Space, Typography, message } from "antd";
 import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import LogicMonaco from "../../editors/LogicMonaco";
@@ -34,8 +34,9 @@ const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
  * The types chip reads model.cto (describeLogicModel) for a request and a
  * response transaction and links to the Data step; the init/trigger
  * chip and the help-rail checklist mirror the store's compile state.
- * When the step opens on an empty editor (a template without logic, or the
- * blank one), a skeleton built from the model is written into it.
+ * A template without logic opens without an editor: the card says so (and
+ * that Simulate is skipped), and "Start from boilerplate" writes a skeleton
+ * built from the model into the editor. Nothing is written until then.
  */
 export const LogicView = () => {
   const editorLogicTs = useAppStore((s) => s.editorLogicTs);
@@ -58,11 +59,7 @@ export const LogicView = () => {
   const pair = PAIR[status];
   const done = (typesOk ? 1 : 0) + (status === "compiled" ? 1 : 0);
 
-  // Nothing written yet and nothing committed: start from a skeleton built from the model.
-  const nothingYet = editorLogicTs.trim() === "" && logicTs.trim() === "";
-  useEffect(() => {
-    if (nothingYet) setEditorLogicTs(scaffoldFromModel(model));
-  }, [nothingYet, model, setEditorLogicTs]);
+  const hasLogic = editorLogicTs.trim() !== "";
 
   const copyLogic = async () => {
     try {
@@ -126,9 +123,21 @@ export const LogicView = () => {
             </div>
           </div>
 
-          <div className="nd-editor-card-body nd-editor-card-body-editor nd-logic-editor">
-            <LogicMonaco />
-          </div>
+          {hasLogic ? (
+            <div className="nd-editor-card-body nd-editor-card-body-editor nd-logic-editor">
+              <LogicMonaco />
+            </div>
+          ) : (
+            <div className="nd-editor-card-body nd-logic-empty">
+              <Space direction="vertical" size={12} align="center">
+                <Typography.Text strong>{LOGIC.empty.title}</Typography.Text>
+                <Typography.Text type="secondary">{LOGIC.empty.body}</Typography.Text>
+                <Button type="primary" onClick={() => setEditorLogicTs(scaffoldFromModel(model))}>
+                  {LOGIC.empty.start}
+                </Button>
+              </Space>
+            </div>
+          )}
         </section>
       </div>
       <HelpRail

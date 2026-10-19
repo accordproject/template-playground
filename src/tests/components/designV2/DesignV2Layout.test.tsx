@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import DesignV2Layout from '../../../components/designV2/DesignV2Layout';
 import { DEFAULT_TEMPLATE } from '../../../components/designV2/usePickTemplate';
-import { FOOTER, PREVIEW, START_SAMPLES, URLS, WELCOME, sampleNameFor } from '../../../components/designV2/constants';
+import { FOOTER, HEADER, PREVIEW, START_SAMPLES, URLS, WELCOME, sampleNameFor } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { FIRST_STEP, STEP_ID } from '../../../types/designV2.types';
@@ -233,13 +233,23 @@ describe('DesignV2Layout — moving to Simulate', () => {
     expect(screen.queryAllByText(FOOTER.logicBlocked)).toHaveLength(toastsBefore);
   });
 
-  it('lets Simulate open when there is no logic — it says so itself', async () => {
+  it('passes over Simulate when there is no logic: Next goes to Deploy, Back returns to Logic', async () => {
     const setLogicTs = compileTo('ok');
     useAppStore.setState({ setLogicTs, editorLogicTs: '', logicTs: '', compiledLogicJs: null });
     renderLayout();
     fireEvent.click(screen.getByRole('button', { name: FOOTER.next }));
-    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.simulate));
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.deploy));
     expect(setLogicTs).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: FOOTER.back }));
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.logic);
+  });
+
+  it('greys out Simulate in the stepper when there is no logic', () => {
+    useAppStore.setState({ editorLogicTs: '', logicTs: '' });
+    renderLayout();
+    const simulate = screen.getByRole('button', { name: /Simulate/ });
+    expect(simulate).toBeDisabled();
+    expect(simulate).toHaveTextContent(HEADER.skippedMeta);
   });
 
   it('other steps are not gated', () => {

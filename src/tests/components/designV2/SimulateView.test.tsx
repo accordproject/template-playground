@@ -6,7 +6,6 @@ import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SIMULATE } from '../../../components/designV2/constants';
 import { runSummary } from '../../../components/designV2/simulateRuns';
-import { describeLogicModel, scaffoldFromModel } from '../../../editors/logicSource';
 import { STEP_ID } from '../../../types/designV2.types';
 import * as latePayment from '../../../samples/latePaymentPenalty';
 import { failedRun, initRun, okRun, parseFailedRun } from './runFixtures';
@@ -28,7 +27,6 @@ describe('SimulateView', () => {
   const initContract = vi.fn(async () => { await Promise.resolve(); });
   const triggerContract = vi.fn(async () => { await Promise.resolve(); });
   const setLogicTs = vi.fn(async () => { await Promise.resolve(); });
-  const skeleton = scaffoldFromModel(describeLogicModel(latePayment.MODEL));
 
   beforeEach(() => {
     initContract.mockClear();
@@ -77,12 +75,6 @@ describe('SimulateView', () => {
       );
       expect(screen.getByRole('button', { name: SIMULATE.send })).toBeDisabled();
       expect(screen.getByRole('button', { name: SIMULATE.restart })).toBeDisabled();
-    });
-
-    it('treats the untouched skeleton from the Logic step as no logic', () => {
-      useAppStore.setState({ editorLogicTs: skeleton });
-      render(<SimulateView />);
-      expect(screen.getByText(SIMULATE.blocked.title)).toBeInTheDocument();
     });
 
     it('"Open the Logic step" opens it', () => {
