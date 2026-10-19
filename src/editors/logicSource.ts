@@ -7,6 +7,15 @@
  */
 import { ModelManager } from "@accordproject/concerto-core";
 
+/*
+ * The template engine's runtime base types (its utils.RUNTIME_*_FQN). The
+ * engine type-checks logic against them: a state needs a $class, and
+ * transaction timestamps are strings. Kept here rather than imported, so
+ * that this module does not pull in the lazily loaded engine.
+ */
+const RUNTIME_STATE_FQN = "org.accordproject.runtime@0.2.0.State";
+const RUNTIME_RESPONSE_FQN = "org.accordproject.runtime@0.2.0.Response";
+
 /** Generic fallback when model.cto declares no request/response transactions. */
 export const DEFAULT_LOGIC_BOILERPLATE = `// Write your contract logic here.
 
@@ -15,6 +24,7 @@ class ContractLogic extends TemplateLogic<any> {
   async init(data: any) {
     return {
       state: {
+        $class: '${RUNTIME_STATE_FQN}',
         $identifier: 'contract-state',
       },
     };
@@ -23,8 +33,8 @@ class ContractLogic extends TemplateLogic<any> {
   async trigger(data: any, request: any, state: any) {
     return {
       result: {
-        $class: 'org.example.Response',
-        $timestamp: new Date(),
+        $class: '${RUNTIME_RESPONSE_FQN}',
+        $timestamp: new Date().toISOString(),
       },
       state: {
         ...state,
@@ -78,6 +88,7 @@ interface ConcertoDeclaration {
   getName(): string;
   getFullyQualifiedName(): string;
   getProperties(): ConcertoProperty[];
+  getOwnProperties(): ConcertoProperty[];
   getIdentifierFieldName(): string | null;
   getDecorator(name: string): unknown;
   isTransaction(): boolean;
@@ -86,12 +97,32 @@ interface ConcertoDeclaration {
   isConcept(): boolean;
 }
 
+/*
+ * Imports are not resolved, so anything that walks up to a supertype from
+ * another namespace (`extends Request`, `extends State`, …) throws. Those
+ * declarations fall back to the fields they declare themselves.
+ */
+const propertiesOf = (d: ConcertoDeclaration): ConcertoProperty[] => {
+  try {
+    return d.getProperties();
+  } catch {
+    return d.getOwnProperties();
+  }
+};
+
+const identifierOf = (d: ConcertoDeclaration): string | undefined => {
+  try {
+    return d.getIdentifierFieldName() ?? undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 const toType = (d: ConcertoDeclaration): LogicType => ({
   name: d.getName(),
   fqn: d.getFullyQualifiedName(),
-  identifier: d.getIdentifierFieldName() ?? undefined,
-  fields: d
-    .getProperties()
+  identifier: identifierOf(d),
+  fields: propertiesOf(d)
     .filter((p) => !p.getName().startsWith("$"))
     .map((p) => ({ name: p.getName(), type: p.getType(), isArray: p.isArray(), isOptional: p.isOptional() })),
 });
@@ -116,10 +147,12 @@ export const describeLogicModel = (modelCto: string): LogicModel | null => {
     const assets = declarations.filter((d) => d.isAsset());
     const concepts = declarations.filter((d) => d.isConcept() && !d.isTransaction() && !d.isAsset() && !d.isEvent());
 
+    // @template may sit on an asset (`asset TemplateModel extends Contract`), not only on a concept.
+    const template = declarations.find((d) => d.getDecorator("template")) ?? concepts[0];
     const request = endingWith(transactions, "Request") ?? transactions[0];
     const response = endingWith(transactions, "Response") ?? transactions.find((d) => d !== request);
-    const state = endingWith(assets, "State") ?? assets[0];
-    const template = concepts.find((d) => d.getDecorator("template")) ?? concepts[0];
+    const stateAssets = assets.filter((d) => d !== template);
+    const state = endingWith(stateAssets, "State") ?? stateAssets[0];
 
     return {
       namespace: modelFile.getNamespace(),
@@ -158,7 +191,7 @@ const fieldLines = (type: LogicType | undefined, indent: string, skip: string[] 
  * A logic skeleton for the model: init() returning the state asset and
  * trigger() returning the response transaction, each with its $class and
  * its required fields filled with first values. The engine compiles
- * logic.ts next to a generated `./<namespace>` module that exports an
+ * logic.ts next to a generated `./generated/<namespace>` module that exports an
  * I<Name> interface per declaration, so data and request are typed through
  * an `import type` (erased on emit — the store runs the JS with new Function).
  * Falls back to the generic boilerplate when the model has no
@@ -177,10 +210,10 @@ export const scaffoldFromModel = (model: LogicModel | null): string => {
         ...(state.identifier ? [`        ${state.identifier}: 'contract-state',`] : []),
         ...fieldLines(state, "        ", state.identifier ? [state.identifier] : []),
       ]
-    : [`        $identifier: 'contract-state',`];
+    : [`        $class: '${RUNTIME_STATE_FQN}',`, `        $identifier: 'contract-state',`];
 
   return `// Logic for ${model.namespace}. The model's types come from the generated module below.
-import type { ${imported.join(", ")} } from './${model.namespace}';
+import type { ${imported.join(", ")} } from './generated/${model.namespace}';
 
 class ContractLogic extends TemplateLogic<any> {
 
@@ -199,7 +232,7 @@ ${stateLines.join("\n")}
     return {
       result: {
         $class: '${response.fqn}',
-        $timestamp: new Date(),
+        $timestamp: new Date().toISOString(),
 ${fieldLines(response, "        ").join("\n")}
       },
       state: {
