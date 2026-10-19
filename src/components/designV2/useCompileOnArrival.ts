@@ -53,17 +53,28 @@ export const useCompileOnArrival = () => {
   }, [pending, logicTs, modelCto, compiledModelCto, compiledLogicJs, compilationErrors, isCompiling, setLogicTs]);
 };
 
+/** How many times ensureLogicCompiles compiles before giving up on sources that keep changing. */
+const MAX_COMPILE_ATTEMPTS = 3;
+
 /**
  * Compiles the logic (if written and stale) and says whether Simulate may
  * open: true when nothing is written — Simulate shows its "no logic" dialog —
  * or when the logic compiles; false when it does not. Reads the store
  * directly: it runs from a click handler, not from render.
+ * Staleness is checked again after each compile: an edit made while it ran
+ * (to the logic or to model.cto) is compiled too, so Simulate never opens on
+ * logic compiled from sources that have since changed.
  */
 export const ensureLogicCompiles = async (): Promise<boolean> => {
-  const before = useAppStore.getState();
-  const pending = pendingLogic(before.editorLogicTs, before.logicTs, before.modelCto);
+  for (let attempt = 0; attempt < MAX_COMPILE_ATTEMPTS; attempt++) {
+    const s = useAppStore.getState();
+    const pending = pendingLogic(s.editorLogicTs, s.logicTs, s.modelCto);
+    if (pending === null) return true;
+    if (!isStale(pending, s)) return Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0;
+    await s.setLogicTs(pending);
+  }
+  const s = useAppStore.getState();
+  const pending = pendingLogic(s.editorLogicTs, s.logicTs, s.modelCto);
   if (pending === null) return true;
-  if (isStale(pending, before)) await before.setLogicTs(pending);
-  const after = useAppStore.getState();
-  return Boolean(after.compiledLogicJs) && after.compilationErrors.length === 0;
+  return !isStale(pending, s) && Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0;
 };

@@ -170,6 +170,45 @@ describe('DesignV2Layout — moving to Simulate', () => {
     expect(useAppStore.getState().compiledModelCto).toBe(editedModel);
   });
 
+  it('compiles again when model.cto is edited while the compile runs', async () => {
+    const editedModel = latePayment.MODEL + '\n// edited during compile';
+    const compile = compileTo('ok');
+    // The first compile sees the original model; the edit lands before it finishes.
+    const setLogicTs = vi.fn(async (ts: string) => {
+      if (setLogicTs.mock.calls.length === 1) {
+        const run = compile(ts);
+        useAppStore.setState({ modelCto: editedModel });
+        await run;
+        useAppStore.setState({ compiledModelCto: latePayment.MODEL });
+        return;
+      }
+      await compile(ts);
+    });
+    // From the Text step, so the Logic step's own compile-on-arrival stays out of the count.
+    useAppStore.setState({ setLogicTs });
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: /Simulate/ }));
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.simulate));
+    expect(setLogicTs).toHaveBeenCalledTimes(2);
+    expect(useAppStore.getState().compiledModelCto).toBe(editedModel);
+  });
+
+  it('stays put when the sources keep changing under every compile', async () => {
+    let edits = 0;
+    const setLogicTs = vi.fn(async (ts: string) => {
+      await compileTo('ok')(ts);
+      useAppStore.setState({ modelCto: `${latePayment.MODEL}\n// edit ${++edits}` });
+    });
+    useAppStore.setState({ setLogicTs });
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: /Simulate/ }));
+    await waitFor(() => expect(setLogicTs).toHaveBeenCalledTimes(3));
+    expect((await screen.findAllByText(FOOTER.logicBlocked)).length).toBeGreaterThan(0);
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
+  });
+
   it('lets Simulate open when there is no logic — it says so itself', async () => {
     const setLogicTs = compileTo('ok');
     useAppStore.setState({ setLogicTs, editorLogicTs: '', logicTs: '', compiledLogicJs: null });
