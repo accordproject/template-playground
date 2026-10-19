@@ -32,12 +32,6 @@ vi.mock('@accordproject/template-engine/lib/TypeScriptCompilationContext', () =>
   };
 });
 
-vi.mock('@accordproject/template-engine/lib/runtime/declarations', () => {
-  return {
-    SMART_LEGAL_CONTRACT_BASE64: btoa("line A\nline B"),
-  };
-});
-
 vi.mock('@accordproject/cicero-core', () => ({
   Template: { fromArchive: vi.fn() },
 }));

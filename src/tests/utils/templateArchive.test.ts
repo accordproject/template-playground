@@ -37,7 +37,7 @@ describe('buildTemplateArchive', () => {
 
     const pkg = JSON.parse(await zip.file('package.json')!.async('string')) as { name: string; accordproject: unknown };
     expect(pkg.name).toBe('my-template');
-    expect(pkg.accordproject).toEqual({ template: 'contract', cicero: '^2.1.1' });
+    expect(pkg.accordproject).toEqual({ template: 'contract', cicero: '^3.0.0' });
     expect(await zip.file('text/grammar.tem.md')!.async('string')).toBe(sources.templateMarkdown);
     expect(await zip.file('model/model.cto')!.async('string')).toBe(sources.modelCto);
     expect(await zip.file('logic/logic.ts')!.async('string')).toBe(sources.logicTs);
