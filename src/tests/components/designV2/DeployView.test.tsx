@@ -6,6 +6,7 @@ import { message } from 'antd';
 import { DeployView, agreementText } from '../../../components/designV2/DeployView';
 import { DEPLOY, DEPLOY_CARDS, URLS } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
+import { decompress } from '../../../utils/compression/compression';
 import * as latePayment from '../../../samples/latePaymentPenalty';
 
 /** html2pdf.js draws with a real canvas; record what it is asked to do instead. */
@@ -178,6 +179,55 @@ describe('DeployView', () => {
     expect(String(error.mock.calls[0][0])).toContain('bad data');
     expect(pdf.calls.saved).toBe(0);
     error.mockRestore();
+  });
+
+  describe('Share link', () => {
+    const linkFrom = async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+      render(<DeployView />);
+      fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+      await waitFor(() => expect(writeText).toHaveBeenCalled(), SLOW);
+      const url = String((writeText.mock.calls as unknown[][])[0][0]);
+      expect(url.startsWith(`${window.location.origin}/#data=`)).toBe(true);
+      return decompress(url.split('#data=')[1]);
+    };
+
+    beforeEach(() => {
+      useAppStore.setState({
+        templateMarkdown: 'Hello {{name}}',
+        modelCto: 'namespace org.example@1.0.0',
+        data: '{"name":"Bob"}',
+        logicTs: 'class Old {}',
+        editorLogicTs: 'class Edited {}',
+        agreementHtml: '<p>Hello Alice, confidential</p>',
+        renderAgreement: vi.fn().mockResolvedValue('<p>Hello Bob</p>'),
+      });
+    });
+
+    it('carries the current sources, the edited logic and a freshly rendered agreement', async () => {
+      const payload = await linkFrom();
+      expect(payload).toMatchObject({
+        templateMarkdown: 'Hello {{name}}',
+        modelCto: 'namespace org.example@1.0.0',
+        data: '{"name":"Bob"}',
+        logicTs: 'class Edited {}',
+        agreementHtml: '<p>Hello Bob</p>',
+      });
+      expect(JSON.stringify(payload)).not.toContain('confidential');
+    }, 30_000);
+
+    it('leaves deleted logic out', async () => {
+      useAppStore.setState({ editorLogicTs: '' });
+      expect((await linkFrom()).logicTs).toBeUndefined();
+    }, 30_000);
+
+    it('never falls back to the stale agreement when the sources do not render', async () => {
+      useAppStore.setState({ renderAgreement: vi.fn().mockRejectedValue(new Error('bad data')) });
+      const payload = await linkFrom();
+      expect(payload.agreementHtml).toBeUndefined();
+      expect(JSON.stringify(payload)).not.toContain('confidential');
+    }, 30_000);
   });
 
   it('refuses to export when the current sources do not render', async () => {

@@ -161,7 +161,16 @@ describe("template archive", () => {
 
   it("refuses logic that imports other local files, but allows the generated model types", async () => {
     const model = counter.MODEL;
-    expect(await unsupportedLogicImports("import { IFoo } from './generated/org.acme@1.0.0';\nimport type { X } from \"./generated/concerto@1.0.0\";", model)).toEqual([]);
+    expect(
+      await unsupportedLogicImports(
+        "import { IFoo } from './generated/org.acme.counter@1.0.0';\nimport type { X } from \"./generated/concerto@1.0.0\";\nimport type { M } from './generated/org.accordproject.money@0.3.0';",
+        model,
+      ),
+    ).toEqual([]);
+    // ./generated/ only holds the model's types; anything else there is a file the import would drop.
+    expect(
+      await unsupportedLogicImports("import { help } from './generated/helpers';\nimport { o } from './generated/org.other@1.0.0';", model),
+    ).toEqual(["./generated/helpers", "./generated/org.other@1.0.0"]);
     expect(await unsupportedLogicImports("import { help } from './helpers';\nconst u = require('../util');\nimport('./lazy');\nexport * from './more';", model)).toEqual([
       "./helpers",
       "../util",

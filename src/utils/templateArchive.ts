@@ -296,9 +296,9 @@ export const unsupportedLogicImports = async (logicTs: string, modelCto: string)
   return [
     ...new Set(
       local.filter((spec) => {
-        if (/^\.\/generated\//.test(spec)) return false;
-        const sibling = /^\.\/([^/]+?)(?:\.(?:js|ts))?$/.exec(spec)?.[1];
-        return !(sibling && namespaces.has(sibling));
+        // ./generated/<namespace> or ./<namespace>, for a namespace the playground generates types for.
+        const module = /^\.\/(?:generated\/)?([^/]+?)(?:\.(?:js|ts))?$/.exec(spec)?.[1];
+        return !(module && namespaces.has(module));
       }),
     ),
   ];

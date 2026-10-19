@@ -102,7 +102,7 @@ export const DeployView = () => {
   const [working, setWorking] = useState<string | null>(null);
 
   const runAction = async (card: DeployCard): Promise<Outcome | void> => {
-    const { agreementHtml, renderAgreement, requestJson, templateMarkdown, modelCto, data, editorLogicTs, sampleName } =
+    const { renderAgreement, requestJson, templateMarkdown, modelCto, data, editorLogicTs, sampleName } =
       useAppStore.getState();
     /*
      * PDF and copy render the current sources afresh: agreementHtml lags an
@@ -121,14 +121,26 @@ export const DeployView = () => {
     const logicTs = pendingLogic(editorLogicTs) ?? "";
     switch (card.action) {
       case "share": {
-        const compressed = compress({
-          templateMarkdown,
-          modelCto,
-          data,
-          agreementHtml,
-          ...(logicTs.trim() ? { logicTs } : {}),
-        });
-        return copy(`${window.location.origin}/#data=${compressed}`);
+        /*
+         * The link carries a pre-rendered agreement so it opens instantly.
+         * It is rendered afresh from the sources going into the link, never
+         * the cached agreementHtml, which can still hold text removed since;
+         * when the sources don't render, the link carries none and the
+         * recipient's playground renders it. The clipboard write starts
+         * inside the click (see copyWhenReady).
+         */
+        const link = renderAgreement()
+          .catch(() => undefined)
+          .then((freshHtml) =>
+            `${window.location.origin}/#data=${compress({
+              templateMarkdown,
+              modelCto,
+              data,
+              ...(freshHtml ? { agreementHtml: freshHtml } : {}),
+              ...(logicTs.trim() ? { logicTs } : {}),
+            })}`,
+          );
+        return copyWhenReady(link);
       }
       case "copy": {
         // No await before this: the clipboard write must start inside the click.
