@@ -5,7 +5,7 @@ import '@testing-library/jest-dom';
 import { message } from 'antd';
 import { DeployView, agreementText } from '../../../components/designV2/DeployView';
 import { DEPLOY, DEPLOY_CARDS, URLS } from '../../../components/designV2/constants';
-import useAppStore from '../../../store/store';
+import useAppStore, { SourcesChangedError } from '../../../store/store';
 import { decompress } from '../../../utils/compression/compression';
 import * as latePayment from '../../../samples/latePaymentPenalty';
 
@@ -249,6 +249,20 @@ describe('DeployView', () => {
     it('leaves deleted logic out', async () => {
       useAppStore.setState({ editorLogicTs: '' });
       expect((await linkFrom()).logicTs).toBeUndefined();
+    }, 30_000);
+
+    it('copies nothing when the sources changed while the link was being rendered', async () => {
+      // renderAgreement reports an edit made during the render (even one undone since) this way.
+      useAppStore.setState({ renderAgreement: vi.fn().mockRejectedValue(new SourcesChangedError()) });
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+      const showError = vi.spyOn(message, 'error');
+      render(<DeployView />);
+      fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+      await waitFor(() => expect(showError).toHaveBeenCalled(), SLOW);
+      expect(writeText).not.toHaveBeenCalled();
+      expect(String(showError.mock.calls[0][0])).toMatch(/changed while it was being rendered/);
+      showError.mockRestore();
     }, 30_000);
 
     it('never falls back to the stale agreement when the sources do not render', async () => {

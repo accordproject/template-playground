@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { message } from 'antd';
 import PreviewPane from '../../../components/designV2/PreviewPane';
 import { PREVIEW } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
@@ -86,12 +87,26 @@ describe('PreviewPane', () => {
     expect(screen.getByRole('button', { name: PREVIEW.markdown })).toBeDisabled();
   });
 
-  it('saves the agreement as a PDF', async () => {
-    useAppStore.setState({ agreementHtml: '<p>Terms</p>' });
+  it('saves the agreement, rendered afresh, as a PDF rather than the page on screen', async () => {
+    // The page still shows an older render; the current sources render differently.
+    useAppStore.setState({ agreementHtml: '<p>Stale terms</p>', renderAgreement: vi.fn().mockResolvedValue('<p>Fresh terms</p><script>x()</script>') });
     renderPane();
     fireEvent.click(pdfButton());
     await waitFor(() => expect(html2pdf.chain.save).toHaveBeenCalledTimes(1));
     expect(html2pdf.chain.set).toHaveBeenCalledWith(expect.objectContaining({ filename: PREVIEW.pdfFile }));
-    expect(html2pdf.chain.from).toHaveBeenCalledWith(expect.objectContaining({ className: 'nd-preview-page' }));
+    const page = (html2pdf.chain.from.mock.calls as unknown[][])[0][0] as HTMLElement;
+    expect(page.innerHTML).toContain('Fresh terms');
+    expect(page.innerHTML).not.toContain('Stale terms');
+    expect(page.querySelector('script')).toBeNull();
+  });
+
+  it('saves no PDF when the current sources do not render', async () => {
+    const showError = vi.spyOn(message, 'error');
+    useAppStore.setState({ agreementHtml: '<p>Stale terms</p>', renderAgreement: vi.fn().mockRejectedValue(new Error('bad data')) });
+    renderPane();
+    fireEvent.click(pdfButton());
+    await waitFor(() => expect(showError).toHaveBeenCalledWith(PREVIEW.pdfFailed));
+    expect(html2pdf.chain.save).not.toHaveBeenCalled();
+    showError.mockRestore();
   });
 });

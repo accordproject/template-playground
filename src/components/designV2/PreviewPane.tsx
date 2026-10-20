@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Button, Space, Spin, Typography, message } from "antd";
 import DOMPurify from "dompurify";
 import useAppStore from "../../store/store";
 import { downloadMarkdown } from "../../utils/download";
+import { saveAgreementPdf } from "../../utils/agreementPdf";
 import { PREVIEW } from "./constants";
 
 /**
@@ -15,14 +16,14 @@ import { PREVIEW } from "./constants";
  * the legacy preview). A failed render keeps the last good agreement on the
  * page; the footer carries the error. Until anything has rendered, the page
  * says it is rendering, or that the render failed.
- * The PDF button saves the page with html2pdf, loaded on first use; the
- * Markdown button renders the current sources afresh as Markdown and saves
- * that (store.renderAgreement), so it can't lag an edit.
+ * The PDF and Markdown buttons render the current sources afresh
+ * (store.renderAgreement) and save that, never the page on screen, which
+ * keeps the last good render after an error and can lag an edit; a source
+ * that doesn't render saves nothing.
  */
 const PreviewPane = () => {
   const agreementHtml = useAppStore((s) => s.agreementHtml);
   const error = useAppStore((s) => s.error);
-  const pageRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingMarkdown, setIsSavingMarkdown] = useState(false);
 
@@ -39,20 +40,9 @@ const PreviewPane = () => {
   };
 
   const savePdf = async () => {
-    if (!pageRef.current) return;
     setIsSaving(true);
     try {
-      const html2pdf = (await import("html2pdf.js")).default;
-      await html2pdf()
-        .set({
-          margin: 10,
-          filename: PREVIEW.pdfFile,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        })
-        .from(pageRef.current)
-        .save();
+      await saveAgreementPdf(await useAppStore.getState().renderAgreement(), PREVIEW.pdfFile);
     } catch (err) {
       console.error("PDF generation failed:", err);
       void message.error(PREVIEW.pdfFailed);
@@ -83,7 +73,6 @@ const PreviewPane = () => {
       <div className="nd-editor-card-body nd-preview-body">
         {agreementHtml ? (
           <div
-            ref={pageRef}
             className="nd-preview-page"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
           />

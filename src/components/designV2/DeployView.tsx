@@ -12,7 +12,8 @@ import {
   RobotOutlined,
 } from "@ant-design/icons";
 import DOMPurify from "dompurify";
-import useAppStore from "../../store/store";
+import useAppStore, { SourcesChangedError } from "../../store/store";
+import { saveAgreementPdf } from "../../utils/agreementPdf";
 import { compress } from "../../utils/compression/compression";
 import { pendingLogic } from "../../editors/logicSource";
 import { archiveFileName, buildExportArchive } from "../../utils/templateArchive";
@@ -126,11 +127,16 @@ export const DeployView = () => {
          * It is rendered afresh from the sources going into the link, never
          * the cached agreementHtml, which can still hold text removed since;
          * when the sources don't render, the link carries none and the
-         * recipient's playground renders it. The clipboard write starts
-         * inside the click (see copyWhenReady).
+         * recipient's playground renders it. If they changed while rendering
+         * (even back again), the sources captured for the link are stale, so
+         * copying fails instead. The clipboard write starts inside the click
+         * (see copyWhenReady).
          */
         const link = renderAgreement()
-          .catch(() => undefined)
+          .catch((error: unknown) => {
+            if (error instanceof SourcesChangedError) throw error;
+            return undefined;
+          })
           .then((freshHtml) =>
             `${window.location.origin}/#data=${compress({
               templateMarkdown,
@@ -178,21 +184,7 @@ export const DeployView = () => {
         return downloadMarkdown(await current("markdown"));
       }
       case "pdf": {
-        const html = await current();
-        const { default: html2pdf } = await import("html2pdf.js");
-        const page = document.createElement("div");
-        page.style.cssText = "background:#fff;color:#000;padding:16px";
-        page.innerHTML = DOMPurify.sanitize(html);
-        await html2pdf()
-          .set({
-            margin: 10,
-            filename: "agreement.pdf",
-            image: { type: "jpeg", quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          } as const)
-          .from(page)
-          .save();
+        return saveAgreementPdf(await current());
       }
     }
   };

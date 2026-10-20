@@ -406,6 +406,19 @@ interface AppState {
 }
 
 /**
+ * Thrown by renderAgreement when the text, model or data changed while it
+ * rendered (even if changed back): the result may be of other sources, so
+ * an export must not use it. Callers that tolerate ordinary render errors
+ * still have to let this one through.
+ */
+export class SourcesChangedError extends Error {
+  constructor() {
+    super("The template changed while it was being rendered — try again.");
+    this.name = "SourcesChangedError";
+  }
+}
+
+/**
  * What a render produces. "markdown" is the agreement as plain Markdown:
  * values filled in and formatting kept, without TemplateMark's clause or
  * formula markup (CiceroMark → unquoted CiceroMark → Markdown).
@@ -981,7 +994,7 @@ const useAppStore = create<AppState>()(
            * strings would miss.
            */
           if (renderSourceRevision !== revision) {
-            throw new Error("The template changed while it was being rendered — try again.");
+            throw new SourcesChangedError();
           }
           return html;
         },
