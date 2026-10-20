@@ -177,6 +177,24 @@ describe('useAppStore - buildTemplateFromMemory', () => {
     expect(useAppStore.getState().templateObject).toBeNull();
   });
 
+  it('forgets the previous template when sources are replaced, and a build still running cannot restore it', async () => {
+    // A finished build of the old template, and another still running.
+    useAppStore.setState({ templateObject: templateFor('old model'), isTemplateStateful: false, rebuild: vi.fn().mockResolvedValue(undefined) });
+    const old = deferred<Template>();
+    fromArchive.mockReturnValueOnce(old.promise);
+    const pendingBuild = useAppStore.getState().buildTemplateFromMemory(sources('old model'));
+    await vi.waitFor(() => expect(fromArchive).toHaveBeenCalledTimes(1));
+
+    // An archive without logic: nothing compiles afterwards to replace the cached template.
+    await useAppStore.getState().loadImportedTemplate({ name: 'Imported', templateMarkdown: 'Hi', modelCto: 'model B', data: '{}' });
+    expect(useAppStore.getState().templateObject).toBeNull();
+    expect(useAppStore.getState().isTemplateStateful).toBe(true);
+
+    old.resolve(templateFor('old model'));
+    await pendingBuild;
+    expect(useAppStore.getState().templateObject).toBeNull();
+  });
+
   it('reads the store sources when called, not after its own awaits', async () => {
     fromArchive.mockResolvedValueOnce(templateFor('store model'));
 

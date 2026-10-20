@@ -605,17 +605,29 @@ let latestCompileRun = 0;
  */
 let templateGeneration = 0;
 export const currentTemplateGeneration = () => templateGeneration;
+/** Id of the latest buildTemplateFromMemory call; older builds do not update templateObject. */
+let latestTemplateBuild = 0;
 /**
  * Called when the template sources are replaced: drops the result of any
  * compilation still running, so a compile of the discarded logic cannot
- * publish into the new template, and starts a new template generation.
+ * publish into the new template, cancels template builds still running, so
+ * none can put the discarded template back in templateObject, and starts a
+ * new template generation. The caller resets the cached template itself
+ * (TEMPLATE_CACHE_RESET) in the same update as the new sources.
  */
 const invalidateCompilations = () => {
   latestCompileRun++;
+  latestTemplateBuild++;
   templateGeneration++;
 };
-/** Id of the latest buildTemplateFromMemory call; older builds do not update templateObject. */
-let latestTemplateBuild = 0;
+
+/**
+ * The cached Template object and what it said about the template, as for a
+ * template not yet built. A template without logic is never compiled, so
+ * nothing else would replace the previous template's; the legacy runner
+ * rebuilds when templateObject is null.
+ */
+const TEMPLATE_CACHE_RESET = { templateObject: null, isTemplateStateful: true } as const;
 
 const useAppStore = create<AppState>()(
   immer(
@@ -893,6 +905,7 @@ const useAppStore = create<AppState>()(
             const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
             invalidateCompilations();
             set(() => ({
+              ...TEMPLATE_CACHE_RESET,
               sampleName: sample.NAME,
               importedData: null,
               agreementHtml: undefined,
@@ -1104,6 +1117,7 @@ const useAppStore = create<AppState>()(
           // Compiles still running belong to the previous template (see invalidateCompilations).
           invalidateCompilations();
           set(() => ({
+            ...TEMPLATE_CACHE_RESET,
             // Never reuse a bundled sample's name: views look samples up by it
             // (the Data step's reset would load that sample's data).
             sampleName: SAMPLES.some((sample) => sample.NAME === name) ? `${name} (imported)` : name,
