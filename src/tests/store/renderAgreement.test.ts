@@ -40,4 +40,23 @@ describe('useAppStore.renderAgreement', () => {
     sandbox.next!({ html: '<p>B</p>' });
     await expect(pending).rejects.toThrow(/changed while it was being rendered/);
   });
+
+  it('refuses the result when an edit was undone while it was rendering', async () => {
+    const pending = useAppStore.getState().renderAgreement();
+    await settle();
+    // An edit superseded this render, then Undo restored the original text before its result arrived.
+    useAppStore.setState({ templateMarkdown: 'A edited' });
+    useAppStore.setState({ templateMarkdown: 'A' });
+    sandbox.next!({ html: '<p>A edited</p>' });
+    await expect(pending).rejects.toThrow(/changed while it was being rendered/);
+  });
+
+  it('counts an undone data edit too', async () => {
+    const pending = useAppStore.getState().renderAgreement();
+    await settle();
+    useAppStore.setState({ data: '{"a":1}' });
+    useAppStore.setState({ data: '{}' });
+    sandbox.next!({ html: '<p>A</p>' });
+    await expect(pending).rejects.toThrow(/changed while it was being rendered/);
+  });
 });

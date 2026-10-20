@@ -587,6 +587,14 @@ const persistChain = (chain: ChainStep[]) => {
 /** The sources a Template object is built from. */
 export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "logicTs">;
 
+/**
+ * Revision of the sources an agreement is rendered from (text, model and
+ * data), bumped on every change to any of them (see the subscription after
+ * the store). renderAgreement compares it, not the strings, so an edit that
+ * is undone while a render runs still voids that render.
+ */
+let renderSourceRevision = 0;
+
 /** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
 let latestCompileRun = 0;
 /**
@@ -945,6 +953,7 @@ const useAppStore = create<AppState>()(
 
         renderAgreement: async (format: AgreementFormat = "html") => {
           const { templateMarkdown, modelCto, data } = get();
+          const revision = renderSourceRevision;
           let html: string;
           try {
             html = await rebuild(templateMarkdown, modelCto, data, format);
@@ -954,10 +963,11 @@ const useAppStore = create<AppState>()(
           /*
            * The sandbox answers a superseded request with the newer render's
            * result. If the sources changed while this one was in flight, the
-           * HTML may be of another template, so it is not handed out.
+           * HTML may be of another template, so it is not handed out — even if
+           * they were changed back (an edit then Undo), which comparing the
+           * strings would miss.
            */
-          const now = get();
-          if (now.templateMarkdown !== templateMarkdown || now.modelCto !== modelCto || now.data !== data) {
+          if (renderSourceRevision !== revision) {
             throw new Error("The template changed while it was being rendered — try again.");
           }
           return html;
@@ -1793,6 +1803,17 @@ const useAppStore = create<AppState>()(
     }),
   ),
 );
+
+// Any change to the rendered sources, by whichever setter, starts a new revision (see renderSourceRevision).
+useAppStore.subscribe((state, previous) => {
+  if (
+    state.templateMarkdown !== previous.templateMarkdown ||
+    state.modelCto !== previous.modelCto ||
+    state.data !== previous.data
+  ) {
+    renderSourceRevision++;
+  }
+});
 
 export default useAppStore;
 
