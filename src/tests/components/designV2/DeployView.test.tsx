@@ -35,7 +35,7 @@ describe('DeployView', () => {
   });
 
   it('gives every card a description', () => {
-    expect(DEPLOY_CARDS).toHaveLength(8);
+    expect(DEPLOY_CARDS).toHaveLength(9);
     for (const card of DEPLOY_CARDS) expect(card.description.trim().length, card.title).toBeGreaterThan(20);
     render(<DeployView />);
     for (const card of DEPLOY_CARDS) {
@@ -90,6 +90,33 @@ describe('DeployView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Download .cta' }));
     await waitFor(() => expect(click).toHaveBeenCalled(), SLOW);
     expect(created[0].size).toBeGreaterThan(100);
+    click.mockRestore();
+  }, 30_000);
+
+  it('downloads the freshly rendered agreement as Markdown', async () => {
+    const created: Blob[] = [];
+    URL.createObjectURL = vi.fn((b: Blob) => (created.push(b), 'blob:x'));
+    URL.revokeObjectURL = vi.fn();
+    const names: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      names.push(this.download);
+    });
+    const renderAgreement = vi.fn((format?: string) =>
+      Promise.resolve(format === 'markdown' ? '# Agreement\n\nHello **Ana**\n' : '<p>Hello <b>Ana</b></p>'),
+    );
+    useAppStore.setState({ renderAgreement });
+    render(<DeployView />);
+    fireEvent.click(screen.getByRole('button', { name: 'Download .md' }));
+    await waitFor(() => expect(click).toHaveBeenCalled(), SLOW);
+    expect(renderAgreement).toHaveBeenCalledWith('markdown');
+    expect(names).toEqual(['agreement.md']);
+    expect(created[0].type).toMatch(/^text\/markdown/);
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsText(created[0]);
+    });
+    expect(text).toBe('# Agreement\n\nHello **Ana**\n');
     click.mockRestore();
   }, 30_000);
 

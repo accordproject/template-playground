@@ -62,6 +62,30 @@ describe('PreviewPane', () => {
     expect(screen.queryByText(PREVIEW.rendering)).not.toBeInTheDocument();
   });
 
+  it('saves the agreement, rendered afresh, as Markdown', async () => {
+    const created: Blob[] = [];
+    URL.createObjectURL = vi.fn((b: Blob) => (created.push(b), 'blob:x'));
+    URL.revokeObjectURL = vi.fn();
+    const names: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      names.push(this.download);
+    });
+    const renderAgreement = vi.fn().mockResolvedValue('# Terms\n');
+    useAppStore.setState({ agreementHtml: '<p>Terms</p>', renderAgreement });
+    renderPane();
+    fireEvent.click(screen.getByRole('button', { name: PREVIEW.markdown }));
+    await waitFor(() => expect(click).toHaveBeenCalled());
+    expect(renderAgreement).toHaveBeenCalledWith('markdown');
+    expect(names).toEqual(['agreement.md']);
+    expect(created[0].type).toMatch(/^text\/markdown/);
+    click.mockRestore();
+  });
+
+  it('cannot save Markdown before anything has rendered', () => {
+    renderPane();
+    expect(screen.getByRole('button', { name: PREVIEW.markdown })).toBeDisabled();
+  });
+
   it('saves the agreement as a PDF', async () => {
     useAppStore.setState({ agreementHtml: '<p>Terms</p>' });
     renderPane();

@@ -156,11 +156,12 @@ interface AppState {
   rebuild: () => Promise<void>;
   /**
    * Renders the current text, model and data right now, bypassing the
-   * debounce, and returns the HTML without touching the store. For exports,
-   * which must never use an agreementHtml that is still catching up with an
-   * edit. Throws the rendering error.
+   * debounce, and returns the HTML (or, with "markdown", plain Markdown)
+   * without touching the store. For exports, which must never use an
+   * agreementHtml that is still catching up with an edit. Throws the
+   * rendering error.
    */
-  renderAgreement: () => Promise<string>;
+  renderAgreement: (format?: AgreementFormat) => Promise<string>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
   generateShareableLink: () => string;
@@ -404,6 +405,18 @@ interface AppState {
   triggerContract: () => Promise<void>;
 }
 
+/**
+ * What a render produces. "markdown" is the agreement as plain Markdown:
+ * values filled in and formatting kept, without TemplateMark's clause or
+ * formula markup (CiceroMark → unquoted CiceroMark → Markdown).
+ */
+export type AgreementFormat = "html" | "markdown";
+
+const AGREEMENT_TARGETS: Record<AgreementFormat, string[]> = {
+  html: ["html"],
+  markdown: ["ciceromark_unquoted", "markdown"],
+};
+
 export interface DecompressedData {
   templateMarkdown: string;
   modelCto: string;
@@ -418,6 +431,7 @@ async function rebuild(
   template: string,
   model: string,
   dataString: string,
+  format: AgreementFormat = "html",
 ): Promise<string> {
   /*
    * Validate inputs before expensive operations
@@ -436,18 +450,30 @@ async function rebuild(
   // download starts here so it overlaps with rendering in the sandbox.
   const markdownTransform = import("@accordproject/markdown-transform");
   const ciceroMarkJson = await rebuildInSandbox(template, model, dataString);
-  // Converting CiceroMark to HTML runs no user code, so it stays on the main thread.
+  return convertCiceroMark(ciceroMarkJson, format, markdownTransform);
+}
+
+/**
+ * Converts a rendered agreement (CiceroMark JSON, as the rendering sandbox
+ * returns it) to HTML or Markdown. It runs no user code, so it stays on the
+ * main thread. markdown-transform is passed in when its download has
+ * already started, and loaded here otherwise.
+ */
+export async function convertCiceroMark(
+  ciceroMarkJson: unknown,
+  format: AgreementFormat,
+  markdownTransform = import("@accordproject/markdown-transform"),
+): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { transform } = await markdownTransform;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  const result = (await transform(
+  return (await transform(
     ciceroMarkJson,
     "ciceromark_parsed",
-    ["html"],
+    AGREEMENT_TARGETS[format],
     {},
     { verbose: false },
   )) as string;
-  return result;
 }
 
 const getInitialTheme = () => {
@@ -917,11 +943,11 @@ const useAppStore = create<AppState>()(
           }
         },
 
-        renderAgreement: async () => {
+        renderAgreement: async (format: AgreementFormat = "html") => {
           const { templateMarkdown, modelCto, data } = get();
           let html: string;
           try {
-            html = await rebuild(templateMarkdown, modelCto, data);
+            html = await rebuild(templateMarkdown, modelCto, data, format);
           } catch (error: unknown) {
             throw new Error(formatError(error));
           }

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Button, Space, Spin, Typography, message } from "antd";
 import DOMPurify from "dompurify";
 import useAppStore from "../../store/store";
+import { downloadMarkdown } from "../../utils/download";
 import { PREVIEW } from "./constants";
 
 /**
@@ -14,13 +15,28 @@ import { PREVIEW } from "./constants";
  * the legacy preview). A failed render keeps the last good agreement on the
  * page; the footer carries the error. Until anything has rendered, the page
  * says it is rendering, or that the render failed.
- * The PDF button saves the page with html2pdf, loaded on first use.
+ * The PDF button saves the page with html2pdf, loaded on first use; the
+ * Markdown button renders the current sources afresh as Markdown and saves
+ * that (store.renderAgreement), so it can't lag an edit.
  */
 const PreviewPane = () => {
   const agreementHtml = useAppStore((s) => s.agreementHtml);
   const error = useAppStore((s) => s.error);
   const pageRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingMarkdown, setIsSavingMarkdown] = useState(false);
+
+  const saveMarkdown = async () => {
+    setIsSavingMarkdown(true);
+    try {
+      downloadMarkdown(await useAppStore.getState().renderAgreement("markdown"));
+    } catch (err) {
+      console.error("Markdown export failed:", err);
+      void message.error(PREVIEW.markdownFailed);
+    } finally {
+      setIsSavingMarkdown(false);
+    }
+  };
 
   const savePdf = async () => {
     if (!pageRef.current) return;
@@ -51,6 +67,15 @@ const PreviewPane = () => {
         <span className="nd-preview-title">{PREVIEW.title}</span>
         <span className="nd-badge nd-badge-teal">{PREVIEW.liveBadge}</span>
         <div className="nd-spacer" />
+        <Button
+          type="text"
+          size="small"
+          disabled={!agreementHtml}
+          loading={isSavingMarkdown}
+          onClick={() => void saveMarkdown()}
+        >
+          {PREVIEW.markdown}
+        </Button>
         <Button type="text" size="small" disabled={!agreementHtml} loading={isSaving} onClick={() => void savePdf()}>
           {PREVIEW.pdf}
         </Button>

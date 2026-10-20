@@ -5,6 +5,7 @@ import {
   CodeOutlined,
   CopyOutlined,
   FilePdfOutlined,
+  FileMarkdownOutlined,
   FileZipOutlined,
   FolderOpenOutlined,
   LinkOutlined,
@@ -16,10 +17,12 @@ import { compress } from "../../utils/compression/compression";
 import { pendingLogic } from "../../editors/logicSource";
 import { archiveFileName, buildExportArchive } from "../../utils/templateArchive";
 import { canSaveToFolder, pickFolder, writeArchiveToFolder } from "../../utils/saveToFolder";
+import { downloadBlob, downloadMarkdown } from "../../utils/download";
 import { DEPLOY, type DeployCard } from "./constants";
 
 const ICONS: Record<DeployCard["icon"], JSX.Element> = {
   pdf: <FilePdfOutlined />,
+  markdown: <FileMarkdownOutlined />,
   link: <LinkOutlined />,
   copy: <CopyOutlined />,
   archive: <FileZipOutlined />,
@@ -27,16 +30,6 @@ const ICONS: Record<DeployCard["icon"], JSX.Element> = {
   code: <CodeOutlined />,
   mcp: <RobotOutlined />,
   vscode: <FolderOpenOutlined />,
-};
-
-/** Saves bytes as a file download. */
-const downloadBlob = (blob: Blob, fileName: string) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
 };
 
 const BLOCKS = "p,h1,h2,h3,h4,h5,h6,li,blockquote,pre,tr,div,ul,ol,table";
@@ -112,13 +105,13 @@ export const DeployView = () => {
     const { renderAgreement, requestJson, templateMarkdown, modelCto, data, editorLogicTs, sampleName } =
       useAppStore.getState();
     /*
-     * PDF and copy render the current sources afresh: agreementHtml lags an
+     * PDF, Markdown and copy render the current sources afresh: agreementHtml lags an
      * edit by the debounce and the render, and keeps the last good agreement
      * after an error, so it can be out of date.
      */
-    const current = async () => {
+    const current = async (format?: "markdown") => {
       try {
-        return await renderAgreement();
+        return await renderAgreement(format);
       } catch (error) {
         throw new Error(`${DEPLOY.renderError} (${error instanceof Error ? error.message : String(error)})`);
       }
@@ -180,6 +173,9 @@ export const DeployView = () => {
       case "archive": {
         const bytes = await buildExportArchive({ templateMarkdown, modelCto, data, logicTs, requestJson }, sampleName);
         return downloadBlob(new Blob([bytes as BlobPart], { type: "application/octet-stream" }), archiveFileName(sampleName));
+      }
+      case "markdown": {
+        return downloadMarkdown(await current("markdown"));
       }
       case "pdf": {
         const html = await current();

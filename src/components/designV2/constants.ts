@@ -97,6 +97,8 @@ export const PREVIEW = {
   title: "Preview",
   liveBadge: "live",
   pdf: "↓ PDF",
+  markdown: "↓ Markdown",
+  markdownFailed: "Couldn’t create the Markdown — try again.",
   /** File name of the PDF the preview's PDF button saves. */
   pdfFile: "agreement.pdf",
   pdfFailed: "Couldn’t create the PDF — try again.",
@@ -457,7 +459,7 @@ export const SIMULATE = {
 export interface DeployCard {
   title: string;
   /** Which icon (see DeployView.tsx) heads the card. */
-  icon: "pdf" | "link" | "copy" | "archive" | "server" | "code" | "mcp" | "vscode";
+  icon: "pdf" | "markdown" | "link" | "copy" | "archive" | "server" | "code" | "mcp" | "vscode";
   /** One line under the title: what the card does and where it leads. */
   description: string;
   /** Two or three short points: what you get, or what you need. */
@@ -467,7 +469,7 @@ export interface DeployCard {
   /** Docs page opened in a new tab (the button then carries the ↗ glyph). */
   href?: string;
   /** Which in-app action the button runs when there is no `href`. */
-  action?: "pdf" | "share" | "copy" | "archive" | "vscode";
+  action?: "pdf" | "markdown" | "share" | "copy" | "archive" | "vscode";
   /** A second, link-only button under the main one. */
   secondary?: { label: string; href: string };
   /** Toast shown when the action succeeds. */
@@ -500,6 +502,15 @@ export const DEPLOY = {
           button: "Download PDF",
           action: "pdf",
           done: "PDF downloaded",
+        },
+        {
+          title: "Download Markdown",
+          icon: "markdown",
+          description: "Save the rendered agreement as a Markdown file for docs, wikis or a pull request.",
+          details: ["Headings, lists and emphasis kept", "Uses the data from the Data step"],
+          button: "Download .md",
+          action: "markdown",
+          done: "Markdown downloaded",
         },
         {
           title: "Share link",
