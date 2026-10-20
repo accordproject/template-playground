@@ -260,6 +260,11 @@ export const incompatibilityReason = (pkg: PackageJson, paths: string[], hasType
   if (!hasTypeScriptLogic && paths.some((p) => /^logic\/.+\.ergo$/.test(p))) {
     return "This template’s logic is written in Ergo, for an older version of Cicero. The playground runs TypeScript templates (Cicero 1.0 and later).";
   }
+  // JavaScript logic would otherwise be dropped silently: the playground loads only logic/*.ts.
+  const javaScript = paths.filter((p) => /^logic\/[^/]+\.[cm]?js$/.test(p) && !/\.(test|spec)\.[cm]?js$/.test(p));
+  if (!hasTypeScriptLogic && javaScript.length) {
+    return `This template’s logic is JavaScript (${javaScript.join(", ")}). The playground runs TypeScript logic only, so it can’t import this template without losing its logic.`;
+  }
   const cicero = pkg.accordproject?.cicero;
   // The declared engine target decides, whatever the runtime field says.
   if (majorOf(cicero) === 0) {

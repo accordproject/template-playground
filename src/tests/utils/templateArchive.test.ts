@@ -100,13 +100,23 @@ describe("template archive", () => {
     await expect(readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/grammar/);
   });
 
-  it("refuses templates written for Cicero 0.x", async () => {
+  it("refuses templates it can't run: Cicero 0.x, Ergo or JavaScript-only logic", async () => {
     const ergo = new JSZip();
     ergo.file("package.json", JSON.stringify({ name: "helloworld", accordproject: { cicero: "^0.25.0" } }));
     ergo.file("text/grammar.tem.md", "Hello {{name}}.");
     ergo.file("model/model.cto", libraryModel);
     ergo.file("logic/logic.ergo", "contract X over Y {}");
     await expect(readTemplateArchive(await ergo.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/Ergo/);
+
+    // JavaScript-only logic would be dropped on import, so it is refused rather than imported without it.
+    const javaScript = new JSZip();
+    javaScript.file("package.json", JSON.stringify({ name: "js", accordproject: { cicero: "^3.0.0" } }));
+    javaScript.file("text/grammar.tem.md", blank.TEMPLATE);
+    javaScript.file("model/model.cto", blank.MODEL);
+    javaScript.file("logic/logic.js", "class Logic {}\nmodule.exports = Logic;");
+    await expect(readTemplateArchive(await javaScript.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(
+      /JavaScript \(logic\/logic\.js\)/,
+    );
 
     const old = new JSZip();
     old.file("package.json", JSON.stringify({ name: "old", accordproject: { cicero: "^0.21.0" } }));
