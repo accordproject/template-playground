@@ -25,6 +25,9 @@ import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
 
+/** sampleName of a template opened from a share link; design v2 starts on it instead of the first card. */
+export const SHARED_TEMPLATE_NAME = "Shared template";
+
 /**
  * A single step in a stateful template's execution chain: either the Init
  * step (index 0 — `request`/`priorState`/`result` all `null`) or a
@@ -98,6 +101,12 @@ interface AppState {
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
+  /**
+   * data.json as it was when the current template was imported (archive,
+   * library or share link), for the Data step's reset; null for bundled
+   * samples, which reset to their own data.
+   */
+  importedData: string | null;
   isAIChatOpen: boolean;
   backgroundColor: string;
   textColor: string;
@@ -145,10 +154,32 @@ interface AppState {
   setData: (data: string) => Promise<void>;
   setEditorAgreementData: (value: string) => void;
   rebuild: () => Promise<void>;
+  /**
+   * Renders the current text, model and data right now, bypassing the
+   * debounce, and returns the HTML without touching the store. For exports,
+   * which must never use an agreementHtml that is still catching up with an
+   * edit. Throws the rendering error.
+   */
+  renderAgreement: () => Promise<string>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
   generateShareableLink: () => string;
   loadFromLink: (compressedData: string) => Promise<void>;
+  /**
+   * Replaces the whole template with imported content (a `.cta`, a library
+   * template). Throws on failure, so the caller can show the reason.
+   */
+  loadImportedTemplate: (content: {
+    name: string;
+    templateMarkdown: string;
+    modelCto: string;
+    data: string;
+    logicTs?: string;
+    /** Pre-rendered agreement from a share link; omitted for archives, which render on load. */
+    agreementHtml?: string;
+    /** Sample request for Simulate (an archive's request.json); empty when there is none. */
+    requestJson?: string;
+  }) => Promise<void>;
   toggleDarkMode: () => void;
   setAIChatOpen: (visible: boolean) => void;
   setChatState: (state: ChatState) => void;
@@ -580,6 +611,7 @@ const useAppStore = create<AppState>()(
         backgroundColor: initialTheme.backgroundColor,
         textColor: initialTheme.textColor,
         sampleName: playground.NAME,
+        importedData: null,
         templateMarkdown: playground.TEMPLATE,
         editorValue: playground.TEMPLATE,
         modelCto: playground.MODEL,
@@ -828,6 +860,7 @@ const useAppStore = create<AppState>()(
             invalidateCompilations();
             set(() => ({
               sampleName: sample.NAME,
+              importedData: null,
               agreementHtml: undefined,
               error: undefined,
               templateMarkdown: sample.TEMPLATE,
@@ -884,6 +917,25 @@ const useAppStore = create<AppState>()(
           }
         },
 
+        renderAgreement: async () => {
+          const { templateMarkdown, modelCto, data } = get();
+          let html: string;
+          try {
+            html = await rebuild(templateMarkdown, modelCto, data);
+          } catch (error: unknown) {
+            throw new Error(formatError(error));
+          }
+          /*
+           * The sandbox answers a superseded request with the newer render's
+           * result. If the sources changed while this one was in flight, the
+           * HTML may be of another template, so it is not handed out.
+           */
+          const now = get();
+          if (now.templateMarkdown !== templateMarkdown || now.modelCto !== modelCto || now.data !== data) {
+            throw new Error("The template changed while it was being rendered — try again.");
+          }
+          return html;
+        },
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();
           try {
@@ -969,41 +1021,14 @@ const useAppStore = create<AppState>()(
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
             }
-            const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
-            /*
-             * A shared link loads a different template — nothing the last one
-             * produced (including its execution chain/history) applies here.
-             * This was a pre-existing gap (loadSample already did this); the
-             * chain persisting across page loads makes it worth closing now,
-             * since otherwise a stale chain could leak into an unrelated
-             * template.
-             */
-            get().resetExecution();
-            invalidateCompilations();
-            set(() => ({
+            await get().loadImportedTemplate({
+              name: SHARED_TEMPLATE_NAME,
               templateMarkdown,
-              editorValue: templateMarkdown,
               modelCto,
-              editorModelCto: modelCto,
               data,
-              editorAgreementData: data,
+              logicTs,
               agreementHtml,
-              error: undefined,
-              logicTs: logicTs || "",
-              editorLogicTs: logicTs || "",
-              compiledLogicJs: null,
-              compilationErrors: [],
-              isCompiling: false,
-              isLogicPanelVisible: hasLogic,
-            }));
-            if (hasLogic) {
-              get().setLogicFeatureEnabled(true);
-              savePanelState({ ...get(), isLogicPanelVisible: true });
-            }
-            await get().rebuild();
-            if (hasLogic) {
-              await get().compileLogic();
-            }
+            });
           } catch (error) {
             set(() => ({
               error:
@@ -1011,6 +1036,66 @@ const useAppStore = create<AppState>()(
                 (error instanceof Error ? error.message : "Unknown error"),
               isProblemPanelVisible: true,
             }));
+          }
+        },
+        loadImportedTemplate: async ({
+          name,
+          templateMarkdown,
+          modelCto,
+          data,
+          logicTs,
+          agreementHtml,
+          requestJson,
+        }: {
+          name: string;
+          templateMarkdown: string;
+          modelCto: string;
+          data: string;
+          logicTs?: string;
+          agreementHtml?: string;
+          requestJson?: string;
+        }) => {
+          const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
+          /*
+           * A loaded link or archive is a different template — nothing the
+           * last one produced (including its execution chain/history) applies
+           * here. This was a pre-existing gap (loadSample already did this);
+           * the chain persisting across page loads makes it worth closing,
+           * since otherwise a stale chain could leak into an unrelated
+           * template.
+           */
+          get().resetExecution();
+          // Compiles still running belong to the previous template (see invalidateCompilations).
+          invalidateCompilations();
+          set(() => ({
+            // Never reuse a bundled sample's name: views look samples up by it
+            // (the Data step's reset would load that sample's data).
+            sampleName: SAMPLES.some((sample) => sample.NAME === name) ? `${name} (imported)` : name,
+            importedData: data,
+            // The previous template's request means nothing to this one.
+            requestJson: requestJson ?? "",
+            templateMarkdown,
+            editorValue: templateMarkdown,
+            modelCto,
+            editorModelCto: modelCto,
+            data,
+            editorAgreementData: data,
+            agreementHtml,
+            error: undefined,
+            logicTs: logicTs || "",
+            editorLogicTs: logicTs || "",
+            compiledLogicJs: null,
+            compilationErrors: [],
+            isCompiling: false,
+            isLogicPanelVisible: hasLogic,
+          }));
+          if (hasLogic) {
+            get().setLogicFeatureEnabled(true);
+            savePanelState({ ...get(), isLogicPanelVisible: true });
+          }
+          await get().rebuild();
+          if (hasLogic) {
+            await get().compileLogic();
           }
         },
         toggleDarkMode: () => {

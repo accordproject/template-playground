@@ -51,6 +51,7 @@ describe('ModelDataView', () => {
       editorAgreementData: sampleData,
       data: sampleData,
       error: undefined,
+      importedData: null,
       // The real setters kick off a debounced rebuild; the wiring is what matters here.
       setModelCto,
       setData,
@@ -128,6 +129,23 @@ describe('ModelDataView', () => {
     fireEvent.click(reset);
     expect(useAppStore.getState().editorAgreementData).toBe(sampleData);
     expect(setData).toHaveBeenCalledWith(sampleData);
+  });
+
+  it('"reset" on an imported template restores the imported data, never a bundled sample of the same name', () => {
+    const imported = '{\n  "$class": "org.acme.imported@1.0.0.Late",\n  "capPercentage": 7\n}';
+    // The import is named like a bundled sample; reset must still use the imported data.
+    useAppStore.setState({ sampleName: latePayment.NAME, importedData: imported, editorAgreementData: '{ "capPercentage": 99 }' });
+    const { unmount } = render(<ModelDataView />);
+    const reset = pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset });
+    expect(reset).toBeEnabled();
+    fireEvent.click(reset);
+    expect(useAppStore.getState().editorAgreementData).toBe(imported);
+    expect(setData).toHaveBeenCalledWith(imported);
+    expect(setData).not.toHaveBeenCalledWith(sampleData);
+    unmount();
+
+    render(<ModelDataView />);
+    expect(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset })).toBeDisabled();
   });
 
   it('"format" on the model re-prints the Concerto file through the store', () => {

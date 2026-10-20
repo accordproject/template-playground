@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
-import useAppStore from "../../store/store";
+import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
 import { pendingLogic } from "../../editors/logicSource";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
@@ -54,11 +54,18 @@ const DesignV2Layout = () => {
   const setView = useDesignV2Store((s) => s.setView);
   const start = useDesignV2Store((s) => s.start);
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
+  const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
   const pick = usePickTemplate();
 
-  /** "Start building": enter the flow on a template — the first card unless one was already picked. */
+  /**
+   * "Start building": enter the flow on a template — the first card unless
+   * one was already picked, or a share link already loaded one.
+   */
   const handleStart = () => {
-    if (!selectedTemplate) pick(DEFAULT_TEMPLATE);
+    if (!selectedTemplate) {
+      if (useAppStore.getState().sampleName === SHARED_TEMPLATE_NAME) selectTemplate(SHARED_TEMPLATE_NAME);
+      else pick(DEFAULT_TEMPLATE);
+    }
     start();
   };
 

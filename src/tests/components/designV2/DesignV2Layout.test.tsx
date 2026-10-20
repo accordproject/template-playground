@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
 import DesignV2Layout from '../../../components/designV2/DesignV2Layout';
 import { DEFAULT_TEMPLATE } from '../../../components/designV2/usePickTemplate';
 import { FOOTER, HEADER, HELP_RAIL, PREVIEW, START_SAMPLES, URLS, WELCOME, sampleNameFor } from '../../../components/designV2/constants';
-import useAppStore from '../../../store/store';
+import useAppStore, { SHARED_TEMPLATE_NAME } from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { FIRST_STEP, STEP_ID } from '../../../types/designV2.types';
 import * as latePayment from '../../../samples/latePaymentPenalty';
@@ -46,7 +46,7 @@ describe('DesignV2Layout — Start building', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useAppStore.setState({ loadSample });
+    useAppStore.setState({ loadSample, sampleName: 'Playground' });
     useDesignV2Store.setState({ view: 'welcome', selectedTemplate: null });
   });
 
@@ -67,6 +67,16 @@ describe('DesignV2Layout — Start building', () => {
 
     expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
     expect(useDesignV2Store.getState().selectedTemplate).toBe(START_SAMPLES[1].name);
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it('keeps a template opened from a share link instead of loading the first card', () => {
+    useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(SHARED_TEMPLATE_NAME);
     expect(loadSample).not.toHaveBeenCalled();
   });
 

@@ -111,6 +111,7 @@ export const ModelDataView = () => {
   const editorAgreementData = useAppStore((s) => s.editorAgreementData);
   const error = useAppStore((s) => s.error);
   const sampleName = useAppStore((s) => s.sampleName);
+  const importedData = useAppStore((s) => s.importedData);
   const samples = useAppStore((s) => s.samples);
   const setEditorModelCto = useAppStore((s) => s.setEditorModelCto);
   const setModelCto = useAppStore((s) => s.setModelCto);
@@ -151,18 +152,19 @@ export const ModelDataView = () => {
     }
   };
 
-  // "reset" puts the loaded sample's original data.json back; it is greyed out while nothing changed.
-  const sample = samples.find((s) => s.NAME === sampleName);
-  const sampleData = sample ? JSON.stringify(sample.DATA, null, 2) : undefined;
+  // "reset" puts the original data.json back — the bundled sample's, or the
+  // imported template's as it arrived; it is greyed out while nothing changed.
+  const sample = importedData === null ? samples.find((s) => s.NAME === sampleName) : undefined;
+  const sampleData = importedData ?? (sample ? JSON.stringify(sample.DATA, null, 2) : undefined);
   const canReset = sampleData !== undefined && sampleData !== editorAgreementData;
   const resetData = () => {
-    if (!sample || sampleData === undefined) {
+    if (sampleData === undefined) {
       void message.warning(MODEL_DATA.data.resetUnavailable);
       return;
     }
     setEditorAgreementData(sampleData);
     void setData(sampleData);
-    void message.success(MODEL_DATA.data.resetDone(sample.NAME));
+    void message.success(MODEL_DATA.data.resetDone(sampleName));
   };
 
   // Checklist tones mirror the store's validation result and nothing else.
