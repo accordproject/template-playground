@@ -142,6 +142,7 @@
 }
 .nd-step:hover { transform: translateY(-1px); }
 .nd-step-active { background: var(--nd-teal-tint); border-color: #a9dfe1; }
+.nd-step-skipped, .nd-step-skipped:hover { opacity: 0.5; cursor: not-allowed; transform: none; }
 .nd-step-badge {
   width: 22px; height: 22px; flex: none; border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
@@ -192,11 +193,23 @@
 }
 .nd-hero-sub { position: relative; margin: 0; font-size: 16.5px; line-height: 1.55; color: #a9cbd3; max-width: 760px; }
 .nd-hero-actions { position: relative; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+.nd-hero-note { position: relative; margin: 0; max-width: 640px; font-size: 13.5px; line-height: 1.6; color: #7fa3ad; }
+.nd-hero-note a { color: #9fe3dc; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.nd-hero-note a:hover { color: #c6f3ee; }
 /* Accord Project logo (black on transparent, inverted to white) pinned to the bottom-right of the hero */
 .nd-hero-logo {
   position: absolute; right: 44px; bottom: 30px;
   height: 64px; width: auto; max-width: 40%; opacity: 0.92;
   filter: brightness(0) invert(1);
+}
+/* Phones: a title size that fits "Agreements" on one line, and the logo below the buttons instead of over them. */
+@media (max-width: 640px) {
+  /* Short phones: the wrapped content can outgrow the hero, so let it scroll rather than clip. */
+  .nd-hero { padding: 28px 22px; justify-content: flex-start; overflow-y: auto; }
+  .nd-hero-title { font-size: 36px; }
+  .nd-hero-sub { font-size: 15px; }
+  .nd-hero-note { font-size: 13px; }
+  .nd-hero-logo { position: static; order: 1; align-self: flex-end; height: 44px; margin-top: auto; }
 }
 
 /* Start (choose template) */
@@ -315,6 +328,8 @@
 .nd-check-icon-error { background: #fcedec; color: #a6272c; }
 .nd-check-icon-todo { background: #e4f6f6; color: var(--nd-teal); }
 .nd-logic-editor { border-radius: 0 0 10px 10px; }
+.nd-logic-empty { display: flex; align-items: center; justify-content: center; padding: 32px; text-align: center; }
+.nd-logic-empty .ant-typography { max-width: 440px; }
 .nd-editor-title-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .nd-editor-title-text h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
 .nd-editor-subtitle { margin: 0; color: var(--nd-text-3); font-size: 12.5px; line-height: 1.5; text-wrap: pretty; }
@@ -331,6 +346,8 @@
 .nd-editor-card-foot { border-top: 1px solid var(--nd-line-soft); padding: 11px 15px; }
 .nd-editor-file { color: var(--nd-ink); }
 .nd-editor-card-body { flex: 1; min-height: 0; padding: 17px; }
+/* Editors hidden under Preview stay mounted (undo history); their display:flex would otherwise beat [hidden]. */
+.nd-editor-column > [hidden] { display: none; }
 /* Body hosting a Monaco editor: no padding, the editor fills the card. */
 .nd-editor-card-body-editor { padding: 0; display: flex; }
 .nd-editor-card-body-editor .editorwrapper { flex: 1; min-width: 0; min-height: 0; height: 100%; width: 100%; }
@@ -499,6 +516,9 @@
 /* keep antd's hidden panes hidden — the flex rule above would otherwise win on specificity */
 .nd-sim-tabs .ant-tabs-tabpane-hidden { display: none; }
 .nd-sim-tab-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* A run's JSON in a read-only Monaco editor (JsonView): it fills the pane, which has to give it a height. */
+.nd-sim-json { flex: 1; min-height: 120px; display: flex; }
+.nd-sim-json .editorwrapper { flex: 1; min-width: 0; min-height: 0; height: 100%; }
 .nd-sim-note { flex: none; padding: 7px 11px; font-size: 11.5px; color: #8a2226; background: #fff8f8; border-bottom: 1px solid #f6d9d9; }
 .nd-sim-events { flex: 1; min-height: 0; position: relative; }
 .nd-sim-events .obligations-list-container { padding: 10px 11px; }
@@ -512,21 +532,38 @@
 .nd-blocked-body { margin: 0; font-size: 13px; line-height: 1.65; color: var(--nd-text-3); font-weight: 500; }
 
 /* Deploy */
-.nd-view-export { flex-direction: column; padding: 18px 20px 20px; gap: 14px; }
-.nd-export-head { flex: none; display: flex; align-items: center; gap: 10px; }
+.nd-view-export { flex-direction: column; padding: 18px 20px 24px; gap: 22px; overflow-y: auto; }
+.nd-export-head { flex: none; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .nd-export-head h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
-.nd-export-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;
-  align-content: start;
+/* Deploy: two groups, each a heading and a wrapping grid of roomy cards. */
+.nd-deploy-group { --nd-accent: var(--nd-teal); --nd-accent-tint: var(--nd-teal-tint); flex: none; display: flex; flex-direction: column; gap: 10px; }
+.nd-deploy-group-blue { --nd-accent: var(--nd-blue); --nd-accent-tint: #e7f2fe; }
+.nd-deploy-group-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.nd-deploy-group-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.nd-deploy-group-head span { font-size: 12.5px; color: var(--nd-text-4); }
+.nd-deploy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 16px; }
+.nd-deploy-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 16px;
+  background: #fff; border: 1px solid var(--nd-line); border-top: 3px solid var(--nd-accent); border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 32, 39, 0.04);
 }
-.nd-export-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
-.nd-export-label { font-size: 13.5px; font-weight: 600; }
+.nd-deploy-card-head { display: flex; align-items: center; gap: 12px; }
+.nd-deploy-icon {
+  flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+  font-size: 20px; color: var(--nd-accent); background: var(--nd-accent-tint);
+}
+.nd-deploy-title { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--nd-ink); }
+.nd-deploy-desc { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--nd-text-2); }
+.nd-deploy-details { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.nd-deploy-details li { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.45; color: var(--nd-text-3); }
+.nd-deploy-details li::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--nd-accent); margin-top: 6px; }
+.nd-deploy-action { margin-top: auto; padding-top: 6px; }
 
-/* Preview drawer (antd Drawer rendered inline, see PreviewDrawer.tsx) */
-.nd-preview .ant-drawer-content-wrapper { box-shadow: -22px 0 50px rgba(15, 32, 39, 0.12); }
-.nd-preview .ant-drawer-body { padding: 24px; background: var(--nd-line-soft); }
-.nd-preview-title { font-size: 12.5px; font-weight: 600; }
+/* Preview (PreviewPane.tsx): the rendered agreement as a page, in the editors' place */
+.nd-preview-title { color: var(--nd-ink); }
+.nd-preview-body { overflow-y: auto; padding: 24px; background: var(--nd-line-soft); }
 .nd-preview-page {
+  max-width: 760px; margin: 0 auto;
   background: #fff; border: 1px solid #e4eff0; border-radius: 8px; padding: 34px 32px; min-height: 200px;
   box-shadow: 0 1px 3px rgba(15, 32, 39, 0.05);
 }

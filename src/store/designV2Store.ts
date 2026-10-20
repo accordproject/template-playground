@@ -16,7 +16,7 @@ export type ModelDataPanes = Record<ModelDataPane, boolean>;
 export interface DesignV2State {
   /** Current view: the welcome hero or one of the numbered steps. */
   view: DesignV2View;
-  /** Whether the right-hand preview drawer is open. */
+  /** Whether the Text and Data steps show the rendered agreement (Preview) instead of their editors (Write). */
   previewOpen: boolean;
   /** Name of the template card picked on the Start step; null until the user picks one. */
   selectedTemplate: string | null;

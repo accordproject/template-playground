@@ -18,6 +18,12 @@ export const URLS = {
   concertoIntro: "https://concerto.accordproject.org/docs/intro",
   /** Docs site: what a template is made of (text, model, logic). "How it works" on the hero opens it. */
   templateDocs: "https://docs.accordproject.org/docs/accordproject-template/",
+  /** Docs site tutorial for developing templates in VS Code; the hero's note links to it. */
+  vscodeTutorial: "https://docs.accordproject.org/docs/tutorial-vscode/",
+  apapDeploy: "https://docs.accordproject.org/docs/ref-apap/#deploy-a-template",
+  vscodeDev: "https://vscode.dev/",
+  apapMcp: "https://docs.accordproject.org/docs/ref-apap/#mcp-support-experimental",
+  templateLibrary: "https://templates.accordproject.org/",
 } as const;
 
 export const RAIL = {
@@ -45,6 +51,9 @@ export const HEADER = {
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
   stepperLabel: "Steps",
+  /** Under a step the flow passes over (Simulate for a template without logic), and its tooltip. */
+  skippedMeta: "no logic",
+  skippedHint: "This template has no logic. Add some on the Logic step to simulate it.",
   links: {
     about: "About",
     community: "Community",
@@ -81,22 +90,37 @@ export const HELP_RAIL = {
 
 export const PREVIEW = {
   ariaLabel: "Preview",
-  /** Toggle in the Text and Data step headers; aria-pressed says whether the drawer is open. */
-  toggle: "◧ Preview",
+  /** The Write | Preview switch in the Text and Data step headers, and its accessible name. */
+  write: "Write",
+  preview: "Preview",
+  toggleLabel: "Write or preview",
   title: "Preview",
   liveBadge: "live",
   pdf: "↓ PDF",
-  close: "Close preview",
+  markdown: "↓ Markdown",
+  markdownFailed: "Couldn’t create the Markdown — try again.",
+  /** File name of the PDF the preview's PDF button saves. */
+  pdfFile: "agreement.pdf",
+  pdfFailed: "Couldn’t create the PDF — try again.",
+  /** Shown until the first render arrives. */
+  rendering: "Rendering the agreement…",
+  /** Shown when nothing has rendered and the last render failed; the footer carries the error. */
+  failed: "The agreement can’t be rendered yet — the problem is shown at the bottom.",
 } as const;
 
 export const WELCOME = {
   /** Accessible name of the Accord Project wordmark in the hero. */
   logoAlt: "Accord Project",
   logoSrc: "/APLogo.png",
-  titleLine: "The agreement layer",
-  titleAccent: "for agentic commerce.",
-  subtitleLine1: "Write enforceable terms that humans read and software executes.",
+  titleLine: "Agreements for people,",
+  titleAccent: "agents and systems.",
+  subtitleLine1: "Write terms that people and agents can read, and that agents and systems can execute.",
   subtitleLine2: "Build, test and deploy a template in your browser.",
+  /** Muted note under the buttons: what the playground is for, and where development continues. */
+  ideNote:
+    "A playground, not an IDE: it walks you through how a template is built and lets you prototype and experiment quickly. When a template is ready for more, download it from the Deploy step and keep developing in your own editor, such as VS Code, or with an AI coding agent.",
+  /** Opens URLS.vscodeTutorial in a new tab. */
+  ideNoteLink: "VS Code tutorial ↗",
   start: "Start building",
   /** Opens URLS.templateDocs in a new tab. */
   howItWorks: "How it works ↗",
@@ -226,6 +250,13 @@ export const LOGIC = {
   typesFound: (request: string, response: string) => `${request} → ${response}`,
   typesMissing: "not in model.cto",
   typesMissingHint: "Declare a request and a response transaction in model.cto",
+  /** Shown in place of the editor while there is no logic; the button writes the model-based skeleton. */
+  empty: {
+    title: "This template has no logic",
+    body:
+      "It renders its text from the data alone, so Simulate is skipped. Add logic to give the contract state and let it respond to requests.",
+    start: "Start from boilerplate",
+  },
   /** The two parts of the job, as chips in the card head; the hints are their tooltips. */
   chips: {
     types: {
@@ -424,7 +455,194 @@ export const SIMULATE = {
   },
 } as const;
 
+/** One card on the Deploy step. A card with an `href` links out; one without runs `action`. */
+export interface DeployCard {
+  title: string;
+  /** Which icon (see DeployView.tsx) heads the card. */
+  icon: "pdf" | "markdown" | "link" | "copy" | "archive" | "server" | "code" | "mcp" | "vscode";
+  /** One line under the title: what the card does and where it leads. */
+  description: string;
+  /** Two or three short points: what you get, or what you need. */
+  details: readonly string[];
+  /** Label of the card's button. */
+  button: string;
+  /** Docs page opened in a new tab (the button then carries the ↗ glyph). */
+  href?: string;
+  /** Which in-app action the button runs when there is no `href`. */
+  action?: "pdf" | "markdown" | "share" | "copy" | "archive" | "vscode";
+  /** A second, link-only button under the main one. */
+  secondary?: { label: string; href: string };
+  /** Toast shown when the action succeeds. */
+  done?: string;
+}
+
+/** A row of Deploy cards under its own heading. */
+export interface DeployGroup {
+  title: string;
+  subtitle: string;
+  /** Colour of the group's icon tiles. */
+  accent: "teal" | "blue";
+  cards: readonly DeployCard[];
+}
+
 export const DEPLOY = {
   title: "Deploy",
-  cards: ["Download PDF", "Share link", "Copy to clipboard"],
+  subtitle: "Send the agreement to people, or run the template somewhere else.",
+  groups: [
+    {
+      title: "Share the agreement",
+      subtitle: "The rendered text, as a signer would read it.",
+      accent: "teal",
+      cards: [
+        {
+          title: "Download PDF",
+          icon: "pdf",
+          description: "Save the rendered agreement as a PDF to share or sign.",
+          details: ["A4, black on white", "Uses the data from the Data step"],
+          button: "Download PDF",
+          action: "pdf",
+          done: "PDF downloaded",
+        },
+        {
+          title: "Download Markdown",
+          icon: "markdown",
+          description: "Save the rendered agreement as a Markdown file for docs, wikis or a pull request.",
+          details: ["Headings, lists and emphasis kept", "Uses the data from the Data step"],
+          button: "Download .md",
+          action: "markdown",
+          done: "Markdown downloaded",
+        },
+        {
+          title: "Share link",
+          icon: "link",
+          description: "Copy a link that opens this template in the Playground.",
+          details: ["Carries the text, model, data and logic", "Nothing is uploaded — it is all in the link"],
+          button: "Copy link",
+          action: "share",
+          done: "Link copied",
+        },
+        {
+          title: "Copy to clipboard",
+          icon: "copy",
+          description: "Copy the rendered agreement text.",
+          details: ["Plain text, paragraphs kept", "Paste into an email or a document"],
+          button: "Copy text",
+          action: "copy",
+          done: "Agreement text copied",
+        },
+      ],
+    },
+    {
+      title: "Run the template elsewhere",
+      subtitle: "The template itself — text, model and logic — for other tools and services.",
+      accent: "blue",
+      cards: [
+        {
+          title: "Download template archive",
+          icon: "archive",
+          description:
+            "Save the template as a .cta archive you can version, publish or load anywhere Accord Project tooling runs.",
+          details: ["Text, model, logic and sample data", "Re-import it here with “Upload a file”"],
+          button: "Download .cta",
+          action: "archive",
+          done: "Template archive downloaded",
+        },
+        {
+          title: "Open in vscode.dev",
+          icon: "vscode",
+          description:
+            "Save the template as a folder on your computer and open it in VS Code for the Web to keep editing it there.",
+          details: [
+            "First save the folder, then open vscode.dev",
+            "There, choose File › Open Folder and pick the saved folder",
+            "Chrome or Edge — they can save folders",
+          ],
+          button: "1. Save as folder",
+          action: "vscode",
+          secondary: { label: "2. Open vscode.dev", href: URLS.vscodeDev },
+        },
+        {
+          title: "Deploy to an APAP server",
+          icon: "server",
+          description:
+            "Publish the template to an Agreement Protocol server so apps and services can create and trigger agreements over REST.",
+          details: ["Upload the .cta archive to the server", "Create agreements and trigger them over REST"],
+          button: "APAP deploy guide",
+          href: URLS.apapDeploy,
+        },
+        {
+          title: "Embed in your app",
+          icon: "code",
+          description: "Use the template engine from your own code to draft, validate and execute this template.",
+          details: ["An npm package for Node.js and the browser", "The same engine this playground runs"],
+          button: "Template engine docs",
+          href: URLS.engineDocs,
+        },
+        {
+          title: "Deploy to an MCP server",
+          icon: "mcp",
+          description:
+            "Expose the template to AI assistants (Claude, Cursor, …) through the Model Context Protocol endpoint of an APAP server.",
+          details: ["Agents can draft and trigger agreements", "Experimental — part of the APAP server"],
+          button: "MCP support docs",
+          href: URLS.apapMcp,
+        },
+      ],
+    },
+  ] satisfies readonly DeployGroup[],
+  failed: (title: string) => `${title} failed`,
+  /** Toasts for the vscode.dev card. */
+  folderSaved: (folder: string) =>
+    `Saved the template to “${folder}”. Now open vscode.dev, choose File › Open Folder and pick it.`,
+  noFolderSupport:
+    "This browser can’t save folders, so the template was downloaded as a .cta (a zip). Unzip it, then open the folder in vscode.dev from Chrome or Edge, or in desktop VS Code.",
+  renderError: "The agreement doesn’t render with the current text, model and data — fix the error and try again.",
+} as const;
+
+/** Every Deploy card, in display order. */
+export const DEPLOY_CARDS: readonly DeployCard[] = DEPLOY.groups.flatMap((g): readonly DeployCard[] => g.cards);
+
+/** The three ways to bring in a template, beside the gallery cards on the Template step. */
+export const IMPORT = {
+  title: "Or bring your own",
+  groupLabel: "Import a template",
+  library: {
+    button: "Template library",
+    hint: "Browse templates.accordproject.org",
+    modalTitle: "Import from the Accord Project template library",
+    search: "Search by name or description",
+    typeLabel: "Type",
+    typeAll: "All types",
+    types: ["Contract", "Clause"] as const,
+    categories: "Categories",
+    showArchived: "Show archived templates",
+    clear: "Clear",
+    /** "12 templates shown" */
+    count: (n: number) => `${n} ${n === 1 ? "template" : "templates"} shown`,
+    compatibleNote: "Only templates that run in the playground are listed (TypeScript templates, Cicero 2.0 and later).",
+    untagged: "Other",
+    archived: "Archived",
+    loading: "Loading the library…",
+    empty: "No templates match.",
+    loadFailed: (reason: string) => `The library could not be loaded: ${reason}`,
+    pick: (name: string, version: string) => `Import ${name} ${version}`,
+    use: "Import",
+  },
+  upload: {
+    button: "Upload a file",
+    hint: "A .cta template archive (Cicero 2.0 or later)",
+    inputLabel: "Template archive (.cta)",
+    accept: ".cta,.zip",
+  },
+  url: {
+    button: "From a URL",
+    hint: "A .cta link, e.g. from another library",
+    modalTitle: "Import from a URL",
+    label: "Archive URL",
+    placeholder: "https://example.org/archives/my-template@1.0.0.cta",
+    submit: "Import",
+    cancel: "Cancel",
+  },
+  imported: (name: string) => `Imported ${name}`,
+  failed: (reason: string) => `Import failed: ${reason}`,
 } as const;
