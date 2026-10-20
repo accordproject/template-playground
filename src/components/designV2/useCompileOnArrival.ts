@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
-import useAppStore from "../../store/store";
+import useAppStore, { currentTemplateGeneration } from "../../store/store";
 import { pendingLogic } from "../../editors/logicSource";
 
 /*
  * There is no compile button. The logic is compiled at two moments:
  *   - when the Logic step opens (useCompileOnArrival), so a template that
  *     ships logic shows both chips ticked and the bar full right away;
- *   - before Simulate opens (ensureLogicCompiles), from Next or the stepper,
+ *   - before Simulate opens (ensureLogicCompiles), from Next, Back or the stepper,
  *     so a compile error keeps the user on Logic with the error in view.
  * Both skip an empty editor (see pendingLogic).
  */
@@ -56,34 +56,58 @@ const MAX_COMPILE_ATTEMPTS = 3;
 
 /**
  * Compiles the logic (if written and stale) and says whether Simulate may
- * open: true when nothing is written — Simulate shows its "no logic" dialog —
- * or when the logic compiles; false when it does not. Reads the store
- * directly: it runs from a click handler, not from render.
+ * open (see LogicGateResult): "ok" when nothing is written or the logic
+ * compiles, "failed" when it does not, "cancelled" when the template was
+ * replaced meanwhile. Reads the store directly: it runs from a click
+ * handler, not from render.
  * Staleness is checked again after each compile: an edit made while it ran
  * (to the logic or to model.cto) is compiled too, so Simulate never opens on
  * logic compiled from sources that have since changed.
  */
-export const ensureLogicCompiles = (): Promise<boolean> => {
+export const ensureLogicCompiles = (): Promise<LogicGateResult> => {
   // Concurrent moves (Next, then the stepper, while compiling) share one gate:
-  // separate loops would keep superseding each other's compiles.
-  inFlightGate ??= runLogicGate().finally(() => {
-    inFlightGate = null;
-  });
-  return inFlightGate;
+  // separate loops would keep superseding each other's compiles. A gate
+  // started for a template that has since been replaced is not shared.
+  const generation = currentTemplateGeneration();
+  if (!inFlightGate || inFlightGate.generation !== generation) {
+    const gate: InFlightGate = {
+      generation,
+      result: runLogicGate(generation).finally(() => {
+        if (inFlightGate === gate) inFlightGate = null;
+      }),
+    };
+    inFlightGate = gate;
+  }
+  return inFlightGate.result;
 };
 
-let inFlightGate: Promise<boolean> | null = null;
+/**
+ * "ok": Simulate may open (the logic compiles, or there is none); "failed":
+ * it does not compile; "cancelled": the template was replaced while the gate
+ * ran (a sample or shared link was loaded), so the move it guarded is void.
+ */
+export type LogicGateResult = "ok" | "failed" | "cancelled";
 
-const runLogicGate = async (): Promise<boolean> => {
+interface InFlightGate {
+  generation: number;
+  result: Promise<LogicGateResult>;
+}
+let inFlightGate: InFlightGate | null = null;
+
+const verdict = (compiles: boolean): LogicGateResult => (compiles ? "ok" : "failed");
+
+const runLogicGate = async (generation: number): Promise<LogicGateResult> => {
   for (let attempt = 0; attempt < MAX_COMPILE_ATTEMPTS; attempt++) {
     const s = useAppStore.getState();
     const pending = pendingLogic(s.editorLogicTs);
-    if (pending === null) return true;
-    if (!isStale(pending, s)) return Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0;
+    if (pending === null) return "ok";
+    if (!isStale(pending, s)) return verdict(Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0);
     await s.setLogicTs(pending);
+    // Edits within the same template are compiled again; a new template ends the gate.
+    if (currentTemplateGeneration() !== generation) return "cancelled";
   }
   const s = useAppStore.getState();
   const pending = pendingLogic(s.editorLogicTs);
-  if (pending === null) return true;
-  return !isStale(pending, s) && Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0;
+  if (pending === null) return "ok";
+  return verdict(!isStale(pending, s) && Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0);
 };

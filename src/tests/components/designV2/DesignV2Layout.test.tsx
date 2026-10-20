@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
 import { message } from 'antd';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
@@ -22,6 +23,16 @@ vi.mock('@monaco-editor/react', () => ({
   useMonaco: () => null,
   Editor: ({ language }: { language: string }) => <div data-testid={`monaco-${language}`} />,
 }));
+
+// The store's own loadSample, kept before the tests below swap in stand-ins.
+const realLoadSample = useAppStore.getState().loadSample;
+
+/** A promise with its resolve handle, to finish a compile when the test says so. */
+const deferredCompile = () => {
+  let finish!: () => void;
+  const done = new Promise<void>((resolve) => { finish = resolve; });
+  return { done, finish };
+};
 
 const renderLayout = () =>
   render(
@@ -252,6 +263,57 @@ describe('DesignV2Layout — moving to Simulate', () => {
     expect(setLogicTs).toHaveBeenCalledTimes(1);
     expect(showError).not.toHaveBeenCalled();
     showError.mockRestore();
+  });
+
+  it('Back goes through the same gate: it compiles before Simulate opens, and a compile error stays put', async () => {
+    const setLogicTs = compileTo('error');
+    useAppStore.setState({ setLogicTs });
+    useDesignV2Store.setState({ view: STEP_ID.deploy });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: FOOTER.back }));
+    await waitFor(() => expect(setLogicTs).toHaveBeenCalledWith(edited));
+    await waitFor(() => expect(useAppStore.getState().compilationErrors).toHaveLength(1));
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.deploy);
+  });
+
+  it('drops a move to Simulate when the step changes while it compiles', async () => {
+    const { done, finish } = deferredCompile();
+    const compile = compileTo('ok');
+    const setLogicTs = vi.fn(async (ts: string) => {
+      await done;
+      await compile(ts);
+    });
+    useAppStore.setState({ setLogicTs });
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: /Simulate/ }));
+    await waitFor(() => expect(setLogicTs).toHaveBeenCalledTimes(1));
+    act(() => useDesignV2Store.setState({ view: FIRST_STEP }));
+    finish();
+    await waitFor(() => expect(useAppStore.getState().compiledLogicJs).toBe('js'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+  });
+
+  it('drops a move to Simulate when another sample is loaded while it compiles', async () => {
+    const { done, finish } = deferredCompile();
+    const compile = compileTo('ok');
+    const setLogicTs = vi.fn(async (ts: string) => {
+      await done;
+      await compile(ts);
+    });
+    useAppStore.setState({ setLogicTs, rebuild: vi.fn().mockResolvedValue(undefined) });
+    localStorage.setItem('hasVisitedLogicTour', 'true');
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: /Simulate/ }));
+    await waitFor(() => expect(setLogicTs).toHaveBeenCalledTimes(1));
+    // Loading a sample starts a new template generation; the view itself does not change.
+    await act(() => realLoadSample(latePayment.NAME));
+    finish();
+    await waitFor(() => expect(useAppStore.getState().compiledLogicJs).toBe('js'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
   });
 
   it('passes over Simulate when there is no logic: Next goes to Deploy, Back returns to Logic', async () => {

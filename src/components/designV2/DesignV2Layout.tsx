@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
 import useAppStore from "../../store/store";
@@ -65,12 +66,25 @@ const DesignV2Layout = () => {
   const hasLogic = usePendingLogic() !== null;
   const isSkipped = (id: DesignV2View) => id === STEP_ID.simulate && !hasLogic;
 
-  /** Any move to another step. Simulate opens only if the logic compiles. */
+  /** Id of the latest move; a move to Simulate still compiling is void once a newer one starts. */
+  const latestMove = useRef(0);
+
+  /**
+   * Any move to another step — Next, Back or the stepper. Simulate opens
+   * only if the logic compiles. A move that waited on the compile is dropped
+   * if, meanwhile, a newer move started, the step changed (e.g. back to
+   * Template to pick another sample) or the template was replaced.
+   */
   const navigate = (target: DesignV2View) => {
     if (isSkipped(target)) return;
+    const move = ++latestMove.current;
+    const from = useDesignV2Store.getState().view;
     void (async () => {
       if (target === STEP_ID.simulate) {
-        if (!(await ensureLogicCompiles())) {
+        const result = await ensureLogicCompiles();
+        const superseded = move !== latestMove.current || useDesignV2Store.getState().view !== from;
+        if (superseded || result === "cancelled") return;
+        if (result === "failed") {
           void message.error(FOOTER.logicBlocked);
           return;
         }
@@ -96,7 +110,7 @@ const DesignV2Layout = () => {
   };
   const back = () => {
     const target = neighbour(-1);
-    if (target !== undefined) setView(target);
+    if (target !== undefined) navigate(target);
   };
 
   const showChrome = view !== "welcome";
