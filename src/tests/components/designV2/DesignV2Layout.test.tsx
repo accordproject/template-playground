@@ -276,6 +276,22 @@ describe('DesignV2Layout — moving to Simulate', () => {
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.deploy);
   });
 
+  it('a failed run in Simulate does not block going back to it', async () => {
+    // Compiled and current; a later init/trigger failure left an execution error behind.
+    const setLogicTs = compileTo('ok');
+    useAppStore.setState({
+      setLogicTs,
+      editorLogicTs: latePayment.LOGIC,
+      compiledLogicJs: 'js',
+      compilationErrors: [{ message: 'Execution Error: boom' }],
+    });
+    useDesignV2Store.setState({ view: STEP_ID.deploy });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: FOOTER.back }));
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.simulate));
+    expect(setLogicTs).not.toHaveBeenCalled();
+  });
+
   it('drops a move to Simulate when the step changes while it compiles', async () => {
     const { done, finish } = deferredCompile();
     const compile = compileTo('ok');

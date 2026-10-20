@@ -42,6 +42,11 @@ describe('logicStatus', () => {
     expect(logicStatus(base)).toBe('notCompiled');
     expect(logicStatus({ ...base, editorLogicTs: '', logicTs: '' })).toBe('empty');
   });
+
+  it('says compiled when the logic compiled and only running it failed', () => {
+    const executionError = [{ message: 'Execution Error: boom' }];
+    expect(logicStatus({ ...base, compiledLogicJs: 'js', compilationErrors: executionError })).toBe('compiled');
+  });
 });
 
 describe('LogicView', () => {
@@ -150,6 +155,19 @@ describe('LogicView', () => {
   describe('compiles on arrival', () => {
     it('compiles logic that was never compiled, so a template that ships logic opens compiled', () => {
       render(<LogicView />);
+      expect(setLogicTs).toHaveBeenCalledTimes(1);
+      expect(setLogicTs).toHaveBeenCalledWith(latePayment.LOGIC);
+    });
+
+    it('waits for a compile still running, then recompiles if the model changed meanwhile', () => {
+      // Left Logic while compiling, edited model.cto, came back before the compile finished.
+      const editedModel = latePayment.MODEL + '\n// edited';
+      useAppStore.setState({ isCompiling: true, modelCto: editedModel, compiledModelCto: null });
+      render(<LogicView />);
+      expect(setLogicTs).not.toHaveBeenCalled();
+
+      // The old compile finishes, against the model as it was before the edit.
+      act(() => useAppStore.setState({ isCompiling: false, compiledLogicJs: 'js', compiledModelCto: latePayment.MODEL }));
       expect(setLogicTs).toHaveBeenCalledTimes(1);
       expect(setLogicTs).toHaveBeenCalledWith(latePayment.LOGIC);
     });

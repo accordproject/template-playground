@@ -45,8 +45,11 @@ export const useCompileOnArrival = () => {
   const attempted = useRef(false);
   useEffect(() => {
     if (attempted.current) return;
+    // A compile still running (started before leaving and coming back) may be
+    // for sources edited since: wait for it, then check staleness.
+    if (isCompiling) return;
     attempted.current = true;
-    if (pending === null || isCompiling) return;
+    if (pending === null) return;
     if (isStale(pending, { logicTs, modelCto, compiledModelCto, compiledLogicJs, compilationErrors })) void setLogicTs(pending);
   }, [pending, logicTs, modelCto, compiledModelCto, compiledLogicJs, compilationErrors, isCompiling, setLogicTs]);
 };
@@ -96,12 +99,20 @@ let inFlightGate: InFlightGate | null = null;
 
 const verdict = (compiles: boolean): LogicGateResult => (compiles ? "ok" : "failed");
 
+/**
+ * Whether the last compile succeeded. compileLogic clears compiledLogicJs
+ * before it runs and sets it only on success, so its presence is the test;
+ * compilationErrors also collects execution errors from init/trigger, which
+ * must not stop the move to Simulate.
+ */
+const compiledOk = (s: LogicState) => Boolean(s.compiledLogicJs);
+
 const runLogicGate = async (generation: number): Promise<LogicGateResult> => {
   for (let attempt = 0; attempt < MAX_COMPILE_ATTEMPTS; attempt++) {
     const s = useAppStore.getState();
     const pending = pendingLogic(s.editorLogicTs);
     if (pending === null) return "ok";
-    if (!isStale(pending, s)) return verdict(Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0);
+    if (!isStale(pending, s)) return verdict(compiledOk(s));
     await s.setLogicTs(pending);
     // Edits within the same template are compiled again; a new template ends the gate.
     if (currentTemplateGeneration() !== generation) return "cancelled";
@@ -109,5 +120,5 @@ const runLogicGate = async (generation: number): Promise<LogicGateResult> => {
   const s = useAppStore.getState();
   const pending = pendingLogic(s.editorLogicTs);
   if (pending === null) return "ok";
-  return verdict(!isStale(pending, s) && Boolean(s.compiledLogicJs) && s.compilationErrors.length === 0);
+  return verdict(!isStale(pending, s) && compiledOk(s));
 };
