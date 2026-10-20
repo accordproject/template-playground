@@ -619,7 +619,7 @@ export const IMPORT = {
     clear: "Clear",
     /** "12 templates shown" */
     count: (n: number) => `${n} ${n === 1 ? "template" : "templates"} shown`,
-    compatibleNote: "Only templates that run in the playground are listed (TypeScript templates, Cicero 1.0 and later).",
+    compatibleNote: "Only templates that run in the playground are listed (TypeScript templates, Cicero 2.0 and later).",
     untagged: "Other",
     archived: "Archived",
     loading: "Loading the library…",
@@ -630,7 +630,7 @@ export const IMPORT = {
   },
   upload: {
     button: "Upload a file",
-    hint: "A .cta template archive (Cicero 1.0 or later)",
+    hint: "A .cta template archive (Cicero 2.0 or later)",
     inputLabel: "Template archive (.cta)",
     accept: ".cta,.zip",
   },
