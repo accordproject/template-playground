@@ -9,9 +9,9 @@ import { STEPS } from '../../../types/designV2.types';
 import { IMPORT } from '../../../components/designV2/constants';
 import * as blank from '../../../samples/blank';
 
-const makeArchive = async () => {
+const makeArchive = async (cicero = '^3.0.0') => {
   const zip = new JSZip();
-  zip.file('package.json', JSON.stringify({ name: 'imported-nda' }));
+  zip.file('package.json', JSON.stringify({ name: 'imported-nda', version: '1.0.0', accordproject: { template: 'contract', cicero } }));
   zip.file('text/grammar.tem.md', 'Hello {{exampleField}}');
   zip.file('model/model.cto', blank.MODEL);
   zip.file('data.json', JSON.stringify(blank.DATA));
@@ -40,8 +40,8 @@ describe('ImportTemplates', () => {
     Object.defineProperty(file, 'arrayBuffer', { value: () => Promise.resolve(bytes.buffer) });
     fireEvent.change(screen.getByLabelText(IMPORT.upload.inputLabel), { target: { files: [file] } });
     await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
-    expect((loadImportedTemplate.mock.calls as unknown[][])[0][0]).toMatchObject({ name: 'imported-nda', templateMarkdown: 'Hello {{exampleField}}' });
-    expect(useDesignV2Store.getState().selectedTemplate).toBe('imported-nda');
+    expect((loadImportedTemplate.mock.calls as unknown[][])[0][0]).toMatchObject({ name: 'Imported Nda', templateMarkdown: 'Hello {{exampleField}}' });
+    expect(useDesignV2Store.getState().selectedTemplate).toBe('Imported Nda');
     expect(useDesignV2Store.getState().view).toBe(STEPS[1].id);
   }, 30_000);
 
@@ -80,7 +80,7 @@ describe('ImportTemplates', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     finishLoading();
-    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('imported-nda'));
+    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('Imported Nda'));
     // Closing skipped the move to the next step, not the selection.
     expect(useDesignV2Store.getState().view).toBe(STEPS[0].id);
   }, 30_000);
@@ -102,7 +102,7 @@ describe('ImportTemplates', () => {
     fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
     expect(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW)).toBeInTheDocument();
     finishLoading();
-    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('imported-nda'));
+    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('Imported Nda'));
     await new Promise((resolve) => setTimeout(resolve, 0));
     // The reopened dialog is still open (antd removes a closed one from the DOM at once here).
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -110,6 +110,7 @@ describe('ImportTemplates', () => {
 
   it('lists only compatible templates, filters like the hosted library and imports the chosen one', async () => {
     const bytes = await makeArchive();
+    const cicero1 = await makeArchive('^1.0.0');
     const fetchMock = vi.fn((url: string) =>
       Promise.resolve(
         url.endsWith('template-library.json')
@@ -119,17 +120,20 @@ describe('ImportTemplates', () => {
               'late-fees@0.9.0': { name: 'late-fees', displayName: 'Late Fees', version: '0.9.0', description: 'Penalty clause', ciceroVersion: '^1.0.0', type: 0, tags: ['finance'] },
               'late-fees@1.0.0': { name: 'late-fees', displayName: 'Late Fees', version: '1.0.0', description: 'Penalty clause', ciceroVersion: '^2.0.0', type: 0, tags: ['finance'] },
               'old@1.0.0': { name: 'old', displayName: 'Old One', version: '1.0.0', description: 'Retired', ciceroVersion: '^2.0.0', archived: true, tags: ['finance'] },
+              // Indexed as ^2.0.0, but its archive targets Cicero 1.x, which Cicero refuses.
+              'mislabelled@1.0.0': { name: 'mislabelled', displayName: 'Mislabelled', version: '1.0.0', description: 'Index says 2', ciceroVersion: '^2.0.0', tags: ['finance'] },
             }) }
-          : { ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }
+          : { ok: true, arrayBuffer: () => Promise.resolve((url.includes('mislabelled') ? cicero1 : bytes).buffer) }
       )
     );
     vi.stubGlobal('fetch', fetchMock);
     render(<ImportTemplates />);
     fireEvent.click(screen.getByRole('button', { name: IMPORT.library.button }));
-    // Newest compatible version only; the Ergo-era 0.14.0 and the archived template are hidden.
+    // Newest compatible version only; the Ergo-era 0.14.0, the archived template and the Cicero 1.x archive are hidden.
     expect(await screen.findByText(IMPORT.library.count(2), undefined, SLOW)).toBeInTheDocument();
     expect(screen.queryByText('Ergo hello')).not.toBeInTheDocument();
     expect(screen.queryByText('Old One')).not.toBeInTheDocument();
+    expect(screen.queryByText('Mislabelled')).not.toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'finance' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'reference' })).toBeInTheDocument();
 

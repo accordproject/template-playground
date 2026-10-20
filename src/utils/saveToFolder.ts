@@ -1,8 +1,9 @@
 /**
- * Writing a template archive out as a folder, through the File System Access
- * API, so an editor that opens local folders (vscode.dev, VS Code) can open it.
+ * Writing a template out as a folder, through the File System Access API,
+ * so an editor that opens local folders (vscode.dev, VS Code) can open it.
  * Only Chromium browsers implement the API; callers check `canSaveToFolder()`.
  */
+import type { TemplateFile } from "./templateArchive";
 
 /** The slice of FileSystemDirectoryHandle this module uses (also what tests fake). */
 export interface DirectoryHandle {
@@ -11,7 +12,7 @@ export interface DirectoryHandle {
   getFileHandle(
     name: string,
     options?: { create?: boolean },
-  ): Promise<{ createWritable(): Promise<{ write(data: Uint8Array): Promise<void>; close(): Promise<void> }> }>;
+  ): Promise<{ createWritable(): Promise<{ write(data: string): Promise<void>; close(): Promise<void> }> }>;
 }
 
 type PickerWindow = Window & {
@@ -55,28 +56,26 @@ export const freshFolderName = async (parent: DirectoryHandle, name: string): Pr
 };
 
 /**
- * Writes every file of a `.cta` archive into a new folder under `parent`
- * (see freshFolderName), creating sub-folders as needed. Returns the
- * folder's name.
+ * Writes a template's files (exportTemplateFiles: the cicero Template's
+ * package.json, grammar, models, logic and samples) into a new folder under
+ * `parent` (see freshFolderName), creating sub-folders as needed. Returns
+ * the folder's name.
  */
-export const writeArchiveToFolder = async (
-  archive: Uint8Array,
+export const writeTemplateFiles = async (
+  files: readonly TemplateFile[],
   parent: DirectoryHandle,
   folderName: string,
 ): Promise<string> => {
-  const JSZip = (await import("jszip")).default;
-  const zip = await JSZip.loadAsync(archive);
   const root = await parent.getDirectoryHandle(await freshFolderName(parent, folderName), { create: true });
-  for (const entry of Object.values(zip.files)) {
-    if (entry.dir) continue;
-    const parts = entry.name.split("/").filter(Boolean);
+  for (const { path, contents } of files) {
+    const parts = path.split("/").filter(Boolean);
     const fileName = parts.pop();
     if (!fileName || parts.includes("..")) continue;
     let dir = root;
     for (const part of parts) dir = await dir.getDirectoryHandle(part, { create: true });
     const file = await dir.getFileHandle(fileName, { create: true });
     const writable = await file.createWritable();
-    await writable.write(await entry.async("uint8array"));
+    await writable.write(contents);
     await writable.close();
   }
   return root.name;

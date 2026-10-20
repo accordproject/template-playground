@@ -9,8 +9,7 @@ import JSZip from "jszip";
 import {
   DEFAULT_TEMPLATE_NAME,
   buildExportArchive,
-  buildTemplateArchive,
-  buildTemplateArchiveBlob,
+  templateFromContent,
   templateSlug,
   readTemplateArchive,
   archiveFileName,
@@ -71,7 +70,7 @@ describe("template archive", () => {
   });
 
   it("round-trips a template, its data and its logic", async () => {
-    const bytes = await buildTemplateArchive(
+    const bytes = await buildExportArchive(
       {
         templateMarkdown: counter.TEMPLATE,
         modelCto: counter.MODEL,
@@ -82,7 +81,11 @@ describe("template archive", () => {
       "Counter",
     );
     const zip = await JSZip.loadAsync(bytes);
-    expect(Object.keys(zip.files)).toEqual(expect.arrayContaining(["package.json", "text/grammar.tem.md", "model/model.cto", "logic/logic.ts"]));
+    // Cicero's own layout (Template.toArchive): sample data in sample.json, the request in request.json.
+    expect(Object.keys(zip.files)).toEqual(
+      expect.arrayContaining(["package.json", "text/grammar.tem.md", "model/model.cto", "logic/logic.ts", "sample.json", "request.json"]),
+    );
+    expect(zip.file("data.json")).toBeNull();
 
     const back = await readTemplateArchive(bytes, "fallback");
     expect(back.name).toBe("Counter");
@@ -103,7 +106,7 @@ describe("template archive", () => {
 
   it("refuses templates it can't run: Cicero 0.x, Ergo or JavaScript-only logic", async () => {
     const ergo = new JSZip();
-    ergo.file("package.json", JSON.stringify({ name: "helloworld", accordproject: { cicero: "^0.25.0" } }));
+    ergo.file("package.json", JSON.stringify({ name: "helloworld", version: "1.0.0", accordproject: { cicero: "^0.25.0" } }));
     ergo.file("text/grammar.tem.md", "Hello {{name}}.");
     ergo.file("model/model.cto", libraryModel);
     ergo.file("logic/logic.ergo", "contract X over Y {}");
@@ -111,7 +114,7 @@ describe("template archive", () => {
 
     // JavaScript-only logic would be dropped on import, so it is refused rather than imported without it.
     const javaScript = new JSZip();
-    javaScript.file("package.json", JSON.stringify({ name: "js", accordproject: { cicero: "^3.0.0" } }));
+    javaScript.file("package.json", JSON.stringify({ name: "js", version: "1.0.0", accordproject: { cicero: "^3.0.0" } }));
     javaScript.file("text/grammar.tem.md", blank.TEMPLATE);
     javaScript.file("model/model.cto", blank.MODEL);
     javaScript.file("logic/logic.js", "class Logic {}\nmodule.exports = Logic;");
@@ -119,15 +122,23 @@ describe("template archive", () => {
       /JavaScript \(logic\/logic\.js\)/,
     );
 
+    // Cicero's own rule: Cicero 3 accepts templates for Cicero 2.0 and later, not 1.x.
+    const cicero1 = new JSZip();
+    cicero1.file("package.json", JSON.stringify({ name: "one", version: "1.0.0", accordproject: { cicero: "^1.0.0" } }));
+    cicero1.file("text/grammar.tem.md", blank.TEMPLATE);
+    cicero1.file("model/model.cto", blank.MODEL);
+    await expect(readTemplateArchive(await cicero1.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(
+      /targets Cicero \^1\.0\.0, which Cicero 3\.\d+\.\d+/,
+    );
     const old = new JSZip();
-    old.file("package.json", JSON.stringify({ name: "old", accordproject: { cicero: "^0.21.0" } }));
+    old.file("package.json", JSON.stringify({ name: "old", version: "1.0.0", accordproject: { cicero: "^0.21.0" } }));
     old.file("text/grammar.tem.md", "Hello {{name}}.");
     old.file("model/model.cto", libraryModel);
     await expect(readTemplateArchive(await old.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/Cicero \^0\.21\.0/);
 
     // A TypeScript runtime does not change the engine the template targets.
     const tsOld = new JSZip();
-    tsOld.file("package.json", JSON.stringify({ name: "old-ts", accordproject: { runtime: "typescript", cicero: "^0.25.0" } }));
+    tsOld.file("package.json", JSON.stringify({ name: "old-ts", version: "1.0.0", accordproject: { runtime: "typescript", cicero: "^0.25.0" } }));
     tsOld.file("text/grammar.tem.md", "Hello {{name}}.");
     tsOld.file("model/model.cto", libraryModel);
     tsOld.file("logic/logic.ts", "export default class {}");
@@ -138,7 +149,7 @@ describe("template archive", () => {
     const zip = new JSZip();
     zip.file(
       "package.json",
-      JSON.stringify({ name: "helloworld", displayName: "Hello World", accordproject: { runtime: "typescript", cicero: "^1.0.0" } }),
+      JSON.stringify({ name: "helloworld", version: "1.0.0", displayName: "Hello World", accordproject: { runtime: "typescript", cicero: "^2.0.0" } }),
     );
     zip.file("text/grammar.tem.md", "Name of the person to greet: {{name}}.");
     zip.file("model/model.cto", libraryModel);
@@ -190,7 +201,8 @@ describe("template archive", () => {
     expect(await kindOf(copyright.MODEL)).toBe("contract");
     expect(await kindOf(copyright.MODEL.replace("@template\n", "").replace("asset PaymentClause", "@template\nasset PaymentClause"))).toBe("clause");
     expect(await kindOf(blank.MODEL)).toBe("contract");
-    expect(await kindOf("not a model")).toBe("contract");
+    // Cicero has to load the model to export it, so a model that doesn't parse can't be exported.
+    await expect(kindOf("not a model")).rejects.toThrow();
     // Clause reached through an abstract base, not extended directly.
     expect(await kindOf(INDIRECT_CLAUSE)).toBe("clause");
   }, TIMEOUT);
@@ -221,7 +233,7 @@ describe("template archive", () => {
     expect(await unsupportedLogicImports("import { v4 } from 'uuid';", model)).toEqual([]);
 
     const zip = new JSZip();
-    zip.file("package.json", JSON.stringify({ name: "x", accordproject: { cicero: "^2.0.0" } }));
+    zip.file("package.json", JSON.stringify({ name: "x", version: "1.0.0", accordproject: { cicero: "^2.0.0" } }));
     zip.file("text/grammar.tem.md", blank.TEMPLATE);
     zip.file("model/model.cto", blank.MODEL);
     zip.file("logic/logic.ts", "import { help } from './helpers';\nexport default class {}");
@@ -252,7 +264,7 @@ concept TemplateModel {
     expect(await unsupportedModelImports("namespace {")).toEqual([]);
 
     const zip = new JSZip();
-    zip.file("package.json", JSON.stringify({ name: "x", accordproject: { cicero: "^2.0.0" } }));
+    zip.file("package.json", JSON.stringify({ name: "x", version: "1.0.0", accordproject: { cicero: "^2.0.0" } }));
     zip.file("text/grammar.tem.md", blank.TEMPLATE);
     zip.file("model/model.cto", model);
     zip.file("model/party.cto", "namespace org.example.party@1.0.0\nparticipant Party identified by name { o String name }");
@@ -271,7 +283,7 @@ concept TemplateModel {
     expect(await runtimeLogicImports(runtimeEnum)).toEqual([money]);
 
     const zip = new JSZip();
-    zip.file("package.json", JSON.stringify({ name: "x", accordproject: { cicero: "^3.0.0" } }));
+    zip.file("package.json", JSON.stringify({ name: "x", version: "1.0.0", accordproject: { cicero: "^3.0.0" } }));
     zip.file("text/grammar.tem.md", blank.TEMPLATE);
     zip.file("model/model.cto", blank.MODEL);
     zip.file("logic/logic.ts", runtimeEnum);
@@ -318,7 +330,7 @@ concept TemplateModel {
     expect(await unsupportedLogicImports(legacy, counter.MODEL)).toEqual([]);
     expect(await normalizeModelImports(legacy, counter.MODEL)).toBe(scaffold);
     const legacyZip = new JSZip();
-    legacyZip.file("package.json", JSON.stringify({ name: "x", accordproject: { cicero: "^2.0.0" } }));
+    legacyZip.file("package.json", JSON.stringify({ name: "x", version: "1.0.0", accordproject: { cicero: "^2.0.0" } }));
     legacyZip.file("text/grammar.tem.md", counter.TEMPLATE);
     legacyZip.file("model/model.cto", counter.MODEL);
     legacyZip.file("data.json", JSON.stringify(counter.DATA));
@@ -326,7 +338,7 @@ concept TemplateModel {
     expect((await readTemplateArchive(await legacyZip.generateAsync({ type: "uint8array" }), "x")).logicTs).toBe(scaffold);
     const edited = scaffold.replace("ContractLogic", "EditedLogic");
     expect(await unsupportedLogicImports(edited, counter.MODEL)).toEqual([]);
-    const bytes = await buildTemplateArchive(
+    const bytes = await buildExportArchive(
       { templateMarkdown: counter.TEMPLATE, modelCto: counter.MODEL, data: JSON.stringify(counter.DATA), logicTs: edited },
       "Counter",
     );
@@ -335,19 +347,19 @@ concept TemplateModel {
     expect(await unsupportedLogicImports("import { x } from './org.other@1.0.0';", counter.MODEL)).toEqual(["./org.other@1.0.0"]);
   }, TIMEOUT);
 
-  it("finds the logic entry point, or refuses to guess", () => {
+  it("finds the logic entry point the engine would run, or refuses to guess", async () => {
     const generated = ["logic/concerto.ts", "logic/concerto@1.0.0.ts", "logic/org.acme@1.0.0.ts", "logic/logic.test.ts"];
-    expect(findLogicEntry(["logic/logic.ts", "logic/main.ts", ...generated])).toBe("logic/logic.ts");
-    expect(findLogicEntry(["logic/main.ts", ...generated])).toBe("logic/main.ts");
-    expect(findLogicEntry(generated)).toBeUndefined();
-    expect(() => findLogicEntry(["logic/a.ts", "logic/b.ts"])).toThrow(/several logic files/);
+    expect(await findLogicEntry(["logic/logic.ts", "logic/main.ts", ...generated])).toBe("logic/logic.ts");
+    expect(await findLogicEntry(["logic/main.ts", ...generated])).toBe("logic/main.ts");
+    expect(await findLogicEntry(generated)).toBeUndefined();
+    await expect(findLogicEntry(["logic/a.ts", "logic/b.ts"])).rejects.toThrow(/several logic files/);
     // Only generated type files are skipped: authored logic may start with "concerto" too.
-    expect(findLogicEntry(["logic/concertoLogic.ts", ...generated])).toBe("logic/concertoLogic.ts");
+    expect(await findLogicEntry(["logic/concertoLogic.ts", ...generated])).toBe("logic/concertoLogic.ts");
   });
 
   it("carries the archive's request.json for Simulate", async () => {
     const zip = new JSZip();
-    zip.file("package.json", JSON.stringify({ name: "x", accordproject: { cicero: "^2.0.0" } }));
+    zip.file("package.json", JSON.stringify({ name: "x", version: "1.0.0", accordproject: { cicero: "^2.0.0" } }));
     zip.file("text/grammar.tem.md", blank.TEMPLATE);
     zip.file("model/model.cto", blank.MODEL);
     zip.file("data.json", JSON.stringify(blank.DATA));
@@ -359,16 +371,7 @@ concept TemplateModel {
   }, TIMEOUT);
 });
 
-/** jsdom's Blob has no arrayBuffer(); FileReader reads it. */
-const readBlob = (blob: Blob) =>
-  new Promise<ArrayBuffer>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as ArrayBuffer);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsArrayBuffer(blob);
-  });
 
-const sources = { templateMarkdown: "Hello {{name}}", modelCto: "namespace org.example@1.0.0", logicTs: "class L {}" };
 
 describe("templateSlug", () => {
   it("turns a sample name into a package name", () => {
@@ -382,32 +385,24 @@ describe("templateSlug", () => {
   });
 });
 
-describe("buildTemplateArchive (the store's runnable archive)", () => {
-  it("packs package.json, text, model, the bundled models and logic", async () => {
-    const zip = await JSZip.loadAsync(await buildTemplateArchive(sources, "my-template"));
+describe("templateFromContent (the store's runnable template)", () => {
+  it("builds a cicero Template from the editors' parts, with the bundled models and the logic", async () => {
+    const template = await templateFromContent(
+      { templateMarkdown: blank.TEMPLATE, modelCto: blank.MODEL, logicTs: "export default class L {}" },
+      "My Template",
+    );
+    const pkg = template.getMetadata().getPackageJson() as { name: string; displayName: string; accordproject: unknown };
+    expect(pkg).toMatchObject({ name: "my-template", displayName: "My Template" });
+    expect(pkg.accordproject).toMatchObject({ template: "contract", runtime: "typescript" });
+    expect(template.getTemplate()).toBe(blank.TEMPLATE);
+    expect((template.getTemplateModel() as { getName(): string }).getName()).toBe("NewTemplate");
+    const modelNames = (template.getModelManager().getModels() as { name: string }[]).map((m) => m.name);
+    expect(modelNames).toEqual(expect.arrayContaining(["model.cto", ...BUNDLED_MODELS.map((m) => m.fileName)]));
+    expect(template.hasLogic()).toBe(true);
+  }, TIMEOUT);
 
-    const pkg = JSON.parse(await zip.file("package.json")!.async("string")) as { name: string; accordproject: unknown };
-    expect(pkg.name).toBe("my-template");
-    expect(pkg.accordproject).toMatchObject({ template: "contract", cicero: "^3.0.0" });
-    expect(await zip.file("text/grammar.tem.md")!.async("string")).toBe(sources.templateMarkdown);
-    expect(await zip.file("model/model.cto")!.async("string")).toBe(sources.modelCto);
-    expect(await zip.file("logic/logic.ts")!.async("string")).toBe(sources.logicTs);
-    for (const model of BUNDLED_MODELS) {
-      expect(zip.file(`model/${model.fileName}`)).not.toBeNull();
-    }
-    // The store's archive has no sample data.
-    expect(zip.file("data.json")).toBeNull();
-  });
-
-  it("leaves logic out of a template without logic", async () => {
-    const zip = await JSZip.loadAsync(await buildTemplateArchive({ ...sources, logicTs: "" }));
-    expect(zip.file("logic/logic.ts")).toBeNull();
-  });
-
-  it("builds the same archive as a zip Blob", async () => {
-    const blob = await buildTemplateArchiveBlob(sources);
-    expect(blob.type).toBe("application/zip");
-    const zip = await JSZip.loadAsync(await readBlob(blob));
-    expect(await zip.file("model/model.cto")!.async("string")).toBe(sources.modelCto);
-  });
+  it("has no logic for a template without logic", async () => {
+    const template = await templateFromContent({ templateMarkdown: blank.TEMPLATE, modelCto: blank.MODEL, logicTs: "" });
+    expect(template.hasLogic()).toBe(false);
+  }, TIMEOUT);
 });

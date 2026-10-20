@@ -20,7 +20,7 @@ import type {
   TriggerResponse,
 } from "../ai-assistant/llmProviders";
 import { validateBeforeRebuild } from "../utils/validators";
-import { buildTemplateArchive } from "../utils/templateArchive";
+import { templateFromContent } from "../utils/templateArchive";
 import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
@@ -1236,16 +1236,9 @@ const useAppStore = create<AppState>()(
           const build = ++latestTemplateBuild;
           set({ templateObject: null });
           try {
-            const { Template: CiceroTemplate } =
-              await import("@accordproject/cicero-core");
-
-            // The same .cta archive the Deploy step downloads, loaded via fromArchive.
-            const content = await buildTemplateArchive({ templateMarkdown, modelCto, logicTs });
-            const { Buffer } = await import("buffer");
-            const template = await CiceroTemplate.fromArchive(
-              Buffer.from(content),
-              { offline: true },
-            );
+            // Built from the sources as Cicero's own loader builds a template (no zip in between);
+            // the Deploy step exports the same Template with Template.toArchive.
+            const template = await templateFromContent({ templateMarkdown, modelCto, logicTs });
 
             // const { isStatefulTemplate } = await import("../ai-assistant/llmProviders");
             /*
@@ -1265,7 +1258,7 @@ const useAppStore = create<AppState>()(
             }
             if (import.meta.env.DEV)
               console.log(
-                "Successfully built Template object from JSZip archive!",
+                "Successfully built the Template object!",
                 template,
               );
             return template as AppState["templateObject"];

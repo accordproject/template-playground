@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import useAppStore from '../../store/store';
 import { TemplateArchiveProcessor } from '@accordproject/template-engine';
-import { Template as CiceroTemplate } from '@accordproject/cicero-core';
-import JSZip from 'jszip';
+import { templateFromContent } from '../../utils/templateArchive';
 import * as latePayment from '../../samples/latePaymentPenalty';
 
 vi.mock('@accordproject/template-engine', () => {
@@ -33,17 +32,14 @@ vi.mock('@accordproject/template-engine/lib/TypeScriptCompilationContext', () =>
   };
 });
 
-vi.mock('@accordproject/cicero-core', () => ({
-  Template: { fromArchive: vi.fn() },
-}));
+// The store builds its template with templateFromContent; these tests decide what each build returns.
+vi.mock('../../utils/templateArchive', () => ({ templateFromContent: vi.fn() }));
 
 type Template = NonNullable<ReturnType<typeof useAppStore.getState>['templateObject']>;
 type Compiled = { 'logic/logic.ts': { errors: unknown[]; code?: string } };
 type Processor = InstanceType<typeof TemplateArchiveProcessor>;
 
-// A static stand-in: fromArchive never uses `this`.
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const fromArchive = vi.mocked(CiceroTemplate.fromArchive);
+const fromContent = vi.mocked(templateFromContent);
 
 // The store's own builder, kept before any test swaps in a stand-in.
 const realBuildTemplateFromMemory = useAppStore.getState().buildTemplateFromMemory;
@@ -135,11 +131,6 @@ describe('useAppStore - compileLogic', () => {
 describe('useAppStore - buildTemplateFromMemory', () => {
   const sources = (model: string) => ({ templateMarkdown: 'Hello', modelCto: model, logicTs: '' });
   const templateFor = (model: string) => ({ model, isStateful: () => false }) as unknown as Template;
-  /** The model.cto inside the archive a fromArchive call received. */
-  const archivedModel = async (call: number) => {
-    const archive = fromArchive.mock.calls[call][0] as Uint8Array;
-    return (await JSZip.loadAsync(archive)).file('model/model.cto')!.async('string');
-  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -154,12 +145,12 @@ describe('useAppStore - buildTemplateFromMemory', () => {
 
   it('returns its own template, and a superseded build does not overwrite the newer one', async () => {
     const a = deferred<Template>();
-    fromArchive
+    fromContent
       .mockReturnValueOnce(a.promise)
       .mockResolvedValueOnce(templateFor('model B'));
 
     const buildA = useAppStore.getState().buildTemplateFromMemory(sources('model A'));
-    await vi.waitFor(() => expect(fromArchive).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(fromContent).toHaveBeenCalledTimes(1));
     const templateB = await useAppStore.getState().buildTemplateFromMemory(sources('model B'));
     a.resolve(templateFor('model A'));
     const templateA = await buildA;
@@ -170,7 +161,7 @@ describe('useAppStore - buildTemplateFromMemory', () => {
   });
 
   it('returns null when the build fails', async () => {
-    fromArchive.mockRejectedValueOnce(new Error('Invalid CTO model'));
+    fromContent.mockRejectedValueOnce(new Error('Invalid CTO model'));
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     expect(await useAppStore.getState().buildTemplateFromMemory(sources('model A'))).toBeNull();
@@ -181,9 +172,9 @@ describe('useAppStore - buildTemplateFromMemory', () => {
     // A finished build of the old template, and another still running.
     useAppStore.setState({ templateObject: templateFor('old model'), isTemplateStateful: false, rebuild: vi.fn().mockResolvedValue(undefined) });
     const old = deferred<Template>();
-    fromArchive.mockReturnValueOnce(old.promise);
+    fromContent.mockReturnValueOnce(old.promise);
     const pendingBuild = useAppStore.getState().buildTemplateFromMemory(sources('old model'));
-    await vi.waitFor(() => expect(fromArchive).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(fromContent).toHaveBeenCalledTimes(1));
 
     // An archive without logic: nothing compiles afterwards to replace the cached template.
     await useAppStore.getState().loadImportedTemplate({ name: 'Imported', templateMarkdown: 'Hi', modelCto: 'model B', data: '{}' });
@@ -196,13 +187,13 @@ describe('useAppStore - buildTemplateFromMemory', () => {
   });
 
   it('reads the store sources when called, not after its own awaits', async () => {
-    fromArchive.mockResolvedValueOnce(templateFor('store model'));
+    fromContent.mockResolvedValueOnce(templateFor('store model'));
 
     const build = useAppStore.getState().buildTemplateFromMemory();
     useAppStore.setState({ modelCto: 'edited model' });
     await build;
 
-    expect(await archivedModel(0)).toBe('store model');
+    expect(fromContent.mock.calls[0][0].modelCto).toBe('store model');
   });
 });
 

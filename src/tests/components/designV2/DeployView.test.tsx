@@ -308,6 +308,14 @@ describe('DeployView', () => {
       files.length = 0;
       open.mockReset();
       vi.stubGlobal('open', open);
+      // A real template: Cicero loads it to export it.
+      useAppStore.setState({
+        templateMarkdown: latePayment.TEMPLATE,
+        modelCto: latePayment.MODEL,
+        data: JSON.stringify(latePayment.DATA),
+        editorLogicTs: latePayment.LOGIC,
+        requestJson: '',
+      });
     });
     afterEach(() => {
       vi.unstubAllGlobals();

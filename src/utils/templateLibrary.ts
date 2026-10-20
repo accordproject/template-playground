@@ -4,7 +4,7 @@
  * (name@version → metadata) and `archives/<name>@<version>.cta`; the Accord
  * Project one is the first entry in LIBRARIES, and adding another is one line.
  */
-import { ciceroVersion } from "./cicero";
+import { ciceroAccepts, ciceroVersion } from "./cicero";
 
 export interface TemplateLibrary {
   id: string;
@@ -79,11 +79,38 @@ export const parseLibraryIndex = async (index: Record<string, IndexEntry>): Prom
   return templates.sort((a, b) => a.displayName.localeCompare(b.displayName));
 };
 
-/** Lists the templates of a library that run in this playground. */
+/** The Cicero range an archive's package.json targets (accordproject.cicero), if it names one. */
+export const archiveCiceroRange = async (bytes: Uint8Array): Promise<unknown> => {
+  const { default: JSZip } = await import("jszip");
+  const pkg = await (await JSZip.loadAsync(bytes)).file("package.json")?.async("string");
+  if (!pkg) return undefined;
+  const { accordproject } = JSON.parse(pkg) as { accordproject?: { cicero?: unknown } };
+  return accordproject?.cicero;
+};
+
+/**
+ * Whether Cicero accepts the archive itself. The index can disagree with it:
+ * many Accord Project templates are indexed as Cicero ^2.0.0 while their
+ * archives still target ^1.0.0, which Cicero refuses to load. An archive that
+ * can't be downloaded or read stays listed, so importing it reports why.
+ */
+const archiveAccepted = async (library: TemplateLibrary, template: LibraryTemplate): Promise<boolean> => {
+  let range: unknown;
+  try {
+    range = await archiveCiceroRange(await fetchArchive(archiveUrl(library, template)));
+  } catch {
+    return true;
+  }
+  return ciceroAccepts(range);
+};
+
+/** Lists the templates of a library that run in this playground, checking each archive as well as the index. */
 export const fetchLibraryIndex = async (library: TemplateLibrary): Promise<LibraryTemplate[]> => {
   const response = await fetch(`${library.baseUrl}/template-library.json`);
   if (!response.ok) throw new Error(`The library answered ${response.status}.`);
-  return parseLibraryIndex((await response.json()) as Record<string, IndexEntry>);
+  const listed = await parseLibraryIndex((await response.json()) as Record<string, IndexEntry>);
+  const accepted = await Promise.all(listed.map((t) => archiveAccepted(library, t)));
+  return listed.filter((_, i) => accepted[i]);
 };
 
 export interface LibraryFilter {

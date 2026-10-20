@@ -13,10 +13,10 @@ import {
 } from "@ant-design/icons";
 import useAppStore, { SourcesChangedError, currentLogicEditRevision } from "../../store/store";
 import { saveAgreementPdf } from "../../utils/agreementPdf";
-import { compress } from "../../utils/compression/compression";
 import { pendingLogic } from "../../editors/logicSource";
-import { archiveFileName, buildExportArchive } from "../../utils/templateArchive";
-import { canSaveToFolder, pickFolder, writeArchiveToFolder } from "../../utils/saveToFolder";
+import { compress } from "../../utils/compression/compression";
+import { archiveFileName, buildExportArchive, exportTemplateFiles } from "../../utils/templateArchive";
+import { canSaveToFolder, pickFolder, writeTemplateFiles } from "../../utils/saveToFolder";
 import { downloadBlob, downloadMarkdown } from "../../utils/download";
 import { DEPLOY, type DeployCard } from "./constants";
 
@@ -124,14 +124,17 @@ export const DeployView = () => {
       }
       case "vscode": {
         const folderName = archiveFileName(sampleName).replace(/\.cta$/, "");
-        const build = () => buildExportArchive({ templateMarkdown, modelCto, data, logicTs, requestJson }, sampleName);
+        const content = { templateMarkdown, modelCto, data, logicTs, requestJson };
         if (!canSaveToFolder()) {
-          downloadBlob(new Blob([(await build()) as BlobPart], { type: "application/octet-stream" }), archiveFileName(sampleName));
+          downloadBlob(
+            new Blob([(await buildExportArchive(content, sampleName)) as BlobPart], { type: "application/octet-stream" }),
+            archiveFileName(sampleName),
+          );
           return { warning: DEPLOY.noFolderSupport };
         }
         /*
          * The picker needs the click's user activation, so it opens before
-         * anything is awaited; the archive is built once a folder is chosen.
+         * anything is awaited; the template's files are built once a folder is chosen.
          * vscode.dev is not opened from here — after that work the browser
          * would block the pop-up — the card's own link opens it.
          */
@@ -143,7 +146,7 @@ export const DeployView = () => {
           if (error instanceof DOMException && error.name === "AbortError") return { cancelled: true };
           throw error;
         }
-        const saved = await writeArchiveToFolder(await build(), parent, folderName);
+        const saved = await writeTemplateFiles(await exportTemplateFiles(content, sampleName), parent, folderName);
         return { success: DEPLOY.folderSaved(`${parent.name}/${saved.split("/").pop() ?? saved}`) };
       }
       case "archive": {

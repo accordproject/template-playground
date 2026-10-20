@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import JSZip from "jszip";
-import { freshFolderName, writeArchiveToFolder, type DirectoryHandle } from "../../utils/saveToFolder";
+import { freshFolderName, writeTemplateFiles, type DirectoryHandle } from "../../utils/saveToFolder";
+import { exportTemplateFiles } from "../../utils/templateArchive";
+import * as counter from "../../samples/counterLogic";
 
 /** An in-memory folder tree with the File System Access calls the module uses. */
 const memoryFolder = (name: string, tree: Map<string, string> = new Map()): DirectoryHandle & { tree: Map<string, string> } => ({
@@ -18,32 +19,42 @@ const memoryFolder = (name: string, tree: Map<string, string> = new Map()): Dire
     Promise.resolve({
       createWritable: () =>
         Promise.resolve({
-          write: (data: Uint8Array) => Promise.resolve(void tree.set(`${name}/${file}`, new TextDecoder().decode(data))),
+          write: (data: string) => Promise.resolve(void tree.set(`${name}/${file}`, data)),
           close: () => Promise.resolve(),
         }),
     }),
 });
 
-const archive = async (files: Record<string, string>) => {
-  const zip = new JSZip();
-  for (const [path, text] of Object.entries(files)) zip.file(path, text);
-  return zip.generateAsync({ type: "uint8array" });
-};
+const files = (entries: Record<string, string>) => Object.entries(entries).map(([path, contents]) => ({ path, contents }));
 
 describe("saveToFolder", () => {
-  it("writes the archive's files, folders included", async () => {
+  it("writes the template's files, folders included", async () => {
     const parent = memoryFolder("Docs");
-    const saved = await writeArchiveToFolder(await archive({ "package.json": "{}", "logic/logic.ts": "x" }), parent, "nda");
+    const saved = await writeTemplateFiles(files({ "package.json": "{}", "logic/logic.ts": "x" }), parent, "nda");
     expect(saved).toBe("Docs/nda");
     expect(parent.tree.get("Docs/nda/logic/logic.ts")).toBe("x");
   });
 
   it("saves again into a fresh folder, so files dropped since the last save do not linger", async () => {
     const parent = memoryFolder("Docs");
-    await writeArchiveToFolder(await archive({ "package.json": "{}", "logic/logic.ts": "old" }), parent, "nda");
-    const second = await writeArchiveToFolder(await archive({ "package.json": "{}" }), parent, "nda");
+    await writeTemplateFiles(files({ "package.json": "{}", "logic/logic.ts": "old" }), parent, "nda");
+    const second = await writeTemplateFiles(files({ "package.json": "{}" }), parent, "nda");
     expect(second).toBe("Docs/nda-2");
     expect([...parent.tree.keys()].filter((k) => k.startsWith("Docs/nda-2/") && !k.endsWith("/"))).toEqual(["Docs/nda-2/package.json"]);
     expect(await freshFolderName(parent, "nda")).toBe("nda-3");
   });
+
+  it("writes a template laid out as Cicero lays out its archives", async () => {
+    const parent = memoryFolder("Docs");
+    const template = await exportTemplateFiles(
+      { templateMarkdown: counter.TEMPLATE, modelCto: counter.MODEL, data: JSON.stringify(counter.DATA), logicTs: counter.LOGIC },
+      "Counter",
+    );
+    await writeTemplateFiles(template, parent, "counter");
+    expect(JSON.parse(parent.tree.get("Docs/counter/package.json")!)).toMatchObject({ name: "counter", displayName: "Counter" });
+    expect(parent.tree.get("Docs/counter/text/grammar.tem.md")).toBe(counter.TEMPLATE);
+    expect(parent.tree.get("Docs/counter/model/model.cto")).toBe(counter.MODEL);
+    expect(parent.tree.get("Docs/counter/logic/logic.ts")).toBe(counter.LOGIC);
+    expect(JSON.parse(parent.tree.get("Docs/counter/sample.json")!)).toEqual(counter.DATA);
+  }, 60_000);
 });
