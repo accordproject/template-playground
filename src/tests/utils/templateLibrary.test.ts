@@ -1,6 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import JSZip from "jszip";
 import {
   EMPTY_FILTER,
+  LIBRARIES,
+  fetchLibraryIndex,
   filterTemplates,
   groupTemplates,
   libraryTags,
@@ -33,6 +36,47 @@ describe("template library", () => {
     expect(list.map((t) => `${t.name}@${t.version}`)).toEqual(["a@1.0.10", "b@1.0.0", "d@1.0.0", "c@1.0.0"]);
     expect(list.find((t) => t.name === "b")?.type).toBe("Clause");
     expect(list.find((t) => t.name === "a")?.displayName).toBe("Alpha");
+  });
+
+  describe("checking archives", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    const archive = (cicero: string) => {
+      const zip = new JSZip();
+      zip.file("package.json", JSON.stringify({ name: "t", version: "1.0.0", accordproject: { cicero } }));
+      return zip.generateAsync({ type: "uint8array" });
+    };
+
+    it("falls back to the newest version whose archive Cicero accepts, and hides a template with none", async () => {
+      // The index says ^2.0.0 throughout; the archives disagree for some versions.
+      const archives: Record<string, string> = {
+        "x@1.1.0": "^1.0.0",
+        "x@1.0.1": "^1.0.0",
+        "x@1.0.0": "^2.0.0",
+        "y@1.0.0": "^1.0.0",
+        "z@2.0.0": "^3.0.0",
+      };
+      const index = Object.fromEntries(
+        Object.keys(archives).map((key) => {
+          const [name, version] = key.split("@");
+          return [key, { name, version, ciceroVersion: "^2.0.0" }];
+        })
+      );
+      const fetchMock = vi.fn(async (url: string) => {
+        if (url.endsWith("template-library.json")) return { ok: true, json: () => Promise.resolve(index) };
+        const key = /archives\/(.+)\.cta$/.exec(url)![1];
+        const bytes = await archive(archives[key]);
+        return { ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) };
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      const list = await fetchLibraryIndex(LIBRARIES[0]);
+      expect(list.map((t) => `${t.name}@${t.version}`)).toEqual(["x@1.0.0", "z@2.0.0"]);
+      // Each archive is downloaded at most once, older ones only after a newer one is refused.
+      const downloaded = fetchMock.mock.calls.map(([url]) => url).filter((url) => url.endsWith(".cta"));
+      expect(downloaded.map((url) => /archives\/(.+)\.cta$/.exec(url)![1]).sort()).toEqual(Object.keys(archives).sort());
+    });
   });
 
   it("orders versions semantically: a prerelease below its release", async () => {

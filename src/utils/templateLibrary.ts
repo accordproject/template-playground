@@ -38,6 +38,8 @@ export interface LibraryTemplate {
 export const archiveUrl = (library: TemplateLibrary, template: Pick<LibraryTemplate, "name" | "version" | "url">): string =>
   template.url ?? `${library.baseUrl}/archives/${template.name}@${template.version}.cta`;
 
+type Index = Record<string, IndexEntry>;
+
 interface IndexEntry {
   name?: unknown;
   displayName?: unknown;
@@ -57,26 +59,42 @@ interface IndexEntry {
  * each template (filterTemplateIndexLatestVersion; the hosted library lists
  * one row per template too). Sorted by display name.
  */
-export const parseLibraryIndex = async (index: Record<string, IndexEntry>): Promise<LibraryTemplate[]> => {
+export const parseLibraryIndex = async (index: Index): Promise<LibraryTemplate[]> =>
+  sortByName(Object.values(await newestOf(await compatibleEntries(index))));
+
+/** The index entries this Cicero accepts, keyed name@version, without entries that lack either. */
+const compatibleEntries = async (index: Index): Promise<Index> => {
   const { TemplateLibrary } = await import("@accordproject/cicero-core");
-  const compatible = TemplateLibrary.filterTemplateIndexCiceroVersion(index, await ciceroVersion()) as Record<string, IndexEntry>;
-  const latest = TemplateLibrary.filterTemplateIndexLatestVersion(compatible) as Record<string, IndexEntry>;
-  const templates: LibraryTemplate[] = [];
-  for (const e of Object.values(latest)) {
-    if (typeof e.name !== "string" || typeof e.version !== "string") continue;
-    templates.push({
-      name: e.name,
-      displayName: typeof e.displayName === "string" && e.displayName ? e.displayName : e.name,
-      version: e.version,
-      description: typeof e.description === "string" ? e.description : "",
-      type: e.type === 1 ? "Clause" : "Contract",
-      tags: Array.isArray(e.tags) ? e.tags.filter((t): t is string => typeof t === "string") : [],
-      archived: e.archived === true,
-      ciceroVersion: typeof e.ciceroVersion === "string" ? e.ciceroVersion : "",
-      url: typeof e.url === "string" && /^https:\/\//.test(e.url) ? e.url : undefined,
-    });
-  }
-  return templates.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  const compatible = TemplateLibrary.filterTemplateIndexCiceroVersion(index, await ciceroVersion()) as Index;
+  return Object.fromEntries(
+    Object.entries(compatible).filter(([, e]) => typeof e.name === "string" && typeof e.version === "string")
+  );
+};
+
+/** The newest version of each template, keyed name@version as in the index. */
+const newestOf = async (entries: Index): Promise<Record<string, LibraryTemplate>> => {
+  const { TemplateLibrary } = await import("@accordproject/cicero-core");
+  const latest = TemplateLibrary.filterTemplateIndexLatestVersion(entries) as Index;
+  return Object.fromEntries(Object.entries(latest).map(([key, e]) => [key, toTemplate(e)]));
+};
+
+const sortByName = (templates: LibraryTemplate[]): LibraryTemplate[] =>
+  templates.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+/** An index entry that compatibleEntries kept (so name and version are strings) as a LibraryTemplate. */
+const toTemplate = (e: IndexEntry): LibraryTemplate => {
+  if (typeof e.name !== "string" || typeof e.version !== "string") throw new Error("index entry without name or version");
+  return {
+    name: e.name,
+    displayName: typeof e.displayName === "string" && e.displayName ? e.displayName : e.name,
+    version: e.version,
+    description: typeof e.description === "string" ? e.description : "",
+    type: e.type === 1 ? "Clause" : "Contract",
+    tags: Array.isArray(e.tags) ? e.tags.filter((t): t is string => typeof t === "string") : [],
+    archived: e.archived === true,
+    ciceroVersion: typeof e.ciceroVersion === "string" ? e.ciceroVersion : "",
+    url: typeof e.url === "string" && /^https:\/\//.test(e.url) ? e.url : undefined,
+  };
 };
 
 /** The Cicero range an archive's package.json targets (accordproject.cicero), if it names one. */
@@ -104,13 +122,28 @@ const archiveAccepted = async (library: TemplateLibrary, template: LibraryTempla
   return ciceroAccepts(range);
 };
 
-/** Lists the templates of a library that run in this playground, checking each archive as well as the index. */
+/**
+ * Lists the templates of a library that run in this playground, checking
+ * archives as well as the index: the newest version of each template whose
+ * archive Cicero accepts. When the newest archive is refused, the next newest
+ * is tried, and so on; a template with no accepted archive is not listed.
+ */
 export const fetchLibraryIndex = async (library: TemplateLibrary): Promise<LibraryTemplate[]> => {
   const response = await fetch(`${library.baseUrl}/template-library.json`);
   if (!response.ok) throw new Error(`The library answered ${response.status}.`);
-  const listed = await parseLibraryIndex((await response.json()) as Record<string, IndexEntry>);
-  const accepted = await Promise.all(listed.map((t) => archiveAccepted(library, t)));
-  return listed.filter((_, i) => accepted[i]);
+  let candidates = await compatibleEntries((await response.json()) as Index);
+  const listed: LibraryTemplate[] = [];
+  while (Object.keys(candidates).length) {
+    const newest = Object.entries(await newestOf(candidates));
+    const accepted = await Promise.all(newest.map(([, t]) => archiveAccepted(library, t)));
+    const settled = new Set(newest.filter((_, i) => accepted[i]).map(([, t]) => t.name));
+    const refused = new Set(newest.filter((_, i) => !accepted[i]).map(([key]) => key));
+    listed.push(...newest.filter((_, i) => accepted[i]).map(([, t]) => t));
+    candidates = Object.fromEntries(
+      Object.entries(candidates).filter(([key, e]) => !refused.has(key) && !settled.has(e.name as string))
+    );
+  }
+  return sortByName(listed);
 };
 
 export interface LibraryFilter {
