@@ -333,6 +333,27 @@ export const unsupportedLogicImports = async (logicTs: string, modelCto: string)
   ];
 };
 
+/**
+ * Namespaces the model imports that the playground cannot supply. It loads
+ * a template's main model next to its bundled models only, so a type from
+ * another model in the archive (say `model/party.cto`) would not resolve,
+ * and exporting the template again would drop that file. A bundled
+ * namespace counts whether or not the import names its version. A model
+ * that does not parse yields none: the Data step reports it once loaded.
+ */
+export const unsupportedModelImports = async (modelCto: string): Promise<string[]> => {
+  const { Parser } = await import("@accordproject/concerto-cto");
+  let imports: { namespace: string }[];
+  try {
+    imports = (Parser.parse(modelCto) as { imports?: { namespace: string }[] }).imports ?? [];
+  } catch {
+    return [];
+  }
+  const unversioned = (namespace: string) => namespace.split("@")[0];
+  const supplied = new Set([...BUNDLED_NAMESPACES, "concerto@1.0.0"].map(unversioned));
+  return [...new Set(imports.map((i) => i.namespace).filter((ns) => !supplied.has(unversioned(ns))))];
+};
+
 /** Reads a `.cta` archive. Throws a user-readable Error when it is not a usable template. */
 export const readTemplateArchive = async (
   bytes: ArrayBuffer | Uint8Array,
@@ -368,6 +389,12 @@ export const readTemplateArchive = async (
   const rawModel = mainModel ? await read(mainModel) : undefined;
   if (rawModel === undefined) {
     throw new Error("The archive has no model/model.cto.");
+  }
+  const modelImports = await unsupportedModelImports(rawModel);
+  if (modelImports.length) {
+    throw new Error(
+      `The model imports types from ${modelImports.join(", ")}, which the playground doesn’t include. It loads one model file next to the Accord Project models it bundles, so this template can’t be imported.`,
+    );
   }
   const localImports = logicTs ? await unsupportedLogicImports(logicTs, rawModel) : [];
   if (localImports.length) {

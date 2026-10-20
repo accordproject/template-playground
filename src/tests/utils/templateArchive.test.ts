@@ -17,6 +17,7 @@ import {
   sampleDataFromModel,
   ensureTemplateDecorator,
   unsupportedLogicImports,
+  unsupportedModelImports,
   normalizeModelImports,
   findLogicEntry,
 } from "../../utils/templateArchive";
@@ -195,6 +196,32 @@ describe("template archive", () => {
     zip.file("logic/logic.ts", "import { help } from './helpers';\nexport default class {}");
     zip.file("logic/helpers.ts", "export const help = 1;");
     await expect(readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/\.\/helpers/);
+  }, TIMEOUT);
+
+  it("rejects a model that imports another model the playground cannot load, before anything is replaced", async () => {
+    const model = `namespace org.example.nda@1.0.0
+import org.example.party@1.0.0.Party
+import org.accordproject.time@0.3.0.{Duration}
+import concerto@1.0.0.Concept
+
+@template
+concept TemplateModel {
+  --> Party disclosingParty
+  o Duration term
+}`;
+    // Bundled models and Concerto's own count as supplied, versioned or not; party@1.0.0 does not.
+    expect(await unsupportedModelImports(model)).toEqual(["org.example.party@1.0.0"]);
+    expect(await unsupportedModelImports(blank.MODEL)).toEqual([]);
+    expect(await unsupportedModelImports("namespace {")).toEqual([]);
+
+    const zip = new JSZip();
+    zip.file("package.json", JSON.stringify({ name: "x", accordproject: { cicero: "^2.0.0" } }));
+    zip.file("text/grammar.tem.md", blank.TEMPLATE);
+    zip.file("model/model.cto", model);
+    zip.file("model/party.cto", "namespace org.example.party@1.0.0\nparticipant Party identified by name { o String name }");
+    await expect(readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(
+      /org\.example\.party@1\.0\.0/,
+    );
   }, TIMEOUT);
 
   it("rewrites only real legacy imports, leaving comments, strings and other modules alone", async () => {
