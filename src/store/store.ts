@@ -533,12 +533,21 @@ export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "
 /** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
 let latestCompileRun = 0;
 /**
- * Drops the result of any compilation still running: called when the
- * template sources are replaced (a sample or a shared link is loaded), so a
- * compile of the discarded logic cannot publish into the new template.
+ * Generation of the template sources, bumped each time they are replaced (a
+ * sample or a shared link is loaded). Work started for one template — such
+ * as the design-v2 gate in front of Simulate — compares it to cancel itself
+ * once the template has changed underneath it.
+ */
+let templateGeneration = 0;
+export const currentTemplateGeneration = () => templateGeneration;
+/**
+ * Called when the template sources are replaced: drops the result of any
+ * compilation still running, so a compile of the discarded logic cannot
+ * publish into the new template, and starts a new template generation.
  */
 const invalidateCompilations = () => {
   latestCompileRun++;
+  templateGeneration++;
 };
 /** Id of the latest buildTemplateFromMemory call; older builds do not update templateObject. */
 let latestTemplateBuild = 0;
@@ -1136,6 +1145,8 @@ const useAppStore = create<AppState>()(
 
             const { TemplateArchiveProcessor } =
               await import("@accordproject/template-engine");
+            // Superseded while the engine loaded: stop before the build, which updates shared state.
+            if (run !== latestCompileRun) return;
 
             /*
              * Build the Template object from this run's snapshot and compile

@@ -277,6 +277,20 @@ describe('useAppStore - overlapping compileLogic runs', () => {
     expect(state.isCompiling).toBe(false);
   });
 
+  it('does not build for a compile cancelled while the engine loads', async () => {
+    useAppStore.setState({ rebuild: vi.fn().mockResolvedValue(undefined) });
+    localStorage.setItem('hasVisitedLogicTour', 'true');
+
+    // loadSample cancels before compileLogic's first await (the engine import) resolves.
+    const run = useAppStore.getState().compileLogic();
+    const load = useAppStore.getState().loadSample(latePayment.NAME);
+    await Promise.all([run, load]);
+
+    expect(useAppStore.getState().buildTemplateFromMemory).not.toHaveBeenCalled();
+    expect(TemplateArchiveProcessor).not.toHaveBeenCalled();
+    expect(useAppStore.getState().compiledLogicJs).toBeNull();
+  });
+
   it('never compiles an older build for a newer run whose own build failed', async () => {
     const buildA = deferred<Template | null>();
     builds = { 'model A': buildA.promise, 'model B': Promise.resolve(null) };
