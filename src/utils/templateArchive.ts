@@ -7,6 +7,7 @@
  * JSZip and Concerto are loaded on first use.
  */
 import type JSZipType from "jszip";
+import semver from "semver";
 import { BUNDLED_MODELS, loadBundledModels } from "./modelCache";
 
 const loadJSZip = async () => (await import("jszip")).default;
@@ -244,10 +245,14 @@ interface PackageJson {
   accordproject?: { runtime?: unknown; cicero?: unknown; template?: unknown };
 }
 
-/** Major version of a semver range such as "^2.0.0" or ">=0.22.0"; NaN when there is none. */
+/** Major version of the lowest version a semver range such as "^2.0.0" or ">=0.22.0" allows; NaN when it isn't a range. */
 export const majorOf = (range: unknown): number => {
-  const match = typeof range === "string" ? /(\d+)\./.exec(range) : null;
-  return match ? Number(match[1]) : NaN;
+  if (typeof range !== "string") return NaN;
+  try {
+    return semver.minVersion(range)?.major ?? NaN;
+  } catch {
+    return NaN;
+  }
 };
 
 /**

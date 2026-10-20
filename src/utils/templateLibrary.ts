@@ -4,6 +4,7 @@
  * (name@version → metadata) and `archives/<name>@<version>.cta`; the Accord
  * Project one is the first entry in LIBRARIES, and adding another is one line.
  */
+import semver from "semver";
 import { majorOf } from "./templateArchive";
 
 export interface TemplateLibrary {
@@ -54,34 +55,15 @@ interface IndexEntry {
 }
 
 /**
- * Semantic-version order: major.minor.patch numerically, a prerelease below
- * its release (1.0.0-beta.1 < 1.0.0), prerelease identifiers compared
- * numerically or lexically, build metadata (+…) ignored.
+ * Semantic-version order (semver.compare: prereleases sort below their
+ * release, build metadata is ignored). A version that isn't valid semver
+ * sorts below any that is, so it never hides a real release.
  */
 export const compareVersions = (a: string, b: string): number => {
-  const parse = (v: string) => {
-    const [core, pre] = v.split("+")[0].split(/-(.*)/s);
-    return { core: core.split(".").map((n) => Number(n) || 0), pre: pre ? pre.split(".") : [] };
-  };
-  const x = parse(a);
-  const y = parse(b);
-  for (let i = 0; i < 3; i++) {
-    const d = (x.core[i] ?? 0) - (y.core[i] ?? 0);
-    if (d) return d;
-  }
-  if (!x.pre.length || !y.pre.length) return y.pre.length - x.pre.length;
-  for (let i = 0; i < Math.max(x.pre.length, y.pre.length); i++) {
-    const p = x.pre[i];
-    const q = y.pre[i];
-    if (p === undefined) return -1;
-    if (q === undefined) return 1;
-    const pn = /^\d+$/.test(p);
-    const qn = /^\d+$/.test(q);
-    if (pn && qn && Number(p) !== Number(q)) return Number(p) - Number(q);
-    if (pn !== qn) return pn ? -1 : 1;
-    if (p !== q) return p < q ? -1 : 1;
-  }
-  return 0;
+  const validA = semver.valid(a);
+  const validB = semver.valid(b);
+  if (validA && validB) return semver.compare(validA, validB);
+  return validA ? 1 : validB ? -1 : 0;
 };
 
 /**

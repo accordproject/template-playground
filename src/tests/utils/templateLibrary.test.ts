@@ -61,6 +61,9 @@ describe("template library", () => {
     expect(compareVersions("1.0.0-1", "1.0.0-alpha")).toBeLessThan(0);
     expect(compareVersions("1.0.0+build.5", "1.0.0+build.1")).toBe(0);
     expect(compareVersions("1.0.10", "1.0.9")).toBeGreaterThan(0);
+    // Not semver: sorts below any real version, so it never hides a release.
+    expect(compareVersions("latest", "0.0.1")).toBeLessThan(0);
+    expect(compareVersions("1.0.0", "next")).toBeGreaterThan(0);
 
     const list = parseLibraryIndex({
       "e@1.0.0-beta.1": { name: "e", version: "1.0.0-beta.1", ciceroVersion: "^2.0.0" },
