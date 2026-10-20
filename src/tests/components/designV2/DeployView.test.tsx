@@ -369,6 +369,19 @@ describe('DeployView', () => {
       click.mockRestore();
     }, 30_000);
 
+    it('refuses malformed data before the folder picker opens', async () => {
+      const picker = vi.fn().mockResolvedValue(dir('Documents'));
+      Object.assign(window, { showDirectoryPicker: picker });
+      const error = vi.spyOn(message, 'error');
+      useAppStore.setState({ data: '{"amount":' });
+      render(<DeployView />);
+      fireEvent.click(screen.getByRole('button', { name: '1. Save as folder' }));
+      await waitFor(() => expect(error).toHaveBeenCalledWith(expect.stringMatching(/data isn't valid JSON/)), SLOW);
+      expect(picker).not.toHaveBeenCalled();
+      expect(files).toEqual([]);
+      error.mockRestore();
+    }, 30_000);
+
     it('also links straight to vscode.dev', () => {
       render(<DeployView />);
       const link = within(screen.getByRole('article', { name: 'Open in vscode.dev' })).getByRole('link', { name: /^2\. Open vscode\.dev/ });
@@ -400,6 +413,8 @@ describe('DeployView', () => {
         modelCto: latePayment.MODEL,
         logicTs: latePayment.LOGIC,
         editorLogicTs: latePayment.LOGIC + '\n// edited',
+        data: JSON.stringify(latePayment.DATA),
+        requestJson: '',
       });
     });
     afterEach(() => click.mockRestore());
@@ -423,6 +438,16 @@ describe('DeployView', () => {
       expect(await zip.file('text/grammar.tem.md')!.async('string')).toBe(latePayment.TEMPLATE);
       expect(await zip.file('model/model.cto')!.async('string')).toBe(latePayment.MODEL);
       expect(await zip.file('logic/logic.ts')!.async('string')).toBe(latePayment.LOGIC + '\n// edited');
+    }, 30_000);
+
+    it('refuses a malformed Simulate request rather than leaving it out', async () => {
+      useAppStore.setState({ requestJson: '{"$class":' });
+      const error = vi.spyOn(message, 'error');
+      render(<DeployView />);
+      fireEvent.click(screen.getByRole('button', { name: 'Download .cta' }));
+      await waitFor(() => expect(error).toHaveBeenCalledWith(expect.stringMatching(/Simulate request isn't valid JSON/)), SLOW);
+      expect(saved).toHaveLength(0);
+      error.mockRestore();
     }, 30_000);
 
     it('leaves logic out of a template without logic', async () => {

@@ -14,7 +14,7 @@ import {
 import useAppStore, { SourcesChangedError, currentLogicEditRevision } from "../../store/store";
 import { saveAgreementPdf } from "../../utils/agreementPdf";
 import { pendingLogic } from "../../editors/logicSource";
-import { archiveFileName, buildExportArchive, exportTemplateFiles } from "../../utils/templateArchive";
+import { archiveFileName, buildExportArchive, checkExportJson, exportTemplateFiles } from "../../utils/templateArchive";
 import { canSaveToFolder, pickFolder, writeTemplateFiles } from "../../utils/saveToFolder";
 import { downloadBlob, downloadMarkdown } from "../../utils/download";
 import { DEPLOY, type DeployCard } from "./constants";
@@ -119,6 +119,8 @@ export const DeployView = () => {
       case "vscode": {
         const folderName = archiveFileName(sampleName).replace(/\.cta$/, "");
         const content = { templateMarkdown, modelCto, data, logicTs, requestJson };
+        // Before the picker, so malformed JSON is reported before a folder is chosen.
+        checkExportJson(content);
         if (!canSaveToFolder()) {
           downloadBlob(
             new Blob([(await buildExportArchive(content, sampleName)) as BlobPart], { type: "application/octet-stream" }),

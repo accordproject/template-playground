@@ -158,11 +158,29 @@ const templateKind = async (template: CiceroTemplateApi): Promise<TemplateKind> 
 };
 
 /**
+ * Refuses an export whose data or Simulate request is not valid JSON, which
+ * building the Template would otherwise drop without a word. Synchronous, so
+ * Deploy can check before the folder picker uses up the click.
+ */
+export const checkExportJson = (content: Pick<TemplateContent, "data" | "requestJson">): void => {
+  const sources: [string, string | undefined][] = [["data", content.data], ["Simulate request", content.requestJson]];
+  for (const [label, text] of sources) {
+    if (!text?.trim()) continue;
+    try {
+      JSON.parse(text);
+    } catch (error) {
+      throw new Error(`The ${label} isn't valid JSON, so it can't be exported: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+};
+
+/**
  * The template's package.json says whether it is a contract or a clause,
  * from the base its template model extends; Cicero's own export
  * (Template.toArchive) writes the archive.
  */
 const exportTemplate = async (content: TemplateContent, name: string): Promise<CiceroTemplateApi> => {
+  checkExportJson(content);
   const template = cicero(await templateFromContent(content, name));
   const kind = await templateKind(template);
   if (kind !== "contract") {
