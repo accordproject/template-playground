@@ -4,8 +4,7 @@
  * (name@version → metadata) and `archives/<name>@<version>.cta`; the Accord
  * Project one is the first entry in LIBRARIES, and adding another is one line.
  */
-import semver from "semver";
-import { majorOf } from "./templateArchive";
+import { ciceroVersion } from "./cicero";
 
 export interface TemplateLibrary {
   id: string;
@@ -39,9 +38,6 @@ export interface LibraryTemplate {
 export const archiveUrl = (library: TemplateLibrary, template: Pick<LibraryTemplate, "name" | "version" | "url">): string =>
   template.url ?? `${library.baseUrl}/archives/${template.name}@${template.version}.cta`;
 
-/** Templates for Cicero 1.0 and later use TypeScript logic, which this playground runs. */
-export const isCompatibleCicero = (range: string): boolean => majorOf(range) >= 1;
-
 interface IndexEntry {
   name?: unknown;
   displayName?: unknown;
@@ -55,29 +51,20 @@ interface IndexEntry {
 }
 
 /**
- * Semantic-version order (semver.compare: prereleases sort below their
- * release, build metadata is ignored). A version that isn't valid semver
- * sorts below any that is, so it never hides a real release.
+ * A library's templates that run in this playground, by cicero-core's own
+ * TemplateLibrary filters: the versions this Cicero accepts
+ * (filterTemplateIndexCiceroVersion, see ciceroAccepts), then the newest of
+ * each template (filterTemplateIndexLatestVersion; the hosted library lists
+ * one row per template too). Sorted by display name.
  */
-export const compareVersions = (a: string, b: string): number => {
-  const validA = semver.valid(a);
-  const validB = semver.valid(b);
-  if (validA && validB) return semver.compare(validA, validB);
-  return validA ? 1 : validB ? -1 : 0;
-};
-
-/**
- * A library's templates that run in this playground: compatible Cicero
- * versions only, and only the newest compatible version of each template
- * (the hosted library lists one row per template too). Sorted by display name.
- */
-export const parseLibraryIndex = (index: Record<string, IndexEntry>): LibraryTemplate[] => {
-  const latest = new Map<string, LibraryTemplate>();
-  for (const e of Object.values(index)) {
+export const parseLibraryIndex = async (index: Record<string, IndexEntry>): Promise<LibraryTemplate[]> => {
+  const { TemplateLibrary } = await import("@accordproject/cicero-core");
+  const compatible = TemplateLibrary.filterTemplateIndexCiceroVersion(index, await ciceroVersion()) as Record<string, IndexEntry>;
+  const latest = TemplateLibrary.filterTemplateIndexLatestVersion(compatible) as Record<string, IndexEntry>;
+  const templates: LibraryTemplate[] = [];
+  for (const e of Object.values(latest)) {
     if (typeof e.name !== "string" || typeof e.version !== "string") continue;
-    const ciceroVersion = typeof e.ciceroVersion === "string" ? e.ciceroVersion : "";
-    if (!isCompatibleCicero(ciceroVersion)) continue;
-    const template: LibraryTemplate = {
+    templates.push({
       name: e.name,
       displayName: typeof e.displayName === "string" && e.displayName ? e.displayName : e.name,
       version: e.version,
@@ -85,13 +72,11 @@ export const parseLibraryIndex = (index: Record<string, IndexEntry>): LibraryTem
       type: e.type === 1 ? "Clause" : "Contract",
       tags: Array.isArray(e.tags) ? e.tags.filter((t): t is string => typeof t === "string") : [],
       archived: e.archived === true,
-      ciceroVersion,
+      ciceroVersion: typeof e.ciceroVersion === "string" ? e.ciceroVersion : "",
       url: typeof e.url === "string" && /^https:\/\//.test(e.url) ? e.url : undefined,
-    };
-    const seen = latest.get(e.name);
-    if (!seen || compareVersions(template.version, seen.version) > 0) latest.set(e.name, template);
+    });
   }
-  return [...latest.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
+  return templates.sort((a, b) => a.displayName.localeCompare(b.displayName));
 };
 
 /** Lists the templates of a library that run in this playground. */
