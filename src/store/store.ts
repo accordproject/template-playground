@@ -164,7 +164,13 @@ interface AppState {
   renderAgreement: (format?: AgreementFormat) => Promise<string>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
-  generateShareableLink: () => string;
+  /**
+   * A link that opens the current template. By default it carries the
+   * displayed agreementHtml and the compiled logic; an export passes the
+   * agreement it rendered afresh (none when the sources don't render) and the
+   * logic as edited instead.
+   */
+  generateShareableLink: (fresh?: { agreementHtml?: string; logicTs: string }) => string;
   loadFromLink: (compressedData: string) => Promise<void>;
   /**
    * Replaces the whole template with imported content (a `.cta`, a library
@@ -436,7 +442,8 @@ export interface DecompressedData {
   templateMarkdown: string;
   modelCto: string;
   data: string;
-  agreementHtml: string;
+  /** Omitted when the sources didn't render; the recipient's playground renders them. */
+  agreementHtml?: string;
   logicTs?: string;
 }
 
@@ -1077,14 +1084,16 @@ const useAppStore = create<AppState>()(
         setEditorAgreementData: (value: string) => {
           set(() => ({ editorAgreementData: value }));
         },
-        generateShareableLink: () => {
+        generateShareableLink: (fresh) => {
           const state = get();
+          const agreementHtml = fresh ? fresh.agreementHtml : state.agreementHtml;
+          const logicTs = fresh ? fresh.logicTs : state.logicTs;
           const compressedData = compress({
             templateMarkdown: state.templateMarkdown,
             modelCto: state.modelCto,
             data: state.data,
-            agreementHtml: state.agreementHtml,
-            ...(state.logicTs?.trim() ? { logicTs: state.logicTs } : {}),
+            ...(agreementHtml !== undefined ? { agreementHtml } : {}),
+            ...(logicTs?.trim() ? { logicTs } : {}),
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },

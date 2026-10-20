@@ -14,7 +14,6 @@ import {
 import useAppStore, { SourcesChangedError, currentLogicEditRevision } from "../../store/store";
 import { saveAgreementPdf } from "../../utils/agreementPdf";
 import { pendingLogic } from "../../editors/logicSource";
-import { compress } from "../../utils/compression/compression";
 import { archiveFileName, buildExportArchive, exportTemplateFiles } from "../../utils/templateArchive";
 import { canSaveToFolder, pickFolder, writeTemplateFiles } from "../../utils/saveToFolder";
 import { downloadBlob, downloadMarkdown } from "../../utils/download";
@@ -70,7 +69,7 @@ export const DeployView = () => {
   const [working, setWorking] = useState<string | null>(null);
 
   const runAction = async (card: DeployCard): Promise<Outcome | void> => {
-    const { renderAgreement, requestJson, templateMarkdown, modelCto, data, editorLogicTs, sampleName } =
+    const { renderAgreement, generateShareableLink, requestJson, templateMarkdown, modelCto, data, editorLogicTs, sampleName } =
       useAppStore.getState();
     /*
      * PDF, Markdown and copy render the current sources afresh: agreementHtml lags an
@@ -97,8 +96,9 @@ export const DeployView = () => {
          * recipient's playground renders it. If they changed while rendering
          * (even back again), the sources captured for the link are stale, so
          * copying fails instead; the same goes for the logic, which the link
-         * carries as edited. The clipboard write starts inside the click
-         * (see copyWhenReady).
+         * carries as edited. Those checks also mean the store still holds the
+         * sources captured at the click when the link is built. The clipboard
+         * write starts inside the click (see copyWhenReady).
          */
         const logicRevision = currentLogicEditRevision();
         const link = renderAgreement()
@@ -108,13 +108,7 @@ export const DeployView = () => {
           })
           .then((freshHtml) => {
             if (currentLogicEditRevision() !== logicRevision) throw new SourcesChangedError();
-            return `${window.location.origin}/#data=${compress({
-              templateMarkdown,
-              modelCto,
-              data,
-              ...(freshHtml ? { agreementHtml: freshHtml } : {}),
-              ...(logicTs.trim() ? { logicTs } : {}),
-            })}`;
+            return generateShareableLink({ agreementHtml: freshHtml || undefined, logicTs });
           });
         return copyWhenReady(link);
       }
