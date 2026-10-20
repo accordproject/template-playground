@@ -140,6 +140,28 @@ const baseKind = (superType: string | undefined | null): TemplateKind | null => 
   return match ? (match[1].toLowerCase() as TemplateKind) : null;
 };
 
+type Declaration = ReturnType<ModelManagerInstance["getConceptDeclarations"]>[number];
+
+/**
+ * Contract or clause: the Accord Project base a declaration extends,
+ * directly or through its ancestors (`MyClause extends BaseClause extends
+ * Clause`). Null when it extends neither, or an ancestor does not resolve.
+ */
+const declarationKind = (declaration: Declaration | null | undefined): TemplateKind | null => {
+  let current = declaration;
+  // Concerto rejects cyclic inheritance; the bound only guards against a model that slipped through.
+  for (let depth = 0; current && depth < 32; depth++) {
+    const kind = baseKind(current.getSuperType());
+    if (kind) return kind;
+    try {
+      current = current.getSuperTypeDeclaration() as Declaration | null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 /**
  * The declaration the template is written against: the one with a
  * `@template` decorator, else (older library templates) the one extending
@@ -158,7 +180,7 @@ const findTemplateDeclaration = (modelManager: ModelManagerInstance, kind?: Temp
   );
   const decorated = candidates.find((c) => c.getDecorator("template"));
   if (decorated) return decorated;
-  const byKind = (k: TemplateKind) => candidates.filter((c) => baseKind(c.getSuperType()) === k);
+  const byKind = (k: TemplateKind) => candidates.filter((c) => declarationKind(c) === k);
   const fits = kind ? byKind(kind) : byKind("contract").length ? byKind("contract") : byKind("clause");
   if (fits.length > 1) {
     throw new Error(
@@ -186,13 +208,13 @@ export const ensureTemplateDecorator = async (modelCto: string, kind?: TemplateK
 };
 
 /**
- * Whether the template is a whole contract or a clause, from the base of
- * its template declaration; "contract" when the model does not say (or does
+ * Whether the template is a whole contract or a clause, from the base its
+ * template declaration extends, directly or through its ancestors; "contract" when the model does not say (or does
  * not load), which is what cicero assumes too.
  */
 export const templateKindOf = async (modelCto: string): Promise<TemplateKind> => {
   try {
-    return baseKind(findTemplateDeclaration(await loadModel(modelCto))?.getSuperType()) ?? "contract";
+    return declarationKind(findTemplateDeclaration(await loadModel(modelCto))) ?? "contract";
   } catch {
     return "contract";
   }
@@ -338,9 +360,10 @@ export const unsupportedLogicImports = async (logicTs: string, modelCto: string)
  * Namespaces the model imports that the playground cannot supply. It loads
  * a template's main model next to its bundled models only, so a type from
  * another model in the archive (say `model/party.cto`) would not resolve,
- * and exporting the template again would drop that file. A bundled
- * namespace counts whether or not the import names its version. A model
- * that does not parse yields none: the Data step reports it once loaded.
+ * and exporting the template again would drop that file. An import naming
+ * a version must match a bundled namespace exactly (`money@0.2.0` is not
+ * `money@0.3.0`); one without a version matches by name. A model that does
+ * not parse yields none: the Data step reports it once loaded.
  */
 export const unsupportedModelImports = async (modelCto: string): Promise<string[]> => {
   const { Parser } = await import("@accordproject/concerto-cto");
@@ -350,9 +373,10 @@ export const unsupportedModelImports = async (modelCto: string): Promise<string[
   } catch {
     return [];
   }
-  const unversioned = (namespace: string) => namespace.split("@")[0];
-  const supplied = new Set([...BUNDLED_NAMESPACES, "concerto@1.0.0"].map(unversioned));
-  return [...new Set(imports.map((i) => i.namespace).filter((ns) => !supplied.has(unversioned(ns))))];
+  const supplied = new Set([...BUNDLED_NAMESPACES, "concerto@1.0.0"]);
+  const suppliedNames = new Set([...supplied].map((namespace) => namespace.split("@")[0]));
+  const isSupplied = (ns: string) => (ns.includes("@") ? supplied.has(ns) : suppliedNames.has(ns));
+  return [...new Set(imports.map((i) => i.namespace).filter((ns) => !isSupplied(ns)))];
 };
 
 /** Reads a `.cta` archive. Throws a user-readable Error when it is not a usable template. */

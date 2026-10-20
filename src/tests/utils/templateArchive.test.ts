@@ -50,6 +50,19 @@ asset HelloWorldContract extends Contract {
   o String name
 }`;
 
+/** A clause template that extends Clause through an abstract base declaration. */
+const INDIRECT_CLAUSE = `namespace org.example.fees@1.0.0
+import org.accordproject.contract@0.2.0.Clause
+
+abstract asset BaseClause extends Clause {
+  o String currency
+}
+
+@template
+asset LateFee extends BaseClause {
+  o Double amount
+}`;
+
 describe("template archive", () => {
   it("names files after the template", () => {
     expect(archiveFileName("Late Payment Penalty (with Logic)")).toBe("late-payment-penalty-with-logic.cta");
@@ -167,6 +180,13 @@ describe("template archive", () => {
     expect(await kindOf(copyright.MODEL.replace("@template\n", "").replace("asset PaymentClause", "@template\nasset PaymentClause"))).toBe("clause");
     expect(await kindOf(blank.MODEL)).toBe("contract");
     expect(await kindOf("not a model")).toBe("contract");
+    // Clause reached through an abstract base, not extended directly.
+    expect(await kindOf(INDIRECT_CLAUSE)).toBe("clause");
+  }, TIMEOUT);
+
+  it("finds an undecorated template that extends Contract or Clause through a base declaration", async () => {
+    const undecorated = INDIRECT_CLAUSE.replace("@template\n", "");
+    expect(await ensureTemplateDecorator(undecorated, "clause")).toContain("@template\nasset LateFee extends BaseClause");
   }, TIMEOUT);
 
   it("refuses logic that imports other local files, but allows the generated model types", async () => {
@@ -212,6 +232,12 @@ concept TemplateModel {
     // Bundled models and Concerto's own count as supplied, versioned or not; party@1.0.0 does not.
     expect(await unsupportedModelImports(model)).toEqual(["org.example.party@1.0.0"]);
     expect(await unsupportedModelImports(blank.MODEL)).toEqual([]);
+    // A version named in the import must be the bundled one; without a version, the name is enough.
+    expect(await unsupportedModelImports("namespace a@1.0.0\nimport org.accordproject.money@0.2.0.MonetaryAmount\nconcept A {}")).toEqual([
+      "org.accordproject.money@0.2.0",
+    ]);
+    expect(await unsupportedModelImports("namespace a@1.0.0\nimport org.accordproject.money@0.3.0.MonetaryAmount\nconcept A {}")).toEqual([]);
+    expect(await unsupportedModelImports("namespace a\nimport org.accordproject.money.MonetaryAmount\nconcept A {}")).toEqual([]);
     expect(await unsupportedModelImports("namespace {")).toEqual([]);
 
     const zip = new JSZip();
