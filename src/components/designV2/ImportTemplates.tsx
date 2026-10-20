@@ -22,8 +22,8 @@ const errorText = (error: unknown) => (error instanceof Error ? error.message : 
 /**
  * Imports a template the way "Start with this template" picks a card: load it
  * into the app store, remember it as the selection and open the next step.
- * `load` fetches and parses; any failure is shown as a toast and nothing is
- * changed. Returns whether the import succeeded.
+ * `load` fetches and parses; any failure there is shown as a toast and
+ * nothing is changed. Returns whether the import succeeded.
  */
 const useImportTemplate = () => {
   const loadImportedTemplate = useAppStore((s) => s.loadImportedTemplate);
@@ -45,9 +45,15 @@ const useImportTemplate = () => {
       try {
         const imported = await load();
         if (mine !== generation.current) return false;
-        await loadImportedTemplate(imported);
-        if (mine !== generation.current) return false;
+        /*
+         * loadImportedTemplate replaces the sources before its first await, so
+         * the selection is set with them: past this point the import is
+         * committed, and closing the modal while the template renders or
+         * compiles only skips the toasts and the move to the next step.
+         */
         selectTemplate(imported.name);
+        await loadImportedTemplate(imported);
+        if (mine !== generation.current) return true;
         for (const warning of imported.warnings) void message.warning(warning, 8);
         void message.success(IMPORT.imported(imported.name));
         goNext();

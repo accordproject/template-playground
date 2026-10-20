@@ -66,6 +66,25 @@ describe('ImportTemplates', () => {
     expect(fetchMock).toHaveBeenCalledWith('https://example.org/a/nda@1.0.0.cta');
   }, 30_000);
 
+  it('keeps the selection with the imported template when the dialog is closed while it loads', async () => {
+    const bytes = await makeArchive();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }));
+    // The sources are replaced at once; rendering and compiling take a while.
+    let finishLoading!: () => void;
+    loadImportedTemplate.mockImplementationOnce(() => new Promise<void>((resolve) => { finishLoading = resolve; }));
+    render(<ImportTemplates />);
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
+    fireEvent.change(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW), { target: { value: 'https://example.org/a/nda@1.0.0.cta' } });
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.submit }));
+    await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    finishLoading();
+    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('imported-nda'));
+    // Closing skipped the move to the next step, not the selection.
+    expect(useDesignV2Store.getState().view).toBe(STEPS[0].id);
+  }, 30_000);
+
   it('lists only compatible templates, filters like the hosted library and imports the chosen one', async () => {
     const bytes = await makeArchive();
     const fetchMock = vi.fn((url: string) =>
