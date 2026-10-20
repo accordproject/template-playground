@@ -18,6 +18,7 @@ import {
   ensureTemplateDecorator,
   unsupportedLogicImports,
   unsupportedModelImports,
+  runtimeLogicImports,
   normalizeModelImports,
   findLogicEntry,
 } from "../../utils/templateArchive";
@@ -258,6 +259,26 @@ concept TemplateModel {
     await expect(readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(
       /org\.example\.party@1\.0\.0/,
     );
+  }, TIMEOUT);
+
+  it("warns about logic that uses the model's generated code at run time, not just its types", async () => {
+    const money = "./generated/org.accordproject.money@0.3.0";
+    // Used only as a type: TypeScript drops the import, so the compiled logic needs no module.
+    expect(await runtimeLogicImports(`import { CurrencyCode } from '${money}';\nlet c: CurrencyCode;\nexport default class {}`)).toEqual([]);
+    expect(await runtimeLogicImports(`import type { CurrencyCode } from '${money}';\nexport default class {}`)).toEqual([]);
+    // An enum value read at run time keeps the import, which new Function cannot load.
+    const runtimeEnum = `import { CurrencyCode } from '${money}';\nexport default class { currency() { return CurrencyCode.USD; } }`;
+    expect(await runtimeLogicImports(runtimeEnum)).toEqual([money]);
+
+    const zip = new JSZip();
+    zip.file("package.json", JSON.stringify({ name: "x", accordproject: { cicero: "^3.0.0" } }));
+    zip.file("text/grammar.tem.md", blank.TEMPLATE);
+    zip.file("model/model.cto", blank.MODEL);
+    zip.file("logic/logic.ts", runtimeEnum);
+    // Imported, so the text, model and logic can still be edited, with a warning that says what to change.
+    const back = await readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "x");
+    expect(back.logicTs).toBe(runtimeEnum);
+    expect(back.warnings.join(" ")).toMatch(/uses values from \.\/generated\/org\.accordproject\.money@0\.3\.0/);
   }, TIMEOUT);
 
   it("rewrites only real legacy imports, leaving comments, strings and other modules alone", async () => {

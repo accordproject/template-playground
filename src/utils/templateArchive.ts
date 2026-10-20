@@ -384,6 +384,22 @@ export const unsupportedModelImports = async (modelCto: string): Promise<string[
   return [...new Set(imports.map((i) => i.namespace).filter((ns) => !isSupplied(ns)))];
 };
 
+/**
+ * Local modules the logic still imports once compiled: those whose values
+ * it uses at run time (an enum value such as `CurrencyCode.USD`), not just
+ * their types. TypeScript drops imports used only as types, and the
+ * playground runs the compiled logic with `new Function`, which cannot load
+ * modules, so any import left in the output would fail when it runs.
+ */
+export const runtimeLogicImports = async (logicTs: string): Promise<string[]> => {
+  const ts = (await import("typescript")).default;
+  const { outputText } = ts.transpileModule(logicTs, {
+    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 },
+  });
+  const { importedFiles } = ts.preProcessFile(outputText, true, true);
+  return [...new Set(importedFiles.map((f) => f.fileName).filter((spec) => /^\.{1,2}\//.test(spec)))];
+};
+
 /** Reads a `.cta` archive. Throws a user-readable Error when it is not a usable template. */
 export const readTemplateArchive = async (
   bytes: ArrayBuffer | Uint8Array,
@@ -432,8 +448,19 @@ export const readTemplateArchive = async (
       `The logic imports other files from the archive (${localImports.join(", ")}). The playground runs a single logic file, so this template can’t be imported.`,
     );
   }
-
   const warnings: string[] = [];
+  /*
+   * Logic that reads the model's generated code at run time can't run here
+   * (see runtimeLogicImports). The text and model still work, and the logic
+   * can be fixed in the Logic editor, so the template is imported with a
+   * warning that says what to change, rather than refused.
+   */
+  const runtimeImports = logicTs ? await runtimeLogicImports(logicTs) : [];
+  if (runtimeImports.length) {
+    warnings.push(
+      `The logic uses values from ${runtimeImports.join(", ")} when it runs (an enum value, for example). The playground can use the model's generated code only as types, so Simulate will fail until the logic uses plain values instead (e.g. 'USD' rather than CurrencyCode.USD).`,
+    );
+  }
   const declaredKind = pkg.accordproject?.template;
   const kind = declaredKind === "contract" || declaredKind === "clause" ? declaredKind : undefined;
   let modelCto = rawModel;
