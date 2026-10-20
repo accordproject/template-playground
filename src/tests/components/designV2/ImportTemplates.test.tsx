@@ -3,15 +3,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import JSZip from 'jszip';
 import ImportTemplates from '../../../components/designV2/ImportTemplates';
-import useAppStore from '../../../store/store';
+import useAppStore, { importedTemplateName } from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { STEPS } from '../../../types/designV2.types';
 import { IMPORT } from '../../../components/designV2/constants';
 import * as blank from '../../../samples/blank';
 
-const makeArchive = async (cicero = '^3.0.0') => {
+const makeArchive = async (cicero = '^3.0.0', name = 'imported-nda') => {
   const zip = new JSZip();
-  zip.file('package.json', JSON.stringify({ name: 'imported-nda', version: '1.0.0', accordproject: { template: 'contract', cicero } }));
+  zip.file('package.json', JSON.stringify({ name, version: '1.0.0', accordproject: { template: 'contract', cicero } }));
   zip.file('text/grammar.tem.md', 'Hello {{exampleField}}');
   zip.file('model/model.cto', blank.MODEL);
   zip.file('data.json', JSON.stringify(blank.DATA));
@@ -22,9 +22,15 @@ const makeArchive = async (cicero = '^3.0.0') => {
 const SLOW = { timeout: 15_000 };
 
 describe('ImportTemplates', () => {
-  const loadImportedTemplate = vi.fn().mockResolvedValue(undefined);
+  // Like the store's, it names the template synchronously, then renders and compiles.
+  const nameIt = ({ name }: { name: string }) => useAppStore.setState({ sampleName: importedTemplateName(name) });
+  const loadImportedTemplate = vi.fn((template: { name: string }) => {
+    nameIt(template);
+    return Promise.resolve();
+  });
   beforeEach(() => {
     loadImportedTemplate.mockClear();
+    useAppStore.setState({ sampleName: 'Previous Template' });
     useAppStore.setState({ loadImportedTemplate });
     useDesignV2Store.setState({ selectedTemplate: null });
     useDesignV2Store.getState().start();
@@ -43,6 +49,18 @@ describe('ImportTemplates', () => {
     expect((loadImportedTemplate.mock.calls as unknown[][])[0][0]).toMatchObject({ name: 'Imported Nda', templateMarkdown: 'Hello {{exampleField}}' });
     expect(useDesignV2Store.getState().selectedTemplate).toBe('Imported Nda');
     expect(useDesignV2Store.getState().view).toBe(STEPS[1].id);
+  }, 30_000);
+
+  it('selects an import named like a bundled sample by the name the store gives it', async () => {
+    render(<ImportTemplates />);
+    // Cicero names it "Consulting Agreement", as the bundled sample is named.
+    const bytes = await makeArchive('^3.0.0', 'consulting-agreement');
+    const file = new File([bytes as BlobPart], 'consulting.cta');
+    Object.defineProperty(file, 'arrayBuffer', { value: () => Promise.resolve(bytes.buffer) });
+    fireEvent.change(screen.getByLabelText(IMPORT.upload.inputLabel), { target: { files: [file] } });
+    await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
+    expect((loadImportedTemplate.mock.calls as unknown[][])[0][0]).toMatchObject({ name: 'Consulting Agreement' });
+    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('Consulting Agreement (imported)'));
   }, 30_000);
 
   it('does not change the template when the file is not an archive', async () => {
@@ -71,7 +89,10 @@ describe('ImportTemplates', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }));
     // The sources are replaced at once; rendering and compiling take a while.
     let finishLoading!: () => void;
-    loadImportedTemplate.mockImplementationOnce(() => new Promise<void>((resolve) => { finishLoading = resolve; }));
+    loadImportedTemplate.mockImplementationOnce((template) => {
+      nameIt(template);
+      return new Promise<void>((resolve) => { finishLoading = resolve; });
+    });
     render(<ImportTemplates />);
     fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
     fireEvent.change(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW), { target: { value: 'https://example.org/a/nda@1.0.0.cta' } });
@@ -89,7 +110,10 @@ describe('ImportTemplates', () => {
     const bytes = await makeArchive();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }));
     let finishLoading!: () => void;
-    loadImportedTemplate.mockImplementationOnce(() => new Promise<void>((resolve) => { finishLoading = resolve; }));
+    loadImportedTemplate.mockImplementationOnce((template) => {
+      nameIt(template);
+      return new Promise<void>((resolve) => { finishLoading = resolve; });
+    });
     render(<ImportTemplates />);
     fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
     fireEvent.change(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW), { target: { value: 'https://example.org/a/nda@1.0.0.cta' } });

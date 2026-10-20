@@ -624,6 +624,14 @@ let renderSourceRevision = 0;
  */
 let logicEditRevision = 0;
 export const currentLogicEditRevision = () => logicEditRevision;
+
+/**
+ * The name an imported template gets: its own, unless a bundled sample has
+ * it. Views look samples up by name (the Data step's reset would load that
+ * sample's data), so a clash gets " (imported)".
+ */
+export const importedTemplateName = (name: string): string =>
+  SAMPLES.some((sample) => sample.NAME === name) ? `${name} (imported)` : name;
 /**
  * Revision of everything a template export carries: text, model, data, the
  * logic as edited, the Simulate request and the template's name. The .cta
@@ -1160,9 +1168,7 @@ const useAppStore = create<AppState>()(
           invalidateCompilations();
           set(() => ({
             ...TEMPLATE_CACHE_RESET,
-            // Never reuse a bundled sample's name: views look samples up by it
-            // (the Data step's reset would load that sample's data).
-            sampleName: SAMPLES.some((sample) => sample.NAME === name) ? `${name} (imported)` : name,
+            sampleName: importedTemplateName(name),
             importedData: data,
             // The previous template's request means nothing to this one.
             requestJson: requestJson ?? "",

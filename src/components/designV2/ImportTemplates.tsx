@@ -46,15 +46,17 @@ const useImportTemplate = () => {
         const imported = await load();
         if (mine !== generation.current) return false;
         /*
-         * loadImportedTemplate replaces the sources before its first await, so
-         * the selection is set with them: past this point the import is
-         * committed, and closing the modal while the template renders or
-         * compiles only skips the toasts and the move to the next step. It
-         * then reports false, so its caller doesn't close a dialog that has
-         * been reopened since.
+         * loadImportedTemplate replaces the sources and names the template
+         * before its first await, so the selection is set with them, by the
+         * name the store gave it (an import named like a bundled sample is
+         * renamed). Past this point the import is committed, and closing the
+         * modal while the template renders or compiles only skips the toasts
+         * and the move to the next step. It then reports false, so its caller
+         * doesn't close a dialog that has been reopened since.
          */
-        selectTemplate(imported.name);
-        await loadImportedTemplate(imported);
+        const loading = loadImportedTemplate(imported);
+        selectTemplate(useAppStore.getState().sampleName);
+        await loading;
         if (mine !== generation.current) return false;
         for (const warning of imported.warnings) void message.warning(warning, 8);
         void message.success(IMPORT.imported(imported.name));
