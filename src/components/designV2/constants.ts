@@ -112,7 +112,7 @@ export const WELCOME = {
   subtitleLine2: "Build, test and deploy a template in your browser.",
   /** Muted note under the buttons: what the playground is for, and where development continues. */
   ideNote:
-    "A playground, not an IDE: it walks you through how a template is built and lets you prototype and experiment quickly. When a template is ready for more, download it from the Deploy step and keep developing in VS Code.",
+    "A playground, not an IDE: it walks you through how a template is built and lets you prototype and experiment quickly. When a template is ready for more, download it from the Deploy step and keep developing in your own editor, such as VS Code, or with an AI coding agent.",
   /** Opens URLS.vscodeTutorial in a new tab. */
   ideNoteLink: "VS Code tutorial ↗",
   start: "Start building",
