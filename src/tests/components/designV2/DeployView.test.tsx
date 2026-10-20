@@ -369,6 +369,34 @@ describe('DeployView', () => {
       click.mockRestore();
     }, 30_000);
 
+    it('writes nothing when the logic is edited while the folder is being prepared, even if undone', async () => {
+      const picker = vi.fn().mockResolvedValue(dir('Documents'));
+      Object.assign(window, { showDirectoryPicker: picker });
+      const error = vi.spyOn(message, 'error');
+      render(<DeployView />);
+      fireEvent.click(screen.getByRole('button', { name: '1. Save as folder' }));
+      // The build is still pending: edit, then undo.
+      useAppStore.setState({ editorLogicTs: latePayment.LOGIC + '\n// edited' });
+      useAppStore.setState({ editorLogicTs: latePayment.LOGIC });
+      await waitFor(() => expect(error).toHaveBeenCalledWith(expect.stringMatching(/changed while it was being exported/)), SLOW);
+      expect(files).toEqual([]);
+      error.mockRestore();
+    }, 30_000);
+
+    it('downloads nothing in the no-folder fallback when the text changes while it builds', async () => {
+      URL.createObjectURL = vi.fn(() => 'blob:x');
+      URL.revokeObjectURL = vi.fn();
+      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+      const error = vi.spyOn(message, 'error');
+      render(<DeployView />);
+      fireEvent.click(screen.getByRole('button', { name: '1. Save as folder' }));
+      useAppStore.setState({ templateMarkdown: latePayment.TEMPLATE + '\nMore.' });
+      await waitFor(() => expect(error).toHaveBeenCalledWith(expect.stringMatching(/changed while it was being exported/)), SLOW);
+      expect(click).not.toHaveBeenCalled();
+      click.mockRestore();
+      error.mockRestore();
+    }, 30_000);
+
     it('refuses malformed data before the folder picker opens', async () => {
       const picker = vi.fn().mockResolvedValue(dir('Documents'));
       Object.assign(window, { showDirectoryPicker: picker });
@@ -438,6 +466,18 @@ describe('DeployView', () => {
       expect(await zip.file('text/grammar.tem.md')!.async('string')).toBe(latePayment.TEMPLATE);
       expect(await zip.file('model/model.cto')!.async('string')).toBe(latePayment.MODEL);
       expect(await zip.file('logic/logic.ts')!.async('string')).toBe(latePayment.LOGIC + '\n// edited');
+    }, 30_000);
+
+    it('downloads nothing when the request is edited while the archive builds, even if undone', async () => {
+      const error = vi.spyOn(message, 'error');
+      render(<DeployView />);
+      fireEvent.click(screen.getByRole('button', { name: 'Download .cta' }));
+      // The build is still pending: edit, then undo.
+      useAppStore.setState({ requestJson: '{"$class":"x"}' });
+      useAppStore.setState({ requestJson: '' });
+      await waitFor(() => expect(error).toHaveBeenCalledWith(expect.stringMatching(/changed while it was being exported/)), SLOW);
+      expect(saved).toHaveLength(0);
+      error.mockRestore();
     }, 30_000);
 
     it('refuses a malformed Simulate request rather than leaving it out', async () => {

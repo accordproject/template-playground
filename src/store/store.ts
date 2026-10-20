@@ -418,8 +418,8 @@ interface AppState {
  * still have to let this one through.
  */
 export class SourcesChangedError extends Error {
-  constructor() {
-    super("The template changed while it was being rendered — try again.");
+  constructor(while_ = "rendered") {
+    super(`The template changed while it was being ${while_} — try again.`);
     this.name = "SourcesChangedError";
   }
 }
@@ -624,6 +624,14 @@ let renderSourceRevision = 0;
  */
 let logicEditRevision = 0;
 export const currentLogicEditRevision = () => logicEditRevision;
+/**
+ * Revision of everything a template export carries: text, model, data, the
+ * logic as edited, the Simulate request and the template's name. The .cta
+ * and folder exports compare it after building, so an edit made meanwhile
+ * (even if undone) refuses the export rather than saving stale sources.
+ */
+let exportSourceRevision = 0;
+export const currentExportRevision = () => exportSourceRevision;
 
 /** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
 let latestCompileRun = 0;
@@ -1855,6 +1863,16 @@ useAppStore.subscribe((state, previous) => {
     renderSourceRevision++;
   }
   if (state.editorLogicTs !== previous.editorLogicTs) logicEditRevision++;
+  if (
+    state.templateMarkdown !== previous.templateMarkdown ||
+    state.modelCto !== previous.modelCto ||
+    state.data !== previous.data ||
+    state.editorLogicTs !== previous.editorLogicTs ||
+    state.requestJson !== previous.requestJson ||
+    state.sampleName !== previous.sampleName
+  ) {
+    exportSourceRevision++;
+  }
 });
 
 export default useAppStore;

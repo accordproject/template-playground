@@ -11,7 +11,7 @@ import {
   LinkOutlined,
   RobotOutlined,
 } from "@ant-design/icons";
-import useAppStore, { SourcesChangedError, currentLogicEditRevision } from "../../store/store";
+import useAppStore, { SourcesChangedError, currentExportRevision, currentLogicEditRevision } from "../../store/store";
 import { saveAgreementPdf } from "../../utils/agreementPdf";
 import { pendingLogic } from "../../editors/logicSource";
 import { archiveFileName, buildExportArchive, checkExportJson, exportTemplateFiles } from "../../utils/templateArchive";
@@ -72,6 +72,16 @@ export const DeployView = () => {
     const { renderAgreement, generateShareableLink, requestJson, templateMarkdown, modelCto, data, editorLogicTs, sampleName } =
       useAppStore.getState();
     /*
+     * The .cta and folder exports build from the sources captured here. If any
+     * of them changed while building (even back again), what was built is
+     * stale, so it is refused rather than saved.
+     */
+    const exportRevision = currentExportRevision();
+    const unchanged = <T,>(built: T): T => {
+      if (currentExportRevision() !== exportRevision) throw new SourcesChangedError("exported");
+      return built;
+    };
+    /*
      * PDF, Markdown and copy render the current sources afresh: agreementHtml lags an
      * edit by the debounce and the render, and keeps the last good agreement
      * after an error, so it can be out of date.
@@ -123,7 +133,7 @@ export const DeployView = () => {
         checkExportJson(content);
         if (!canSaveToFolder()) {
           downloadBlob(
-            new Blob([(await buildExportArchive(content, sampleName)) as BlobPart], { type: "application/octet-stream" }),
+            new Blob([unchanged(await buildExportArchive(content, sampleName)) as BlobPart], { type: "application/octet-stream" }),
             archiveFileName(sampleName),
           );
           return { warning: DEPLOY.noFolderSupport };
@@ -142,11 +152,11 @@ export const DeployView = () => {
           if (error instanceof DOMException && error.name === "AbortError") return { cancelled: true };
           throw error;
         }
-        const saved = await writeTemplateFiles(await exportTemplateFiles(content, sampleName), parent, folderName);
+        const saved = await writeTemplateFiles(unchanged(await exportTemplateFiles(content, sampleName)), parent, folderName);
         return { success: DEPLOY.folderSaved(`${parent.name}/${saved.split("/").pop() ?? saved}`) };
       }
       case "archive": {
-        const bytes = await buildExportArchive({ templateMarkdown, modelCto, data, logicTs, requestJson }, sampleName);
+        const bytes = unchanged(await buildExportArchive({ templateMarkdown, modelCto, data, logicTs, requestJson }, sampleName));
         return downloadBlob(new Blob([bytes as BlobPart], { type: "application/octet-stream" }), archiveFileName(sampleName));
       }
       case "markdown": {
