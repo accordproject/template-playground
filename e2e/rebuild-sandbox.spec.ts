@@ -118,11 +118,19 @@ test.describe('Template rendering sandbox', () => {
     const preview = page.locator('.main-container-agreement');
     await expect(preview).toContainText('Status: "armed"', { timeout: RENDER_TIMEOUT });
 
-    // The user moves on to a template of their own.
-    await page.locator('.samples-element button').click();
-    await page.getByText('Hello World', { exact: true }).click();
+    // The user moves on to a template of their own. On a busy runner the
+    // click on the menu item can land while the menu is still opening and be
+    // lost, so the pick is retried until the sample is selected.
+    const samples = page.locator('.samples-element button');
+    // Named after its icon too ("file-text Hello World").
+    const hello = page.getByRole('button', { name: /(^|\s)Hello World$/ });
     const confirm = page.getByRole('button', { name: 'Continue' });
-    if (await confirm.isVisible({ timeout: 3_000 }).catch(() => false)) await confirm.click();
+    await expect(async () => {
+      if (!(await hello.isVisible())) await samples.click();
+      await hello.click({ timeout: 5_000 });
+      if (await confirm.isVisible({ timeout: 3_000 }).catch(() => false)) await confirm.click();
+      await expect(samples).toContainText('Hello World', { timeout: 5_000 });
+    }).toPass({ timeout: 60_000 });
 
     await expect(preview).toContainText('Hello John Doe!', { timeout: RENDER_TIMEOUT });
     await expect(preview).not.toContainText('FORGED PREVIEW');
