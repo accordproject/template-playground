@@ -284,6 +284,8 @@ concept TemplateModel {
     expect(findLogicEntry(["logic/main.ts", ...generated])).toBe("logic/main.ts");
     expect(findLogicEntry(generated)).toBeUndefined();
     expect(() => findLogicEntry(["logic/a.ts", "logic/b.ts"])).toThrow(/several logic files/);
+    // Only generated type files are skipped: authored logic may start with "concerto" too.
+    expect(findLogicEntry(["logic/concertoLogic.ts", ...generated])).toBe("logic/concertoLogic.ts");
   });
 
   it("carries the archive's request.json for Simulate", async () => {

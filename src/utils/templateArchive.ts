@@ -277,8 +277,9 @@ export const normalizeModelImports = async (logicTs: string, modelCto: string): 
 /**
  * The logic source to load: `logic/logic.ts`, else the only TypeScript file
  * in `logic/` that is not a test or a type file generated from the model
- * (`concerto*.ts`, `<namespace>@<version>.ts`). Throws when several fit,
- * rather than silently dropping the logic.
+ * (`concerto.ts`, `<namespace>@<version>.ts` such as `concerto@1.0.0.ts`).
+ * Authored files that merely start with "concerto" (`concertoLogic.ts`)
+ * count. Throws when several fit, rather than silently dropping the logic.
  */
 export const findLogicEntry = (paths: string[]): string | undefined => {
   if (paths.includes("logic/logic.ts")) return "logic/logic.ts";
@@ -286,7 +287,7 @@ export const findLogicEntry = (paths: string[]): string | undefined => {
     (p) =>
       /^logic\/[^/]+\.ts$/.test(p) &&
       !/\.(test|spec|d)\.ts$/.test(p) &&
-      !/^logic\/(concerto[^/]*|[^/]*@[^/]*)\.ts$/.test(p),
+      !/^logic\/(concerto|[^/]*@[^/]*)\.ts$/.test(p),
   );
   if (sources.length > 1) {
     throw new Error(`The archive has several logic files (${sources.join(", ")}) and no logic/logic.ts to say which one to run.`);
