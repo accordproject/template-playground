@@ -12,7 +12,7 @@ import {
   RobotOutlined,
 } from "@ant-design/icons";
 import DOMPurify from "dompurify";
-import useAppStore, { SourcesChangedError } from "../../store/store";
+import useAppStore, { SourcesChangedError, currentLogicEditRevision } from "../../store/store";
 import { saveAgreementPdf } from "../../utils/agreementPdf";
 import { compress } from "../../utils/compression/compression";
 import { pendingLogic } from "../../editors/logicSource";
@@ -129,23 +129,26 @@ export const DeployView = () => {
          * when the sources don't render, the link carries none and the
          * recipient's playground renders it. If they changed while rendering
          * (even back again), the sources captured for the link are stale, so
-         * copying fails instead. The clipboard write starts inside the click
+         * copying fails instead; the same goes for the logic, which the link
+         * carries as edited. The clipboard write starts inside the click
          * (see copyWhenReady).
          */
+        const logicRevision = currentLogicEditRevision();
         const link = renderAgreement()
           .catch((error: unknown) => {
             if (error instanceof SourcesChangedError) throw error;
             return undefined;
           })
-          .then((freshHtml) =>
-            `${window.location.origin}/#data=${compress({
+          .then((freshHtml) => {
+            if (currentLogicEditRevision() !== logicRevision) throw new SourcesChangedError();
+            return `${window.location.origin}/#data=${compress({
               templateMarkdown,
               modelCto,
               data,
               ...(freshHtml ? { agreementHtml: freshHtml } : {}),
               ...(logicTs.trim() ? { logicTs } : {}),
-            })}`,
-          );
+            })}`;
+          });
         return copyWhenReady(link);
       }
       case "copy": {

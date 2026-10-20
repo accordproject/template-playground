@@ -607,6 +607,14 @@ export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "
  * is undone while a render runs still voids that render.
  */
 let renderSourceRevision = 0;
+/**
+ * Revision of the logic as edited (editorLogicTs), bumped the same way. Kept
+ * apart from renderSourceRevision because the logic doesn't change the
+ * rendered agreement; exports that also carry the logic (Share link) check
+ * both.
+ */
+let logicEditRevision = 0;
+export const currentLogicEditRevision = () => logicEditRevision;
 
 /** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
 let latestCompileRun = 0;
@@ -984,6 +992,8 @@ const useAppStore = create<AppState>()(
           try {
             html = await rebuild(templateMarkdown, modelCto, data, format);
           } catch (error: unknown) {
+            // A render that failed after the sources changed failed for sources that are gone.
+            if (renderSourceRevision !== revision) throw new SourcesChangedError();
             throw new Error(formatError(error));
           }
           /*
@@ -1840,6 +1850,7 @@ useAppStore.subscribe((state, previous) => {
   ) {
     renderSourceRevision++;
   }
+  if (state.editorLogicTs !== previous.editorLogicTs) logicEditRevision++;
 });
 
 export default useAppStore;

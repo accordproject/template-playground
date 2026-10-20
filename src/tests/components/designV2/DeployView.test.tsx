@@ -265,6 +265,25 @@ describe('DeployView', () => {
       showError.mockRestore();
     }, 30_000);
 
+    it('copies nothing when the logic is edited while the link is being rendered, even if undone', async () => {
+      // The link carries the logic as edited when the button was clicked.
+      useAppStore.setState({
+        renderAgreement: vi.fn(() => {
+          useAppStore.setState({ editorLogicTs: 'class Changed {}' });
+          useAppStore.setState({ editorLogicTs: 'class Edited {}' });
+          return Promise.resolve('<p>Hello Bob</p>');
+        }),
+      });
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+      const showError = vi.spyOn(message, 'error');
+      render(<DeployView />);
+      fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+      await waitFor(() => expect(showError).toHaveBeenCalled(), SLOW);
+      expect(writeText).not.toHaveBeenCalled();
+      showError.mockRestore();
+    }, 30_000);
+
     it('never falls back to the stale agreement when the sources do not render', async () => {
       useAppStore.setState({ renderAgreement: vi.fn().mockRejectedValue(new Error('bad data')) });
       const payload = await linkFrom();
