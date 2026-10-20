@@ -421,13 +421,15 @@ export class SourcesChangedError extends Error {
 /**
  * What a render produces. "markdown" is the agreement as plain Markdown:
  * values filled in and formatting kept, without TemplateMark's clause or
- * formula markup (CiceroMark → unquoted CiceroMark → Markdown).
+ * formula markup (CiceroMark → unquoted CiceroMark → Markdown). "text" is
+ * markdown-transform's plain-text target: the same, without the formatting.
  */
-export type AgreementFormat = "html" | "markdown";
+export type AgreementFormat = "html" | "markdown" | "text";
 
 const AGREEMENT_TARGETS: Record<AgreementFormat, string[]> = {
   html: ["html"],
   markdown: ["ciceromark_unquoted", "markdown"],
+  text: ["ciceromark_unquoted", "plaintext"],
 };
 
 export interface DecompressedData {

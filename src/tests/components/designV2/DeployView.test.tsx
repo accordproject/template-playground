@@ -3,7 +3,7 @@ import type { DirectoryHandle } from '../../../utils/saveToFolder';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { message } from 'antd';
-import { DeployView, agreementText } from '../../../components/designV2/DeployView';
+import { DeployView } from '../../../components/designV2/DeployView';
 import { DEPLOY, DEPLOY_CARDS, URLS } from '../../../components/designV2/constants';
 import useAppStore, { SourcesChangedError } from '../../../store/store';
 import { decompress } from '../../../utils/compression/compression';
@@ -28,7 +28,7 @@ describe('DeployView', () => {
   beforeEach(() => {
     useAppStore.setState({
       agreementHtml: '<p>Stale</p>',
-      renderAgreement: vi.fn().mockResolvedValue('<p>Hello <b>Ana</b></p>'),
+      renderAgreement: vi.fn((format?: string) => Promise.resolve(format === 'text' ? 'Hello Ana' : '<p>Hello <b>Ana</b></p>')),
       sampleName: 'My Template',
       error: undefined,
     });
@@ -77,7 +77,8 @@ describe('DeployView', () => {
     render(<DeployView />);
     fireEvent.click(screen.getByRole('button', { name: 'Copy text' }));
     await waitFor(() => expect(writeText).toHaveBeenCalled(), SLOW);
-    // Rendered afresh, not the agreementHtml still catching up with an edit.
+    // Rendered afresh as plain text (markdown-transform's plaintext target), not the agreementHtml still catching up with an edit.
+    expect(useAppStore.getState().renderAgreement).toHaveBeenCalledWith('text');
     expect(String((writeText.mock.calls as unknown[][])[0][0])).toBe('Hello Ana');
   }, 30_000);
 
@@ -141,19 +142,6 @@ describe('DeployView', () => {
     click.mockRestore();
   }, 30_000);
 
-  it('keeps paragraph and line breaks in the copied text', () => {
-    expect(agreementText('<h1>Title</h1><p>First</p><p>Second<br>line two</p><ul><li>a</li><li>b</li></ul>')).toBe(
-      'Title\n\nFirst\n\nSecond\nline two\n\na\n\nb'
-    );
-    expect(agreementText('<table><tr><th>Currency</th><th>Amount</th></tr><tr><td>USD</td><td>100</td></tr></table>')).toBe(
-      'Currency\tAmount\n\nUSD\t100'
-    );
-    // An empty edge cell keeps its column.
-    expect(agreementText('<table><tr><td></td><td>100</td></tr><tr><td>Total</td><td></td></tr></table>')).toBe('\t100\n\nTotal\t');
-    // Pretty-printed HTML: the whitespace between cells and rows is not content.
-    expect(agreementText('<table>\n  <tbody>\n    <tr>\n      <td>USD</td>\n      <td>100</td>\n    </tr>\n  </tbody>\n</table>')).toBe('USD\t100');
-  });
-
   it('starts the clipboard write inside the click, for Safari', async () => {
     let resolveRender: (html: string) => void = () => undefined;
     useAppStore.setState({ renderAgreement: () => new Promise<string>((r) => (resolveRender = r)) });
@@ -170,7 +158,7 @@ describe('DeployView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Copy text' }));
     // Called synchronously from the click, before the render finished.
     expect(write).toHaveBeenCalledTimes(1);
-    resolveRender('<p>Hello <b>Bob</b></p>');
+    resolveRender('Hello Bob');
     const blob = await items[0].types['text/plain'];
     const text = await new Promise<string>((r) => {
       const reader = new FileReader();

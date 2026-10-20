@@ -11,7 +11,6 @@ import {
   LinkOutlined,
   RobotOutlined,
 } from "@ant-design/icons";
-import DOMPurify from "dompurify";
 import useAppStore, { SourcesChangedError, currentLogicEditRevision } from "../../store/store";
 import { saveAgreementPdf } from "../../utils/agreementPdf";
 import { compress } from "../../utils/compression/compression";
@@ -31,38 +30,6 @@ const ICONS: Record<DeployCard["icon"], JSX.Element> = {
   code: <CodeOutlined />,
   mcp: <RobotOutlined />,
   vscode: <FolderOpenOutlined />,
-};
-
-const BLOCKS = "p,h1,h2,h3,h4,h5,h6,li,blockquote,pre,tr,div,ul,ol,table";
-const CELLS = "td,th";
-
-/**
- * Plain text of the rendered agreement, with a line break after each <br>
- * and a blank line between blocks. Built from the DOM rather than innerText,
- * which only keeps breaks on an element that is laid out.
- */
-export const agreementText = (html: string): string => {
-  const doc = new DOMParser().parseFromString(DOMPurify.sanitize(html), "text/html");
-  doc.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
-  // Pretty-printed tables carry whitespace-only text between their rows and
-  // cells; it is layout, not content, and would put columns on new lines.
-  doc.querySelectorAll("table, thead, tbody, tfoot, tr").forEach((container) => {
-    container.childNodes.forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE && !node.textContent?.trim()) node.remove();
-    });
-  });
-  // Cells of a row are tab-separated, so "USD | 100" doesn't copy as "USD100".
-  doc.querySelectorAll(CELLS).forEach((cell) => {
-    if (cell.nextElementSibling) cell.append("\t");
-  });
-  doc.querySelectorAll(BLOCKS).forEach((block) => block.append("\n\n"));
-  return (doc.body.textContent ?? "")
-    .split("\n")
-    // Trim spaces but keep every tab, so an empty edge cell still holds its column.
-    .map((line) => line.split("\t").map((cell) => cell.replace(/\s+/g, " ").trim()).join("\t"))
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/^\n+|\n+$/g, "");
 };
 
 /** What an action reports, when the card's own `done` toast is not the right one. */
@@ -110,7 +77,7 @@ export const DeployView = () => {
      * edit by the debounce and the render, and keeps the last good agreement
      * after an error, so it can be out of date.
      */
-    const current = async (format?: "markdown") => {
+    const current = async (format?: "markdown" | "text") => {
       try {
         return await renderAgreement(format);
       } catch (error) {
@@ -153,7 +120,7 @@ export const DeployView = () => {
       }
       case "copy": {
         // No await before this: the clipboard write must start inside the click.
-        return copyWhenReady(current().then(agreementText));
+        return copyWhenReady(current("text"));
       }
       case "vscode": {
         const folderName = archiveFileName(sampleName).replace(/\.cta$/, "");
