@@ -44,7 +44,10 @@ export const freshFolderName = async (parent: DirectoryHandle, name: string): Pr
       return true;
     } catch (error) {
       // NotFoundError: free. TypeMismatchError: a file has that name, so it is taken.
-      return !(error instanceof DOMException && error.name === "NotFoundError");
+      // Anything else (say NotAllowedError) is the real failure, so report it.
+      if (error instanceof DOMException && error.name === "NotFoundError") return false;
+      if (error instanceof DOMException && error.name === "TypeMismatchError") return true;
+      throw error;
     }
   };
   if (!(await exists(name))) return name;

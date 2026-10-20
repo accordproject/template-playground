@@ -44,6 +44,16 @@ describe("saveToFolder", () => {
     expect(await freshFolderName(parent, "nda")).toBe("nda-3");
   });
 
+  it("skips a name a file already has, but reports a permission error rather than trying every name", async () => {
+    const failing = (name: string): DirectoryHandle => ({
+      ...memoryFolder("Docs"),
+      getDirectoryHandle: (child: string) =>
+        Promise.reject(child === "nda" ? new DOMException("a file", name) : new DOMException("missing", "NotFoundError")),
+    });
+    expect(await freshFolderName(failing("TypeMismatchError"), "nda")).toBe("nda-2");
+    await expect(freshFolderName(failing("NotAllowedError"), "nda")).rejects.toMatchObject({ name: "NotAllowedError" });
+  });
+
   it("writes a template laid out as Cicero lays out its archives", async () => {
     const parent = memoryFolder("Docs");
     const template = await exportTemplateFiles(
