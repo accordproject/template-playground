@@ -121,7 +121,8 @@ test.describe('Template rendering sandbox', () => {
     // The user moves on to a template of their own. On a busy runner the
     // click on the menu item can land while the menu is still opening and be
     // lost, so the pick is retried until the sample is selected.
-    const samples = page.locator('.samples-element button');
+    // The trigger alone: the open menu's sample buttons sit inside .samples-element too.
+    const samples = page.getByRole('button', { name: /^Samples:/ });
     // Named after its icon too ("file-text Hello World").
     const hello = page.getByRole('button', { name: /(^|\s)Hello World$/ });
     const confirm = page.getByRole('button', { name: 'Continue' });
