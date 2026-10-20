@@ -85,6 +85,29 @@ describe('ImportTemplates', () => {
     expect(useDesignV2Store.getState().view).toBe(STEPS[0].id);
   }, 30_000);
 
+  it('does not close a reopened dialog when an earlier, cancelled import finishes', async () => {
+    const bytes = await makeArchive();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }));
+    let finishLoading!: () => void;
+    loadImportedTemplate.mockImplementationOnce(() => new Promise<void>((resolve) => { finishLoading = resolve; }));
+    render(<ImportTemplates />);
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
+    fireEvent.change(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW), { target: { value: 'https://example.org/a/nda@1.0.0.cta' } });
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.submit }));
+    await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
+
+    // Close, then reopen the dialog before the first import has finished.
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
+    expect(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW)).toBeInTheDocument();
+    finishLoading();
+    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('imported-nda'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    // The reopened dialog is still open (antd removes a closed one from the DOM at once here).
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  }, 30_000);
+
   it('lists only compatible templates, filters like the hosted library and imports the chosen one', async () => {
     const bytes = await makeArchive();
     const fetchMock = vi.fn((url: string) =>
