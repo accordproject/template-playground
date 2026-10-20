@@ -516,6 +516,9 @@
 /* keep antd's hidden panes hidden — the flex rule above would otherwise win on specificity */
 .nd-sim-tabs .ant-tabs-tabpane-hidden { display: none; }
 .nd-sim-tab-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* A run's JSON in a read-only Monaco editor (JsonView): it fills the pane, which has to give it a height. */
+.nd-sim-json { flex: 1; min-height: 120px; display: flex; }
+.nd-sim-json .editorwrapper { flex: 1; min-width: 0; min-height: 0; height: 100%; }
 .nd-sim-note { flex: none; padding: 7px 11px; font-size: 11.5px; color: #8a2226; background: #fff8f8; border-bottom: 1px solid #f6d9d9; }
 .nd-sim-events { flex: 1; min-height: 0; position: relative; }
 .nd-sim-events .obligations-list-container { padding: 10px 11px; }
