@@ -20,6 +20,25 @@ export function getEditorState(
 }
 
 /**
+ * Resolves the effective start and end line numbers for line-based formatting commands.
+ * When a multiline selection ends at column 1, the trailing line contains no selected
+ * content and should not be formatted.
+ */
+export function getEffectiveLineRange(selection: IRange): {
+  startLine: number;
+  endLine: number;
+} {
+  const startLine = selection.startLineNumber;
+  const endLine =
+    selection.endLineNumber > selection.startLineNumber &&
+    selection.endColumn === 1
+      ? selection.endLineNumber - 1
+      : selection.endLineNumber;
+
+  return { startLine, endLine };
+}
+
+/**
  * Creates a full-line edit range for a given line number
  */
 export function createLineEditRange(
@@ -114,8 +133,7 @@ export function applyLinePrefixToggle(
   if (!state) return;
 
   const { model, selection } = state;
-  const startLine = selection.startLineNumber;
-  const endLine = selection.endLineNumber;
+  const { startLine, endLine } = getEffectiveLineRange(selection);
 
   // Collect all lines in selection
   const lines: string[] = [];
@@ -172,8 +190,7 @@ export function applyOrderedListToggle(
   if (!state) return;
 
   const { model, selection } = state;
-  const startLine = selection.startLineNumber;
-  const endLine = selection.endLineNumber;
+  const { startLine, endLine } = getEffectiveLineRange(selection);
 
   const lines: string[] = [];
   for (let line = startLine; line <= endLine; line += 1) {
