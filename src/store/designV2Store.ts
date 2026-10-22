@@ -33,7 +33,7 @@ export interface DesignV2State {
   setPreviewOpen: (open: boolean) => void;
   togglePreview: () => void;
   /** Pick a template card (or the blank template). */
-  selectTemplate: (name: string) => void;
+  selectTemplate: (name: string | null) => void;
   /** Open or close one pane of the Data step. Closing the last open pane is ignored. */
   setPaneOpen: (pane: ModelDataPane, open: boolean) => void;
   setHelpRailOpen: (open: boolean) => void;
