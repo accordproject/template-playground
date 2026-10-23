@@ -11,7 +11,6 @@
 export const NAME = 'Counter Contract (with Logic)';
 
 export const MODEL = `namespace org.acme.counter@1.0.0
-
 @template
 concept CounterContract {
   o String owner
@@ -94,7 +93,7 @@ class CounterLogic extends TemplateLogic<any> {
     return {
       result: {
         $class: 'org.acme.counter@1.0.0.CounterResponse',
-        $timestamp: new Date(),
+        $timestamp: new Date().toISOString(),
         message: \`\${data.owner}'s count is now \${newCount} (of \${data.maxCount})\`,
         newCount,
       },
@@ -106,7 +105,7 @@ class CounterLogic extends TemplateLogic<any> {
       events: [
         {
           $class: 'org.acme.counter@1.0.0.CounterUpdated',
-          $timestamp: new Date(),
+          $timestamp: new Date().toISOString(),
           previousCount: currentCount,
           nextCount: newCount,
         },

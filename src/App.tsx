@@ -7,6 +7,7 @@ import tour from "./components/Tour";
 import useAppStore from "./store/store";
 import LearnContent from "./components/Content";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
+import RebuildSandboxFrame from "./components/RebuildSandboxFrame";
 import "./styles/App.css";
 import { colors } from './utils/theme';
 
@@ -105,6 +106,8 @@ const App = () => {
 
   return (
     <AntdApp>
+      {/* Hosts the agreement rendering; mounted for the whole app because init() renders before any route does. */}
+      <RebuildSandboxFrame />
       <Layout style={{ height: "100vh" }}>
         {!hideNavbar && <Navbar />}
         <Layout
