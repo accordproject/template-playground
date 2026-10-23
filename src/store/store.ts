@@ -1049,7 +1049,7 @@ const useAppStore = create<AppState>()(
               version: "1.0.0",
               accordproject: {
                 template: "contract",
-                cicero: "^2.1.1",
+                cicero: "^3.0.0",
               },
             };
 
