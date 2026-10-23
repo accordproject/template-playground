@@ -6,7 +6,7 @@ import { HELP_RAIL, MODEL_DATA, START, START_SAMPLES, sampleNameFor } from '../.
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SAMPLES } from '../../../samples';
-import * as counter from '../../../samples/counterLogic';
+import * as latePayment from '../../../samples/latePaymentPenalty';
 import { NAME as BLANK_SAMPLE_NAME } from '../../../samples/blank';
 
 /*
@@ -19,7 +19,7 @@ vi.mock('@monaco-editor/react', () => ({
   Editor: ({ language }: { language: string }) => <div data-testid={`monaco-${language}`} />,
 }));
 
-const counterData = JSON.stringify(counter.DATA, null, 2);
+const sampleData = JSON.stringify(latePayment.DATA, null, 2);
 
 describe('sampleNameFor', () => {
   it('maps every Start card to its sample and the blank card to the blank sample', () => {
@@ -44,12 +44,12 @@ describe('ModelDataView', () => {
     vi.clearAllMocks();
     useDesignV2Store.setState({ modelDataPanes: { model: true, data: true }, helpRailOpen: true });
     useAppStore.setState({
-      sampleName: counter.NAME,
+      sampleName: latePayment.NAME,
       samples: SAMPLES,
-      editorModelCto: counter.MODEL,
-      modelCto: counter.MODEL,
-      editorAgreementData: counterData,
-      data: counterData,
+      editorModelCto: latePayment.MODEL,
+      modelCto: latePayment.MODEL,
+      editorAgreementData: sampleData,
+      data: sampleData,
       error: undefined,
       // The real setters kick off a debounced rebuild; the wiring is what matters here.
       setModelCto,
@@ -108,10 +108,10 @@ describe('ModelDataView', () => {
   });
 
   it('"format" pretty-prints the data through the store', () => {
-    useAppStore.setState({ editorAgreementData: '{"$class":"x","owner":"Alice","maxCount":10}' });
+    useAppStore.setState({ editorAgreementData: '{"$class":"x","penaltyPercentage":10.5,"capPercentage":55}' });
     render(<ModelDataView />);
     fireEvent.click(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.format }));
-    const pretty = JSON.stringify({ $class: 'x', owner: 'Alice', maxCount: 10 }, null, 2);
+    const pretty = JSON.stringify({ $class: 'x', penaltyPercentage: 10.5, capPercentage: 55 }, null, 2);
     expect(useAppStore.getState().editorAgreementData).toBe(pretty);
     expect(setData).toHaveBeenCalledWith(pretty);
   });
@@ -121,17 +121,17 @@ describe('ModelDataView', () => {
     expect(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset })).toBeDisabled();
     unmount();
 
-    useAppStore.setState({ editorAgreementData: '{ "owner": "Bob" }' });
+    useAppStore.setState({ editorAgreementData: '{ "capPercentage": 40 }' });
     render(<ModelDataView />);
     const reset = pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset });
     expect(reset).toBeEnabled();
     fireEvent.click(reset);
-    expect(useAppStore.getState().editorAgreementData).toBe(counterData);
-    expect(setData).toHaveBeenCalledWith(counterData);
+    expect(useAppStore.getState().editorAgreementData).toBe(sampleData);
+    expect(setData).toHaveBeenCalledWith(sampleData);
   });
 
   it('"format" on the model re-prints the Concerto file through the store', () => {
-    const messy = 'namespace org.acme.counter@1.0.0\n@template concept C {   o String owner }';
+    const messy = 'namespace org.acme.latepayment@1.0.0\n@template concept C {   o String fractionalPart }';
     useAppStore.setState({ editorModelCto: messy });
     render(<ModelDataView />);
     fireEvent.click(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.format }));
@@ -219,6 +219,6 @@ describe('ModelDataView', () => {
     Object.assign(navigator, { clipboard: { writeText } });
     render(<ModelDataView />);
     fireEvent.click(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.copy }));
-    expect(writeText).toHaveBeenCalledWith(counter.MODEL);
+    expect(writeText).toHaveBeenCalledWith(latePayment.MODEL);
   });
 });

@@ -4,6 +4,7 @@ import {
   describeLogicModel,
   scaffoldFromModel,
   nextLogicSource,
+  pendingLogic,
 } from '../../editors/logicSource';
 import * as counter from '../../samples/counterLogic';
 import * as latePayment from '../../samples/latePaymentPenalty';
@@ -88,5 +89,26 @@ describe('nextLogicSource', () => {
   it('uses the model skeleton, or the boilerplate, when both editor and committed logic are empty', () => {
     expect(nextLogicSource('', '', counter.MODEL)).toBe(scaffoldFromModel(describeLogicModel(counter.MODEL)));
     expect(nextLogicSource('  ', '', '')).toBe(DEFAULT_LOGIC_BOILERPLATE);
+  });
+});
+
+describe('pendingLogic', () => {
+  const skeleton = scaffoldFromModel(describeLogicModel(counter.MODEL));
+
+  it('is the editor content when something was written', () => {
+    expect(pendingLogic('class X {}', '', counter.MODEL)).toBe('class X {}');
+    expect(pendingLogic(counter.LOGIC, counter.LOGIC, counter.MODEL)).toBe(counter.LOGIC);
+  });
+
+  it('is null for an empty editor or the untouched skeleton', () => {
+    expect(pendingLogic('', '', counter.MODEL)).toBeNull();
+    expect(pendingLogic('  \n', '', counter.MODEL)).toBeNull();
+    expect(pendingLogic(skeleton, '', counter.MODEL)).toBeNull();
+    expect(pendingLogic(DEFAULT_LOGIC_BOILERPLATE, '', helloworld.MODEL)).toBeNull();
+  });
+
+  it('counts the skeleton once it was committed, or edited', () => {
+    expect(pendingLogic(skeleton, skeleton, counter.MODEL)).toBe(skeleton);
+    expect(pendingLogic(skeleton + '\n// mine', '', counter.MODEL)).toBe(skeleton + '\n// mine');
   });
 });

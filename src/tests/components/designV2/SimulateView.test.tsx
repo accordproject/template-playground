@@ -6,7 +6,9 @@ import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SIMULATE } from '../../../components/designV2/constants';
 import { runSummary } from '../../../components/designV2/simulateRuns';
+import { describeLogicModel, scaffoldFromModel } from '../../../editors/logicSource';
 import { STEP_ID } from '../../../types/designV2.types';
+import * as latePayment from '../../../samples/latePaymentPenalty';
 import { failedRun, initRun, okRun, parseFailedRun } from './runFixtures';
 
 // The request editor is the legacy Monaco JSONEditor; a textarea stands in for it here.
@@ -17,39 +19,57 @@ vi.mock('../../../editors/JSONEditor', () => ({
 }));
 
 /**
- * Covers the Simulate step: the "can't run yet" gate, the runs list fed by
+ * Covers the Simulate step: the "no logic" dialog, the runs list fed by
  * executionHistory, run selection, the request / response detail and the
- * Send / restart / re-run actions that call into the legacy runner.
+ * Send / restart / re-run actions that call into the legacy runner. The
+ * logic is compiled before the step opens (DesignV2Layout.test covers that).
  */
 describe('SimulateView', () => {
   const initContract = vi.fn(async () => { await Promise.resolve(); });
   const triggerContract = vi.fn(async () => { await Promise.resolve(); });
+  const setLogicTs = vi.fn(async () => { await Promise.resolve(); });
+  const skeleton = scaffoldFromModel(describeLogicModel(latePayment.MODEL));
 
   beforeEach(() => {
     initContract.mockClear();
     triggerContract.mockClear();
+    setLogicTs.mockClear();
     useAppStore.setState({
+      modelCto: latePayment.MODEL,
+      editorLogicTs: latePayment.LOGIC,
+      logicTs: latePayment.LOGIC,
+      isCompiling: false,
+      compilationErrors: [],
       compiledLogicJs: 'compiled',
       executionHistory: [initRun, okRun, failedRun],
-      executionState: '{"count": 2}',
+      executionState: '{"count": 1}',
       isExecuting: false,
-      requestJson: '{ "increment": 1 }',
+      requestJson: JSON.stringify(latePayment.REQUEST, null, 2),
       initContract,
       triggerContract,
+      setLogicTs,
     });
     useDesignV2Store.setState({ view: STEP_ID.simulate, selectedRunId: null });
   });
 
   const runRows = () => within(screen.getByRole('list', { name: SIMULATE.runsLabel })).getAllByRole('button');
+  const noDialog = () => expect(screen.queryByText(SIMULATE.blocked.title)).toBeNull();
 
-  describe('when the logic is not compiled', () => {
+  it('never compiles on its own — that happens before the step opens', () => {
+    useAppStore.setState({ compiledLogicJs: null, editorLogicTs: 'class X {}' });
+    render(<SimulateView />);
+    expect(setLogicTs).not.toHaveBeenCalled();
+  });
+
+  describe('when there is no logic', () => {
     beforeEach(() => {
-      useAppStore.setState({ compiledLogicJs: null, executionHistory: [], executionState: '' });
+      useAppStore.setState({ compiledLogicJs: null, executionHistory: [], executionState: '', editorLogicTs: '', logicTs: '' });
     });
 
-    it('shows the blocked dialog and "Stay here" dismisses it', async () => {
+    it('shows the "no logic" dialog and "Stay here" dismisses it', async () => {
       render(<SimulateView />);
       expect(screen.getByText(SIMULATE.blocked.title)).toBeInTheDocument();
+      expect(screen.getByText(SIMULATE.blocked.body)).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.stay }));
       // antd keeps a closed Modal mounted and hides its wrapper
       await waitFor(() =>
@@ -59,17 +79,23 @@ describe('SimulateView', () => {
       expect(screen.getByRole('button', { name: SIMULATE.restart })).toBeDisabled();
     });
 
-    it('"Jump back to Logic" opens the Logic step', () => {
+    it('treats the untouched skeleton from the Logic step as no logic', () => {
+      useAppStore.setState({ editorLogicTs: skeleton });
       render(<SimulateView />);
-      fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.jump }));
+      expect(screen.getByText(SIMULATE.blocked.title)).toBeInTheDocument();
+    });
+
+    it('"Open the Logic step" opens it', () => {
+      render(<SimulateView />);
+      fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.openLogic }));
       expect(useDesignV2Store.getState().view).toBe(STEP_ID.logic);
     });
   });
 
   describe('with compiled logic', () => {
-    it('does not show the blocked dialog', () => {
+    it('does not show a dialog', () => {
       render(<SimulateView />);
-      expect(screen.queryByText(SIMULATE.blocked.title)).toBeNull();
+      noDialog();
     });
 
     it('offers to initialise when there are no runs yet', () => {
@@ -110,7 +136,7 @@ describe('SimulateView', () => {
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
       expect(screen.getByText(SIMULATE.stateUnchanged)).toBeInTheDocument();
       const result = screen.getByRole('region', { name: SIMULATE.resultLabel });
-      expect(result).toHaveTextContent('"count": 2');
+      expect(result).toHaveTextContent('"totalPenalty": 210');
     });
 
     it('a request that was not valid JSON is shown as not sent', () => {
@@ -129,17 +155,17 @@ describe('SimulateView', () => {
       expect(runRows()[1]).toHaveAttribute('aria-pressed', 'true');
 
       const request = screen.getByRole('region', { name: SIMULATE.request });
-      expect(request).toHaveTextContent('"increment": 2');
+      expect(request).toHaveTextContent('"invoiceValue": 1000');
       const result = screen.getByRole('region', { name: SIMULATE.resultLabel });
       expect(screen.getByRole('tab', { name: SIMULATE.response })).toHaveAttribute('aria-selected', 'true');
-      expect(result).toHaveTextContent("Alice's count is now 2 (of 10)");
+      expect(result).toHaveTextContent('"penalty": 210');
 
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
-      expect(result).toHaveTextContent('"count": 2');
+      expect(result).toHaveTextContent('"count": 1');
       expect(screen.queryByText(SIMULATE.stateUnchanged)).toBeNull();
 
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.eventsTab(1) }));
-      expect(result).toHaveTextContent('CounterUpdated');
+      expect(result).toHaveTextContent('LatePaymentEvent');
     });
 
     it('the Events tab of a run without events says so', () => {
@@ -165,8 +191,8 @@ describe('SimulateView', () => {
 
     it('the request editor edits requestJson', () => {
       render(<SimulateView />);
-      fireEvent.change(screen.getByLabelText('request editor'), { target: { value: '{ "increment": 5 }' } });
-      expect(useAppStore.getState().requestJson).toBe('{ "increment": 5 }');
+      fireEvent.change(screen.getByLabelText('request editor'), { target: { value: '{ "invoiceValue": 5 }' } });
+      expect(useAppStore.getState().requestJson).toBe('{ "invoiceValue": 5 }');
     });
 
     it('restart re-initialises the contract', () => {
