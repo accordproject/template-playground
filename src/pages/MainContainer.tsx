@@ -96,16 +96,18 @@ const MainContainer = () => {
 
   
   /*
-   * Calculate dynamic panel sizes based on visible editors and collapse states.
-   * This keeps initial editor heights equal (4 editors => 25% each, 3 editors => 33.33% each).
+   * Calculate dynamic panel sizes based on visible editors, problem panel, and collapse states.
+   * This keeps initial panel heights equal (4 panels => 25% each, 3 editors => 33.33% each).
    */
   const collapsedSize = 5;
+  const problemPanelSize = isProblemPanelVisible ? 25 : 0;
   const totalEditorPanels = 3;
   const collapsedCount = [isModelCollapsed, isTemplateCollapsed, isDataCollapsed].filter(Boolean).length;
   const nonCollapsedCount = totalEditorPanels - collapsedCount;
+  const availableEditorSpace = 100 - problemPanelSize;
   const expandedSize = nonCollapsedCount > 0
-    ? (100 - (collapsedCount * collapsedSize)) / nonCollapsedCount
-    : 100 / totalEditorPanels;
+    ? (availableEditorSpace - (collapsedCount * collapsedSize)) / nonCollapsedCount
+    : availableEditorSpace / totalEditorPanels;
 
 
   const activeLogicWorkspace = isLogicPanelVisible && isLogicFeatureEnabled ;
@@ -122,26 +124,34 @@ const MainContainer = () => {
     : '#0f172a';  // Even darker shade for header in dark mode
 
 
-  const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
+  const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}-${String(isProblemPanelVisible)}`;
 
+  const aiChatDefaultSize = 30;
   const getPanelDefaultSize = (panelId: 'editors' | 'logic' | 'runner' | 'preview') => {
+    const scale = isAIChatOpen ? (100 - aiChatDefaultSize) / 100 : 1;
+    let baseSize = 100;
     switch (panelId) {
       case 'editors':
-        return activeLogicWorkspace 
+        baseSize = activeLogicWorkspace 
           ? (isPreviewVisible || activeRunnerWorkspace ? 35 : 50) 
           : (isPreviewVisible || activeRunnerWorkspace ? 62.5 : 100);
+        break;
       case 'logic':
-        return isEditorsVisible 
+        baseSize = isEditorsVisible 
           ? (isPreviewVisible || activeRunnerWorkspace ? 35 : 50) 
           : (isPreviewVisible || activeRunnerWorkspace ? 50 : 100);
+        break;
       case 'runner':
       case 'preview':
-        return activeLogicWorkspace 
+        baseSize = activeLogicWorkspace 
           ? (isEditorsVisible ? 30 : 50) 
           : (isEditorsVisible ? 37.5 : 100);
+        break;
       default:
-        return 100;
+        baseSize = 100;
+        break;
     }
+    return baseSize * scale;
   };
 
   return (
@@ -241,7 +251,7 @@ const MainContainer = () => {
                   {isProblemPanelVisible && (
                     <>
                       <PanelResizeHandle className="main-container-panel-resize-handle-vertical" />
-                      <Panel id="panel-problem" order={5} defaultSize={25} minSize={15}>
+                      <Panel id="panel-problem" order={4} defaultSize={problemPanelSize} minSize={15}>
                         <ProblemPanel />
                       </Panel>
                     </>
@@ -310,7 +320,7 @@ const MainContainer = () => {
             <PanelResizeHandle className="main-container-panel-resize-handle-horizontal" />
         )}
         {isAIChatOpen && (
-            <Panel id="panel-ai-chat" order={4} defaultSize={30} minSize={20}>
+            <Panel id="panel-ai-chat" order={5} defaultSize={aiChatDefaultSize} minSize={20}>
               <AIChatPanel />
             </Panel>
         )}
