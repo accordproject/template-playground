@@ -43,6 +43,7 @@ import {
   type RebuildRequestMessage,
   type RebuildRestartMessage,
   type RebuildSandboxMessage,
+  type RebuildUserLogic,
 } from "../constants/rebuildSandbox";
 
 /**
@@ -254,6 +255,7 @@ export async function rebuildInSandbox(
   template: string,
   model: string,
   data: string,
+  userLogic?: RebuildUserLogic,
 ): Promise<unknown> {
   await waitForRebuildSandbox();
   const target = frame?.contentWindow;
@@ -261,6 +263,11 @@ export async function rebuildInSandbox(
     throw new Error("The rendering sandbox is not available");
   }
 
+  /*
+   * The logic on its own never runs during a render: the engine only
+   * splices it into formulas and conditions, which `templateMayRunCode`
+   * already detects, so it does not change whether this render runs code.
+   */
   const runsCode = templateMayRunCode(template);
   nextRequestId += 1;
   const requestId = nextRequestId;
@@ -294,6 +301,7 @@ export async function rebuildInSandbox(
     template,
     model,
     data,
+    ...(userLogic ? { userLogic } : {}),
   };
   /*
    * '*' is required because the sandboxed iframe has an opaque origin

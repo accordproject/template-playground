@@ -160,6 +160,28 @@ export function buildRebuildSandboxDocument({
     return null;
   }
 
+  // The template's compiled logic, rebuilt from checked fields, or null.
+  function relayableUserLogic(value) {
+    if (!value || typeof value !== "object") return null;
+    if (
+      typeof value.source !== "string" ||
+      typeof value.compiledJs !== "string" ||
+      typeof value.prelude !== "string" ||
+      !Array.isArray(value.symbols)
+    ) {
+      return null;
+    }
+    for (var i = 0; i < value.symbols.length; i++) {
+      if (typeof value.symbols[i] !== "string") return null;
+    }
+    return {
+      source: value.source,
+      compiledJs: value.compiledJs,
+      prelude: value.prelude,
+      symbols: value.symbols.slice()
+    };
+  }
+
   function spawn(nextGeneration) {
     if (worker) {
       worker.terminate();
@@ -223,13 +245,16 @@ export function buildRebuildSandboxDocument({
         return;
       }
       if (!worker) spawn(generation);
-      worker.postMessage({
+      var request = {
         type: T.request,
         requestId: msg.requestId,
         template: msg.template,
         model: msg.model,
         data: msg.data
-      });
+      };
+      var userLogic = relayableUserLogic(msg.userLogic);
+      if (userLogic) request.userLogic = userLogic;
+      worker.postMessage(request);
     } else if (msg.type === T.ping) {
       // Heartbeat: only meaningful for a running worker.
       if (worker && typeof msg.pingId === "number") {

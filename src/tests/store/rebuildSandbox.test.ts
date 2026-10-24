@@ -112,6 +112,39 @@ describe("rebuildSandbox bridge", () => {
       expect(pendingRebuildCount()).toBe(0);
     });
 
+    it("sends the template's compiled logic with the request, and nothing when there is none", async () => {
+      const { postMessage } = readySandbox();
+      const userLogic = { source: "s", compiledJs: "c", prelude: "p", symbols: ["f"] };
+      const withLogic = rebuildInSandbox(PLAIN, "m", "{}", userLogic);
+      const without = rebuildInSandbox(PLAIN, "m", "{}");
+      await Promise.resolve();
+
+      expect(posted(postMessage)[0]).toEqual({
+        type: REBUILD_REQUEST,
+        requestId: 1,
+        template: PLAIN,
+        model: "m",
+        data: "{}",
+        userLogic,
+      });
+      expect(posted(postMessage)[1]).not.toHaveProperty("userLogic");
+
+      result(1, "a");
+      result(2, "b");
+      await expect(withLogic).resolves.toBe("a");
+      await expect(without).resolves.toBe("b");
+    });
+
+    it("does not treat the logic alone as code: a plain template keeps the warm worker", async () => {
+      const { postMessage } = readySandbox();
+      const userLogic = { source: "s", compiledJs: "c", prelude: "p", symbols: ["f"] };
+      const promise = rebuildInSandbox(PLAIN, "m", "{}", userLogic);
+      await Promise.resolve();
+      result(1, "ok");
+      await expect(promise).resolves.toBe("ok");
+      expect(postedTypes(postMessage)).not.toContain(REBUILD_RESTART);
+    });
+
     it("routes results to their requests by id", async () => {
       const { postMessage } = readySandbox();
       const first = rebuildInSandbox(PLAIN, "m", "{}");
