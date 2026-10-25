@@ -114,7 +114,23 @@ export default function MarkdownEditor({
 
   return (
     <div className="editorwrapper h-full w-full">
-      <Suspense fallback={<div>Loading Editor...</div>}>
+      <Suspense
+        fallback={
+          <div
+            style={{
+              height: "100%",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor,
+              color: textColor,
+            }}
+          >
+            Loading Editor...
+          </div>
+        }
+      >
         <MonacoEditor
           options={editorOptions}
           language="markdown"

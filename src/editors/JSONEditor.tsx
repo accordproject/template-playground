@@ -26,9 +26,11 @@ export default function JSONEditor({
   const { handleSelection, MenuComponent } = useCodeSelection("json");
   const internalEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-  const { aiConfig, showLineNumbers } = useAppStore((state) => ({
+  const { aiConfig, showLineNumbers, backgroundColor, textColor } = useAppStore((state) => ({
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
+    backgroundColor: state.backgroundColor,
+    textColor: state.textColor,
   }));
 
   const themeName = useThemeName();
@@ -118,7 +120,23 @@ export default function JSONEditor({
 
   return (
     <div className="editorwrapper h-full w-full">
-      <Suspense fallback={<div>Loading Editor...</div>}>
+      <Suspense
+        fallback={
+          <div
+            style={{
+              height: "100%",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor,
+              color: textColor,
+            }}
+          >
+            Loading Editor...
+          </div>
+        }
+      >
         <MonacoEditor
           options={options}
           language="json"
