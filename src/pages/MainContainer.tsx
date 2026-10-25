@@ -128,29 +128,33 @@ const MainContainer = () => {
 
   const aiChatDefaultSize = 30;
   const getPanelDefaultSize = (panelId: 'editors' | 'logic' | 'runner' | 'preview') => {
-    const scale = isAIChatOpen ? (100 - aiChatDefaultSize) / 100 : 1;
+    const hasEditors = isEditorsVisible;
+    const hasLogic = Boolean(activeLogicWorkspace);
+    const hasRunner = Boolean(activeRunnerWorkspace);
+    const hasPreview = isPreviewVisible;
+
     let baseSize = 100;
-    switch (panelId) {
-      case 'editors':
-        baseSize = activeLogicWorkspace 
-          ? (isPreviewVisible || activeRunnerWorkspace ? 35 : 50) 
-          : (isPreviewVisible || activeRunnerWorkspace ? 62.5 : 100);
-        break;
-      case 'logic':
-        baseSize = isEditorsVisible 
-          ? (isPreviewVisible || activeRunnerWorkspace ? 35 : 50) 
-          : (isPreviewVisible || activeRunnerWorkspace ? 50 : 100);
-        break;
-      case 'runner':
-      case 'preview':
-        baseSize = activeLogicWorkspace 
-          ? (isEditorsVisible ? 30 : 50) 
-          : (isEditorsVisible ? 37.5 : 100);
-        break;
-      default:
-        baseSize = 100;
-        break;
+
+    if (hasRunner && hasPreview) {
+      if (hasEditors && hasLogic) {
+        baseSize = 25;
+      } else if (hasEditors || hasLogic) {
+        baseSize = panelId === 'editors' || panelId === 'logic' ? 40 : 30;
+      } else {
+        baseSize = 50;
+      }
+    } else {
+      const hasOutput = hasRunner || hasPreview;
+      if (panelId === 'editors') {
+        baseSize = hasLogic ? (hasOutput ? 35 : 50) : (hasOutput ? 62.5 : 100);
+      } else if (panelId === 'logic') {
+        baseSize = hasEditors ? (hasOutput ? 35 : 50) : (hasOutput ? 50 : 100);
+      } else if (panelId === 'runner' || panelId === 'preview') {
+        baseSize = hasLogic ? (hasEditors ? 30 : 50) : (hasEditors ? 37.5 : 100);
+      }
     }
+
+    const scale = isAIChatOpen ? (100 - aiChatDefaultSize) / 100 : 1;
     return baseSize * scale;
   };
 
