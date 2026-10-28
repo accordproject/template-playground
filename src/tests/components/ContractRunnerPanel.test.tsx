@@ -116,4 +116,13 @@ describe('ContractRunnerPanel', () => {
     render(<ContractRunnerPanel />);
     expect(screen.getByText('Request')).toBeInTheDocument();
   });
+
+  it('gives the inactive tab labels the panel text color in dark mode', () => {
+    useStoreState({ ...baseState, backgroundColor: '#121212', textColor: '#ffffff' });
+
+    render(<ContractRunnerPanel />);
+
+    // Events is not the active tab, so its label inherits the tab bar color.
+    expect(getComputedStyle(screen.getByRole('tab', { name: /events/i })).color).toBe('rgb(255, 255, 255)');
+  });
 });
