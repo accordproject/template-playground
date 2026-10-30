@@ -5,6 +5,7 @@ import {
   scaffoldFromModel,
   nextLogicSource,
   pendingLogic,
+  scaffoldRequestFromModel,
 } from '../../editors/logicSource';
 import * as counter from '../../samples/counterLogic';
 import * as latePayment from '../../samples/latePaymentPenalty';
@@ -110,5 +111,20 @@ describe('pendingLogic', () => {
   it('counts the skeleton once it was committed, or edited', () => {
     expect(pendingLogic(skeleton, skeleton, counter.MODEL)).toBe(skeleton);
     expect(pendingLogic(skeleton + '\n// mine', '', counter.MODEL)).toBe(skeleton + '\n// mine');
+  });
+});
+
+
+describe('scaffoldRequestFromModel', () => {
+  it('scaffolds default request JSON matching the model transaction and fields', () => {
+    const json = scaffoldRequestFromModel(describeLogicModel(counter.MODEL));
+    const parsed = JSON.parse(json);
+    expect(parsed.$class).toBe('org.acme.counter@1.0.0.CounterRequest');
+    expect(parsed.increment).toBe(0);
+  });
+
+  it('returns empty string when the model declares no request transaction', () => {
+    expect(scaffoldRequestFromModel(describeLogicModel(helloworld.MODEL))).toBe('');
+    expect(scaffoldRequestFromModel(null)).toBe('');
   });
 });

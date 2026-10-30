@@ -263,15 +263,31 @@ const SimulateView = () => {
             )}
           </div>
           <div className="nd-sim-request-body">
-            <div className="nd-sim-request-editor">
+            <div className="nd-sim-request-editor" style={{ position: "relative" }}>
               <JSONEditor id="request" value={requestJson} onChange={(val) => setRequestJson(val || "")} />
+              {!requestJson.trim() && (
+                <div
+                  className="nd-muted"
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    left: 12,
+                    pointerEvents: "none",
+                    fontSize: 12,
+                    fontStyle: "italic",
+                    userSelect: "none",
+                  }}
+                >
+                  {SIMULATE.emptyRequestHint}
+                </div>
+              )}
             </div>
             <Button
               type="primary"
               onClick={() => { void send(); }}
               loading={isExecuting}
-              disabled={!compiled || !initialised || isExecuting}
-              title={compiled && !initialised ? SIMULATE.sendHintNoInit : undefined}
+              disabled={!compiled || !initialised || isExecuting || !requestJson.trim()}
+              title={!requestJson.trim() ? SIMULATE.sendHintNoRequest : compiled && !initialised ? SIMULATE.sendHintNoInit : undefined}
             >
               {SIMULATE.send}
             </Button>

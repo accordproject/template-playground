@@ -183,6 +183,15 @@ describe('SimulateView', () => {
       await waitFor(() => expect(useDesignV2Store.getState().selectedRunId).toBeNull());
     });
 
+    it('Send is disabled and shows hint when requestJson is empty', () => {
+      useAppStore.setState({ requestJson: '' });
+      render(<SimulateView />);
+      const sendBtn = screen.getByRole('button', { name: SIMULATE.send });
+      expect(sendBtn).toBeDisabled();
+      expect(sendBtn).toHaveAttribute('title', SIMULATE.sendHintNoRequest);
+      expect(screen.getByText(SIMULATE.emptyRequestHint)).toBeInTheDocument();
+    });
+
     it('Send is disabled until the contract is initialised', () => {
       useAppStore.setState({ executionState: '' });
       render(<SimulateView />);
