@@ -1,0 +1,44 @@
+name: Cleanup PR Caches
+
+on:
+  pull_request_target:
+    types:
+      - closed
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    name: Cleanup PR Caches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete caches for closed PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "Cleaning up caches for PR #${PR_NUMBER}..."
+
+          REFS=(
+            "refs/pull/${PR_NUMBER}/merge"
+            "refs/pull/${PR_NUMBER}/head"
+          )
+
+          for REF in "${REFS[@]}"; do
+            echo "Checking caches for ref: ${REF}"
+            CACHE_IDS=$(gh cache list --repo "${GH_REPO}" --ref "${REF}" --limit 100 --json id --jq '.[].id' 2>/dev/null || true)
+
+            if [ -n "${CACHE_IDS}" ]; then
+              for CACHE_ID in ${CACHE_IDS}; do
+                echo "Deleting cache ID: ${CACHE_ID} for ref: ${REF}"
+                gh cache delete "${CACHE_ID}" --repo "${GH_REPO}" || true
+              done
+            else
+              echo "No caches found for ref: ${REF}"
+            fi
+          done
+
+          echo "Cache cleanup completed."
