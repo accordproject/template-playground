@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
+import { message } from 'antd';
 import '@testing-library/jest-dom';
 import SimulateView from '../../../components/designV2/SimulateView';
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SIMULATE } from '../../../components/designV2/constants';
-import { runSummary } from '../../../components/designV2/simulateRuns';
+import { pretty, runSummary } from '../../../components/designV2/simulateRuns';
 import { describeLogicModel, scaffoldFromModel } from '../../../editors/logicSource';
 import { STEP_ID } from '../../../types/designV2.types';
 import * as latePayment from '../../../samples/latePaymentPenalty';
@@ -93,6 +95,108 @@ describe('SimulateView', () => {
   });
 
   describe('with compiled logic', () => {
+    describe('copy', () => {
+      let clipboardDescriptor: PropertyDescriptor | undefined;
+      const copyButton = () => within(screen.getByRole('region', { name: SIMULATE.request })).getByRole('button');
+
+      beforeEach(() => {
+        clipboardDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, writable: true, value: undefined });
+        vi.spyOn(message, 'error').mockImplementation(vi.fn());
+        vi.useFakeTimers();
+        useDesignV2Store.setState({ selectedRunId: okRun.id });
+      });
+
+      afterEach(() => {
+        if (clipboardDescriptor) Object.defineProperty(navigator, 'clipboard', clipboardDescriptor);
+        else Reflect.deleteProperty(navigator, 'clipboard');
+        vi.clearAllTimers();
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+      });
+
+      it('reports failure when the Clipboard API is unavailable', async () => {
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(message.error).toHaveBeenCalledWith(SIMULATE.copyFailed);
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+      });
+
+      it('starts the confirmation timer only after the pending write succeeds', async () => {
+        let resolveWrite!: () => void;
+        const pendingWrite = new Promise<void>((resolve) => { resolveWrite = resolve; });
+        const writeText = vi.fn(() => pendingWrite);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        fireEvent.click(copyButton());
+        expect(writeText).toHaveBeenCalledWith(pretty(okRun.request));
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+
+        act(() => { vi.advanceTimersByTime(2400); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+        expect(message.error).not.toHaveBeenCalled();
+
+        await act(() => { resolveWrite(); return pendingWrite; });
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        act(() => { vi.advanceTimersByTime(1199); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        act(() => { vi.advanceTimersByTime(1); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+      });
+
+      it('handles a rejected write without showing a copied confirmation', async () => {
+        const writeText = vi.fn().mockRejectedValue(new DOMException('Clipboard denied', 'NotAllowedError'));
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(message.error).toHaveBeenCalledWith(SIMULATE.copyFailed);
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+      });
+
+      it('copies the exact selected request and confirms success', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(writeText).toHaveBeenCalledTimes(1);
+        expect(writeText).toHaveBeenCalledWith(pretty(okRun.request));
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        expect(message.error).not.toHaveBeenCalled();
+      });
+
+      it('allows a successful retry after a rejected write', async () => {
+        const writeText = vi.fn()
+          .mockRejectedValueOnce(new DOMException('Clipboard denied', 'NotAllowedError'))
+          .mockResolvedValueOnce(undefined);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(message.error).toHaveBeenCalledTimes(1);
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(writeText).toHaveBeenCalledTimes(2);
+        expect(writeText).toHaveBeenNthCalledWith(1, pretty(okRun.request));
+        expect(writeText).toHaveBeenNthCalledWith(2, pretty(okRun.request));
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        expect(message.error).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not confirm an old copy on a newly selected run', async () => {
+        let resolveWrite!: () => void;
+        const pendingWrite = new Promise<void>((resolve) => { resolveWrite = resolve; });
+        const writeText = vi.fn(() => pendingWrite);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        fireEvent.click(copyButton());
+        fireEvent.click(runRows()[0]);
+        await act(() => { resolveWrite(); return pendingWrite; });
+        expect(writeText).toHaveBeenCalledWith(pretty(okRun.request));
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+        expect(message.error).not.toHaveBeenCalled();
+      });
+    });
+
     it('does not show a dialog', () => {
       render(<SimulateView />);
       noDialog();

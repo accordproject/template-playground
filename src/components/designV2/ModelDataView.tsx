@@ -133,8 +133,13 @@ export const ModelDataView = () => {
   };
 
   const copyModel = async () => {
-    await navigator.clipboard?.writeText(editorModelCto);
-    void message.success(MODEL_DATA.model.copied);
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(editorModelCto);
+      void message.success(MODEL_DATA.model.copied);
+    } catch {
+      void message.error(MODEL_DATA.model.copyFailed);
+    }
   };
 
   const formatData = () => {

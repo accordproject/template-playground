@@ -51,8 +51,13 @@ export const TextView = () => {
   const error = useAppStore((s) => s.error);
 
   const copyText = async () => {
-    await navigator.clipboard?.writeText(editorValue);
-    void message.success(TEXT.copied);
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(editorValue);
+      void message.success(TEXT.copied);
+    } catch {
+      void message.error(TEXT.copyFailed);
+    }
   };
 
   const checklist: ChecklistItem[] = [{ label: TEXT.help.checks.renders, tone: error ? "error" : "done" }];
