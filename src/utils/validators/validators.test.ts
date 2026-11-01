@@ -33,6 +33,13 @@ concept Person {
     ).rejects.toThrow('Invalid CTO model');
   });
 
+  it('should report both invalid JSON and invalid CTO model simultaneously', async () => {
+    const invalidModel = 'namespace invalid syntax here';
+    await expect(
+      validateBeforeRebuild(validTemplate, invalidModel, '{invalid json}')
+    ).rejects.toThrow(/Invalid JSON data[\s\S]*Invalid CTO model/);
+  });
+
   it('rejects a model that imports an unbundled external namespace', async () => {
     const modelWithExternalImport = `namespace example@1.0.0
 
