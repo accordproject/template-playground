@@ -4,6 +4,7 @@ import { CodeSelectionMenuProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 import ReactMarkdown from "react-markdown";
 import * as monaco from 'monaco-editor';
+import { extractErrorMessage } from '../utils/helpers/errorUtils';
 
 const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   selectedText,
@@ -83,7 +84,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
         },
         (error) => {
           if (!newAbortController.signal.aborted) {
-            setExplanation(`Error: ${error.message}`);
+            setExplanation(`Error: ${extractErrorMessage(error)}`);
             setIsExplaining(false);
           }
         },
@@ -96,7 +97,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
       );
     } catch (error) {
       if (abortController && !abortController.signal.aborted) {
-        setExplanation(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setExplanation(`Error: ${extractErrorMessage(error)}`);
         setIsExplaining(false);
       }
     }
