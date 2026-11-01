@@ -155,6 +155,10 @@ const ContractExecutionTabs: React.FC = () => {
         activeKey={activeTab}
         onChange={setActiveTab}
         items={tabItems}
+        // Inactive labels inherit antd's light-theme text color, which is unreadable
+        // on the dark panel. Styling only the tab bar keeps the overflow menu, which
+        // renders on a light popup, on its default colors.
+        tabBarStyle={{ color: textColor }}
         style={{ "--panel-header-bg": panelHeaderBg } as React.CSSProperties}
       />
     </div>
