@@ -90,6 +90,8 @@ interface AppState {
   setActiveTab: (tab: "build" | "simulate") => void;
   templateMarkdown: string;
   editorValue: string;
+  /** Changes only when a template is loaded, including reloading the same sample. */
+  templateSessionId: number;
   modelCto: string;
   editorModelCto: string;
   data: string;
@@ -550,6 +552,7 @@ const useAppStore = create<AppState>()(
         sampleName: playground.NAME,
         templateMarkdown: playground.TEMPLATE,
         editorValue: playground.TEMPLATE,
+        templateSessionId: 0,
         modelCto: playground.MODEL,
         editorModelCto: playground.MODEL,
         data: JSON.stringify(playground.DATA, null, 2),
@@ -798,6 +801,7 @@ const useAppStore = create<AppState>()(
               error: undefined,
               templateMarkdown: sample.TEMPLATE,
               editorValue: sample.TEMPLATE,
+              templateSessionId: state.templateSessionId + 1,
               modelCto: sample.MODEL,
               editorModelCto: sample.MODEL,
               data: JSON.stringify(sample.DATA, null, 2),
@@ -948,6 +952,7 @@ const useAppStore = create<AppState>()(
             set(() => ({
               templateMarkdown,
               editorValue: templateMarkdown,
+              templateSessionId: get().templateSessionId + 1,
               modelCto,
               editorModelCto: modelCto,
               data,
