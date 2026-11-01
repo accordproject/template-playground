@@ -1,4 +1,4 @@
-import useAppStore, { DecompressedData } from "../../store/store";
+import useAppStore, { DecompressedData, SHARED_TEMPLATE_NAME } from "../../store/store";
 import { decompress } from "../../utils/compression/compression";
 import { vi } from "vitest";
 
@@ -75,5 +75,34 @@ describe("useAppStore loadFromLink", () => {
     const state = useAppStore.getState();
     expect(state.isProblemPanelVisible).toBe(true);
     expect(state.error).toContain("Invalid share link data");
+  });
+
+  it("marks the template as shared and drops the previous template's request", async () => {
+    vi.mocked(decompress).mockReturnValue({
+      templateMarkdown: "Sample Template",
+      modelCto: "namespace test@1.0.0",
+      data: '{"key": "value"}',
+      agreementHtml: "<p>Sample</p>",
+    });
+    useAppStore.setState({ rebuild: vi.fn(), requestJson: '{"$class":"org.acme.counter@1.0.0.CounterRequest"}' });
+
+    await useAppStore.getState().loadFromLink("some-compressed-data");
+
+    const state = useAppStore.getState();
+    expect(state.sampleName).toBe(SHARED_TEMPLATE_NAME);
+    expect(state.requestJson).toBe("");
+  });
+
+  it("never names an import after a bundled sample, and remembers its data for reset", async () => {
+    useAppStore.setState({ rebuild: vi.fn() });
+    await useAppStore.getState().loadImportedTemplate({
+      name: "Hello World",
+      templateMarkdown: "Hi {{name}}",
+      modelCto: "namespace org.acme.hello@1.0.0",
+      data: '{"name":"Ana"}',
+    });
+    const state = useAppStore.getState();
+    expect(state.sampleName).toBe("Hello World (imported)");
+    expect(state.importedData).toBe('{"name":"Ana"}');
   });
 });

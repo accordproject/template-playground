@@ -8,6 +8,8 @@ import {
 } from "../../contexts/MarkdownEditorContext";
 import HelpRail, { HelpRailReopen, type ChecklistItem } from "./HelpRail";
 import PreviewToggle from "./PreviewToggle";
+import PreviewPane from "./PreviewPane";
+import useDesignV2Store from "../../store/designV2Store";
 import { TEXT } from "./constants";
 
 /**
@@ -44,11 +46,14 @@ const TextToolbar = () => {
  * The editor is the legacy TemplateMarkdown container, so edits flow through
  * the app store and rebuild the agreement as in the old layout. The status
  * bar mirrors the store's error; the full message is in the footer. The
- * title row carries the Preview toggle: this is where the rendered text matters.
+ * title row carries the Write | Preview switch: this is where the rendered
+ * text matters. Preview shows the agreement in the editor's place; the
+ * editor stays mounted (only hidden), so its undo history survives.
  */
 export const TextView = () => {
   const editorValue = useAppStore((s) => s.editorValue);
   const error = useAppStore((s) => s.error);
+  const previewOpen = useDesignV2Store((s) => s.previewOpen);
 
   const copyText = async () => {
     await navigator.clipboard?.writeText(editorValue);
@@ -71,7 +76,8 @@ export const TextView = () => {
             <HelpRailReopen />
           </div>
 
-          <section className="nd-editor-card nd-pane nd-pane-amber" aria-label={TEXT.paneLabel}>
+          {previewOpen && <PreviewPane />}
+          <section className="nd-editor-card nd-pane nd-pane-amber" aria-label={TEXT.paneLabel} hidden={previewOpen}>
             <div className="nd-editor-card-head">
               <span className="nd-mono nd-editor-file">{TEXT.file}</span>
               <span className="nd-badge nd-badge-amber">{TEXT.badge}</span>

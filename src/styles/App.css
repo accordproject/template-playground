@@ -4,6 +4,8 @@
 
 .app-content-loading {
   @apply flex justify-center items-center min-h-[calc(100vh-64px)];
+  /* Fill the row layout: design v2 renders this straight inside .app-layout, with no Content wrapper. */
+  flex: 1 1 auto;
 }
 
 .app-main-content {

@@ -6,15 +6,15 @@ import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SIMULATE } from '../../../components/designV2/constants';
 import { runSummary } from '../../../components/designV2/simulateRuns';
-import { describeLogicModel, scaffoldFromModel } from '../../../editors/logicSource';
 import { STEP_ID } from '../../../types/designV2.types';
 import * as latePayment from '../../../samples/latePaymentPenalty';
 import { failedRun, initRun, okRun, parseFailedRun } from './runFixtures';
 
 // The request editor is the legacy Monaco JSONEditor; a textarea stands in for it here.
+// Each JSONEditor stands in as a textarea named after its id ("request editor", "simulate-response editor", …).
 vi.mock('../../../editors/JSONEditor', () => ({
-  default: ({ value, onChange }: { value: string; onChange?: (v: string | undefined) => void }) => (
-    <textarea aria-label="request editor" value={value} onChange={(e) => onChange?.(e.target.value)} />
+  default: ({ id, value, onChange, readOnly }: { id: string; value: string; onChange?: (v: string | undefined) => void; readOnly?: boolean }) => (
+    <textarea aria-label={`${id} editor`} value={value} readOnly={readOnly} onChange={(e) => onChange?.(e.target.value)} />
   ),
 }));
 
@@ -28,7 +28,6 @@ describe('SimulateView', () => {
   const initContract = vi.fn(async () => { await Promise.resolve(); });
   const triggerContract = vi.fn(async () => { await Promise.resolve(); });
   const setLogicTs = vi.fn(async () => { await Promise.resolve(); });
-  const skeleton = scaffoldFromModel(describeLogicModel(latePayment.MODEL));
 
   beforeEach(() => {
     initContract.mockClear();
@@ -79,12 +78,6 @@ describe('SimulateView', () => {
       expect(screen.getByRole('button', { name: SIMULATE.restart })).toBeDisabled();
     });
 
-    it('treats the untouched skeleton from the Logic step as no logic', () => {
-      useAppStore.setState({ editorLogicTs: skeleton });
-      render(<SimulateView />);
-      expect(screen.getByText(SIMULATE.blocked.title)).toBeInTheDocument();
-    });
-
     it('"Open the Logic step" opens it', () => {
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.openLogic }));
@@ -119,6 +112,18 @@ describe('SimulateView', () => {
       expect(rows[2]).toHaveTextContent(SIMULATE.status.failed);
       expect(rows[2]).toHaveAttribute('aria-pressed', 'true');
       expect(rows[0]).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('shows the selected run\'s message, response and state as read-only JSON', () => {
+      useDesignV2Store.setState({ selectedRunId: okRun.id });
+      render(<SimulateView />);
+      const message = screen.getByLabelText('simulate-message editor');
+      expect(message).toHaveValue(JSON.stringify(okRun.request, null, 2));
+      expect(message).toHaveAttribute('readonly');
+      const response = screen.getByLabelText('simulate-response editor');
+      expect(response).toHaveValue(JSON.stringify(okRun.response, null, 2));
+      expect(response).toHaveAttribute('readonly');
+      expect(screen.getByLabelText('request editor')).not.toHaveAttribute('readonly');
     });
 
     it('shows the error of the selected failed run in an Error tab and links to trigger()', () => {

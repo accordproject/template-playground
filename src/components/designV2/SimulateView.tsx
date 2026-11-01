@@ -71,6 +71,17 @@ interface RunDetailProps {
   onOpenLogic: () => void;
 }
 
+/**
+ * A run's JSON (message, response, state) in a read-only Monaco JSON editor,
+ * as in the legacy runner, so it is highlighted and foldable like the
+ * request editor. Each pane has its own id: it names the editor's model.
+ */
+const JsonView = ({ id, value }: { id: string; value: string }) => (
+  <div className="nd-sim-json">
+    <JSONEditor id={id} value={value} readOnly />
+  </div>
+);
+
 /** Right-hand column: the run's request on top, then Response / State after / Events tabs. */
 const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
   const [copied, setCopied] = useState(false);
@@ -96,7 +107,7 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
           </Button>
         </div>
       ) : (
-        <pre className="nd-sim-code">{pretty(run.response)}</pre>
+        <JsonView id="simulate-response" value={pretty(run.response)} />
       ),
     },
     {
@@ -105,7 +116,11 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
       children: (
         <div className="nd-sim-tab-body">
           {failed && <div className="nd-sim-note">{SIMULATE.stateUnchanged}</div>}
-          <pre className="nd-sim-code">{run.stateAfter ? pretty(run.stateAfter) : SIMULATE.noState}</pre>
+          {run.stateAfter ? (
+            <JsonView id="simulate-state" value={pretty(run.stateAfter)} />
+          ) : (
+            <pre className="nd-sim-code">{SIMULATE.noState}</pre>
+          )}
         </div>
       ),
     },
@@ -140,7 +155,7 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
             {copied ? SIMULATE.copied : SIMULATE.requestActions}
           </Button>
         </div>
-        <pre className="nd-sim-code">{pretty(run.request)}</pre>
+        <JsonView id="simulate-message" value={pretty(run.request)} />
       </section>
 
       <section
