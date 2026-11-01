@@ -386,6 +386,8 @@ export const SIMULATE = {
   reuseMenuLabel: "Reuse an earlier message",
   send: "▶ Send",
   sendHintNoInit: "Start the contract before sending a message",
+  sendHintNoRequest: "Enter a request JSON before sending",
+  emptyRequestHint: "No request model defined — enter JSON message here",
   request: "Message",
   requestActions: "copy",
   copied: "copied",

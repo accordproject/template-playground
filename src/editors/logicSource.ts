@@ -234,3 +234,43 @@ export const pendingLogic = (editorLogicTs: string, logicTs: string, modelCto: s
   if (logicTs.trim() === "" && editorLogicTs === scaffoldFromModel(describeLogicModel(modelCto))) return null;
   return editorLogicTs;
 };
+
+
+/**
+ * Generates a default request JSON payload for the model's request transaction,
+ * with initial values for its required fields. Returns an empty string if the
+ * model does not declare a request transaction.
+ */
+export const scaffoldRequestFromModel = (model: LogicModel | null): string => {
+  if (!model?.request) return "";
+  const obj: Record<string, unknown> = {
+    $class: model.request.fqn,
+  };
+  for (const field of model.request.fields) {
+    if (field.isOptional) continue;
+    if (field.isArray) {
+      obj[field.name] = [];
+    } else {
+      switch (field.type) {
+        case "String":
+          obj[field.name] = "";
+          break;
+        case "Integer":
+        case "Long":
+        case "Double":
+          obj[field.name] = 0;
+          break;
+        case "Boolean":
+          obj[field.name] = false;
+          break;
+        case "DateTime":
+          obj[field.name] = "2026-01-01T00:00:00.000Z";
+          break;
+        default:
+          obj[field.name] = {};
+          break;
+      }
+    }
+  }
+  return JSON.stringify(obj, null, 2);
+};
