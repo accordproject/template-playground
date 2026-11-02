@@ -529,6 +529,15 @@
 .nd-preview-page {
   background: #fff; border: 1px solid #e4eff0; border-radius: 8px; padding: 34px 32px; min-height: 200px;
   box-shadow: 0 1px 3px rgba(15, 32, 39, 0.05);
+  color: #1f2937;
+  overflow-wrap: break-word;
+}
+.nd-preview-agreement {
+  line-height: 1.6;
+}
+.nd-preview-agreement img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Footer */

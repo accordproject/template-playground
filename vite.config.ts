@@ -178,6 +178,11 @@ const viteConfig = defineViteConfig({
 const vitestConfig = defineVitestConfig({  test: {
     globals: true,
     environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        url: "http://localhost/",
+      },
+    },
     setupFiles: "./src/utils/testing/setup.ts",
     exclude: [...configDefaults.exclude, "**/e2e/**"],
     server: {
