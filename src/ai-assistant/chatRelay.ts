@@ -132,10 +132,16 @@ export const sendMessage = async (
   const signal = newAbortController.signal;
 
   if (!aiConfig) {
-    const error = new Error('Please configure AI settings first');
+    const error = new Error('Please configure AI settings in Settings (top-right gear icon) first');
     if (onError) {
       onError(error);
     } else if (addToChat) {
+      const userMessage: Message = {
+        id: uuidv4(),
+        role: 'user',
+        content: userInput,
+        timestamp: new Date(),
+      };
       const errorMessage: Message = {
         id: uuidv4(),
         role: 'assistant',
@@ -144,7 +150,7 @@ export const sendMessage = async (
       };
 
       const updatedChatState = {
-        messages: [...chatState.messages, errorMessage],
+        messages: [...chatState.messages, userMessage, errorMessage],
         isLoading: false,
         error: null
       };
