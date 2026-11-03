@@ -55,6 +55,37 @@ export const REBUILD_PING = "rebuild-ping";
 /** The worker's answer to `REBUILD_PING`. */
 export const REBUILD_PONG = "rebuild-pong";
 
+/**
+ * The template's compiled `logic/logic.ts`, in the shape of template-engine's
+ * `CompiledUserLogic` (`lib/UserLogic`). Formulas may call the helpers it
+ * declares: when a formula references one of `symbols`, the engine splices
+ * `prelude` in front of it and declares the symbols for type-checking. The
+ * engine computes it on the main thread, where the logic is compiled, and it
+ * travels with every render as plain data.
+ */
+export interface RebuildUserLogic {
+  /** Raw TypeScript source of logic/logic.ts. */
+  source: string;
+  /** Its compiled JavaScript (an ES module). */
+  compiledJs: string;
+  /** Top-level functions, classes and bindings it declares. */
+  symbols: string[];
+  /** `compiledJs` without module syntax, ready to splice into a formula. */
+  prelude: string;
+}
+
+export function isRebuildUserLogic(value: unknown): value is RebuildUserLogic {
+  if (!value || typeof value !== "object") return false;
+  const logic = value as Partial<RebuildUserLogic>;
+  return (
+    typeof logic.source === "string" &&
+    typeof logic.compiledJs === "string" &&
+    typeof logic.prelude === "string" &&
+    Array.isArray(logic.symbols) &&
+    logic.symbols.every((symbol) => typeof symbol === "string")
+  );
+}
+
 export interface RebuildRequestMessage {
   type: typeof REBUILD_REQUEST;
   requestId: number;
@@ -64,6 +95,8 @@ export interface RebuildRequestMessage {
   model: string;
   /** JSON data, as a string. */
   data: string;
+  /** The compiled logic, when the template has some that compiled. */
+  userLogic?: RebuildUserLogic;
 }
 
 /**
@@ -146,6 +179,7 @@ export function isRebuildRequestMessage(value: unknown): value is RebuildRequest
     typeof msg.requestId === "number" &&
     typeof msg.template === "string" &&
     typeof msg.model === "string" &&
-    typeof msg.data === "string"
+    typeof msg.data === "string" &&
+    (msg.userLogic === undefined || isRebuildUserLogic(msg.userLogic))
   );
 }
