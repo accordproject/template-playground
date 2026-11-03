@@ -8,7 +8,6 @@ import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SIMULATE } from '../../../components/designV2/constants';
 import { pretty, runSummary } from '../../../components/designV2/simulateRuns';
-import { describeLogicModel, scaffoldFromModel } from '../../../editors/logicSource';
 import { STEP_ID } from '../../../types/designV2.types';
 import * as latePayment from '../../../samples/latePaymentPenalty';
 import { failedRun, initRun, okRun, parseFailedRun } from './runFixtures';
