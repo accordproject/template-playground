@@ -273,6 +273,7 @@ export const TEXT = {
   badge: "TemplateMark",
   copy: "⧉ copy",
   copied: "text.md copied",
+  copyFailed: "Couldn't copy — the clipboard is not available here",
   ok: "✓ renders",
   error: "✕ error",
   toolbarLabel: "Formatting",
@@ -323,6 +324,7 @@ export const MODEL_DATA = {
     badgeTitle: "Open the Concerto site",
     ok: "✓ parses",
     copied: "model.cto copied",
+    copyFailed: "Couldn't copy — the clipboard is not available here",
     formatFailed: "Fix Concerto syntax errors before formatting.",
   },
   data: {
@@ -389,6 +391,7 @@ export const SIMULATE = {
   request: "Message",
   requestActions: "copy",
   copied: "copied",
+  copyFailed: "Couldn't copy — the clipboard is not available here",
   /** Tabs under the request — the same three the legacy ContractExecutionTabs shows. */
   resultLabel: "Result",
   response: "Response",
