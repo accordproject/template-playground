@@ -25,6 +25,37 @@ import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
 
+export const createTemplateArchive = async (
+  templateMarkdown: string,
+  modelCto: string,
+  logicTs: string,
+): Promise<Uint8Array> => {
+  const JSZip = (await import("jszip")).default;
+  const packageJson = {
+    name: "playground-template",
+    version: "1.0.0",
+    accordproject: {
+      template: "contract",
+      cicero: "^1.0.0",
+    },
+  };
+
+  const zip = new JSZip();
+  zip.file("package.json", JSON.stringify(packageJson));
+  zip.file("text/grammar.tem.md", templateMarkdown);
+  zip.file("model/model.cto", modelCto);
+
+  for (const bundledModel of BUNDLED_MODELS) {
+    zip.file(`model/${bundledModel.fileName}`, bundledModel.source);
+  }
+
+  if (logicTs) {
+    zip.file("logic/logic.ts", logicTs);
+  }
+
+  return zip.generateAsync({ type: "uint8array" });
+};
+
 /**
  * A single step in a stateful template's execution chain: either the Init
  * step (index 0 — `request`/`priorState`/`result` all `null`) or a
@@ -206,6 +237,7 @@ interface AppState {
    * extracts and surfaces compilation diagnostic markers if it fails.
    */
   compileLogic: () => Promise<void>;
+  downloadTemplateArchive: () => Promise<void>;
   /**
    * Builds an official Template object from the current in-memory string contents
    * (grammar, model, logic) using JSZip. This object is required by the engine for compilation.
@@ -1040,8 +1072,12 @@ const useAppStore = create<AppState>()(
           try {
             const { Template: CiceroTemplate } =
               await import("@accordproject/cicero-core");
-            const JSZip = (await import("jszip")).default;
             const { templateMarkdown, modelCto, logicTs } = get();
+            const content = await createTemplateArchive(
+              templateMarkdown,
+              modelCto,
+              logicTs,
+            );
 
             // Construct package.json required by the Template archive
             const packageJson = {
@@ -1097,6 +1133,29 @@ const useAppStore = create<AppState>()(
               );
           } catch (error) {
             console.error("Error building template from memory:", error);
+          }
+        },
+
+        downloadTemplateArchive: async () => {
+          const { templateMarkdown, modelCto, logicTs } = get();
+          const content = await createTemplateArchive(
+            templateMarkdown,
+            modelCto,
+            logicTs,
+          );
+          const blob = new Blob([content as unknown as BlobPart], {
+            type: "application/zip",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "playground-template.cta";
+          try {
+            document.body.appendChild(link);
+            link.click();
+          } finally {
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
           }
         },
 
