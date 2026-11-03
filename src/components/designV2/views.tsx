@@ -4,6 +4,8 @@ import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
 import SimulateView from "./SimulateView";
 import SampleArt from "./SampleArt";
+import ImportTemplates from "./ImportTemplates";
+import { DeployView } from "./DeployView";
 import useDesignV2Store from "../../store/designV2Store";
 import { usePickTemplate } from "./usePickTemplate";
 import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
@@ -13,12 +15,11 @@ import {
   START,
   START_SAMPLES,
   START_BLANK,
-  DEPLOY,
   type StartSample,
 } from "./constants";
 
 /*
- * Welcome hero, template gallery and the Deploy placeholder. Each is swapped
+ * Welcome hero and template gallery. Each is swapped
  * in by DesignV2Layout based on `view`; the editor steps live in their own files.
  */
 
@@ -29,6 +30,8 @@ interface WelcomeViewProps {
 /**
  * Dark hero card: Accord Project wordmark, headline and the two CTAs.
  * "How it works" opens the docs site in a new tab (hence the ↗ in its label).
+ * A note under the buttons says what the playground is for — learning the
+ * structure of a template and prototyping — and points developers to VS Code.
  */
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => (
   <div className="nd-view nd-view-welcome">
@@ -54,6 +57,12 @@ export const WelcomeView = ({ onStart }: WelcomeViewProps) => (
           {WELCOME.howItWorks}
         </Button>
       </div>
+      <p className="nd-hero-note">
+        {WELCOME.ideNote}{" "}
+        <a href={URLS.vscodeTutorial} target="_blank" rel="noopener noreferrer">
+          {WELCOME.ideNoteLink}
+        </a>
+      </p>
       <div className="nd-spacer" />
     </div>
   </div>
@@ -143,25 +152,10 @@ export const StartView = () => {
           />
         ))}
       </div>
+      <ImportTemplates />
     </div>
   );
 };
-
-/** Step 7: Deploy — placeholder until the deploy flow is designed. */
-export const DeployView = () => (
-  <div className="nd-view nd-view-export">
-    <div className="nd-export-head">
-      <h1>{DEPLOY.title}</h1>
-    </div>
-    <div className="nd-export-grid">
-      {DEPLOY.cards.map((label) => (
-        <div key={label} className="nd-card nd-export-card">
-          <span className="nd-export-label">{label}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 interface ViewSwitchProps {
   view: DesignV2View;

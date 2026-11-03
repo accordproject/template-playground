@@ -20,10 +20,13 @@ import type {
   TriggerResponse,
 } from "../ai-assistant/llmProviders";
 import { validateBeforeRebuild } from "../utils/validators";
-import { BUNDLED_MODELS } from "../utils/modelCache";
+import { templateFromContent } from "../utils/templateArchive";
 import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
+
+/** sampleName of a template opened from a share link; design v2 starts on it instead of the first card. */
+export const SHARED_TEMPLATE_NAME = "Shared template";
 
 /**
  * A single step in a stateful template's execution chain: either the Init
@@ -98,6 +101,12 @@ interface AppState {
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
+  /**
+   * data.json as it was when the current template was imported (archive,
+   * library or share link), for the Data step's reset; null for bundled
+   * samples, which reset to their own data.
+   */
+  importedData: string | null;
   isAIChatOpen: boolean;
   backgroundColor: string;
   textColor: string;
@@ -110,6 +119,8 @@ interface AppState {
   editorLogicTs: string;
   // Resulting compiled JS payload. Null while compilation is stale/failed.
   compiledLogicJs: string | null;
+  // model.cto the last compilation ran against; logic compiled against an older model is stale.
+  compiledModelCto: string | null;
   // True while compilation is running.
   isCompiling: boolean;
   // Compilation diagnostics.
@@ -143,10 +154,39 @@ interface AppState {
   setData: (data: string) => Promise<void>;
   setEditorAgreementData: (value: string) => void;
   rebuild: () => Promise<void>;
+  /**
+   * Renders the current text, model and data right now, bypassing the
+   * debounce, and returns the HTML (or, with "markdown", plain Markdown)
+   * without touching the store. For exports, which must never use an
+   * agreementHtml that is still catching up with an edit. Throws the
+   * rendering error.
+   */
+  renderAgreement: (format?: AgreementFormat) => Promise<string>;
   init: () => Promise<void>;
   loadSample: (name: string) => Promise<void>;
-  generateShareableLink: () => string;
+  /**
+   * A link that opens the current template. By default it carries the
+   * displayed agreementHtml and the compiled logic; an export passes the
+   * agreement it rendered afresh (none when the sources don't render) and the
+   * logic as edited instead.
+   */
+  generateShareableLink: (fresh?: { agreementHtml?: string; logicTs: string }) => string;
   loadFromLink: (compressedData: string) => Promise<void>;
+  /**
+   * Replaces the whole template with imported content (a `.cta`, a library
+   * template). Throws on failure, so the caller can show the reason.
+   */
+  loadImportedTemplate: (content: {
+    name: string;
+    templateMarkdown: string;
+    modelCto: string;
+    data: string;
+    logicTs?: string;
+    /** Pre-rendered agreement from a share link; omitted for archives, which render on load. */
+    agreementHtml?: string;
+    /** Sample request for Simulate (an archive's request.json); empty when there is none. */
+    requestJson?: string;
+  }) => Promise<void>;
   toggleDarkMode: () => void;
   setAIChatOpen: (visible: boolean) => void;
   setChatState: (state: ChatState) => void;
@@ -210,7 +250,12 @@ interface AppState {
    * Builds an official Template object from the current in-memory string contents
    * (grammar, model, logic) using JSZip. This object is required by the engine for compilation.
    */
-  buildTemplateFromMemory: () => Promise<void>;
+  /**
+   * Builds a Template object from the given sources (default: the store's,
+   * read at call time) and returns it, or null when the build fails. Only
+   * the latest build updates templateObject.
+   */
+  buildTemplateFromMemory: (sources?: TemplateSources) => Promise<import("@accordproject/cicero-core").Template | null>;
 
   /**
    * Registers the reference to the sandboxed iframe element once mounted.
@@ -366,11 +411,39 @@ interface AppState {
   triggerContract: () => Promise<void>;
 }
 
+/**
+ * Thrown by renderAgreement when the text, model or data changed while it
+ * rendered (even if changed back): the result may be of other sources, so
+ * an export must not use it. Callers that tolerate ordinary render errors
+ * still have to let this one through.
+ */
+export class SourcesChangedError extends Error {
+  constructor(while_ = "rendered") {
+    super(`The template changed while it was being ${while_} — try again.`);
+    this.name = "SourcesChangedError";
+  }
+}
+
+/**
+ * What a render produces. "markdown" is the agreement as plain Markdown:
+ * values filled in and formatting kept, without TemplateMark's clause or
+ * formula markup (CiceroMark → unquoted CiceroMark → Markdown). "text" is
+ * markdown-transform's plain-text target: the same, without the formatting.
+ */
+export type AgreementFormat = "html" | "markdown" | "text";
+
+const AGREEMENT_TARGETS: Record<AgreementFormat, string[]> = {
+  html: ["html"],
+  markdown: ["ciceromark_unquoted", "markdown"],
+  text: ["ciceromark_unquoted", "plaintext"],
+};
+
 export interface DecompressedData {
   templateMarkdown: string;
   modelCto: string;
   data: string;
-  agreementHtml: string;
+  /** Omitted when the sources didn't render; the recipient's playground renders them. */
+  agreementHtml?: string;
   logicTs?: string;
 }
 
@@ -380,6 +453,7 @@ async function rebuild(
   template: string,
   model: string,
   dataString: string,
+  format: AgreementFormat = "html",
 ): Promise<string> {
   /*
    * Validate inputs before expensive operations
@@ -398,18 +472,30 @@ async function rebuild(
   // download starts here so it overlaps with rendering in the sandbox.
   const markdownTransform = import("@accordproject/markdown-transform");
   const ciceroMarkJson = await rebuildInSandbox(template, model, dataString);
-  // Converting CiceroMark to HTML runs no user code, so it stays on the main thread.
+  return convertCiceroMark(ciceroMarkJson, format, markdownTransform);
+}
+
+/**
+ * Converts a rendered agreement (CiceroMark JSON, as the rendering sandbox
+ * returns it) to HTML or Markdown. It runs no user code, so it stays on the
+ * main thread. markdown-transform is passed in when its download has
+ * already started, and loaded here otherwise.
+ */
+export async function convertCiceroMark(
+  ciceroMarkJson: unknown,
+  format: AgreementFormat,
+  markdownTransform = import("@accordproject/markdown-transform"),
+): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { transform } = await markdownTransform;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  const result = (await transform(
+  return (await transform(
     ciceroMarkJson,
     "ciceromark_parsed",
-    ["html"],
+    AGREEMENT_TARGETS[format],
     {},
     { verbose: false },
   )) as string;
-  return result;
 }
 
 const getInitialTheme = () => {
@@ -520,6 +606,75 @@ const persistChain = (chain: ChainStep[]) => {
   }
 };
 
+/** The sources a Template object is built from. */
+export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "logicTs">;
+
+/**
+ * Revision of the sources an agreement is rendered from (text, model and
+ * data), bumped on every change to any of them (see the subscription after
+ * the store). renderAgreement compares it, not the strings, so an edit that
+ * is undone while a render runs still voids that render.
+ */
+let renderSourceRevision = 0;
+/**
+ * Revision of the logic as edited (editorLogicTs), bumped the same way. Kept
+ * apart from renderSourceRevision because the logic doesn't change the
+ * rendered agreement; exports that also carry the logic (Share link) check
+ * both.
+ */
+let logicEditRevision = 0;
+export const currentLogicEditRevision = () => logicEditRevision;
+
+/**
+ * The name an imported template gets: its own, unless a bundled sample has
+ * it. Views look samples up by name (the Data step's reset would load that
+ * sample's data), so a clash gets " (imported)".
+ */
+export const importedTemplateName = (name: string): string =>
+  SAMPLES.some((sample) => sample.NAME === name) ? `${name} (imported)` : name;
+/**
+ * Revision of everything a template export carries: text, model, data, the
+ * logic as edited, the Simulate request and the template's name. The .cta
+ * and folder exports compare it after building, so an edit made meanwhile
+ * (even if undone) refuses the export rather than saving stale sources.
+ */
+let exportSourceRevision = 0;
+export const currentExportRevision = () => exportSourceRevision;
+
+/** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
+let latestCompileRun = 0;
+/**
+ * Generation of the template sources, bumped each time they are replaced (a
+ * sample or a shared link is loaded). Work started for one template — such
+ * as the design-v2 gate in front of Simulate — compares it to cancel itself
+ * once the template has changed underneath it.
+ */
+let templateGeneration = 0;
+export const currentTemplateGeneration = () => templateGeneration;
+/** Id of the latest buildTemplateFromMemory call; older builds do not update templateObject. */
+let latestTemplateBuild = 0;
+/**
+ * Called when the template sources are replaced: drops the result of any
+ * compilation still running, so a compile of the discarded logic cannot
+ * publish into the new template, cancels template builds still running, so
+ * none can put the discarded template back in templateObject, and starts a
+ * new template generation. The caller resets the cached template itself
+ * (TEMPLATE_CACHE_RESET) in the same update as the new sources.
+ */
+const invalidateCompilations = () => {
+  latestCompileRun++;
+  latestTemplateBuild++;
+  templateGeneration++;
+};
+
+/**
+ * The cached Template object and what it said about the template, as for a
+ * template not yet built. A template without logic is never compiled, so
+ * nothing else would replace the previous template's; the legacy runner
+ * rebuilds when templateObject is null.
+ */
+const TEMPLATE_CACHE_RESET = { templateObject: null, isTemplateStateful: true } as const;
+
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
@@ -548,6 +703,7 @@ const useAppStore = create<AppState>()(
         backgroundColor: initialTheme.backgroundColor,
         textColor: initialTheme.textColor,
         sampleName: playground.NAME,
+        importedData: null,
         templateMarkdown: playground.TEMPLATE,
         editorValue: playground.TEMPLATE,
         modelCto: playground.MODEL,
@@ -602,6 +758,7 @@ const useAppStore = create<AppState>()(
         logicTs: "",
         editorLogicTs: "",
         compiledLogicJs: null,
+        compiledModelCto: null,
         isCompiling: false,
         compilationErrors: [],
         templateObject: null,
@@ -792,8 +949,11 @@ const useAppStore = create<AppState>()(
             const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
             const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
             const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
+            invalidateCompilations();
             set(() => ({
+              ...TEMPLATE_CACHE_RESET,
               sampleName: sample.NAME,
+              importedData: null,
               agreementHtml: undefined,
               error: undefined,
               templateMarkdown: sample.TEMPLATE,
@@ -850,6 +1010,29 @@ const useAppStore = create<AppState>()(
           }
         },
 
+        renderAgreement: async (format: AgreementFormat = "html") => {
+          const { templateMarkdown, modelCto, data } = get();
+          const revision = renderSourceRevision;
+          let html: string;
+          try {
+            html = await rebuild(templateMarkdown, modelCto, data, format);
+          } catch (error: unknown) {
+            // A render that failed after the sources changed failed for sources that are gone.
+            if (renderSourceRevision !== revision) throw new SourcesChangedError();
+            throw new Error(formatError(error));
+          }
+          /*
+           * The sandbox answers a superseded request with the newer render's
+           * result. If the sources changed while this one was in flight, the
+           * HTML may be of another template, so it is not handed out — even if
+           * they were changed back (an edit then Undo), which comparing the
+           * strings would miss.
+           */
+          if (renderSourceRevision !== revision) {
+            throw new SourcesChangedError();
+          }
+          return html;
+        },
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();
           try {
@@ -917,14 +1100,16 @@ const useAppStore = create<AppState>()(
         setEditorAgreementData: (value: string) => {
           set(() => ({ editorAgreementData: value }));
         },
-        generateShareableLink: () => {
+        generateShareableLink: (fresh) => {
           const state = get();
+          const agreementHtml = fresh ? fresh.agreementHtml : state.agreementHtml;
+          const logicTs = fresh ? fresh.logicTs : state.logicTs;
           const compressedData = compress({
             templateMarkdown: state.templateMarkdown,
             modelCto: state.modelCto,
             data: state.data,
-            agreementHtml: state.agreementHtml,
-            ...(state.logicTs?.trim() ? { logicTs: state.logicTs } : {}),
+            ...(agreementHtml !== undefined ? { agreementHtml } : {}),
+            ...(logicTs?.trim() ? { logicTs } : {}),
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
@@ -935,40 +1120,14 @@ const useAppStore = create<AppState>()(
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
             }
-            const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
-            /*
-             * A shared link loads a different template — nothing the last one
-             * produced (including its execution chain/history) applies here.
-             * This was a pre-existing gap (loadSample already did this); the
-             * chain persisting across page loads makes it worth closing now,
-             * since otherwise a stale chain could leak into an unrelated
-             * template.
-             */
-            get().resetExecution();
-            set(() => ({
+            await get().loadImportedTemplate({
+              name: SHARED_TEMPLATE_NAME,
               templateMarkdown,
-              editorValue: templateMarkdown,
               modelCto,
-              editorModelCto: modelCto,
               data,
-              editorAgreementData: data,
+              logicTs,
               agreementHtml,
-              error: undefined,
-              logicTs: logicTs || "",
-              editorLogicTs: logicTs || "",
-              compiledLogicJs: null,
-              compilationErrors: [],
-              isCompiling: false,
-              isLogicPanelVisible: hasLogic,
-            }));
-            if (hasLogic) {
-              get().setLogicFeatureEnabled(true);
-              savePanelState({ ...get(), isLogicPanelVisible: true });
-            }
-            await get().rebuild();
-            if (hasLogic) {
-              await get().compileLogic();
-            }
+            });
           } catch (error) {
             set(() => ({
               error:
@@ -976,6 +1135,65 @@ const useAppStore = create<AppState>()(
                 (error instanceof Error ? error.message : "Unknown error"),
               isProblemPanelVisible: true,
             }));
+          }
+        },
+        loadImportedTemplate: async ({
+          name,
+          templateMarkdown,
+          modelCto,
+          data,
+          logicTs,
+          agreementHtml,
+          requestJson,
+        }: {
+          name: string;
+          templateMarkdown: string;
+          modelCto: string;
+          data: string;
+          logicTs?: string;
+          agreementHtml?: string;
+          requestJson?: string;
+        }) => {
+          const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
+          /*
+           * A loaded link or archive is a different template — nothing the
+           * last one produced (including its execution chain/history) applies
+           * here. This was a pre-existing gap (loadSample already did this);
+           * the chain persisting across page loads makes it worth closing,
+           * since otherwise a stale chain could leak into an unrelated
+           * template.
+           */
+          get().resetExecution();
+          // Compiles still running belong to the previous template (see invalidateCompilations).
+          invalidateCompilations();
+          set(() => ({
+            ...TEMPLATE_CACHE_RESET,
+            sampleName: importedTemplateName(name),
+            importedData: data,
+            // The previous template's request means nothing to this one.
+            requestJson: requestJson ?? "",
+            templateMarkdown,
+            editorValue: templateMarkdown,
+            modelCto,
+            editorModelCto: modelCto,
+            data,
+            editorAgreementData: data,
+            agreementHtml,
+            error: undefined,
+            logicTs: logicTs || "",
+            editorLogicTs: logicTs || "",
+            compiledLogicJs: null,
+            compilationErrors: [],
+            isCompiling: false,
+            isLogicPanelVisible: hasLogic,
+          }));
+          if (hasLogic) {
+            get().setLogicFeatureEnabled(true);
+            savePanelState({ ...get(), isLogicPanelVisible: true });
+          }
+          await get().rebuild();
+          if (hasLogic) {
+            await get().compileLogic();
           }
         },
         toggleDarkMode: () => {
@@ -1035,46 +1253,15 @@ const useAppStore = create<AppState>()(
           await get().compileLogic();
         },
 
-        buildTemplateFromMemory: async () => {
+        buildTemplateFromMemory: async (sources) => {
+          // Read the sources before any await, so a later edit cannot slip into this build.
+          const { templateMarkdown, modelCto, logicTs } = sources ?? get();
+          const build = ++latestTemplateBuild;
           set({ templateObject: null });
           try {
-            const { Template: CiceroTemplate } =
-              await import("@accordproject/cicero-core");
-            const JSZip = (await import("jszip")).default;
-            const { templateMarkdown, modelCto, logicTs } = get();
-
-            // Construct package.json required by the Template archive
-            const packageJson = {
-              name: "playground-template",
-              version: "1.0.0",
-              accordproject: {
-                template: "contract",
-                cicero: "^3.0.0",
-              },
-            };
-
-            // Build an in-memory zip file (.cta archive equivalent)
-            const zip = new JSZip();
-            zip.file("package.json", JSON.stringify(packageJson));
-            zip.file("text/grammar.tem.md", templateMarkdown);
-            zip.file("model/model.cto", modelCto);
-
-            // Inject offline models so fromArchive resolves external imports locally
-            for (const bundledModel of BUNDLED_MODELS) {
-              zip.file(`model/${bundledModel.fileName}`, bundledModel.source);
-            }
-
-            if (logicTs) {
-              zip.file("logic/logic.ts", logicTs);
-            }
-
-            // Generate buffer and load via fromArchive API
-            const content = await zip.generateAsync({ type: "uint8array" });
-            const { Buffer } = await import("buffer");
-            const template = await CiceroTemplate.fromArchive(
-              Buffer.from(content),
-              { offline: true },
-            );
+            // Built from the sources as Cicero's own loader builds a template (no zip in between);
+            // the Deploy step exports the same Template with Template.toArchive.
+            const template = await templateFromContent({ templateMarkdown, modelCto, logicTs });
 
             // const { isStatefulTemplate } = await import("../ai-assistant/llmProviders");
             /*
@@ -1085,46 +1272,68 @@ const useAppStore = create<AppState>()(
              * extend the runtime base is malformed, but its sandboxed logic
              * still has state to seed, and hiding Init would strand it.
              */
-            set({
-              templateObject: template,
-              isTemplateStateful:
-                template.isStateful() || logicDefinesInit(logicTs),
-            });
+            if (build === latestTemplateBuild) {
+              set({
+                templateObject: template,
+                isTemplateStateful:
+                  template.isStateful() || logicDefinesInit(logicTs),
+              });
+            }
             if (import.meta.env.DEV)
               console.log(
-                "Successfully built Template object from JSZip archive!",
+                "Successfully built the Template object!",
                 template,
               );
+            return template as AppState["templateObject"];
           } catch (error) {
             console.error("Error building template from memory:", error);
+            return null;
           }
         },
 
         compileLogic: async () => {
+          /*
+           * Compilations can overlap (a model edit, then Simulate, while one
+           * is still running). Each run compiles one snapshot of the sources,
+           * taken before any await: it builds its own Template object from
+           * it and records that snapshot's model with its result. Only the
+           * latest run publishes, so an older run finishing late cannot pass
+           * off old-model output as current.
+           */
+          const run = ++latestCompileRun;
+          const { templateMarkdown, modelCto, logicTs } = get();
+          const sources: TemplateSources = { templateMarkdown, modelCto, logicTs };
+          const compiledModelCto = modelCto;
+          const publish = (result: Partial<AppState>) => {
+            if (run === latestCompileRun) set({ ...result, compiledModelCto });
+          };
           set({
             isCompiling: true,
             compilationErrors: [],
             compiledLogicJs: null,
+            compiledModelCto: null,
           });
           try {
-            const state = get();
-            if (!state.logicTs || !state.modelCto) {
-              set({ isCompiling: false, compilationErrors: [] });
+            if (!logicTs || !modelCto) {
+              publish({ isCompiling: false, compilationErrors: [] });
               return;
             }
 
             const { TemplateArchiveProcessor } =
               await import("@accordproject/template-engine");
+            // Superseded while the engine loaded: stop before the build, which updates shared state.
+            if (run !== latestCompileRun) return;
 
             /*
-             * Always rebuild the Template object from the latest in-memory sources
-             * to ensure the compiler has the most up-to-date grammar and model.
+             * Build the Template object from this run's snapshot and compile
+             * that one — never the shared templateObject, which another run's
+             * build may have replaced. A failed build is reported as such.
              */
-            await get().buildTemplateFromMemory();
+            const templateToCompile = await get().buildTemplateFromMemory(sources);
+            if (run !== latestCompileRun) return;
 
-            const templateToCompile = get().templateObject;
             if (!templateToCompile) {
-              set({
+              publish({
                 isCompiling: false,
                 compilationErrors: [
                   {
@@ -1175,7 +1384,7 @@ const useAppStore = create<AppState>()(
                 console.error("Failed to calculate compilation line offset", e);
               }
 
-              set({
+              publish({
                 isCompiling: false,
                 isProblemPanelVisible: true,
                 compilationErrors: actualErrors.map((e: any) => {
@@ -1211,7 +1420,7 @@ const useAppStore = create<AppState>()(
                 /class\s+(\w+)\s+extends\s+TemplateLogic/,
               );
               if (!match) {
-                set({
+                publish({
                   isCompiling: false,
                   isProblemPanelVisible: true,
                   compilationErrors: [
@@ -1225,14 +1434,14 @@ const useAppStore = create<AppState>()(
               }
               code += `\nreturn ${match[1]};\n`;
 
-              set({
+              publish({
                 isCompiling: false,
                 compiledLogicJs: code,
                 compilationErrors: [],
               });
             }
           } catch (error: unknown) {
-            set({
+            publish({
               isCompiling: false,
               isProblemPanelVisible: true,
               compilationErrors: [
@@ -1366,8 +1575,7 @@ const useAppStore = create<AppState>()(
            * what usually builds one), and an edited model would otherwise be
            * executed against a stale schema.
            */
-          await get().buildTemplateFromMemory();
-          const template = get().templateObject;
+          const template = await get().buildTemplateFromMemory();
           if (!template) {
             throw new Error(
               "Could not build a template from the current model and grammar.",
@@ -1650,6 +1858,28 @@ const useAppStore = create<AppState>()(
     }),
   ),
 );
+
+// Any change to the rendered sources, by whichever setter, starts a new revision (see renderSourceRevision).
+useAppStore.subscribe((state, previous) => {
+  if (
+    state.templateMarkdown !== previous.templateMarkdown ||
+    state.modelCto !== previous.modelCto ||
+    state.data !== previous.data
+  ) {
+    renderSourceRevision++;
+  }
+  if (state.editorLogicTs !== previous.editorLogicTs) logicEditRevision++;
+  if (
+    state.templateMarkdown !== previous.templateMarkdown ||
+    state.modelCto !== previous.modelCto ||
+    state.data !== previous.data ||
+    state.editorLogicTs !== previous.editorLogicTs ||
+    state.requestJson !== previous.requestJson ||
+    state.sampleName !== previous.sampleName
+  ) {
+    exportSourceRevision++;
+  }
+});
 
 export default useAppStore;
 

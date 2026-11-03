@@ -1,8 +1,10 @@
 export type LogicStatus = "dirty" | "compiling" | "failed" | "compiled" | "notCompiled" | "empty";
 
 /**
- * The five states of the legacy logic editor's badge, in the same order of
- * precedence, computed from the same store fields.
+ * The states of the legacy logic editor's badge, computed from the same
+ * store fields. Compiled JS outranks errors: a compile clears the JS and
+ * sets it only on success, so errors alongside it come from running the
+ * logic (init/trigger), not from compiling it.
  */
 export const logicStatus = (s: {
   editorLogicTs: string;
@@ -13,8 +15,8 @@ export const logicStatus = (s: {
 }): LogicStatus => {
   if (s.editorLogicTs !== s.logicTs) return "dirty";
   if (s.isCompiling) return "compiling";
-  if (s.compilationErrors.length > 0) return "failed";
   if (s.compiledLogicJs) return "compiled";
+  if (s.compilationErrors.length > 0) return "failed";
   if (s.logicTs) return "notCompiled";
   return "empty";
 };
