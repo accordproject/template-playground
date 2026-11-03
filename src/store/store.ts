@@ -1352,32 +1352,33 @@ const useAppStore = create<AppState>()(
             );
           }
 
-          const { buildLLMExecutorConfig, getLLMExecutor } = await import(
-            "../ai-assistant/llmProviders"
-          );
-          if (!aiConfig) {
-            throw new Error('AI is not configured. Open Settings → AI Configuration to set it up.');
-          }
-          const executorConfig = buildLLMExecutorConfig(aiConfig, llmExecutionMode);
-          /*
-           * The LLM executor derives its JSON Schema from the template's own
-           * ModelManager, so it needs a Template object. Rebuild it every run:
-           * templates without logic never go through compileLogic() (which is
-           * what usually builds one), and an edited model would otherwise be
-           * executed against a stale schema.
-           */
-          await get().buildTemplateFromMemory();
-          const template = get().templateObject;
-          if (!template) {
-            throw new Error(
-              "Could not build a template from the current model and grammar.",
-            );
-          }
-
-          const executor = getLLMExecutor(template, executorConfig);
-
+          // Preparation must hold the same lock as execution, before any await.
           set({ isExecuting: true });
           try {
+            const { buildLLMExecutorConfig, getLLMExecutor } = await import(
+              "../ai-assistant/llmProviders"
+            );
+            if (!aiConfig) {
+              throw new Error('AI is not configured. Open Settings → AI Configuration to set it up.');
+            }
+            const executorConfig = buildLLMExecutorConfig(aiConfig, llmExecutionMode);
+            /*
+             * The LLM executor derives its JSON Schema from the template's own
+             * ModelManager, so it needs a Template object. Rebuild it every run:
+             * templates without logic never go through compileLogic() (which is
+             * what usually builds one), and an edited model would otherwise be
+             * executed against a stale schema.
+             */
+            await get().buildTemplateFromMemory();
+            const template = get().templateObject;
+            if (!template) {
+              throw new Error(
+                "Could not build a template from the current model and grammar.",
+              );
+            }
+
+            const executor = getLLMExecutor(template, executorConfig);
+
             return operation === "init"
               ? await executor.init(payload.data)
               : await executor.trigger(
