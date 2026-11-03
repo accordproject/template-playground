@@ -70,6 +70,23 @@ describe('App - Design v2 feature flag routing', () => {
     expect(screen.queryByTestId('legacy-main')).not.toBeInTheDocument();
   });
 
+  it('renders the loader while loading on "/" when Design v2 is enabled', async () => {
+    state.isDesignV2Enabled = true;
+    let resolveInit: () => void = () => {};
+    state.init.mockReturnValueOnce(new Promise<void>((resolve) => { resolveInit = resolve; }));
+
+    const { container } = renderAt('/');
+
+    const loadingEl = container.querySelector('.app-content-loading');
+    const spinnerEl = container.querySelector('.app-spinner-container');
+    expect(loadingEl).toBeInTheDocument();
+    expect(spinnerEl).toBeInTheDocument();
+    expect(screen.queryByTestId('design-v2-shell')).not.toBeInTheDocument();
+
+    resolveInit();
+    expect(await screen.findByTestId('design-v2-shell')).toBeInTheDocument();
+  });
+
   it('leaves "/learn" unchanged when the flag is on', async () => {
     state.isDesignV2Enabled = true;
     renderAt('/learn');
