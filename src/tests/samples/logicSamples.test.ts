@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import useAppStore from '../../store/store';
 import { SAMPLES } from '../../samples';
 import * as counterLogic from '../../samples/counterLogic';
+import { describeLogicModel, scaffoldFromModel } from '../../editors/logicSource';
 
 type LogicInstance = {
   init?: (data: unknown) => Promise<{ state?: unknown } | undefined>;
@@ -45,6 +46,29 @@ describe('samples with logic', () => {
       const initResponse = typeof logic.init === 'function' ? await logic.init(data) : undefined;
       const request = clone(sample.REQUEST ?? {});
       const response = await logic.trigger(data, request, initResponse?.state);
+      expect(response.result?.$class).toBeTruthy();
+    }, 60000);
+  }
+});
+
+describe('the Logic step skeleton', () => {
+  /*
+   * A template without logic opens the Logic step on a skeleton built from
+   * its model. It must compile as written, against every sample model, and
+   * its init and trigger must run.
+   */
+  for (const sample of SAMPLES) {
+    it(`compiles and runs for ${sample.NAME}`, async () => {
+      const skeleton = scaffoldFromModel(describeLogicModel(sample.MODEL));
+      const state = await compile(sample.MODEL, sample.TEMPLATE, skeleton);
+      expect(state.compilationErrors).toEqual([]);
+      expect(state.compiledLogicJs).toBeTruthy();
+
+      const logic = new (loadLogicClass(state.compiledLogicJs!))();
+      const data = clone(sample.DATA);
+      const initResponse = await logic.init!(data);
+      expect((initResponse?.state as { $class?: string } | undefined)?.$class).toBeTruthy();
+      const response = await logic.trigger(data, clone(sample.REQUEST ?? {}), initResponse?.state);
       expect(response.result?.$class).toBeTruthy();
     }, 60000);
   }
