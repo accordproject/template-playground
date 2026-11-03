@@ -1,7 +1,10 @@
 import React, { useMemo, useCallback } from 'react';
+import { Alert, Tag, Space, Typography } from 'antd';
 import useAppStore from '../store/store';
 import { navigateToLine, EditorSource } from '../utils/editorNavigation';
 import '../styles/components/ProblemPanel.css';
+
+const { Text } = Typography;
 
 export interface ProblemItem {
   id: string;
@@ -121,32 +124,27 @@ const ProblemPanel: React.FC = () => {
   return (
     <div className="problem-panel-container" style={{ backgroundColor }}>
       <div className={`problem-panel-header ${backgroundColor === '#ffffff' ? 'problem-panel-header-light' : 'problem-panel-header-dark'}`}>
-        <span className="problem-panel-title">Problems</span>
+        <Text strong className="problem-panel-title">Problems</Text>
       </div>
       <div className="problem-panel-content" style={{ backgroundColor }}>
         {editorLogicTs !== logicTs && compilationErrors && compilationErrors.length > 0 && (
-          <div className="problem-panel-warning-banner" style={{
-            backgroundColor: backgroundColor === '#ffffff' ? '#fffbe6' : '#2b2111',
-            border: `1px solid ${backgroundColor === '#ffffff' ? '#ffe58f' : '#593f16'}`,
-            color: backgroundColor === '#ffffff' ? '#d46b08' : '#e89e3a',
-            padding: '8px 12px',
-            margin: '8px 12px 0 12px',
-            borderRadius: '4px',
-            fontSize: '13px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span className="warning-icon" style={{ fontSize: '14px' }}>⚠️</span>
-            <span>Logic Editor has unsaved changes. Please click <strong>Apply & Compile</strong> to refresh compilation errors.</span>
-          </div>
+          <Alert
+            type="warning"
+            showIcon
+            message={
+              <span>
+                Logic Editor has unsaved changes. Please click <strong>Apply & Compile</strong> to refresh compilation errors.
+              </span>
+            }
+            style={{ margin: '8px 12px 0 12px' }}
+          />
         )}
         {problems.length === 0 ? (
           <div className="problem-panel-empty-state">
-            <div className="problem-panel-empty-state-content">
+            <Space direction="vertical" align="center" className="problem-panel-empty-state-content">
               <div className="problem-panel-empty-state-icon">✨</div>
-              <div className="problem-panel-empty-state-text" style={{ color: textColor }}>No problems detected</div>
-            </div>
+              <Text className="problem-panel-empty-state-text" style={{ color: textColor }}>No problems detected</Text>
+            </Space>
           </div>
         ) : (
           <div className="problem-panel-problems-list">
@@ -173,33 +171,41 @@ const ProblemPanel: React.FC = () => {
                 <div className="problem-panel-problem-content">
                   <div className="problem-panel-problem-details">
                     <div className="problem-panel-problem-meta">
-                      <div className="problem-panel-problem-tags">
-                        <span className="problem-panel-problem-type-badge" style={{ color: textColor }}>
+                      <Space size={8} wrap className="problem-panel-problem-tags">
+                        <Tag
+                          color={
+                            problem.type === 'error'
+                              ? 'error'
+                              : problem.type === 'warning'
+                              ? 'warning'
+                              : 'processing'
+                          }
+                        >
                           {problem.type.toUpperCase()}
-                        </span>
+                        </Tag>
                         {problem.source && (
-                          <span className="problem-panel-problem-source" style={{ color: textColor }}>
+                          <Text className="problem-panel-problem-source" style={{ color: textColor }}>
                             {problem.source}
-                          </span>
+                          </Text>
                         )}
                         {isClickable(problem) && (
                           <span className="problem-panel-clickable-link">
                             Go to line {problem.line}
                             {problem.column && problem.column > 0 && `:${problem.column}`}
-                            <span className="ml-1">{"-->"}</span>
+                            <span style={{ marginLeft: 4 }}>{"-->"}</span>
                           </span>
                         )}
                         {!isClickable(problem) && (problem.line || problem.column) && (
-                          <span className="problem-panel-problem-location" style={{ color: textColor }}>
+                          <Text className="problem-panel-problem-location" style={{ color: textColor }}>
                             {problem.line && `Line ${problem.line}`}
                             {problem.line && problem.column && ':'}
                             {problem.column && `Col ${problem.column}`}
-                          </span>
+                          </Text>
                         )}
-                      </div>
-                      <span className="problem-panel-problem-timestamp" style={{ color: textColor }}>
+                      </Space>
+                      <Text className="problem-panel-problem-timestamp" style={{ color: textColor }}>
                         {formatTimestamp(problem.timestamp)}
-                      </span>
+                      </Text>
                     </div>
 
                     <div className="problem-panel-problem-message-container">
@@ -218,4 +224,4 @@ const ProblemPanel: React.FC = () => {
   );
 };
 
-export default ProblemPanel; 
+export default ProblemPanel;

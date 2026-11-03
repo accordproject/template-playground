@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { colors } from '../utils/theme';
 import { useSpring, animated } from "react-spring";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -14,189 +13,26 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
-import { message, Modal } from "antd";
+import {
+  message,
+  Modal,
+  Layout,
+  Dropdown,
+  Button,
+  Image,
+  Grid,
+  Typography,
+  Space,
+  theme,
+  type MenuProps,
+} from "antd";
 import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
-
-interface DropdownProps {
-  children: React.ReactNode;
-  overlay: React.ReactNode;
-  trigger: string[];
-  className?: string;
-}
-
-const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleClick = () => {
-    if (trigger.includes("click")) {
-      setIsOpen(!isOpen);
-    }
-  };
-
-  const handleMouseEnter = () => {
-    if (trigger.includes("hover")) {
-      setIsOpen(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (trigger.includes("hover")) {
-      setIsOpen(false);
-    }
-  };
-
-  return (
-    <div 
-      className={`relative ${className}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div onClick={handleClick}>
-        {children}
-      </div>
-      {isOpen && (
-        <>
-          <div 
-            className="fixed inset-0 z-10" 
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
-            {overlay}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
-const Menu = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`py-1 ${className}`}>
-    {children}
-  </div>
-);
-
-const MenuItem = ({
-  children,
-  onClick,
-  to,
-  href,
-  className = ""
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  to?: string;
-  href?: string;
-  className?: string;
-}) => {
-  const baseClasses = `px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2 ${className}`;
-
-  if (to) {
-    return (
-      <Link to={to} className={baseClasses} onClick={onClick}>
-        {children}
-      </Link>
-    );
-  }
-
-  if (href) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={baseClasses}
-        onClick={onClick}
-      >
-        {children}
-      </a>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      className={`w-full text-left bg-transparent border-none ${baseClasses}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-};
-
-const MenuItemGroup = ({ 
-  title, 
-  children, 
-  className = "" 
-}: { 
-  title: string; 
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div className={className}>
-    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide border-b border-gray-200 dark:border-gray-700">
-      {title}
-    </div>
-    {children}
-  </div>
-);
-
-const Button = ({ 
-  children, 
-  onClick, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
-  onClick?: () => void;
-  className?: string;
-}) => (
-  <button 
-    className={`flex items-center ${className}`}
-    onClick={onClick}
-  >
-    {children}
-  </button>
-);
-
-const Image = ({ 
-  src, 
-  alt, 
-  className = "" 
-}: { 
-  src: string; 
-  alt: string;
-  className?: string;
-}) => (
-  <img src={src} alt={alt} className={className} />
-);
-
-const useBreakpoint = () => {
-  const [screenSize, setScreenSize] = useState({
-    sm: false,
-    md: false,
-    lg: false,
-    xl: false,
-  });
-
-  useState(() => {
-    const checkSize = () => {
-      setScreenSize({
-        sm: window.innerWidth >= 640,
-        md: window.innerWidth >= 768,
-        lg: window.innerWidth >= 1024,
-        xl: window.innerWidth >= 1280,
-      });
-    };
-
-    checkSize();
-    window.addEventListener('resize', checkSize);
-    return () => window.removeEventListener('resize', checkSize);
-  });
-
-  return screenSize;
-};
+const { Header } = Layout;
+const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 function Navbar() {
   const [hovered, setHovered] = useState<
@@ -204,22 +40,31 @@ function Navbar() {
   >(null);
   const screens = useBreakpoint();
   const location = useLocation();
+  const { token } = theme.useToken();
 
-  const { samples, loadSample, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs, isLogicFeatureEnabled } =
-    useStoreWithEqualityFn(
-      useAppStore,
-      (state) => ({
-        samples: state.samples,
-        loadSample: state.loadSample as (key: string) => Promise<void>,
-        sampleName: state.sampleName,
-        editorValue: state.editorValue,
-        editorModelCto: state.editorModelCto,
-        editorAgreementData: state.editorAgreementData,
-        editorLogicTs: state.editorLogicTs,
-        isLogicFeatureEnabled: state.isLogicFeatureEnabled,
-      }),
-      shallow
-    );
+  const {
+    samples,
+    loadSample,
+    sampleName,
+    editorValue,
+    editorModelCto,
+    editorAgreementData,
+    editorLogicTs,
+    isLogicFeatureEnabled,
+  } = useStoreWithEqualityFn(
+    useAppStore,
+    (state) => ({
+      samples: state.samples,
+      loadSample: state.loadSample as (key: string) => Promise<void>,
+      sampleName: state.sampleName,
+      editorValue: state.editorValue,
+      editorModelCto: state.editorModelCto,
+      editorAgreementData: state.editorAgreementData,
+      editorLogicTs: state.editorLogicTs,
+      isLogicFeatureEnabled: state.isLogicFeatureEnabled,
+    }),
+    shallow
+  );
 
   const performLoadSample = useCallback(
     async (name: string) => {
@@ -241,7 +86,7 @@ function Navbar() {
         editorValue !== currentSample.TEMPLATE ||
         editorModelCto !== currentSample.MODEL ||
         editorAgreementData !== JSON.stringify(currentSample.DATA, null, 2) ||
-        (editorLogicTs !== (currentSample.LOGIC ?? ''));
+        editorLogicTs !== (currentSample.LOGIC ?? "");
 
       if (hasUnsavedChanges) {
         Modal.confirm({
@@ -269,7 +114,16 @@ function Navbar() {
         void performLoadSample(name);
       }
     },
-    [performLoadSample, samples, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs, isLogicFeatureEnabled]
+    [
+      performLoadSample,
+      samples,
+      sampleName,
+      editorValue,
+      editorModelCto,
+      editorAgreementData,
+      editorLogicTs,
+      isLogicFeatureEnabled,
+    ]
   );
 
   const props = useSpring({
@@ -282,180 +136,368 @@ function Navbar() {
     config: { duration: 1000 },
   });
 
-  const mobileMenu = (
-    <Menu>
-      <MenuItem to="/">
-        <span>Template Playground</span>
-      </MenuItem>
-      <MenuItemGroup title="Samples">
-        {samples?.map((s) => (
-          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
-            <FileTextOutlined />
-            <span>{s.NAME}</span>
-          </MenuItem>
-        ))}
-      </MenuItemGroup>
-      <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
-        <QuestionOutlined />
-        <span>About</span>
-      </MenuItem>
-      <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
-        <UserOutlined />
-        <span>Community</span>
-      </MenuItem>
-      <MenuItem href="https://github.com/accordproject/template-playground/issues">
-        <InfoOutlined />
-        <span>Issues</span>
-      </MenuItem>
-      <MenuItem href="https://github.com/accordproject/template-engine/blob/main/README.md">
-        <BookOutlined />
-        <span>Documentation</span>
-      </MenuItem>
-    </Menu>
-  );
+  const samplesMenuItems: MenuProps["items"] = [
+    {
+      key: "samples-group",
+      type: "group",
+      label: "Load Sample",
+      children: samples?.map((s) => ({
+        key: s.NAME,
+        icon: <FileTextOutlined />,
+        label: s.NAME,
+        onClick: () => void handleSampleClick(s.NAME),
+      })),
+    },
+  ];
 
-  const helpMenu = (
-    <Menu>
-      <MenuItemGroup title="Info">
-        <MenuItem href="https://github.com/accordproject/template-playground/blob/main/README.md">
-          <QuestionOutlined />
-          <span>About</span>
-        </MenuItem>
-        <MenuItem href="https://discord.com/invite/Zm99SKhhtA">
-          <UserOutlined />
-          <span>Community</span>
-        </MenuItem>
-        <MenuItem href="https://github.com/accordproject/template-playground/issues">
-          <InfoOutlined />
-          <span>Issues</span>
-        </MenuItem>
-      </MenuItemGroup>
-      <MenuItemGroup title="Documentation">
-        <MenuItem href="https://github.com/accordproject/template-engine/blob/main/README.md">
-          <BookOutlined />
-          <span>Documentation</span>
-        </MenuItem>
-      </MenuItemGroup>
-    </Menu>
-  );
+  const helpMenuItems: MenuProps["items"] = [
+    {
+      key: "info-group",
+      type: "group",
+      label: "Info",
+      children: [
+        {
+          key: "about",
+          icon: <QuestionOutlined />,
+          label: (
+            <a
+              href="https://github.com/accordproject/template-playground/blob/main/README.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              About
+            </a>
+          ),
+        },
+        {
+          key: "community",
+          icon: <UserOutlined />,
+          label: (
+            <a
+              href="https://discord.com/invite/Zm99SKhhtA"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Community
+            </a>
+          ),
+        },
+        {
+          key: "issues",
+          icon: <InfoOutlined />,
+          label: (
+            <a
+              href="https://github.com/accordproject/template-playground/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Issues
+            </a>
+          ),
+        },
+      ],
+    },
+    {
+      key: "docs-group",
+      type: "group",
+      label: "Documentation",
+      children: [
+        {
+          key: "documentation",
+          icon: <BookOutlined />,
+          label: (
+            <a
+              href="https://github.com/accordproject/template-engine/blob/main/README.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Documentation
+            </a>
+          ),
+        },
+      ],
+    },
+  ];
 
-  const samplesMenu = (
-    <Menu>
-      <MenuItemGroup title="Load Sample">
-        {samples?.map((s) => (
-          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
-            <FileTextOutlined />
-            <span>{s.NAME}</span>
-          </MenuItem>
-        ))}
-      </MenuItemGroup>
-    </Menu>
-  );
-
-  const menuItemClasses = (key: string, isLast: boolean) => {
-    const baseClasses = "flex items-center h-16";
-    const paddingClasses = screens.md ? "px-5" : "px-0";
-    const bgClasses = hovered === key ? "bg-white bg-opacity-10" : "bg-transparent";
-    const borderClasses = screens.md && !isLast ? "border-r border-white border-opacity-10" : "";
-    
-    return `${baseClasses} ${paddingClasses} ${bgClasses} ${borderClasses}`;
-  };
+  const mobileMenuItems: MenuProps["items"] = [
+    {
+      key: "home",
+      label: <Link to="/">Template Playground</Link>,
+    },
+    {
+      key: "samples-group",
+      type: "group",
+      label: "Samples",
+      children: samples?.map((s) => ({
+        key: s.NAME,
+        icon: <FileTextOutlined />,
+        label: s.NAME,
+        onClick: () => void handleSampleClick(s.NAME),
+      })),
+    },
+    {
+      key: "about",
+      icon: <QuestionOutlined />,
+      label: (
+        <a
+          href="https://github.com/accordproject/template-playground/blob/main/README.md"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          About
+        </a>
+      ),
+    },
+    {
+      key: "community",
+      icon: <UserOutlined />,
+      label: (
+        <a
+          href="https://discord.com/invite/Zm99SKhhtA"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Community
+        </a>
+      ),
+    },
+    {
+      key: "issues",
+      icon: <InfoOutlined />,
+      label: (
+        <a
+          href="https://github.com/accordproject/template-playground/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Issues
+        </a>
+      ),
+    },
+    {
+      key: "documentation",
+      icon: <BookOutlined />,
+      label: (
+        <a
+          href="https://github.com/accordproject/template-engine/blob/main/README.md"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Documentation
+        </a>
+      ),
+    },
+  ];
 
   const isLearnPage = location.pathname.startsWith("/learn");
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 h-16 flex items-center ${
-      screens.lg ? "px-10" : screens.md ? "px-2.5" : "px-2.5"
-    }`} style={{ backgroundColor: colors.navy }}>
+    <Header
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        height: 64,
+        lineHeight: "64px",
+        display: "flex",
+        alignItems: "center",
+        padding: screens.lg ? "0 40px" : "0 10px",
+      }}
+    >
       <div
-        className={`cursor-pointer ${menuItemClasses("home", false)}`}
+        style={{
+          cursor: "pointer",
+          height: 64,
+          display: "flex",
+          alignItems: "center",
+          padding: screens.md ? "0 20px" : "0",
+          backgroundColor:
+            hovered === "home" ? "rgba(255, 255, 255, 0.1)" : "transparent",
+          borderRight: screens.md
+            ? "1px solid rgba(255, 255, 255, 0.1)"
+            : undefined,
+        }}
         onMouseEnter={() => setHovered("home")}
         onMouseLeave={() => setHovered(null)}
       >
         <Link
           to="/"
           rel="noopener noreferrer"
-          className="flex items-center"
+          style={{ display: "flex", alignItems: "center" }}
         >
           <Image
             src={screens.lg ? "/logo.png" : "/accord_logo.png"}
             alt="Template Playground"
-            className={`h-6.5 ${screens.lg ? "pr-2 max-w-[184.17px]" : "pr-0.5 max-w-[36.67px]"}`}
+            preview={false}
+            style={{
+              height: 26,
+              paddingRight: screens.lg ? 8 : 2,
+              maxWidth: screens.lg ? 185 : 37,
+            }}
           />
-          <span className={`text-white ${screens.lg ? "block" : "hidden"}`}>
+          <Text
+            style={{
+              color: "#ffffff",
+              display: screens.lg === false ? "none" : "inline",
+            }}
+          >
             Template Playground
-          </span>
+          </Text>
         </Link>
       </div>
-      
+
       {screens.md ? (
         <>
           <div
-            className={`${menuItemClasses("samples", false)} cursor-pointer samples-element`}
+            className="samples-element"
+            style={{
+              cursor: "pointer",
+              height: 64,
+              display: "flex",
+              alignItems: "center",
+              padding: screens.md ? "0 20px" : "0",
+              backgroundColor:
+                hovered === "samples"
+                  ? "rgba(255, 255, 255, 0.1)"
+                  : "transparent",
+              borderRight: screens.md
+                ? "1px solid rgba(255, 255, 255, 0.1)"
+                : undefined,
+            }}
             onMouseEnter={() => setHovered("samples")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={samplesMenu} trigger={["click"]}>
-              <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
-                Samples{sampleName ? `: ${sampleName}` : ''}
-                <CaretDownFilled className="text-xs ml-1.5" />
+            <Dropdown menu={{ items: samplesMenuItems }} trigger={["click"]}>
+              <Button
+                type="text"
+                style={{
+                  color: "#ffffff",
+                  height: 64,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: 0,
+                }}
+              >
+                <Space size={6}>
+                  <span>Samples{sampleName ? `: ${sampleName}` : ""}</span>
+                  <CaretDownFilled style={{ fontSize: 12 }} />
+                </Space>
               </Button>
             </Dropdown>
           </div>
           <div
-            className={`${menuItemClasses("help", false)} cursor-pointer`}
+            style={{
+              cursor: "pointer",
+              height: 64,
+              display: "flex",
+              alignItems: "center",
+              padding: screens.md ? "0 20px" : "0",
+              backgroundColor:
+                hovered === "help"
+                  ? "rgba(255, 255, 255, 0.1)"
+                  : "transparent",
+              borderRight: screens.md
+                ? "1px solid rgba(255, 255, 255, 0.1)"
+                : undefined,
+            }}
             onMouseEnter={() => setHovered("help")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Dropdown overlay={helpMenu} trigger={["click"]}>
-              <Button className="bg-transparent border-none text-white h-16 flex items-center cursor-pointer">
-                Help
-                <CaretDownFilled className="text-xs ml-1.5" />
+            <Dropdown menu={{ items: helpMenuItems }} trigger={["click"]}>
+              <Button
+                type="text"
+                style={{
+                  color: "#ffffff",
+                  height: 64,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: 0,
+                }}
+              >
+                <Space size={6}>
+                  <span>Help</span>
+                  <CaretDownFilled style={{ fontSize: 12 }} />
+                </Space>
               </Button>
             </Dropdown>
           </div>
         </>
       ) : (
-        <div className="ml-1.5">
-          <Dropdown overlay={mobileMenu} trigger={["click"]}>
-            <Button className="bg-transparent border-none text-white h-16 flex items-center">
-              <MenuOutlined className="text-xl text-white" />
-            </Button>
+        <div style={{ marginLeft: 6 }}>
+          <Dropdown menu={{ items: mobileMenuItems }} trigger={["click"]}>
+            <Button
+              type="text"
+              icon={<MenuOutlined style={{ fontSize: 20, color: "#ffffff" }} />}
+              style={{
+                height: 64,
+                display: "flex",
+                alignItems: "center",
+              }}
+            />
           </Dropdown>
         </div>
       )}
-      
-      <div className={`flex ml-auto items-center h-16 ${
-        screens.md ? "gap-5 mr-0" : "gap-2.5 mr-1.5"
-      }`}>
-        
+
+      <Space
+        align="center"
+        style={{ marginLeft: "auto", height: 64 }}
+        size={screens.md ? 20 : 10}
+      >
         {!isLearnPage && (
           <div
-            className={`h-10 flex justify-center items-center cursor-pointer rounded-md ${
-              hovered === "join" ? "shadow-[0_0_10px_10px_rgba(255,255,255,0.1)]" : ""
-            }`}
+            style={{
+              height: 40,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              borderRadius: 6,
+              boxShadow:
+                hovered === "join"
+                  ? "0 0 10px 10px rgba(255,255,255,0.1)"
+                  : undefined,
+            }}
             onMouseEnter={() => setHovered("join")}
             onMouseLeave={() => setHovered(null)}
           >
             <Link to="/learn/intro" className="learnNow-button">
               <animated.button
-  style={{ ...props, backgroundColor: colors.primary, color: colors.darkNavy }}
-  className="px-[22px] py-[10px] border-none rounded-md cursor-pointer"
->
+                style={{
+                  ...props,
+                  backgroundColor: token.colorPrimary,
+                  color: token.colorTextLightSolid || "#ffffff",
+                  padding: "10px 22px",
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontWeight: 500,
+                }}
+              >
                 Learn
               </animated.button>
             </Link>
           </div>
         )}
-        
+
         <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
-              : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "discord" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
+          style={{
+            height: 64,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 6,
+            cursor: "pointer",
+            padding: screens.md ? "0 16px" : "0 6px",
+            borderLeft: screens.md
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : undefined,
+            backgroundColor:
+              hovered === "discord"
+                ? "rgba(255, 255, 255, 0.1)"
+                : "transparent",
+          }}
           onMouseEnter={() => setHovered("discord")}
           onMouseLeave={() => setHovered(null)}
         >
@@ -463,23 +505,36 @@ function Navbar() {
             href="https://discord.com/invite/Zm99SKhhtA"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center text-white"
+            aria-label="Discord"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              color: "#ffffff",
+              gap: screens.md ? 6 : 0,
+            }}
           >
-            <FaDiscord className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>Discord</span>
+            <FaDiscord style={{ fontSize: 20, color: "#ffffff" }} />
+            {screens.md && <span>Discord</span>}
           </a>
         </div>
-        
+
         <div
-          className={`h-16 flex items-center justify-center rounded-md cursor-pointer ${
-            screens.md 
-              ? "px-5 border-l border-white border-opacity-10 pl-4 pr-4" 
-              : "px-2.5 pl-1.5 pr-1.5"
-          } ${
-            hovered === "github" ? "bg-white bg-opacity-10" : "bg-transparent"
-          }`}
+          style={{
+            height: 64,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 6,
+            cursor: "pointer",
+            padding: screens.md ? "0 16px" : "0 6px",
+            borderLeft: screens.md
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : undefined,
+            backgroundColor:
+              hovered === "github"
+                ? "rgba(255, 255, 255, 0.1)"
+                : "transparent",
+          }}
           onMouseEnter={() => setHovered("github")}
           onMouseLeave={() => setHovered(null)}
         >
@@ -487,16 +542,20 @@ function Navbar() {
             href="https://github.com/accordproject/template-playground"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center text-white"
+            aria-label="GitHub"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              color: "#ffffff",
+              gap: screens.md ? 6 : 0,
+            }}
           >
-            <GithubOutlined className={`text-xl text-white ${
-              screens.md ? "mr-1.5" : "mr-0"
-            }`} />
-            <span className={screens.md ? "inline" : "hidden"}>GitHub</span>
+            <GithubOutlined style={{ fontSize: 20, color: "#ffffff" }} />
+            {screens.md && <span>GitHub</span>}
           </a>
         </div>
-      </div>
-    </div>
+      </Space>
+    </Header>
   );
 }
 
