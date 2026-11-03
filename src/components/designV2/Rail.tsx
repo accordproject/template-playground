@@ -29,6 +29,7 @@ const MenuItemText = ({ label, hint }: MenuItemTextProps) => (
 const Rail = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const sampleName = useAppStore((s) => s.sampleName);
+  const isDark = useAppStore((s) => s.backgroundColor === "#121212");
   const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
 
   // Actions intentionally not wired yet — visual skeleton only.
@@ -70,7 +71,7 @@ const Rail = () => {
           open={menuOpen}
           onOpenChange={setMenuOpen}
           dropdownRender={(menu) => (
-            <div className="nd-menu">
+            <div className="nd-menu" data-theme={isDark ? "dark" : "light"}>
               <div className="nd-menu-head">
                 <div className="nd-menu-title">{RAIL.menuTitle}</div>
                 <div className="nd-menu-sub">{RAIL.menuSubtitle}</div>
