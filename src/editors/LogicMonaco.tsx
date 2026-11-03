@@ -25,6 +25,8 @@ export default function LogicMonaco() {
   const setEditorLogicTs = useAppStore((s) => s.setEditorLogicTs);
   const showLineNumbers = useAppStore((s) => s.showLineNumbers);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
+  const backgroundColor = useAppStore((s) => s.backgroundColor);
+  const textColor = useAppStore((s) => s.textColor);
 
   const themeName = useThemeName();
 
@@ -108,7 +110,23 @@ export default function LogicMonaco() {
 
   return (
     <div className="editorwrapper h-full w-full" style={{ position: 'relative', minHeight: 0 }}>
-      <Suspense fallback={<div className="logic-editor-loading">Loading editor...</div>}>
+      <Suspense
+        fallback={
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor,
+              color: textColor,
+            }}
+          >
+            Loading editor...
+          </div>
+        }
+      >
         <MonacoEditor
           path="logic.ts"
           language="typescript"

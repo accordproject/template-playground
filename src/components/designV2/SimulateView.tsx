@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Dropdown, Modal, Tabs, type MenuProps } from "antd";
+import { Button, Dropdown, Modal, Tabs, message, type MenuProps } from "antd";
 import JSONEditor from "../../editors/JSONEditor";
 import ObligationsList from "../ObligationsList";
 import useAppStore, { type LogicExecutionResult } from "../../store/store";
@@ -85,10 +85,15 @@ const JsonView = ({ id, value }: { id: string; value: string }) => (
 /** Right-hand column: the run's request on top, then Response / State after / Events tabs. */
 const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
   const [copied, setCopied] = useState(false);
-  const copyRequest = () => {
-    void navigator.clipboard?.writeText(pretty(run.request));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+  const copyRequest = async () => {
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(pretty(run.request));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      void message.error(SIMULATE.copyFailed);
+    }
   };
 
   const failed = run.error !== null;
@@ -151,7 +156,7 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
           <span className="nd-sim-pane-title">{SIMULATE.request}</span>
           <span className="nd-mono nd-muted">{SIMULATE.json}</span>
           <span className="nd-spacer" />
-          <Button type="link" size="small" onClick={copyRequest}>
+          <Button type="link" size="small" onClick={() => void copyRequest()}>
             {copied ? SIMULATE.copied : SIMULATE.requestActions}
           </Button>
         </div>
@@ -296,6 +301,7 @@ const SimulateView = () => {
 
       {selected ? (
         <RunDetail
+          key={selected.id}
           run={selected}
           busy={isExecuting}
           onRerun={() => { void rerun(selected); }}
