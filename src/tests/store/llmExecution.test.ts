@@ -29,15 +29,12 @@ describe('executeWithLLM execution lock', () => {
   const template = {} as Template;
   const init = vi.fn<[unknown], Promise<InitResponse>>();
   const trigger = vi.fn<[unknown, unknown, unknown], Promise<TriggerResponse>>();
-  const buildTemplate = vi.fn<[], Promise<void>>();
+  const buildTemplate = vi.fn<[], Promise<Template | null>>();
 
   beforeEach(() => {
     init.mockReset().mockResolvedValue(output);
     trigger.mockReset().mockResolvedValue(output);
-    buildTemplate.mockReset().mockImplementation(() => {
-      useAppStore.setState({ templateObject: template });
-      return Promise.resolve();
-    });
+    buildTemplate.mockReset().mockResolvedValue(template);
     vi.spyOn(providers, 'getLLMExecutor').mockReturnValue({ init, trigger } as unknown as providers.LLMExecutor);
     useAppStore.setState({
       aiConfig,
@@ -63,7 +60,7 @@ describe('executeWithLLM execution lock', () => {
       buildTemplate.mockImplementation(async () => {
         preparing.resolve();
         await preparation.promise;
-        useAppStore.setState({ templateObject: template });
+        return template;
       });
       const method = operation === 'init' ? init : trigger;
       method.mockImplementation(() => {
@@ -90,6 +87,9 @@ describe('executeWithLLM execution lock', () => {
           .rejects.toThrow(busyMessage);
         expect(useAppStore.getState().isExecuting).toBe(true);
         expect(providers.getLLMExecutor).toHaveBeenCalledTimes(1);
+        expect(providers.getLLMExecutor).toHaveBeenCalledWith(
+          template, expect.objectContaining({ mode: providers.LLMMode.Force }),
+        );
         expect(method).toHaveBeenCalledTimes(1);
         if (operation === 'init') {
           expect(init).toHaveBeenCalledWith(payload.data);
@@ -112,9 +112,10 @@ describe('executeWithLLM execution lock', () => {
   it('releases the lock after rejected preparation and allows a retry', async () => {
     const preparation = deferred<void>();
     const preparing = deferred<void>();
-    buildTemplate.mockImplementationOnce(() => {
+    buildTemplate.mockImplementationOnce(async () => {
       preparing.resolve();
-      return preparation.promise;
+      await preparation.promise;
+      return template;
     });
     const run = useAppStore.getState().executeWithLLM('init', payload);
     const rejection = expect(run).rejects.toThrow('Preparation failed');
@@ -131,7 +132,7 @@ describe('executeWithLLM execution lock', () => {
   });
 
   it('releases the lock when preparation produces no template', async () => {
-    buildTemplate.mockResolvedValueOnce();
+    buildTemplate.mockResolvedValueOnce(null);
     await expect(useAppStore.getState().executeWithLLM('init', payload))
       .rejects.toThrow('Could not build a template from the current model and grammar.');
     expect(useAppStore.getState().isExecuting).toBe(false);
@@ -211,7 +212,7 @@ describe('executeWithLLM execution lock', () => {
     buildTemplate.mockImplementationOnce(async () => {
       preparing.resolve();
       await preparation.promise;
-      useAppStore.setState({ templateObject: template });
+      return template;
     });
     const iframe = document.createElement('iframe');
     const postMessage = vi.fn();

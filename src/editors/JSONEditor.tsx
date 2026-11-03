@@ -61,8 +61,13 @@ export default function JSONEditor({
   }), [aiConfig?.enableInlineSuggestions, showLineNumbers, readOnly]);
 
 
+  /*
+   * Read-only panes (Simulate's response and state) get no inline
+   * completions: the provider is global and never disposed, so each remount
+   * would register another one.
+   */
   const handleEditorWillMount = (monacoInstance: typeof monaco) => {
-    if (monacoInstance) {
+    if (monacoInstance && !readOnly) {
       registerAutocompletion('json', monacoInstance);
     }
   };
