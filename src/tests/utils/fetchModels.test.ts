@@ -42,7 +42,7 @@ describe('fetchModels', () => {
 
       const models = await fetchModels({ provider: 'google', apiKey: 'test-key' });
 
-      expect(models).toEqual(['models/gemini-2.0-flash', 'models/gemini-1.5-pro']);
+      expect(models).toEqual(['gemini-2.0-flash', 'gemini-1.5-pro']);
     });
 
     it('keeps models when supportedGenerationMethods is absent', async () => {
@@ -50,7 +50,7 @@ describe('fetchModels', () => {
 
       const models = await fetchModels({ provider: 'google', apiKey: 'test-key' });
 
-      expect(models).toEqual(['models/gemini-custom']);
+      expect(models).toEqual(['gemini-custom']);
     });
 
     it('returns an empty list without calling the API when the key is missing', async () => {

@@ -85,7 +85,8 @@ export async function fetchModels({
           data.models
             // The list also contains embedding and image models, which cannot chat.
             ?.filter((m) => m.supportedGenerationMethods?.includes('generateContent') ?? true)
-            .map((m) => m.name)
+            // The API returns `models/<id>`; the SDK adds the prefix back itself.
+            .map((m) => m.name?.replace(/^models\//, ''))
             .filter((name): name is string => Boolean(name)) ?? []
         );
       }
