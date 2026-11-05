@@ -31,6 +31,9 @@ const MainContainer = () => {
     const element = downloadRef.current;
     if (!element) return;
 
+    const originalBg = element.style.backgroundColor;
+    const originalColor = element.style.color;
+
     try {
       setIsDownloading(true);
       
@@ -38,9 +41,6 @@ const MainContainer = () => {
        * Store original styles and force white background / black text
        * for PDF export to ensure readability.
        */
-      const originalBg = element.style.backgroundColor;
-      const originalColor = element.style.color;
-      
       element.style.backgroundColor = '#ffffff';
       element.style.color = '#000000';
 
@@ -58,18 +58,15 @@ const MainContainer = () => {
       } as const;
 
       await html2pdf().set(options).from(element).save();
-      
-      // Restore original styles
-      element.style.backgroundColor = originalBg;
-      element.style.color = originalColor;
-
     } catch (error) {
       console.error("PDF generation failed:", error);
       void message.error("Failed to generate PDF. Please check the console.");
     } finally {
+      element.style.backgroundColor = originalBg;
+      element.style.color = originalColor;
       setIsDownloading(false);
     }
-  }
+  };
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
