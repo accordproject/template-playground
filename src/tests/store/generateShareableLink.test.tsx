@@ -36,4 +36,16 @@ concept SampleModel {
 
     expect(shareableLink).toContain(`data=${compressedData}`);
   });
+
+  it("carries an export's fresh agreement and edited logic instead of the store's", () => {
+    vi.mocked(compress).mockClear();
+    useAppStore.setState({ templateMarkdown: "T", modelCto: "M", data: "{}", agreementHtml: "<p>stale</p>", logicTs: "compiled" });
+
+    useAppStore.getState().generateShareableLink({ agreementHtml: "<p>fresh</p>", logicTs: "edited" });
+    expect(vi.mocked(compress)).toHaveBeenLastCalledWith({ templateMarkdown: "T", modelCto: "M", data: "{}", agreementHtml: "<p>fresh</p>", logicTs: "edited" });
+
+    // Sources that don't render: no agreement at all, not the stale one; an emptied logic editor: no logic.
+    useAppStore.getState().generateShareableLink({ agreementHtml: undefined, logicTs: "  " });
+    expect(vi.mocked(compress)).toHaveBeenLastCalledWith({ templateMarkdown: "T", modelCto: "M", data: "{}" });
+  });
 });
