@@ -17,11 +17,13 @@ import {
   RightOutlined,
   CopyOutlined,
   CheckOutlined,
+  PlayCircleOutlined,
 } from "@ant-design/icons";
-import { Spin, message, Button } from "antd";
+import { Spin, message, Button, Card, Row, Col, Space, Typography } from "antd";
 import fetchContent from "../utils/fetchContent";
 import { steps } from "../constants/learningSteps/steps";
 import { LearnContentProps } from "../types/components/Content.types";
+import useAppStore from "../store/store";
 import "highlight.js/styles/github.css";
 
 const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
@@ -49,9 +51,12 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     void loadContent();
   }, [file]);
 
+  const loadSample = useAppStore((state) => state.loadSample);
+
   const currentIndex = steps.findIndex((step) =>
     step.link.includes(file.split(".")[0])
   );
+  const currentStep = currentIndex !== -1 ? steps[currentIndex] : undefined;
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
@@ -67,6 +72,18 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
 
   const handleExitLearning = () => {
     navigate("/");
+  };
+
+  const handleOpenInPlayground = async () => {
+    if (!currentStep?.sampleName) return;
+    try {
+      await loadSample(currentStep.sampleName);
+      void message.success(`Loaded "${currentStep.sampleName}" into Playground`);
+      navigate(`/?sample=${encodeURIComponent(currentStep.sampleName)}`);
+    } catch (err) {
+      console.error("Failed to load sample in playground:", err);
+      void message.error("Failed to load sample in Playground");
+    }
   };
 
   const copyToClipboard = (code: string) => {
@@ -101,26 +118,42 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
 
   return (
     <ContentContainer>
-	  {currentIndex !== steps.length - 1 && (
-  		<div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
-    	  <Button
-			type="link"
-			onClick={handleExitLearning}
-			style={{
-    		  background: "transparent",
-			  border: "none",
-			  color: "#6b7280",
-			  cursor: "pointer",
-			  fontSize: "0.9rem",
-			  textDecoration: "underline",
-			  padding: 0,
-			  height: "auto"
-			}}
-		  >
-			Exit learning
-		  </Button>
-	    </div>
-	  )}
+      <Row justify="space-between" align="middle" style={{ marginBottom: "16px" }}>
+        <Col>
+          {currentStep?.sampleName && (
+            <Button
+              type="primary"
+              icon={<PlayCircleOutlined />}
+              onClick={() => void handleOpenInPlayground()}
+              style={{
+                backgroundColor: colors.primary,
+                borderColor: colors.primary,
+                color: colors.darkNavy,
+                fontWeight: 600,
+              }}
+            >
+              Open in Playground
+            </Button>
+          )}
+        </Col>
+        <Col>
+          {currentIndex !== steps.length - 1 && (
+            <Button
+              type="link"
+              onClick={handleExitLearning}
+              style={{
+                color: "#6b7280",
+                fontSize: "0.9rem",
+                textDecoration: "underline",
+                padding: 0,
+                height: "auto",
+              }}
+            >
+              Exit learning
+            </Button>
+          )}
+        </Col>
+      </Row>
       {content && (
         <ReactMarkdown
           rehypePlugins={[rehypeRaw, rehypeHighlight]}
@@ -144,6 +177,45 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
         >
           {content}
         </ReactMarkdown>
+      )}
+      {currentStep?.sampleName && (
+        <Card
+          size="small"
+          style={{
+            margin: "24px 0 16px 0",
+            borderRadius: 8,
+            border: `1px solid ${colors.primary}40`,
+            background: "rgba(25, 198, 199, 0.05)",
+          }}
+        >
+          <Row justify="space-between" align="middle" gutter={[16, 16]}>
+            <Col xs={24} sm={16}>
+              <Space direction="vertical" size={2}>
+                <Typography.Text strong>
+                  Ready to experiment with this template?
+                </Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: "0.85rem" }}>
+                  Load &ldquo;{currentStep.sampleName}&rdquo; directly in the Playground editor and live preview.
+                </Typography.Text>
+              </Space>
+            </Col>
+            <Col xs={24} sm={8} style={{ textAlign: "right" }}>
+              <Button
+                type="primary"
+                icon={<PlayCircleOutlined />}
+                onClick={() => void handleOpenInPlayground()}
+                style={{
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                  color: colors.darkNavy,
+                  fontWeight: 600,
+                }}
+              >
+                Open in Playground
+              </Button>
+            </Col>
+          </Row>
+        </Card>
       )}
       <NavigationButtons>
         <NavigationButton
