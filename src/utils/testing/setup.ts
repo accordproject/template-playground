@@ -9,7 +9,26 @@ afterEach(() => {
 });
 
 // Mock monaco-editor for tests
+class MockSelection {
+  startLineNumber: number;
+  startColumn: number;
+  endLineNumber: number;
+  endColumn: number;
+  constructor(
+    startLineNumber: number,
+    startColumn: number,
+    endLineNumber: number,
+    endColumn: number
+  ) {
+    this.startLineNumber = startLineNumber;
+    this.startColumn = startColumn;
+    this.endLineNumber = endLineNumber;
+    this.endColumn = endColumn;
+  }
+}
+
 vi.mock("monaco-editor", () => ({
+  Selection: MockSelection,
   editor: {
     create: vi.fn(),
     defineTheme: vi.fn(),

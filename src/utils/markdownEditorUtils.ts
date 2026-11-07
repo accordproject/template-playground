@@ -256,6 +256,7 @@ export function applyWrappedEdit(
 
   let textToInsert: string;
   let targetRange: IRange = selection;
+  let newCursorColumn: number | null = null;
 
   if (selectedText) {
     const directlyWrapped =
@@ -303,8 +304,48 @@ export function applyWrappedEdit(
       textToInsert = `${before}${selectedText}${suffix}`;
     }
   } else {
-    // No selection: insert empty wrapped markers
-    textToInsert = `${before}${suffix}`;
+    // No selection
+    const lineText = model.getLineContent(selection.startLineNumber);
+    const startIndex0 = selection.startColumn - 1;
+
+    const hasPrefix =
+      startIndex0 - before.length >= 0 &&
+      lineText.slice(startIndex0 - before.length, startIndex0) === before;
+    const hasSuffix =
+      startIndex0 + suffix.length <= lineText.length &&
+      lineText.slice(startIndex0, startIndex0 + suffix.length) === suffix;
+
+    // For single asterisk (italic), ensure we don't treat double asterisks (**|**) as italic
+    let isMatchingMarkers = hasPrefix && hasSuffix;
+    if (isMatchingMarkers && before === "*" && suffix === "*") {
+      const charBeforePrefix = startIndex0 - 2 >= 0 ? lineText[startIndex0 - 2] : "";
+      const charAfterSuffix = startIndex0 + 1 < lineText.length ? lineText[startIndex0 + 1] : "";
+      const isExactlyTwoAsterisks =
+        charBeforePrefix === "*" &&
+        charAfterSuffix === "*" &&
+        (startIndex0 - 3 < 0 || lineText[startIndex0 - 3] !== "*") &&
+        (startIndex0 + 2 >= lineText.length || lineText[startIndex0 + 2] !== "*");
+      if (isExactlyTwoAsterisks) {
+        // Between **|** (bold only) - not italic
+        isMatchingMarkers = false;
+      }
+    }
+
+    if (allowInnerToggle && isMatchingMarkers) {
+      // Cursor is already between markers - toggle off / strip them
+      targetRange = {
+        startLineNumber: selection.startLineNumber,
+        startColumn: selection.startColumn - before.length,
+        endLineNumber: selection.startLineNumber,
+        endColumn: selection.startColumn + suffix.length,
+      };
+      textToInsert = "";
+      newCursorColumn = selection.startColumn - before.length;
+    } else {
+      // Insert empty markers and position cursor between them
+      textToInsert = `${before}${suffix}`;
+      newCursorColumn = selection.startColumn + before.length;
+    }
   }
 
   editorInstance.executeEdits("markdown-toolbar", [
@@ -314,6 +355,17 @@ export function applyWrappedEdit(
       forceMoveMarkers: true,
     },
   ]);
+
+  if (newCursorColumn !== null) {
+    editorInstance.setSelection(
+      new Selection(
+        selection.startLineNumber,
+        newCursorColumn,
+        selection.startLineNumber,
+        newCursorColumn
+      )
+    );
+  }
 
   editorInstance.focus();
 }
