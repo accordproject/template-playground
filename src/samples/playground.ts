@@ -61,13 +61,13 @@ return '$' + compensation.services
 IN WITNESS WHEREOF, the parties hereto have executed this Agreement.
 
 ### Client:
-![Client Logo](https://ui-avatars.com/api/?name=AcmeCorp&size=40)
+![Client Logo](https://placehold.co/40x40/2563eb/ffffff.png?text=AC)
 
 {{clientName}}
 
 ### Provider:
 
-![provider logo](https://ui-avatars.com/api/?name=DevConsult+Ltd&size=40)
+![provider logo](https://placehold.co/40x40/0d9488/ffffff.png?text=DC)
 
 {{providerName}}
 
