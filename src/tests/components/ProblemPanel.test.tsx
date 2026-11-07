@@ -92,6 +92,35 @@ describe("ProblemPanel", () => {
     expect(editorNavigation.navigateToLine).not.toHaveBeenCalled();
   });
 
+  it("should render multiple simultaneous errors with accurate sources", () => {
+    useAppStore.setState({
+      error: "Invalid JSON data: Unexpected token\nInvalid CTO model: Expected namespace File model.cto line 5 column 2",
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.getByText(/Invalid JSON data: Unexpected token/i)).toBeInTheDocument();
+    expect(screen.getByText(/Invalid CTO model: Expected namespace/i)).toBeInTheDocument();
+    expect(screen.getByText("JSON Data")).toBeInTheDocument();
+    expect(screen.getByText("Concerto Model")).toBeInTheDocument();
+  });
+
+  it("should ignore negative line and column numbers like line -1 column -1", () => {
+    useAppStore.setState({
+      error: "TemplateException: Unknown property: securityDeposit File grammar.tem.md line -1 column -1",
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.queryByText(/Go to line/i)).not.toBeInTheDocument();
+    const locationBadge = document.querySelector('.problem-panel-problem-location');
+    expect(locationBadge).toBeNull();
+  });
+
   it("should trigger navigation on Enter key press", () => {
     useAppStore.setState({ 
       error: "Error: Test error\nLine 15",
