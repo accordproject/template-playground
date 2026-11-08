@@ -495,5 +495,28 @@ describe('DeployView', () => {
       const { zip } = await download();
       expect(zip.file('logic/logic.ts')).toBeNull();
     }, 30_000);
+
+    it('does not disable other action buttons while an action is running', () => {
+      let resolveRender!: (v: string) => void;
+      const pendingRender = new Promise<string>((resolve) => {
+        resolveRender = resolve;
+      });
+      useAppStore.setState({
+        renderAgreement: vi.fn(() => pendingRender),
+      });
+
+      render(<DeployView />);
+      const copyButton = screen.getByRole('button', { name: 'Copy text' });
+      const pdfButton = screen.getByRole('button', { name: 'Download PDF' });
+      const mdButton = screen.getByRole('button', { name: 'Download .md' });
+
+      fireEvent.click(copyButton);
+
+      expect(copyButton.closest('.ant-btn-loading')).not.toBeNull();
+      expect(pdfButton).not.toBeDisabled();
+      expect(mdButton).not.toBeDisabled();
+
+      resolveRender('done');
+    });
   });
 });
