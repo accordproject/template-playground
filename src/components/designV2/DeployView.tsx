@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Typography, message } from "antd";
 import {
   CloudServerOutlined,
@@ -67,6 +67,24 @@ const copyWhenReady = async (text: Promise<string>) => {
 /** Step 7: Deploy — what to do with the agreement and the template, one card per option. */
 export const DeployView = () => {
   const [working, setWorking] = useState<string | null>(null);
+  const [showBusy, setShowBusy] = useState(false);
+
+  /*
+   * Delay showing the disabled and loading states by 150ms so fast actions
+   * (like copying text or sharing a link) complete without visual flicker.
+   * Actions taking longer than 150ms (like PDF generation or archive export)
+   * visibly disable all buttons and show a loading spinner.
+   */
+  useEffect(() => {
+    if (working === null) {
+      setShowBusy(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setShowBusy(true);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [working]);
 
   const runAction = async (card: DeployCard): Promise<Outcome | void> => {
     const { renderAgreement, generateShareableLink, requestJson, templateMarkdown, modelCto, data, editorLogicTs, sampleName } =
@@ -169,6 +187,7 @@ export const DeployView = () => {
   };
 
   const run = async (card: DeployCard) => {
+    if (working !== null) return;
     setWorking(card.title);
     try {
       const outcome = await runAction(card);
@@ -212,8 +231,8 @@ export const DeployView = () => {
           <Button
             block
             type="primary"
-            loading={working === card.title}
-            disabled={working !== null}
+            loading={showBusy && working === card.title}
+            disabled={showBusy}
             onClick={() => void run(card)}
           >
             {card.button}
