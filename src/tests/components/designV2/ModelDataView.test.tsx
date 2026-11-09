@@ -119,6 +119,13 @@ describe('ModelDataView', () => {
     expect(setData).toHaveBeenCalledWith(pretty);
   });
 
+  it('"format" is disabled when data or model editor is empty', () => {
+    useAppStore.setState({ editorAgreementData: '   ', editorModelCto: '   ' });
+    render(<ModelDataView />);
+    expect(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.format })).toBeDisabled();
+    expect(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.format })).toBeDisabled();
+  });
+
   it('"reset" restores the loaded sample\'s data and is disabled while nothing changed', () => {
     const { unmount } = render(<ModelDataView />);
     expect(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset })).toBeDisabled();
