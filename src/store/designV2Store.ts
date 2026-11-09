@@ -32,7 +32,7 @@ export interface DesignV2State {
   goNext: () => void;
   setPreviewOpen: (open: boolean) => void;
   togglePreview: () => void;
-  /** Pick a template card (or the blank template). */
+  /** Pick a template card (or the blank template); resets the pinned run. */
   selectTemplate: (name: string) => void;
   /** Open or close one pane of the Data step. Closing the last open pane is ignored. */
   setPaneOpen: (pane: ModelDataPane, open: boolean) => void;
@@ -73,7 +73,12 @@ const useDesignV2Store = create<DesignV2State>()(
       setPreviewOpen: (open) => set({ previewOpen: open }, false, "designV2/setPreviewOpen"),
       togglePreview: () =>
         set((state) => ({ previewOpen: !state.previewOpen }), false, "designV2/togglePreview"),
-      selectTemplate: (name) => set({ selectedTemplate: name }, false, "designV2/selectTemplate"),
+      selectTemplate: (name) =>
+        set(
+          { selectedTemplate: name, selectedRunId: null },
+          false,
+          "designV2/selectTemplate"
+        ),
       setPaneOpen: (pane, open) =>
         set(
           (state) => {

@@ -100,6 +100,18 @@ describe('useDesignV2Store', () => {
     store.selectTemplate('Blank template');
     expect(useDesignV2Store.getState().selectedTemplate).toBe('Blank template');
   });
+
+  it('selectTemplate() clears the selected run when switching templates', () => {
+    const store = useDesignV2Store.getState();
+    store.selectTemplate('Employment Offer');
+    store.selectRun('#2');
+    expect(useDesignV2Store.getState().selectedRunId).toBe('#2');
+
+    store.selectTemplate('Blank template');
+
+    expect(useDesignV2Store.getState().selectedTemplate).toBe('Blank template');
+    expect(useDesignV2Store.getState().selectedRunId).toBeNull();
+  });
 });
 
 describe('STEPS_AFTER_TEMPLATE', () => {
