@@ -32,21 +32,30 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let active = true;
+
     const loadContent = async () => {
       try {
-        setLoading(true);
+        if (active) setLoading(true);
         const contentData = await fetchContent(file);
-        setContent(contentData);
-        setError(null);
+        if (active) {
+          setContent(contentData);
+          setError(null);
+        }
       } catch (err) {
-        setError("Failed to load content");
-        console.error(err);
+        if (active) {
+          setError("Failed to load content");
+          console.error(err);
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     void loadContent();
+    return () => {
+      active = false;
+    };
   }, [file]);
 
   const currentIndex = steps.findIndex((step) =>

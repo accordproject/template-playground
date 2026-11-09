@@ -56,4 +56,27 @@ describe("LearnContent", () => {
     expect(success.mock.calls).toHaveLength(0);
   });
 
+  it("does not render content from a superseded lesson request", async () => {
+    let resolveFirst: ((value: string) => void) | undefined;
+    vi.mocked(fetchContent)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockResolvedValueOnce("Second lesson");
+
+    const { rerender } = renderContent();
+    rerender(
+      <MemoryRouter>
+        <LearnContent file="second-lesson.md" />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Second lesson")).toBeInTheDocument();
+    resolveFirst?.("First lesson");
+    await waitFor(() => expect(screen.queryByText("First lesson")).not.toBeInTheDocument());
+    expect(screen.getByText("Second lesson")).toBeInTheDocument();
+  });
 });
