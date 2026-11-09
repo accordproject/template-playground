@@ -407,6 +407,8 @@ export const SIMULATE = {
   title: "Simulate",
   restart: "↺ restart",
   restartHint: "Start the contract again and clear the runs",
+  restartHintStateless: "Clear the runs and start a fresh simulation",
+  noRunsStateless: "Nothing has happened yet — send a message to simulate this template.",
   runsLabel: "Runs",
   /** "3 runs · 2 ok · 1 failed" — the pill next to the title. */
   stats: (runs: number, ok: number, failed: number) =>
