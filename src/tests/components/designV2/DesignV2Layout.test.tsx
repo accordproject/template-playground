@@ -190,6 +190,26 @@ describe('DesignV2Layout — moving to Simulate', () => {
     expect(screen.getByText("Cannot find name 'foo'.")).toBeInTheDocument();
   });
 
+  it('reports an unexpected compile rejection without navigating or throwing', async () => {
+    const failure = new Error('compile crashed');
+    const setLogicTs = vi.fn().mockRejectedValue(failure);
+    useAppStore.setState({ setLogicTs });
+    const showError = vi.spyOn(message, 'error');
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // From Text, so the Logic step's compile-on-arrival cannot reject on its own:
+    // the only compile here is the one the navigation awaits.
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: /Simulate/ }));
+
+    await waitFor(() => expect(showError).toHaveBeenCalledWith(FOOTER.navigationFailed));
+
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
+    expect(logError).toHaveBeenCalledWith('Navigation failed:', failure);
+    logError.mockRestore();
+    showError.mockRestore();
+  });
+
   it('the stepper goes through the same gate, from any step', async () => {
     const setLogicTs = compileTo('error');
     useAppStore.setState({ setLogicTs });

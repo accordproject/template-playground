@@ -137,6 +137,43 @@ describe('SimulateView', () => {
         expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
       });
 
+      it('clears the confirmation timer when the run detail unmounts', async () => {
+        vi.useRealTimers();
+        const writeText = vi.fn().mockResolvedValue(undefined);
+        Object.assign(navigator, { clipboard: { writeText } });
+        const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+        const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+        const { unmount } = render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        const timer = setTimeoutSpy.mock.calls
+          .map((call, index) => ({ delay: call[1], handle: setTimeoutSpy.mock.results[index].value }))
+          .find(({ delay }) => delay === 1200)?.handle;
+
+        unmount();
+
+        expect(clearTimeoutSpy).toHaveBeenCalledWith(timer);
+        setTimeoutSpy.mockRestore();
+        clearTimeoutSpy.mockRestore();
+      });
+
+      it('replaces the previous confirmation timer on repeated copies', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        act(() => { vi.advanceTimersByTime(600); });
+
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+
+        // The first timer would have expired 600 ms after the second copy.
+        act(() => { vi.advanceTimersByTime(600); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+
+        act(() => { vi.advanceTimersByTime(600); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+      });
+
       it('handles a rejected write without showing a copied confirmation', async () => {
         const writeText = vi.fn().mockRejectedValue(new DOMException('Clipboard denied', 'NotAllowedError'));
         Object.assign(navigator, { clipboard: { writeText } });
