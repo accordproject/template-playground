@@ -1,12 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
+import { message } from 'antd';
 import '@testing-library/jest-dom';
 import { ModelDataView } from '../../../components/designV2/ModelDataView';
 import { HELP_RAIL, MODEL_DATA, START, START_SAMPLES, sampleNameFor } from '../../../components/designV2/constants';
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SAMPLES } from '../../../samples';
-import * as counter from '../../../samples/counterLogic';
+import * as latePayment from '../../../samples/latePaymentPenalty';
 import { NAME as BLANK_SAMPLE_NAME } from '../../../samples/blank';
 
 /*
@@ -19,7 +21,7 @@ vi.mock('@monaco-editor/react', () => ({
   Editor: ({ language }: { language: string }) => <div data-testid={`monaco-${language}`} />,
 }));
 
-const counterData = JSON.stringify(counter.DATA, null, 2);
+const sampleData = JSON.stringify(latePayment.DATA, null, 2);
 
 describe('sampleNameFor', () => {
   it('maps every Start card to its sample and the blank card to the blank sample', () => {
@@ -44,13 +46,14 @@ describe('ModelDataView', () => {
     vi.clearAllMocks();
     useDesignV2Store.setState({ modelDataPanes: { model: true, data: true }, helpRailOpen: true });
     useAppStore.setState({
-      sampleName: counter.NAME,
+      sampleName: latePayment.NAME,
       samples: SAMPLES,
-      editorModelCto: counter.MODEL,
-      modelCto: counter.MODEL,
-      editorAgreementData: counterData,
-      data: counterData,
+      editorModelCto: latePayment.MODEL,
+      modelCto: latePayment.MODEL,
+      editorAgreementData: sampleData,
+      data: sampleData,
       error: undefined,
+      importedData: null,
       // The real setters kick off a debounced rebuild; the wiring is what matters here.
       setModelCto,
       setData,
@@ -108,10 +111,10 @@ describe('ModelDataView', () => {
   });
 
   it('"format" pretty-prints the data through the store', () => {
-    useAppStore.setState({ editorAgreementData: '{"$class":"x","owner":"Alice","maxCount":10}' });
+    useAppStore.setState({ editorAgreementData: '{"$class":"x","penaltyPercentage":10.5,"capPercentage":55}' });
     render(<ModelDataView />);
     fireEvent.click(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.format }));
-    const pretty = JSON.stringify({ $class: 'x', owner: 'Alice', maxCount: 10 }, null, 2);
+    const pretty = JSON.stringify({ $class: 'x', penaltyPercentage: 10.5, capPercentage: 55 }, null, 2);
     expect(useAppStore.getState().editorAgreementData).toBe(pretty);
     expect(setData).toHaveBeenCalledWith(pretty);
   });
@@ -121,17 +124,34 @@ describe('ModelDataView', () => {
     expect(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset })).toBeDisabled();
     unmount();
 
-    useAppStore.setState({ editorAgreementData: '{ "owner": "Bob" }' });
+    useAppStore.setState({ editorAgreementData: '{ "capPercentage": 40 }' });
     render(<ModelDataView />);
     const reset = pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset });
     expect(reset).toBeEnabled();
     fireEvent.click(reset);
-    expect(useAppStore.getState().editorAgreementData).toBe(counterData);
-    expect(setData).toHaveBeenCalledWith(counterData);
+    expect(useAppStore.getState().editorAgreementData).toBe(sampleData);
+    expect(setData).toHaveBeenCalledWith(sampleData);
+  });
+
+  it('"reset" on an imported template restores the imported data, never a bundled sample of the same name', () => {
+    const imported = '{\n  "$class": "org.acme.imported@1.0.0.Late",\n  "capPercentage": 7\n}';
+    // The import is named like a bundled sample; reset must still use the imported data.
+    useAppStore.setState({ sampleName: latePayment.NAME, importedData: imported, editorAgreementData: '{ "capPercentage": 99 }' });
+    const { unmount } = render(<ModelDataView />);
+    const reset = pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset });
+    expect(reset).toBeEnabled();
+    fireEvent.click(reset);
+    expect(useAppStore.getState().editorAgreementData).toBe(imported);
+    expect(setData).toHaveBeenCalledWith(imported);
+    expect(setData).not.toHaveBeenCalledWith(sampleData);
+    unmount();
+
+    render(<ModelDataView />);
+    expect(pane(MODEL_DATA.data.paneLabel).getByRole('button', { name: MODEL_DATA.reset })).toBeDisabled();
   });
 
   it('"format" on the model re-prints the Concerto file through the store', () => {
-    const messy = 'namespace org.acme.counter@1.0.0\n@template concept C {   o String owner }';
+    const messy = 'namespace org.acme.latepayment@1.0.0\n@template concept C {   o String fractionalPart }';
     useAppStore.setState({ editorModelCto: messy });
     render(<ModelDataView />);
     fireEvent.click(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.format }));
@@ -214,11 +234,74 @@ describe('ModelDataView', () => {
     expect(screen.queryByRole('button', { name: HELP_RAIL.reopen })).not.toBeInTheDocument();
   });
 
-  it('"copy" writes the model to the clipboard', () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.assign(navigator, { clipboard: { writeText } });
-    render(<ModelDataView />);
-    fireEvent.click(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.copy }));
-    expect(writeText).toHaveBeenCalledWith(counter.MODEL);
+  describe('copy', () => {
+    let clipboardDescriptor: PropertyDescriptor | undefined;
+
+    beforeEach(() => {
+      clipboardDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, writable: true, value: undefined });
+      vi.spyOn(message, 'success').mockImplementation(vi.fn());
+      vi.spyOn(message, 'error').mockImplementation(vi.fn());
+    });
+
+    afterEach(() => {
+      if (clipboardDescriptor) Object.defineProperty(navigator, 'clipboard', clipboardDescriptor);
+      else Reflect.deleteProperty(navigator, 'clipboard');
+      vi.restoreAllMocks();
+    });
+
+    it('reports failure when the Clipboard API is unavailable', async () => {
+      render(<ModelDataView />);
+      await act(() => {
+        fireEvent.click(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.copy }));
+        return Promise.resolve();
+      });
+      expect(message.error).toHaveBeenCalledWith(MODEL_DATA.model.copyFailed);
+      expect(message.success).not.toHaveBeenCalled();
+    });
+
+    it('waits for the write to resolve before reporting success', async () => {
+      let resolveWrite!: () => void;
+      const pendingWrite = new Promise<void>((resolve) => { resolveWrite = resolve; });
+      const writeText = vi.fn(() => pendingWrite);
+      Object.assign(navigator, { clipboard: { writeText } });
+      render(<ModelDataView />);
+      fireEvent.click(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.copy }));
+      expect(writeText).toHaveBeenCalledWith(latePayment.MODEL);
+      expect(message.success).not.toHaveBeenCalled();
+      expect(message.error).not.toHaveBeenCalled();
+
+      await act(() => { resolveWrite(); return pendingWrite; });
+      expect(message.success).toHaveBeenCalledWith(MODEL_DATA.model.copied);
+      expect(message.error).not.toHaveBeenCalled();
+    });
+
+    it('handles a rejected clipboard write without reporting success', async () => {
+      const writeText = vi.fn().mockRejectedValue(new DOMException('Clipboard denied', 'NotAllowedError'));
+      Object.assign(navigator, { clipboard: { writeText } });
+      render(<ModelDataView />);
+      await act(() => {
+        fireEvent.click(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.copy }));
+        return Promise.resolve();
+      });
+      expect(message.error).toHaveBeenCalledWith(MODEL_DATA.model.copyFailed);
+      expect(message.success).not.toHaveBeenCalled();
+    });
+
+    it('copies the exact editor model and reports success', async () => {
+      const model = 'namespace example\n\nconcept Agreement {\n  o String party\n}\n';
+      useAppStore.setState({ editorModelCto: model });
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+      render(<ModelDataView />);
+      await act(() => {
+        fireEvent.click(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.copy }));
+        return Promise.resolve();
+      });
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText).toHaveBeenCalledWith(model);
+      expect(message.success).toHaveBeenCalledWith(MODEL_DATA.model.copied);
+      expect(message.error).not.toHaveBeenCalled();
+    });
   });
 });

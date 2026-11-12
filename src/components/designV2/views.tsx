@@ -4,6 +4,8 @@ import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
 import SimulateView from "./SimulateView";
 import SampleArt from "./SampleArt";
+import ImportTemplates from "./ImportTemplates";
+import { DeployView } from "./DeployView";
 import useDesignV2Store from "../../store/designV2Store";
 import { usePickTemplate } from "./usePickTemplate";
 import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
@@ -12,12 +14,12 @@ import {
   WELCOME,
   START,
   START_SAMPLES,
-  DEPLOY,
+  START_BLANK,
   type StartSample,
 } from "./constants";
 
 /*
- * Welcome hero, template gallery and the Deploy placeholder. Each is swapped
+ * Welcome hero and template gallery. Each is swapped
  * in by DesignV2Layout based on `view`; the editor steps live in their own files.
  */
 
@@ -28,6 +30,8 @@ interface WelcomeViewProps {
 /**
  * Dark hero card: Accord Project wordmark, headline and the two CTAs.
  * "How it works" opens the docs site in a new tab (hence the ↗ in its label).
+ * A note under the buttons says what the playground is for — learning the
+ * structure of a template and prototyping — and points developers to VS Code.
  */
 export const WelcomeView = ({ onStart }: WelcomeViewProps) => (
   <div className="nd-view nd-view-welcome">
@@ -53,6 +57,12 @@ export const WelcomeView = ({ onStart }: WelcomeViewProps) => (
           {WELCOME.howItWorks}
         </Button>
       </div>
+      <p className="nd-hero-note">
+        {WELCOME.ideNote}{" "}
+        <a href={URLS.vscodeTutorial} target="_blank" rel="noopener noreferrer">
+          {WELCOME.ideNoteLink}
+        </a>
+      </p>
       <div className="nd-spacer" />
     </div>
   </div>
@@ -67,9 +77,9 @@ interface SampleCardProps {
 
 /**
  * One gallery card: an illustration on top; name, tagline, a short list
- * of what the template demonstrates and its own "Start with this template"
- * button underneath. Nothing else on the card is clickable — picking and
- * opening a template is one click.
+ * of what the template demonstrates (omitted on the blank card) and its own
+ * "Start with this template" button underneath. Nothing else on the card is
+ * clickable — picking and opening a template is one click.
  */
 const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
   const classes = [
@@ -91,11 +101,13 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
           {current && <span className="nd-sample-current">{START.current}</span>}
         </div>
         <p className="nd-sample-tagline">{sample.tagline}</p>
-        <ul className="nd-sample-learn" aria-label={START.learnLabel(sample.name)}>
-          {sample.demonstrates.map((point) => (
-            <li key={point}>{point}</li>
-          ))}
-        </ul>
+        {sample.demonstrates.length > 0 && (
+          <ul className="nd-sample-learn" aria-label={START.learnLabel(sample.name)}>
+            {sample.demonstrates.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
+        )}
         <Button
           type="primary"
           block
@@ -112,7 +124,8 @@ const SampleCard = ({ sample, current, onOpen }: SampleCardProps) => {
 
 /**
  * "Choose a template" gallery: a curated set of cards, each opening the flow
- * on its template in one click. "+ Start blank" does the same with the empty template.
+ * on its template in one click. The blank template is the last card, styled
+ * like the others, so the choice reads as one set of options.
  */
 export const StartView = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
@@ -128,13 +141,9 @@ export const StartView = () => {
       <div className="nd-start-head">
         <span className="nd-start-title">{START.title}</span>
         <span className="nd-start-hint">{START.hint}</span>
-        <div className="nd-spacer" />
-        <Button type="dashed" size="small" onClick={() => open(START.blankName)}>
-          {START.blank}
-        </Button>
       </div>
       <div className="nd-sample-grid">
-        {START_SAMPLES.map((sample) => (
+        {[...START_SAMPLES, START_BLANK].map((sample) => (
           <SampleCard
             key={sample.name}
             sample={sample}
@@ -143,25 +152,10 @@ export const StartView = () => {
           />
         ))}
       </div>
+      <ImportTemplates />
     </div>
   );
 };
-
-/** Step 7: Deploy — placeholder until the deploy flow is designed. */
-export const DeployView = () => (
-  <div className="nd-view nd-view-export">
-    <div className="nd-export-head">
-      <h1>{DEPLOY.title}</h1>
-    </div>
-    <div className="nd-export-grid">
-      {DEPLOY.cards.map((label) => (
-        <div key={label} className="nd-card nd-export-card">
-          <span className="nd-export-label">{label}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 interface ViewSwitchProps {
   view: DesignV2View;

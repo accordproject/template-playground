@@ -202,7 +202,7 @@ describe("rebuildSandbox bridge", () => {
       await expect(promise).resolves.toBe("rendered");
 
       // Replaced as soon as it answered, so a clean worker is already starting.
-      expect(posted(postMessage).at(-1)).toEqual({ type: REBUILD_RESTART, generation: 1 });
+      expect(posted(postMessage).slice(-1)[0]).toEqual({ type: REBUILD_RESTART, generation: 1 });
       expect(currentRebuildWorkerGeneration()).toBe(1);
     });
 
@@ -305,7 +305,7 @@ describe("rebuildSandbox bridge", () => {
 
       restartRebuildSandbox(new Error("because"));
       await expect(promise).rejects.toThrow("because");
-      expect(posted(postMessage).at(-1)).toEqual({ type: REBUILD_RESTART, generation: 1 });
+      expect(posted(postMessage).slice(-1)[0]).toEqual({ type: REBUILD_RESTART, generation: 1 });
     });
 
     it("rejects everything when the sandbox is unmounted", async () => {
@@ -381,7 +381,7 @@ describe("rebuildSandbox bridge", () => {
       await vi.advanceTimersByTimeAsync(REBUILD_STALL_TIMEOUT_MS + REBUILD_HEARTBEAT_INTERVAL_MS * 2);
       await rejection;
 
-      expect(posted(postMessage).at(-1)).toEqual({ type: REBUILD_RESTART, generation: 1 });
+      expect(posted(postMessage).slice(-1)[0]).toEqual({ type: REBUILD_RESTART, generation: 1 });
       expect(pendingRebuildCount()).toBe(0);
     });
 

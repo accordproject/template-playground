@@ -4,11 +4,13 @@ import {
   describeLogicModel,
   scaffoldFromModel,
   nextLogicSource,
+  pendingLogic,
 } from '../../editors/logicSource';
 import * as counter from '../../samples/counterLogic';
 import * as latePayment from '../../samples/latePaymentPenalty';
 import * as employment from '../../samples/employmentOffer';
 import * as helloworld from '../../samples/helloworld';
+import * as perishable from '../../samples/perishableGoods';
 
 describe('describeLogicModel', () => {
   it('finds the template concept, request/response transactions and state asset', () => {
@@ -44,6 +46,16 @@ describe('describeLogicModel', () => {
     expect(offer?.state?.name).toBe('OfferState');
   });
 
+  it('reads types that extend the engine runtime types, and an @template asset', () => {
+    const model = describeLogicModel(perishable.MODEL);
+    expect(model?.template?.name).toBe('TemplateModel');
+    expect(model?.request?.name).toBe('ShipmentReceived');
+    expect(model?.response?.name).toBe('PriceCalculation');
+    expect(model?.state?.name).toBe('PerishableGoodsState');
+    // Own fields only: the runtime supertypes are imported, so not resolved.
+    expect(model?.state?.fields.map((f) => f.name)).toEqual(['payoutMade', 'totalPaid']);
+  });
+
   it('is null for an empty or unparsable model', () => {
     expect(describeLogicModel('')).toBeNull();
     expect(describeLogicModel('namespace {')).toBeNull();
@@ -53,7 +65,7 @@ describe('describeLogicModel', () => {
 describe('scaffoldFromModel', () => {
   it('builds init() and trigger() with the model’s $class names and required fields', () => {
     const src = scaffoldFromModel(describeLogicModel(counter.MODEL));
-    expect(src).toContain("import type { ICounterContract, ICounterRequest } from './org.acme.counter@1.0.0';");
+    expect(src).toContain("import type { ICounterContract, ICounterRequest } from './generated/org.acme.counter@1.0.0';");
     expect(src).toContain('class ContractLogic extends TemplateLogic<any>');
     expect(src).toContain('async init(data: ICounterContract)');
     expect(src).toContain("$class: 'org.acme.counter@1.0.0.CounterState'");
@@ -62,7 +74,7 @@ describe('scaffoldFromModel', () => {
     expect(src).toContain("owner: '',");
     expect(src).toContain('async trigger(data: ICounterContract, request: ICounterRequest, state: any)');
     expect(src).toContain("$class: 'org.acme.counter@1.0.0.CounterResponse'");
-    expect(src).toContain('$timestamp: new Date(),');
+    expect(src).toContain('$timestamp: new Date().toISOString(),');
     expect(src).toContain("message: '',");
     expect(src).toContain('newCount: 0,');
     expect(src).toContain('export default ContractLogic;');
@@ -72,6 +84,11 @@ describe('scaffoldFromModel', () => {
     const src = scaffoldFromModel(describeLogicModel(latePayment.MODEL));
     expect(src).toContain('penalty: 0,');
     expect(src).toContain('sellerMayTerminate: false,');
+  });
+
+  it('gives the state the runtime State $class when the model declares no state asset', () => {
+    expect(DEFAULT_LOGIC_BOILERPLATE).toContain("$class: 'org.accordproject.runtime@0.2.0.State'");
+    expect(DEFAULT_LOGIC_BOILERPLATE).toContain('$timestamp: new Date().toISOString(),');
   });
 
   it('falls back to the generic boilerplate without request/response', () => {
@@ -88,5 +105,19 @@ describe('nextLogicSource', () => {
   it('uses the model skeleton, or the boilerplate, when both editor and committed logic are empty', () => {
     expect(nextLogicSource('', '', counter.MODEL)).toBe(scaffoldFromModel(describeLogicModel(counter.MODEL)));
     expect(nextLogicSource('  ', '', '')).toBe(DEFAULT_LOGIC_BOILERPLATE);
+  });
+});
+
+describe('pendingLogic', () => {
+  it('is the editor content when something is written, the skeleton included', () => {
+    const skeleton = scaffoldFromModel(describeLogicModel(counter.MODEL));
+    expect(pendingLogic('class X {}')).toBe('class X {}');
+    expect(pendingLogic(counter.LOGIC)).toBe(counter.LOGIC);
+    expect(pendingLogic(skeleton)).toBe(skeleton);
+  });
+
+  it('is null for an empty editor', () => {
+    expect(pendingLogic('')).toBeNull();
+    expect(pendingLogic('  \n')).toBeNull();
   });
 });

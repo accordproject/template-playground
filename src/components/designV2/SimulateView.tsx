@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Button, Dropdown, Modal, Tabs, type MenuProps } from "antd";
+import { Button, Dropdown, Modal, Tabs, message, type MenuProps } from "antd";
 import JSONEditor from "../../editors/JSONEditor";
 import ObligationsList from "../ObligationsList";
 import useAppStore, { type LogicExecutionResult } from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
+import { usePendingLogic } from "./useCompileOnArrival";
 import { STEP_ID } from "../../types/designV2.types";
 import { SIMULATE } from "./constants";
 import { pretty, runStats, runSummary } from "./simulateRuns";
@@ -21,6 +22,9 @@ import { pretty, runStats, runSummary } from "./simulateRuns";
  *   │ │ { … }          ▶ Send  ││                                  │
  *   └───────────────────────────┴─────────────────────────────────┘
  *
+ * The logic is compiled before this step opens (see useCompileOnArrival.ts:
+ * a compile error keeps the user on Logic), so the only thing that can be
+ * missing here is the logic itself — a dialog says so and points at Logic.
  * Execution itself is the legacy runner's: initContract / triggerContract in
  * src/store/store.ts run inside the SandboxFrame and append to
  * executionHistory. This view only renders that history and the request
@@ -67,13 +71,29 @@ interface RunDetailProps {
   onOpenLogic: () => void;
 }
 
+/**
+ * A run's JSON (message, response, state) in a read-only Monaco JSON editor,
+ * as in the legacy runner, so it is highlighted and foldable like the
+ * request editor. Each pane has its own id: it names the editor's model.
+ */
+const JsonView = ({ id, value }: { id: string; value: string }) => (
+  <div className="nd-sim-json">
+    <JSONEditor id={id} value={value} readOnly />
+  </div>
+);
+
 /** Right-hand column: the run's request on top, then Response / State after / Events tabs. */
 const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
   const [copied, setCopied] = useState(false);
-  const copyRequest = () => {
-    void navigator.clipboard?.writeText(pretty(run.request));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+  const copyRequest = async () => {
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(pretty(run.request));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      void message.error(SIMULATE.copyFailed);
+    }
   };
 
   const failed = run.error !== null;
@@ -92,7 +112,7 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
           </Button>
         </div>
       ) : (
-        <pre className="nd-sim-code">{pretty(run.response)}</pre>
+        <JsonView id="simulate-response" value={pretty(run.response)} />
       ),
     },
     {
@@ -101,7 +121,11 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
       children: (
         <div className="nd-sim-tab-body">
           {failed && <div className="nd-sim-note">{SIMULATE.stateUnchanged}</div>}
-          <pre className="nd-sim-code">{run.stateAfter ? pretty(run.stateAfter) : SIMULATE.noState}</pre>
+          {run.stateAfter ? (
+            <JsonView id="simulate-state" value={pretty(run.stateAfter)} />
+          ) : (
+            <pre className="nd-sim-code">{SIMULATE.noState}</pre>
+          )}
         </div>
       ),
     },
@@ -132,11 +156,11 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
           <span className="nd-sim-pane-title">{SIMULATE.request}</span>
           <span className="nd-mono nd-muted">{SIMULATE.json}</span>
           <span className="nd-spacer" />
-          <Button type="link" size="small" onClick={copyRequest}>
+          <Button type="link" size="small" onClick={() => void copyRequest()}>
             {copied ? SIMULATE.copied : SIMULATE.requestActions}
           </Button>
         </div>
-        <pre className="nd-sim-code">{pretty(run.request)}</pre>
+        <JsonView id="simulate-message" value={pretty(run.request)} />
       </section>
 
       <section
@@ -168,6 +192,7 @@ const SimulateView = () => {
   const [blockedDismissed, setBlockedDismissed] = useState(false);
 
   const compiled = Boolean(compiledLogicJs);
+  const noLogic = usePendingLogic() === null;
   const stats = runStats(history);
   const selected = history.find((run) => run.id === selectedRunId) ?? history[history.length - 1] ?? null;
   const initialised = Boolean(executionState);
@@ -276,6 +301,7 @@ const SimulateView = () => {
 
       {selected ? (
         <RunDetail
+          key={selected.id}
           run={selected}
           busy={isExecuting}
           onRerun={() => { void rerun(selected); }}
@@ -286,7 +312,7 @@ const SimulateView = () => {
       )}
 
       <Modal
-        open={!compiled && !blockedDismissed}
+        open={noLogic && !blockedDismissed}
         closable={false}
         maskClosable={false}
         width={440}
@@ -301,7 +327,7 @@ const SimulateView = () => {
             {SIMULATE.blocked.stay}
           </Button>,
           <Button key="jump" type="primary" onClick={openLogic}>
-            {SIMULATE.blocked.jump}
+            {SIMULATE.blocked.openLogic}
           </Button>,
         ]}
       >

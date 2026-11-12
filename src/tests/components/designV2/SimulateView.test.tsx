@@ -1,55 +1,76 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
+import { message } from 'antd';
 import '@testing-library/jest-dom';
 import SimulateView from '../../../components/designV2/SimulateView';
 import useAppStore from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SIMULATE } from '../../../components/designV2/constants';
-import { runSummary } from '../../../components/designV2/simulateRuns';
+import { pretty, runSummary } from '../../../components/designV2/simulateRuns';
 import { STEP_ID } from '../../../types/designV2.types';
+import * as latePayment from '../../../samples/latePaymentPenalty';
 import { failedRun, initRun, okRun, parseFailedRun } from './runFixtures';
 
 // The request editor is the legacy Monaco JSONEditor; a textarea stands in for it here.
+// Each JSONEditor stands in as a textarea named after its id ("request editor", "simulate-response editor", …).
 vi.mock('../../../editors/JSONEditor', () => ({
-  default: ({ value, onChange }: { value: string; onChange?: (v: string | undefined) => void }) => (
-    <textarea aria-label="request editor" value={value} onChange={(e) => onChange?.(e.target.value)} />
+  default: ({ id, value, onChange, readOnly }: { id: string; value: string; onChange?: (v: string | undefined) => void; readOnly?: boolean }) => (
+    <textarea aria-label={`${id} editor`} value={value} readOnly={readOnly} onChange={(e) => onChange?.(e.target.value)} />
   ),
 }));
 
 /**
- * Covers the Simulate step: the "can't run yet" gate, the runs list fed by
+ * Covers the Simulate step: the "no logic" dialog, the runs list fed by
  * executionHistory, run selection, the request / response detail and the
- * Send / restart / re-run actions that call into the legacy runner.
+ * Send / restart / re-run actions that call into the legacy runner. The
+ * logic is compiled before the step opens (DesignV2Layout.test covers that).
  */
 describe('SimulateView', () => {
   const initContract = vi.fn(async () => { await Promise.resolve(); });
   const triggerContract = vi.fn(async () => { await Promise.resolve(); });
+  const setLogicTs = vi.fn(async () => { await Promise.resolve(); });
 
   beforeEach(() => {
     initContract.mockClear();
     triggerContract.mockClear();
+    setLogicTs.mockClear();
     useAppStore.setState({
+      modelCto: latePayment.MODEL,
+      editorLogicTs: latePayment.LOGIC,
+      logicTs: latePayment.LOGIC,
+      isCompiling: false,
+      compilationErrors: [],
       compiledLogicJs: 'compiled',
       executionHistory: [initRun, okRun, failedRun],
-      executionState: '{"count": 2}',
+      executionState: '{"count": 1}',
       isExecuting: false,
-      requestJson: '{ "increment": 1 }',
+      requestJson: JSON.stringify(latePayment.REQUEST, null, 2),
       initContract,
       triggerContract,
+      setLogicTs,
     });
     useDesignV2Store.setState({ view: STEP_ID.simulate, selectedRunId: null });
   });
 
   const runRows = () => within(screen.getByRole('list', { name: SIMULATE.runsLabel })).getAllByRole('button');
+  const noDialog = () => expect(screen.queryByText(SIMULATE.blocked.title)).toBeNull();
 
-  describe('when the logic is not compiled', () => {
+  it('never compiles on its own — that happens before the step opens', () => {
+    useAppStore.setState({ compiledLogicJs: null, editorLogicTs: 'class X {}' });
+    render(<SimulateView />);
+    expect(setLogicTs).not.toHaveBeenCalled();
+  });
+
+  describe('when there is no logic', () => {
     beforeEach(() => {
-      useAppStore.setState({ compiledLogicJs: null, executionHistory: [], executionState: '' });
+      useAppStore.setState({ compiledLogicJs: null, executionHistory: [], executionState: '', editorLogicTs: '', logicTs: '' });
     });
 
-    it('shows the blocked dialog and "Stay here" dismisses it', async () => {
+    it('shows the "no logic" dialog and "Stay here" dismisses it', async () => {
       render(<SimulateView />);
       expect(screen.getByText(SIMULATE.blocked.title)).toBeInTheDocument();
+      expect(screen.getByText(SIMULATE.blocked.body)).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.stay }));
       // antd keeps a closed Modal mounted and hides its wrapper
       await waitFor(() =>
@@ -59,17 +80,119 @@ describe('SimulateView', () => {
       expect(screen.getByRole('button', { name: SIMULATE.restart })).toBeDisabled();
     });
 
-    it('"Jump back to Logic" opens the Logic step', () => {
+    it('"Open the Logic step" opens it', () => {
       render(<SimulateView />);
-      fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.jump }));
+      fireEvent.click(screen.getByRole('button', { name: SIMULATE.blocked.openLogic }));
       expect(useDesignV2Store.getState().view).toBe(STEP_ID.logic);
     });
   });
 
   describe('with compiled logic', () => {
-    it('does not show the blocked dialog', () => {
+    describe('copy', () => {
+      let clipboardDescriptor: PropertyDescriptor | undefined;
+      const copyButton = () => within(screen.getByRole('region', { name: SIMULATE.request })).getByRole('button');
+
+      beforeEach(() => {
+        clipboardDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, writable: true, value: undefined });
+        vi.spyOn(message, 'error').mockImplementation(vi.fn());
+        vi.useFakeTimers();
+        useDesignV2Store.setState({ selectedRunId: okRun.id });
+      });
+
+      afterEach(() => {
+        if (clipboardDescriptor) Object.defineProperty(navigator, 'clipboard', clipboardDescriptor);
+        else Reflect.deleteProperty(navigator, 'clipboard');
+        vi.clearAllTimers();
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+      });
+
+      it('reports failure when the Clipboard API is unavailable', async () => {
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(message.error).toHaveBeenCalledWith(SIMULATE.copyFailed);
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+      });
+
+      it('starts the confirmation timer only after the pending write succeeds', async () => {
+        let resolveWrite!: () => void;
+        const pendingWrite = new Promise<void>((resolve) => { resolveWrite = resolve; });
+        const writeText = vi.fn(() => pendingWrite);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        fireEvent.click(copyButton());
+        expect(writeText).toHaveBeenCalledWith(pretty(okRun.request));
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+
+        act(() => { vi.advanceTimersByTime(2400); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+        expect(message.error).not.toHaveBeenCalled();
+
+        await act(() => { resolveWrite(); return pendingWrite; });
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        act(() => { vi.advanceTimersByTime(1199); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        act(() => { vi.advanceTimersByTime(1); });
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+      });
+
+      it('handles a rejected write without showing a copied confirmation', async () => {
+        const writeText = vi.fn().mockRejectedValue(new DOMException('Clipboard denied', 'NotAllowedError'));
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(message.error).toHaveBeenCalledWith(SIMULATE.copyFailed);
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+      });
+
+      it('copies the exact selected request and confirms success', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(writeText).toHaveBeenCalledTimes(1);
+        expect(writeText).toHaveBeenCalledWith(pretty(okRun.request));
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        expect(message.error).not.toHaveBeenCalled();
+      });
+
+      it('allows a successful retry after a rejected write', async () => {
+        const writeText = vi.fn()
+          .mockRejectedValueOnce(new DOMException('Clipboard denied', 'NotAllowedError'))
+          .mockResolvedValueOnce(undefined);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(message.error).toHaveBeenCalledTimes(1);
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+
+        await act(() => { fireEvent.click(copyButton()); return Promise.resolve(); });
+        expect(writeText).toHaveBeenCalledTimes(2);
+        expect(writeText).toHaveBeenNthCalledWith(1, pretty(okRun.request));
+        expect(writeText).toHaveBeenNthCalledWith(2, pretty(okRun.request));
+        expect(copyButton()).toHaveTextContent(SIMULATE.copied);
+        expect(message.error).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not confirm an old copy on a newly selected run', async () => {
+        let resolveWrite!: () => void;
+        const pendingWrite = new Promise<void>((resolve) => { resolveWrite = resolve; });
+        const writeText = vi.fn(() => pendingWrite);
+        Object.assign(navigator, { clipboard: { writeText } });
+        render(<SimulateView />);
+        fireEvent.click(copyButton());
+        fireEvent.click(runRows()[0]);
+        await act(() => { resolveWrite(); return pendingWrite; });
+        expect(writeText).toHaveBeenCalledWith(pretty(okRun.request));
+        expect(copyButton()).toHaveTextContent(SIMULATE.requestActions);
+        expect(message.error).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not show a dialog', () => {
       render(<SimulateView />);
-      expect(screen.queryByText(SIMULATE.blocked.title)).toBeNull();
+      noDialog();
     });
 
     it('offers to initialise when there are no runs yet', () => {
@@ -95,6 +218,18 @@ describe('SimulateView', () => {
       expect(rows[0]).toHaveAttribute('aria-pressed', 'false');
     });
 
+    it('shows the selected run\'s message, response and state as read-only JSON', () => {
+      useDesignV2Store.setState({ selectedRunId: okRun.id });
+      render(<SimulateView />);
+      const message = screen.getByLabelText('simulate-message editor');
+      expect(message).toHaveValue(JSON.stringify(okRun.request, null, 2));
+      expect(message).toHaveAttribute('readonly');
+      const response = screen.getByLabelText('simulate-response editor');
+      expect(response).toHaveValue(JSON.stringify(okRun.response, null, 2));
+      expect(response).toHaveAttribute('readonly');
+      expect(screen.getByLabelText('request editor')).not.toHaveAttribute('readonly');
+    });
+
     it('shows the error of the selected failed run in an Error tab and links to trigger()', () => {
       render(<SimulateView />);
       expect(screen.getByRole('tab', { name: SIMULATE.errorTab })).toBeInTheDocument();
@@ -110,7 +245,7 @@ describe('SimulateView', () => {
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
       expect(screen.getByText(SIMULATE.stateUnchanged)).toBeInTheDocument();
       const result = screen.getByRole('region', { name: SIMULATE.resultLabel });
-      expect(result).toHaveTextContent('"count": 2');
+      expect(result).toHaveTextContent('"totalPenalty": 210');
     });
 
     it('a request that was not valid JSON is shown as not sent', () => {
@@ -129,17 +264,17 @@ describe('SimulateView', () => {
       expect(runRows()[1]).toHaveAttribute('aria-pressed', 'true');
 
       const request = screen.getByRole('region', { name: SIMULATE.request });
-      expect(request).toHaveTextContent('"increment": 2');
+      expect(request).toHaveTextContent('"invoiceValue": 1000');
       const result = screen.getByRole('region', { name: SIMULATE.resultLabel });
       expect(screen.getByRole('tab', { name: SIMULATE.response })).toHaveAttribute('aria-selected', 'true');
-      expect(result).toHaveTextContent("Alice's count is now 2 (of 10)");
+      expect(result).toHaveTextContent('"penalty": 210');
 
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
-      expect(result).toHaveTextContent('"count": 2');
+      expect(result).toHaveTextContent('"count": 1');
       expect(screen.queryByText(SIMULATE.stateUnchanged)).toBeNull();
 
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.eventsTab(1) }));
-      expect(result).toHaveTextContent('CounterUpdated');
+      expect(result).toHaveTextContent('LatePaymentEvent');
     });
 
     it('the Events tab of a run without events says so', () => {
@@ -165,8 +300,8 @@ describe('SimulateView', () => {
 
     it('the request editor edits requestJson', () => {
       render(<SimulateView />);
-      fireEvent.change(screen.getByLabelText('request editor'), { target: { value: '{ "increment": 5 }' } });
-      expect(useAppStore.getState().requestJson).toBe('{ "increment": 5 }');
+      fireEvent.change(screen.getByLabelText('request editor'), { target: { value: '{ "invoiceValue": 5 }' } });
+      expect(useAppStore.getState().requestJson).toBe('{ "invoiceValue": 5 }');
     });
 
     it('restart re-initialises the contract', () => {

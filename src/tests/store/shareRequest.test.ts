@@ -43,6 +43,18 @@ describe("shared simulation requests", () => {
     expect(compileLogic).toHaveBeenCalledTimes(1);
   });
 
+  it("preserves the request when sharing freshly edited logic", () => {
+    const requestJson = JSON.stringify(counter.REQUEST);
+    useAppStore.setState({ logicTs: "", requestJson });
+
+    const link = new URL(useAppStore.getState().generateShareableLink({ logicTs: counter.LOGIC }));
+    const payload = decompress(link.hash.slice("#data=".length));
+
+    expect(payload.logicTs).toBe(counter.LOGIC);
+    expect(payload.requestJson).toBe(requestJson);
+    expect(payload.agreementHtml).toBeUndefined();
+  });
+
   it.each(["", '{ "invoiceValue":'])("preserves an unfinished request verbatim: %j", async (requestJson) => {
     useAppStore.setState({ logicTs: latePayment.LOGIC, requestJson });
     const link = new URL(useAppStore.getState().generateShareableLink());
@@ -57,7 +69,6 @@ describe("shared simulation requests", () => {
     { description: "text-only", logicTs: undefined },
     { description: "logic", logicTs: latePayment.LOGIC },
   ])("still loads older $description links without a request field", async ({ logicTs }) => {
-    const requestBeforeLoading = useAppStore.getState().requestJson;
     const legacyLink = compress({
       templateMarkdown: latePayment.TEMPLATE,
       modelCto: latePayment.MODEL,
@@ -70,13 +81,12 @@ describe("shared simulation requests", () => {
 
     expect(useAppStore.getState().error).toBeUndefined();
     expect(useAppStore.getState().templateMarkdown).toBe(latePayment.TEMPLATE);
-    expect(useAppStore.getState().requestJson).toBe(requestBeforeLoading);
+    expect(useAppStore.getState().requestJson).toBe("");
     expect(rebuild).toHaveBeenCalledTimes(1);
     expect(compileLogic).toHaveBeenCalledTimes(logicTs ? 1 : 0);
   });
 
   it("ignores a non-string request field instead of putting it into the editor", async () => {
-    const requestBeforeLoading = useAppStore.getState().requestJson;
     const link = compress({
       templateMarkdown: latePayment.TEMPLATE,
       modelCto: latePayment.MODEL,
@@ -88,6 +98,6 @@ describe("shared simulation requests", () => {
     await useAppStore.getState().loadFromLink(link);
 
     expect(useAppStore.getState().error).toBeUndefined();
-    expect(useAppStore.getState().requestJson).toBe(requestBeforeLoading);
+    expect(useAppStore.getState().requestJson).toBe("");
   });
 });

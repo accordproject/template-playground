@@ -107,7 +107,7 @@ const REQUEST = {
 
 const LOGIC = `// Employment Offer Logic
 // The offer starts pending; the candidate's first answer accepts or declines it, once.
-import type { IEmploymentOffer, IAcceptanceRequest } from './org.accordproject.employment@1.0.0';
+import type { IEmploymentOffer, IAcceptanceRequest } from './generated/org.accordproject.employment@1.0.0';
 
 class EmploymentOfferLogic extends TemplateLogic<any> {
 
@@ -139,7 +139,7 @@ class EmploymentOfferLogic extends TemplateLogic<any> {
     return {
       result: {
         $class: 'org.accordproject.employment@1.0.0.AcceptanceResponse',
-        $timestamp: new Date(),
+        $timestamp: new Date().toISOString(),
         outcome,
         message,
       },
@@ -151,7 +151,7 @@ class EmploymentOfferLogic extends TemplateLogic<any> {
       events: [
         {
           $class: 'org.accordproject.employment@1.0.0.OfferAnswered',
-          $timestamp: new Date(),
+          $timestamp: new Date().toISOString(),
           candidateName: data.candidateName,
           outcome,
         },
