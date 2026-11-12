@@ -24,11 +24,13 @@ export default function MarkdownEditor({
   editorRef?: MutableRefObject<editor.IStandaloneCodeEditor | null>;
 }) {
   const { handleSelection, MenuComponent } = useCodeSelection("markdown");
-  const { backgroundColor, textColor, aiConfig, showLineNumbers } = useAppStore((state) => ({
+  const { backgroundColor, textColor, aiConfig, showLineNumbers, error, templateErrorLocation } = useAppStore((state) => ({
     backgroundColor: state.backgroundColor,
     textColor: state.textColor,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
+    error: state.error,
+    templateErrorLocation: state.templateErrorLocation,
   }));
   const monaco = useMonaco();
 
@@ -56,6 +58,27 @@ export default function MarkdownEditor({
       monaco.editor.setTheme(themeName);
     }
   }, [monaco, backgroundColor, textColor, themeName]);
+
+  useEffect(() => {
+    if (!monaco) return;
+    const editorModel = editorRef?.current?.getModel() ?? null;
+    if (!editorModel) return;
+    const isTemplateError = error && !error.startsWith('c:');
+    if (isTemplateError && templateErrorLocation && templateErrorLocation.line > 0) {
+      monaco.editor.setModelMarkers(editorModel, 'templateMarker', [
+        {
+          startLineNumber: templateErrorLocation.line,
+          startColumn: templateErrorLocation.column,
+          endLineNumber: templateErrorLocation.line,
+          endColumn: templateErrorLocation.endColumn,
+          message: error,
+          severity: 8,
+        },
+      ]);
+    } else {
+      monaco.editor.setModelMarkers(editorModel, 'templateMarker', []);
+    }
+  }, [error, templateErrorLocation, monaco, editorRef]);
 
   const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },

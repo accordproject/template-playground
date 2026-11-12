@@ -40,6 +40,7 @@ function TemplateMarkdown() {
       value={editorValue}
       onChange={handleChange}
       onEditorReady={handleEditorReady}
+      editorRef={editorRef}
     />
   );
 }
