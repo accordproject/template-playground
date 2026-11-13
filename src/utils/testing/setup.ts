@@ -4,6 +4,60 @@ import * as matchers from "@testing-library/jest-dom/matchers";
 
 expect.extend(matchers);
 
+// Mock Storage for environments (such as Node 22+) where experimental webstorage
+// defines incomplete global localStorage/sessionStorage objects in JSDOM.
+const createStorageMock = () => {
+  let store: Record<string, string> = {};
+
+  const storage = {
+    getItem: vi.fn((key: string): string | null => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string): void => {
+      store[key] = String(value);
+    }),
+    removeItem: vi.fn((key: string): void => {
+      delete store[key];
+    }),
+    clear: vi.fn((): void => {
+      store = {};
+    }),
+    key: vi.fn((index: number): string | null => Object.keys(store)[index] ?? null),
+    get length(): number {
+      return Object.keys(store).length;
+    },
+  };
+
+  return storage;
+};
+
+const localStorageMock = createStorageMock();
+const sessionStorageMock = createStorageMock();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+  configurable: true,
+});
+
+Object.defineProperty(window, 'sessionStorage', {
+  value: sessionStorageMock,
+  writable: true,
+  configurable: true,
+});
+
+if (typeof globalThis !== 'undefined') {
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+    configurable: true,
+  });
+
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    value: sessionStorageMock,
+    writable: true,
+    configurable: true,
+  });
+}
+
 afterEach(() => {
   cleanup();
 });
