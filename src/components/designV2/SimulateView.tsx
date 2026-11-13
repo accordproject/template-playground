@@ -201,9 +201,25 @@ const SimulateView = () => {
 
   const openLogic = () => setView(STEP_ID.logic);
 
-  const restart = async () => {
-    await initContract();
-    selectRun(null);
+  const restart = () => {
+    const startNewContract = async () => {
+      await initContract();
+      selectRun(null);
+    };
+
+    if (history.length === 0) {
+      void startNewContract();
+      return;
+    }
+
+    Modal.confirm({
+      title: SIMULATE.restartConfirm.title,
+      content: SIMULATE.restartConfirm.content,
+      okText: SIMULATE.restartConfirm.okText,
+      cancelText: SIMULATE.restartConfirm.cancelText,
+      okButtonProps: { danger: true },
+      onOk: startNewContract,
+    });
   };
 
   const send = async () => {
@@ -213,7 +229,7 @@ const SimulateView = () => {
 
   const rerun = async (run: LogicExecutionResult) => {
     if (run.method === "init") {
-      await restart();
+      restart();
       return;
     }
     setRequestJson(pretty(run.request));

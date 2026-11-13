@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
-import { message } from 'antd';
+import { message, Modal, type ModalFuncProps } from 'antd';
 import '@testing-library/jest-dom';
 import SimulateView from '../../../components/designV2/SimulateView';
 import useAppStore from '../../../store/store';
@@ -304,10 +304,53 @@ describe('SimulateView', () => {
       expect(useAppStore.getState().requestJson).toBe('{ "invoiceValue": 5 }');
     });
 
-    it('restart re-initialises the contract', () => {
+    it('asks before restarting when execution history exists', () => {
+      let confirmOptions: ModalFuncProps | undefined;
+      const confirm = vi.spyOn(Modal, 'confirm').mockImplementation((options: ModalFuncProps) => {
+        confirmOptions = options;
+        return {
+          destroy: vi.fn(),
+          update: vi.fn(),
+        };
+      });
+      useDesignV2Store.setState({ selectedRunId: '#1' });
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.restart }));
+
+      expect(confirm).toHaveBeenCalledTimes(1);
+      expect(confirmOptions).toEqual(expect.objectContaining({
+        title: SIMULATE.restartConfirm.title,
+        content: SIMULATE.restartConfirm.content,
+        okText: SIMULATE.restartConfirm.okText,
+        cancelText: SIMULATE.restartConfirm.cancelText,
+        okButtonProps: { danger: true },
+      }));
+      expect(typeof confirmOptions?.onOk).toBe('function');
+      expect(initContract).not.toHaveBeenCalled();
+      expect(useAppStore.getState().executionHistory).toEqual([initRun, okRun, failedRun]);
+      expect(useDesignV2Store.getState().selectedRunId).toBe('#1');
+    });
+
+    it('starts a new contract only after restart confirmation', async () => {
+      let confirmRestart: (() => void | Promise<void>) | undefined;
+      vi.spyOn(Modal, 'confirm').mockImplementation((options: ModalFuncProps) => {
+        const onOk = options.onOk as (() => void | Promise<void>) | undefined;
+        confirmRestart = () => onOk?.();
+        return {
+          destroy: vi.fn(),
+          update: vi.fn(),
+        };
+      });
+      useDesignV2Store.setState({ selectedRunId: '#1' });
+      render(<SimulateView />);
+      fireEvent.click(screen.getByRole('button', { name: SIMULATE.restart }));
+
+      await act(async () => {
+        await confirmRestart?.();
+      });
+
       expect(initContract).toHaveBeenCalledTimes(1);
+      expect(useDesignV2Store.getState().selectedRunId).toBeNull();
     });
 
     it('re-run resends the selected run\'s request', async () => {
@@ -318,11 +361,16 @@ describe('SimulateView', () => {
       expect(JSON.parse(useAppStore.getState().requestJson)).toEqual(okRun.request);
     });
 
-    it('re-run on the init run initialises again', () => {
+    it('re-run on the init run uses the restart confirmation', () => {
+      const confirm = vi.spyOn(Modal, 'confirm').mockImplementation(() => ({
+        destroy: vi.fn(),
+        update: vi.fn(),
+      }));
       useDesignV2Store.setState({ selectedRunId: 'init' });
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.rerun }));
-      expect(initContract).toHaveBeenCalledTimes(1);
+      expect(confirm).toHaveBeenCalledTimes(1);
+      expect(initContract).not.toHaveBeenCalled();
       expect(triggerContract).not.toHaveBeenCalled();
     });
 
