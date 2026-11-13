@@ -315,6 +315,20 @@ export function applyWrappedEdit(
     },
   ]);
 
+  if (!selectedText) {
+    const cursorColumn =
+      selection.startColumn + before.length;
+
+    editorInstance.setSelection(
+      new Selection(
+        selection.startLineNumber,
+        cursorColumn,
+        selection.startLineNumber,
+        cursorColumn
+      )
+    );
+  }
+
   editorInstance.focus();
 }
 
