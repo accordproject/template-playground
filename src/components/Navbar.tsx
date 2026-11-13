@@ -63,7 +63,7 @@ const Dropdown = ({ children, overlay, trigger, className = "" }: DropdownProps)
             className="fixed inset-0 z-10" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="absolute top-full max-h-[calc(100vh-7rem)] overflow-y-auto left-0 z-20 mt-1 min-w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
             {overlay}
           </div>
         </>
