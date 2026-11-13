@@ -74,6 +74,8 @@ export const FOOTER = {
   next: "Next →",
   /** Toast when a move to Simulate is refused because the logic does not compile. */
   logicBlocked: "The logic doesn’t compile — fix the error on the Logic step before simulating.",
+  /** Toast when a move fails unexpectedly while compiling or changing steps. */
+  navigationFailed: "Couldn’t open that step — try again.",
 } as const;
 
 export const HELP_RAIL = {
