@@ -96,6 +96,8 @@ export const PREVIEW = {
   toggleLabel: "Write or preview",
   title: "Preview",
   liveBadge: "live",
+  staleBadge: "out of date",
+  disabledStale: "Cannot export while the template has an error or is out of date",
   pdf: "↓ PDF",
   markdown: "↓ Markdown",
   markdownFailed: "Couldn’t create the Markdown — try again.",

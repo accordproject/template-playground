@@ -25,7 +25,7 @@ const pdfButton = () => screen.getByRole('button', { name: PREVIEW.pdf });
 describe('PreviewPane', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useAppStore.setState({ agreementHtml: '', error: undefined });
+    useAppStore.setState({ agreementHtml: '', agreementRevision: 0, error: undefined });
   });
 
   it('shows the rendered agreement', () => {
@@ -50,6 +50,51 @@ describe('PreviewPane', () => {
     expect(screen.getByText('Last good render')).toBeInTheDocument();
   });
 
+  it('indicates that the preview is out of date and disables download buttons when there is an error', () => {
+    useAppStore.setState({
+      agreementHtml: '<p>Last good render</p>',
+      agreementRevision: 0,
+      error: 'Unknown property: notAField',
+    });
+    const { container } = renderPane();
+    const badge = screen.getByText(PREVIEW.staleBadge);
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveAttribute('aria-live', 'polite');
+    expect(screen.queryByText(PREVIEW.liveBadge)).not.toBeInTheDocument();
+    expect(screen.getByText('Last good render')).toBeInTheDocument();
+    expect(container.querySelector('.nd-preview-page-stale')).toBeInTheDocument();
+
+    const mdBtn = screen.getByRole('button', { name: PREVIEW.markdown });
+    expect(mdBtn).toBeDisabled();
+    expect(mdBtn).toHaveAttribute('title', PREVIEW.disabledStale);
+    expect(pdfButton()).toBeDisabled();
+    expect(pdfButton()).toHaveAttribute('title', PREVIEW.disabledStale);
+  });
+
+  it('marks preview as stale immediately if agreement revision lags source revision before rebuild finishes', () => {
+    useAppStore.setState({
+      agreementHtml: '<p>Old render</p>',
+      agreementRevision: -1,
+      error: undefined,
+    });
+    const { container } = renderPane();
+    expect(screen.getByText(PREVIEW.staleBadge)).toBeInTheDocument();
+    expect(container.querySelector('.nd-preview-page-stale')).toBeInTheDocument();
+    expect(pdfButton()).toBeDisabled();
+  });
+
+  it('shows the live badge when rendering has no error and is up to date', () => {
+    useAppStore.setState({
+      agreementHtml: '<p>Good render</p>',
+      agreementRevision: 0,
+      error: undefined,
+    });
+    renderPane();
+    expect(screen.getByText(PREVIEW.liveBadge)).toBeInTheDocument();
+    expect(screen.queryByText(PREVIEW.staleBadge)).not.toBeInTheDocument();
+    expect(pdfButton()).toBeEnabled();
+  });
+
   it('says it is rendering until the first render arrives', () => {
     renderPane();
     expect(screen.getByText(PREVIEW.rendering)).toBeInTheDocument();
@@ -72,7 +117,7 @@ describe('PreviewPane', () => {
       names.push(this.download);
     });
     const renderAgreement = vi.fn().mockResolvedValue('# Terms\n');
-    useAppStore.setState({ agreementHtml: '<p>Terms</p>', renderAgreement });
+    useAppStore.setState({ agreementHtml: '<p>Terms</p>', agreementRevision: 0, renderAgreement });
     renderPane();
     fireEvent.click(screen.getByRole('button', { name: PREVIEW.markdown }));
     await waitFor(() => expect(click).toHaveBeenCalled());
@@ -89,7 +134,7 @@ describe('PreviewPane', () => {
 
   it('saves the agreement, rendered afresh, as a PDF rather than the page on screen', async () => {
     // The page still shows an older render; the current sources render differently.
-    useAppStore.setState({ agreementHtml: '<p>Stale terms</p>', renderAgreement: vi.fn().mockResolvedValue('<p>Fresh terms</p><script>x()</script>') });
+    useAppStore.setState({ agreementHtml: '<p>Stale terms</p>', agreementRevision: 0, renderAgreement: vi.fn().mockResolvedValue('<p>Fresh terms</p><script>x()</script>') });
     renderPane();
     fireEvent.click(pdfButton());
     await waitFor(() => expect(html2pdf.chain.save).toHaveBeenCalledTimes(1));
@@ -102,7 +147,7 @@ describe('PreviewPane', () => {
 
   it('saves no PDF when the current sources do not render', async () => {
     const showError = vi.spyOn(message, 'error');
-    useAppStore.setState({ agreementHtml: '<p>Stale terms</p>', renderAgreement: vi.fn().mockRejectedValue(new Error('bad data')) });
+    useAppStore.setState({ agreementHtml: '<p>Stale terms</p>', agreementRevision: 0, renderAgreement: vi.fn().mockRejectedValue(new Error('bad data')) });
     renderPane();
     fireEvent.click(pdfButton());
     await waitFor(() => expect(showError).toHaveBeenCalledWith(PREVIEW.pdfFailed));
