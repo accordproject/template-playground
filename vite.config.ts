@@ -120,19 +120,6 @@ const viteConfig = defineViteConfig({
    * vite-plugin-rebuild-worker.ts for why it must be classic, and for the
    * dev-server equivalent.
    */
-  worker: {
-    format: "iife",
-    plugins: [
-      {
-        ...inject({
-          global: [nodeGlobalsShim, "global"],
-          process: [nodeGlobalsShim, "process"],
-          Buffer: [nodeGlobalsShim, "Buffer"],
-        }),
-        enforce: "post",
-      },
-    ],
-  },
   build: {
     rollupOptions: {
       output: {
