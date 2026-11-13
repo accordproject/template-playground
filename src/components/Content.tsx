@@ -32,21 +32,30 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let active = true;
+
     const loadContent = async () => {
       try {
-        setLoading(true);
+        if (active) setLoading(true);
         const contentData = await fetchContent(file);
-        setContent(contentData);
-        setError(null);
+        if (active) {
+          setContent(contentData);
+          setError(null);
+        }
       } catch (err) {
-        setError("Failed to load content");
-        console.error(err);
+        if (active) {
+          setError("Failed to load content");
+          console.error(err);
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     void loadContent();
+    return () => {
+      active = false;
+    };
   }, [file]);
 
   const currentIndex = steps.findIndex((step) =>
@@ -69,11 +78,16 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     navigate("/");
   };
 
-  const copyToClipboard = (code: string) => {
-    void navigator.clipboard.writeText(code);
-    setCopied(code);
-    void message.success("Copied to clipboard!");
-    setTimeout(() => setCopied(null), 2000);
+  const copyToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(code);
+      void message.success("Copied to clipboard!");
+      setTimeout(() => setCopied(null), 2000);
+    } catch (error) {
+      void message.error("Failed to copy to clipboard");
+      console.error("Clipboard error:", error);
+    }
   };
 
   if (loading) {
@@ -134,7 +148,10 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
               return (
                 <CodeBlockContainer>
                   <pre>{children}</pre>
-                  <CopyButton onClick={() => copyToClipboard(String(codeText))}>
+                  <CopyButton
+                    aria-label="Copy code"
+                    onClick={() => void copyToClipboard(String(codeText))}
+                  >
                     {copied === codeText ? <CheckOutlined /> : <CopyOutlined />}
                   </CopyButton>
                 </CodeBlockContainer>

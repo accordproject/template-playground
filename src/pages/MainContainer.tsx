@@ -31,18 +31,16 @@ const MainContainer = () => {
     const element = downloadRef.current;
     if (!element) return;
 
+    const pdfElement = element.cloneNode(true) as HTMLDivElement;
+    pdfElement.style.backgroundColor = '#ffffff';
+    pdfElement.style.color = '#000000';
+    pdfElement.style.position = 'absolute';
+    pdfElement.style.left = '-100000px';
+    pdfElement.style.top = '0';
+    document.body.appendChild(pdfElement);
+
     try {
       setIsDownloading(true);
-      
-      /* 
-       * Store original styles and force white background / black text
-       * for PDF export to ensure readability.
-       */
-      const originalBg = element.style.backgroundColor;
-      const originalColor = element.style.color;
-      
-      element.style.backgroundColor = '#ffffff';
-      element.style.color = '#000000';
 
       const options = {
         margin: 10,
@@ -57,19 +55,15 @@ const MainContainer = () => {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       } as const;
 
-      await html2pdf().set(options).from(element).save();
-      
-      // Restore original styles
-      element.style.backgroundColor = originalBg;
-      element.style.color = originalColor;
-
+      await html2pdf().set(options).from(pdfElement).save();
     } catch (error) {
       console.error("PDF generation failed:", error);
       void message.error("Failed to generate PDF. Please check the console.");
     } finally {
+      pdfElement.remove();
       setIsDownloading(false);
     }
-  }
+  };
 
   const handleJsonFormat = () => {
     if (jsonEditorRef.current) {
@@ -112,14 +106,13 @@ const MainContainer = () => {
   const activeRunnerWorkspace = isContractRunnerVisible && isLogicFeatureEnabled ;
   const horizontalPanelKey = `${String(isEditorsVisible)}-${String(activeLogicWorkspace)}-${String(activeRunnerWorkspace)}-${String(isPreviewVisible)}-${String(isAIChatOpen)}`;
 
-  // Create distinct preview background for better visual separation
   const previewBackgroundColor = backgroundColor === '#ffffff'
-    ? '#f0f9ff'  // Cool light blue for preview - modern and distinct
-    : '#1a1f2e';  // Distinct darker blue-tinted background for preview in dark mode
+    ? '#f0f9ff'  
+    : '#1a1f2e';  
 
   const previewHeaderColor = backgroundColor === '#ffffff'
-    ? '#dbeafe'  // Slightly darker blue for header in light mode
-    : '#0f172a';  // Even darker shade for header in dark mode
+    ? '#dbeafe'  
+    : '#0f172a';  
 
 
   const panelKey = `${String(isModelCollapsed)}-${String(isTemplateCollapsed)}-${String(isDataCollapsed)}`;
