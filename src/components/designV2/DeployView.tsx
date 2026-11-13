@@ -169,6 +169,7 @@ export const DeployView = () => {
   };
 
   const run = async (card: DeployCard) => {
+    if (working !== null) return;
     setWorking(card.title);
     try {
       const outcome = await runAction(card);
@@ -213,7 +214,6 @@ export const DeployView = () => {
             block
             type="primary"
             loading={working === card.title}
-            disabled={working !== null}
             onClick={() => void run(card)}
           >
             {card.button}
