@@ -697,6 +697,14 @@ const useAppStore = create<AppState>()(
           executionEvents: step ? JSON.stringify(step.events, null, 2) : '[]',
         });
 
+      const handleRebuildError = (error: unknown) => {
+        set(() => ({
+          agreementHtml: "",
+          error: formatError(error),
+          isProblemPanelVisible: true,
+        }));
+      };
+
       return {
         activeTab: "build",
         setActiveTab: (tab: "build" | "simulate") => set({ activeTab: tab }),
@@ -1043,10 +1051,7 @@ const useAppStore = create<AppState>()(
             );
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+            handleRebuildError(error);
           }
         },
         setTemplateMarkdown: async (template: string) => {
@@ -1056,10 +1061,7 @@ const useAppStore = create<AppState>()(
             const result = await rebuildDeBounce(template, modelCto, data);
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+            handleRebuildError(error);
           }
         },
         setEditorValue: (value: string) => {
@@ -1072,10 +1074,7 @@ const useAppStore = create<AppState>()(
             const result = await rebuildDeBounce(templateMarkdown, model, data);
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+            handleRebuildError(error);
           }
         },
         setEditorModelCto: (value: string) => {
@@ -1091,10 +1090,7 @@ const useAppStore = create<AppState>()(
             );
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
+            handleRebuildError(error);
           }
         },
         setEditorAgreementData: (value: string) => {
