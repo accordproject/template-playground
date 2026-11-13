@@ -27,6 +27,9 @@ const PreviewPane = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingMarkdown, setIsSavingMarkdown] = useState(false);
 
+  const isStale = Boolean(error);
+  const canDownload = Boolean(agreementHtml && !error);
+
   const saveMarkdown = async () => {
     setIsSavingMarkdown(true);
     try {
@@ -55,25 +58,29 @@ const PreviewPane = () => {
     <section className="nd-editor-card nd-preview-card" aria-label={PREVIEW.ariaLabel}>
       <div className="nd-editor-card-head">
         <span className="nd-preview-title">{PREVIEW.title}</span>
-        <span className="nd-badge nd-badge-teal">{PREVIEW.liveBadge}</span>
+
+        <span className={`nd-badge ${isStale ? "nd-badge-amber" : "nd-badge-teal"}`}>
+          {isStale ? PREVIEW.staleBadge : PREVIEW.liveBadge}
+        </span>
+
         <div className="nd-spacer" />
         <Button
           type="text"
           size="small"
-          disabled={!agreementHtml}
+          disabled={!canDownload}
           loading={isSavingMarkdown}
           onClick={() => void saveMarkdown()}
         >
           {PREVIEW.markdown}
         </Button>
-        <Button type="text" size="small" disabled={!agreementHtml} loading={isSaving} onClick={() => void savePdf()}>
+        <Button type="text" size="small" disabled={!canDownload} loading={isSaving} onClick={() => void savePdf()}>
           {PREVIEW.pdf}
         </Button>
       </div>
       <div className="nd-editor-card-body nd-preview-body">
         {agreementHtml ? (
           <div
-            className="nd-preview-page"
+            className={`nd-preview-page ${isStale ? "nd-preview-page-stale" : ""}`}
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
           />
         ) : (
