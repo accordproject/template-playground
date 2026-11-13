@@ -567,6 +567,7 @@
   background: #fff; border: 1px solid #e4eff0; border-radius: 8px; padding: 34px 32px; min-height: 200px;
   box-shadow: 0 1px 3px rgba(15, 32, 39, 0.05);
 }
+.nd-preview-page-stale { opacity: 0.55; }
 
 /* Footer */
 .nd-footer {

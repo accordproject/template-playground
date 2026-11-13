@@ -50,6 +50,30 @@ describe('PreviewPane', () => {
     expect(screen.getByText('Last good render')).toBeInTheDocument();
   });
 
+  it('indicates that the preview is out of date and disables download buttons when there is an error', () => {
+    useAppStore.setState({
+      agreementHtml: '<p>Last good render</p>',
+      error: 'Unknown property: notAField',
+    });
+    const { container } = renderPane();
+    expect(screen.getByText(PREVIEW.staleBadge)).toBeInTheDocument();
+    expect(screen.queryByText(PREVIEW.liveBadge)).not.toBeInTheDocument();
+    expect(screen.getByText('Last good render')).toBeInTheDocument();
+    expect(container.querySelector('.nd-preview-page-stale')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: PREVIEW.markdown })).toBeDisabled();
+    expect(pdfButton()).toBeDisabled();
+  });
+
+  it('shows the live badge when rendering has no error', () => {
+    useAppStore.setState({
+      agreementHtml: '<p>Good render</p>',
+      error: undefined,
+    });
+    renderPane();
+    expect(screen.getByText(PREVIEW.liveBadge)).toBeInTheDocument();
+    expect(screen.queryByText(PREVIEW.staleBadge)).not.toBeInTheDocument();
+  });
+
   it('says it is rendering until the first render arrives', () => {
     renderPane();
     expect(screen.getByText(PREVIEW.rendering)).toBeInTheDocument();
