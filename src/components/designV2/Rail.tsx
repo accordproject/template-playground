@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dropdown, type MenuProps } from "antd";
 import { GithubOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
 import { FaDiscord } from "react-icons/fa";
 import useAppStore from "../../store/store";
+import useDesignV2Store from "../../store/designV2Store";
+import { STEP_ID } from "../../types/designV2.types";
+import * as playground from "../../samples/playground";
+import tour from "../Tour";
 import SettingsModal from "../SettingsModal";
 import { RAIL, URLS } from "./constants";
 
@@ -22,16 +26,21 @@ const MenuItemText = ({ label, hint }: MenuItemTextProps) => (
  * Dark 56px navigation rail on the far left of design v2.
  * The ☰ button opens the Playground menu (demo, tour, samples, docs, reset),
  * rendered with antd Dropdown so keyboard and focus handling come for free.
- * Menu items are not wired to actions yet.
+ * Menu items load the demo, open the template gallery, replay the tour,
+ * open documentation, or reset the current playground state.
  * Settings / Discord / GitHub live at the bottom of the rail; Settings opens
  * the shared SettingsModal so every existing toggle is available here too.
  */
 const Rail = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const demoTransitionId = useRef(0);
   const sampleName = useAppStore((s) => s.sampleName);
+  const loadSample = useAppStore((s) => s.loadSample);
+  const resetExecution = useAppStore((s) => s.resetExecution);
   const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
+  const setView = useDesignV2Store((s) => s.setView);
+  const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
 
-  // Actions intentionally not wired yet — visual skeleton only.
   const menuItems: MenuProps["items"] = [
     {
       key: "demo",
@@ -60,11 +69,48 @@ const Rail = () => {
     },
   ];
 
+  const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
+    switch (key) {
+      case "demo":
+        demoTransitionId.current += 1;
+        {
+          const transitionId = demoTransitionId.current;
+          selectTemplate(null);
+          void Promise.resolve(loadSample(playground.NAME)).then(() => {
+            if (transitionId === demoTransitionId.current) {
+              setView(STEP_ID.text);
+            }
+          });
+        }
+        break;
+      case "tour":
+        void tour.start();
+        break;
+      case "examples":
+        setView(STEP_ID.template);
+        break;
+      case "docs":
+        window.open(URLS.templateDocs, "_blank", "noopener,noreferrer");
+        break;
+      case "reset":
+        demoTransitionId.current += 1;
+        resetExecution();
+        selectTemplate(null);
+        setView("welcome");
+        void loadSample(playground.NAME);
+        break;
+      default:
+        break;
+    }
+
+    setMenuOpen(false);
+  };
+
   return (
     <>
       <aside className="nd-rail" aria-label={RAIL.navLabel}>
         <Dropdown
-          menu={{ items: menuItems, onClick: () => setMenuOpen(false) }}
+          menu={{ items: menuItems, onClick: handleMenuClick }}
           trigger={["click"]}
           placement="bottomLeft"
           open={menuOpen}
