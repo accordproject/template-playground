@@ -14,7 +14,7 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { FaDiscord } from 'react-icons/fa';
-import { message, Modal } from "antd";
+import { Menu as AntMenu, message, Modal } from "antd";
 import useAppStore from "../store/store";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
@@ -338,18 +338,29 @@ function Navbar() {
       </MenuItemGroup>
     </Menu>
   );
-
   const samplesMenu = (
-    <Menu>
-      <MenuItemGroup title="Load Sample">
-        {samples?.map((s) => (
-          <MenuItem key={s.NAME} onClick={() => void handleSampleClick(s.NAME)}>
-            <FileTextOutlined />
-            <span>{s.NAME}</span>
-          </MenuItem>
-        ))}
-      </MenuItemGroup>
-    </Menu>
+    <AntMenu
+      selectable={false}
+      style={{
+        maxHeight: "calc(100dvh - 80px)",
+        overflowY: "auto",
+        overscrollBehaviorY: "contain",
+      }}
+      items={[
+        {
+          type: "group",
+          label: "Load Sample",
+          children: samples.map((sample) => ({
+            key: sample.NAME,
+            icon: <FileTextOutlined />,
+            label: sample.NAME,
+          })),
+        },
+      ]}
+      onClick={({ key }) => {
+        void handleSampleClick(key);
+      }}
+    />
   );
 
   const menuItemClasses = (key: string, isLast: boolean) => {
