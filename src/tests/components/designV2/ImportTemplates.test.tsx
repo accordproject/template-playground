@@ -84,6 +84,21 @@ describe('ImportTemplates', () => {
     expect(fetchMock).toHaveBeenCalledWith('https://example.org/a/nda@1.0.0.cta');
   }, 30_000);
 
+  it('resets the URL input when the dialog is closed and reopened', async () => {
+    render(<ImportTemplates />);
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
+    const input = await screen.findByLabelText(IMPORT.url.label, undefined, SLOW);
+    fireEvent.change(input, { target: { value: 'https://example.org/sample.cta' } });
+    expect(input).toHaveValue('https://example.org/sample.cta');
+
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.cancel }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
+    const reopenedInput = await screen.findByLabelText(IMPORT.url.label, undefined, SLOW);
+    expect(reopenedInput).toHaveValue('');
+  }, 30_000);
+
   it('keeps the selection with the imported template when the dialog is closed while it loads', async () => {
     const bytes = await makeArchive();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }));
