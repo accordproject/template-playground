@@ -49,6 +49,16 @@ const Header = ({ view, onNavigate, isSkipped = () => false }: HeaderProps) => {
   const sampleName = useAppStore((s) => s.sampleName);
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
 
+  const currentStepIndex = STEPS.findIndex((step) => step.id === view);
+  const currentStep = STEPS[currentStepIndex];
+
+  const mobileStepItems: MenuProps["items"] = STEPS.map((step) => ({
+    key: String(step.id),
+    label: `${step.label} · ${step.meta}`,
+    disabled: isSkipped(step.id),
+    onClick: () => onNavigate(step.id),
+  }));
+
   return (
     <header className="nd-header">
       <div className="nd-header-row">
@@ -72,29 +82,49 @@ const Header = ({ view, onNavigate, isSkipped = () => false }: HeaderProps) => {
       </div>
 
       {showChrome && (
-        <nav className="nd-stepper" aria-label={HEADER.stepperLabel}>
-          {STEPS.map((step) => {
-            const active = step.id === view;
-            const skipped = isSkipped(step.id);
-            return (
-              <button
-                key={String(step.id)}
-                type="button"
-                aria-current={active ? "step" : undefined}
-                className={`nd-step ${active ? "nd-step-active" : ""} ${skipped ? "nd-step-skipped" : ""}`}
-                disabled={skipped}
-                title={skipped ? HEADER.skippedHint : undefined}
-                onClick={() => onNavigate(step.id)}
-              >
-                <span className="nd-step-badge">{step.icon}</span>
-                <span className="nd-step-text">
-                  <span className="nd-step-label">{step.label}</span>
-                  <span className="nd-step-meta">{skipped ? HEADER.skippedMeta : step.meta}</span>
-                </span>
-              </button>
-            );
-          })}
-        </nav>
+        <>
+          <nav className="nd-stepper nd-desktop-stepper" aria-label={HEADER.stepperLabel}>
+            {STEPS.map((step) => {
+              const active = step.id === view;
+              const skipped = isSkipped(step.id);
+
+              return (
+                <button
+                  key={String(step.id)}
+                  type="button"
+                  aria-current={active ? "step" : undefined}
+                  className={`nd-step ${active ? "nd-step-active" : ""} ${skipped ? "nd-step-skipped" : ""}`}
+                  disabled={skipped}
+                  title={skipped ? HEADER.skippedHint : undefined}
+                  onClick={() => onNavigate(step.id)}
+                >
+                  <span className="nd-step-badge">{step.icon}</span>
+                  <span className="nd-step-text">
+                    <span className="nd-step-label">{step.label}</span>
+                    <span className="nd-step-meta">
+                      {skipped ? HEADER.skippedMeta : step.meta}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="nd-mobile-stepper">
+            <Dropdown
+              menu={{ items: mobileStepItems }}
+              trigger={["click"]}
+              placement="bottomLeft"
+            >
+              <Button className="nd-mobile-step-button">
+                {currentStep
+                  ? `Step ${currentStepIndex + 1} of ${STEPS.length} - ${currentStep.label}`
+                  : "Choose a step"}
+                <CaretDownFilled className="nd-help-caret" />
+              </Button>
+            </Dropdown>
+          </div>
+        </>
       )}
     </header>
   );

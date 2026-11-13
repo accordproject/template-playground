@@ -610,15 +610,221 @@
  * off). Under 600px — title, card head and paddings leave the editor fewer
  * than ~15 lines — the subtitle is the first thing to give way.
  */
-.nd-view-logic .nd-editor-column { container-type: size; }
-@container (max-height: 600px) {
-  .nd-editor-subtitle { display: none; }
-  .nd-editor-title { margin-bottom: 8px; }
+.nd-view-logic .nd-editor-column {
+  container-type: size;
 }
+
+@container (max-height: 600px) {
+  .nd-editor-subtitle {
+    display: none;
+  }
+
+  .nd-editor-title {
+    margin-bottom: 8px;
+  }
+}
+
 @media (max-width: 960px) {
-  .nd-view-editor { flex-direction: column; }
+  .nd-body-content:has(.nd-view-logic) {
+    overflow-y: auto;
+  }
+
+  .nd-view-editor {
+    flex-direction: column;
+  }
+
+  .nd-view-logic {
+    flex-direction: column;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  /* The column now sizes to its content, so drop the size container that
+     would collapse it to 0 height (the subtitle stays visible; the page scrolls). */
+  .nd-view-logic .nd-editor-column {
+    flex: none;
+    min-height: auto;
+    overflow: visible;
+    container-type: normal;
+  }
+
+  .nd-view-logic .nd-logic-card {
+    flex: none;
+    min-height: 220px;
+    overflow: visible;
+  }
+
+  .nd-view-logic .nd-logic-empty {
+    min-height: 180px;
+    overflow: visible;
+  }
+
   .nd-help-rail {
-    width: auto; flex: none; max-height: 40%;
-    border-left: 0; border-top: 1px solid var(--nd-line);
+    width: auto;
+    flex: none;
+    max-height: 40%;
+    border-left: 0;
+    border-top: 1px solid var(--nd-line);
+  }
+
+  .nd-view-logic .nd-help-rail {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* ---------- Compact mobile stepper ---------- */
+.nd-mobile-stepper {
+  display: none;
+}
+
+/* ---------- Mobile (600px and below): stepper and Logic ---------- */
+@media (max-width: 600px) {
+  /* Header: swap the row of step buttons for the compact dropdown. */
+  .nd-desktop-stepper {
+    display: none;
+  }
+
+  .nd-mobile-stepper {
+    display: block;
+    padding: 0 14px 10px;
+  }
+
+  .nd-mobile-step-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  /* Logic: let the job chips wrap instead of overflowing the card. */
+  .nd-logic-chip {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .nd-logic-chip-label {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .nd-logic-chip-tag {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .nd-logic-chip-action {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  /* Logic: give Monaco a real height when the editor replaces the empty state. */
+  .nd-view-logic .nd-logic-editor {
+    display: flex;
+    flex: none;
+    width: 100%;
+    height: clamp(260px, 45vh, 380px);
+    min-height: 260px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .nd-view-logic .nd-logic-editor .editorwrapper {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+}
+
+/* ---------- Mobile (600px and below): Text and Model Data ---------- */
+@media (max-width: 600px) {
+  /* Let the page scroll instead of shrinking the editor. */
+  .nd-body-content:has(.nd-view-text),
+  .nd-body-content:has(.nd-view-model-data) {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .nd-view-text,
+  .nd-view-model-data {
+    min-height: min-content;
+    overflow: visible;
+  }
+
+  /* The page scrolls, so the HelpRail shows in full instead of scrolling on its own. */
+  .nd-view-text .nd-help-rail,
+  .nd-view-model-data .nd-help-rail {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* The column grows with its content instead of clipping the editor. */
+  .nd-view-text .nd-editor-column,
+  .nd-view-model-data .nd-editor-column {
+    flex: none;
+    min-height: auto;
+    overflow: visible;
+    padding: 14px;
+  }
+
+  /* Keep the title and description wide.
+     Move controls to another row when needed. */
+  .nd-view-text .nd-editor-title,
+  .nd-view-model-data .nd-editor-title {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .nd-view-text .nd-editor-title-text,
+  .nd-view-model-data .nd-editor-title-text {
+    flex: 1 1 calc(100% - 46px);
+    min-width: 0;
+  }
+
+  .nd-view-text .nd-editor-title-text h1,
+  .nd-view-model-data .nd-editor-title-text h1 {
+    overflow-wrap: anywhere;
+  }
+
+  /* Give the Text playground enough height. */
+  .nd-view-text .nd-editor-card {
+    flex: none;
+    width: 100%;
+    min-height: 420px;
+    height: clamp(420px, 58vh, 560px);
+  }
+
+  .nd-view-text .nd-editor-card-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Stack Model and Data panes with useful editor heights. */
+  .nd-view-model-data .nd-split {
+    grid-auto-rows: minmax(320px, auto);
+    flex: none;
+  }
+
+  .nd-view-model-data .nd-pane {
+    width: 100%;
+    min-width: 0;
+    min-height: 320px;
+  }
+
+  .nd-view-model-data .nd-pane .nd-editor-card-body {
+    flex: 1;
+    min-height: 240px;
   }
 }
