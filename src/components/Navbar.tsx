@@ -253,7 +253,17 @@ function Navbar() {
           okText: "Continue",
           cancelText: "Cancel",
           maskClosable: true,
-          onOk: () => performLoadSample(name),
+          /*
+           * Fire and forget: returning the promise would keep the modal open
+           * until the sample has fully rendered, which can take a while on a
+           * slow network (and now includes a sandbox worker restart, since the
+           * abandoned edits may contain formula code). The dialog's job is the
+           * confirmation; progress and errors surface via the preview and the
+           * message toasts in performLoadSample.
+           */
+          onOk: () => {
+            void performLoadSample(name);
+          },
         });
       } else {
         void performLoadSample(name);

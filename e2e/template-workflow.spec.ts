@@ -139,10 +139,12 @@ test.describe('Template Workflow', () => {
     // Click Continue
     await confirmModal.getByRole('button', { name: 'Continue' }).click();
 
-    // Modal should close and the new sample should load
+    // Modal should close at once; the render continues in the background
     await expect(confirmModal).toBeHidden({ timeout: 5000 });
+    // The abandoned edit contained formula code, so this render replaces the
+    // sandbox worker first; allow for that boot on top of the render itself
     await expect(page.locator('.main-container-agreement')).toContainText(/Hello|hello/i, {
-      timeout: 10000,
+      timeout: 30000,
     });
   });
 
