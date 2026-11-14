@@ -1,17 +1,19 @@
 import * as monaco from "monaco-editor";
 
-export type EditorSource = 'Concerto Model' | 'TemplateMark' | 'JSON Data' | 'Template Compilation';
+export type EditorSource = 'Concerto Model' | 'TemplateMark' | 'JSON Data' | 'Template Compilation' | 'TypeScript Logic';
 
 type EditorRegistry = {
     concerto: monaco.editor.IStandaloneCodeEditor | null;
     template: monaco.editor.IStandaloneCodeEditor | null;
     json: monaco.editor.IStandaloneCodeEditor | null;
+    logic: monaco.editor.IStandaloneCodeEditor | null;
 };
 
 const editorRegistry: EditorRegistry = {
     concerto: null,
     template: null,
     json: null,
+    logic: null,
 };
 
 // Track active highlight timeouts for cleanup
@@ -64,6 +66,9 @@ export const navigateToLine = (
         case 'TemplateMark':
         case 'Template Compilation':
             editor = editorRegistry.template;
+            break;
+        case 'TypeScript Logic':
+            editor = editorRegistry.logic;
             break;
         case 'JSON Data':
             editor = editorRegistry.json;

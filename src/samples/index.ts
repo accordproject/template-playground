@@ -15,6 +15,11 @@ import * as paymentReceipt from './paymentReceipt';
 import * as employmentOffer from "./employmentOffer";
 import * as nda from "./nda";
 import * as counterLogic from "./counterLogic";
+import * as latePaymentPenalty from "./latePaymentPenalty";
+import * as consultingAgreement from "./consultingAgreement";
+import * as residentialLease from "./residentialLease";
+import * as perishableGoods from "./perishableGoods";
+import * as copyrightLicense from "./copyrightLicense";
 
 export type Sample = {
   NAME: string;
@@ -29,6 +34,11 @@ export type Sample = {
 
 export const SAMPLES: Array<Sample> = [
   playground,
+  consultingAgreement,
+  residentialLease,
+  copyrightLicense,
+  perishableGoods,
+  latePaymentPenalty,
   counterLogic,   // Logic sample — listed near the top to showcase the new feature
   helloworld,
   employmentOffer,

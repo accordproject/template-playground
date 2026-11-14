@@ -188,4 +188,43 @@ describe("ProblemPanel", () => {
     const clickableProblems = screen.getAllByRole("button");
     expect(clickableProblems).toHaveLength(2);
   });
+
+  it("should render compilation errors as clickable and navigate correctly", () => {
+    useAppStore.setState({
+      compilationErrors: [
+        { message: 'TS Error 1', line: 15, column: 5 }
+      ],
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    const problemItem = screen.getByText(/TS Error 1/i).closest('[role="button"]');
+    expect(problemItem).toBeInTheDocument();
+
+    fireEvent.click(problemItem!);
+
+    expect(editorNavigation.navigateToLine).toHaveBeenCalledWith(
+      'TypeScript Logic',
+      15,
+      5
+    );
+  });
+
+  it("should render a warning banner when logic has unsaved changes and compilation errors exist", () => {
+    useAppStore.setState({
+      compilationErrors: [
+        { message: 'TS Error 1', line: 15, column: 5 }
+      ],
+      editorLogicTs: 'const x = 2;',
+      logicTs: 'const x = 1;',
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.getByText(/Logic Editor has unsaved changes. Please click/i)).toBeInTheDocument();
+  });
 });

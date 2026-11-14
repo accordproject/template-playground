@@ -9,7 +9,7 @@ import {
   SandboxMessage,
 } from "../constants/sandbox";
 
-/*
+/**
  * SandboxFrame renders a hidden, sandboxed iframe that serves as the
  * execution environment for user-authored contract logic.
  *
