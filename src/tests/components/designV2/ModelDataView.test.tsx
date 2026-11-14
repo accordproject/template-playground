@@ -117,6 +117,21 @@ describe('ModelDataView', () => {
     expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.ok)).toBeInTheDocument();
   });
 
+  it('routes a data error containing "Unknown property" to the data pane, not text', () => {
+    useAppStore.setState({ error: 'Data error: the user has an Unknown property in their payload' });
+    render(<ModelDataView />);
+    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.error)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.model.paneLabel).getByText(MODEL_DATA.model.ok)).toBeInTheDocument();
+  });
+
+  it('routes a multiline legacy c: error to the model pane', () => {
+    useAppStore.setState({ error: 'Rebuild error\nc: line 3 column 5 Invalid syntax' });
+    render(<ModelDataView />);
+    const model = pane(MODEL_DATA.model.paneLabel);
+    expect(model.getByText(MODEL_DATA.error)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.notChecked)).toBeInTheDocument();
+  });
+
   it('"format" pretty-prints the data through the store', () => {
     useAppStore.setState({ editorAgreementData: '{"$class":"x","penaltyPercentage":10.5,"capPercentage":55}' });
     render(<ModelDataView />);

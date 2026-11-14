@@ -86,8 +86,9 @@ const EditorPane = ({
  */
 export const errorPane = (error: string | undefined): "model" | "data" | "text" | null => {
   if (!error) return null;
-  if (/^c:|Invalid CTO model|@template decorator/i.test(error)) return "model";
-  if (/grammar\.tem\.md|Unknown property|Unknown variable/i.test(error)) return "text";
+  const lines = error.split("\n");
+  if (lines.some((l) => /^c:|Invalid CTO model|@template decorator/i.test(l))) return "model";
+  if (lines.some((l) => /text\/grammar\.tem\.md|grammar\.tem\.md/i.test(l))) return "text";
   return "data";
 };
 
