@@ -1926,37 +1926,47 @@ function logicDefinesInit(source: string): boolean {
   return /(^|[\s;}])init\s*\(/.test(source);
 }
 
-function cleanTemplateErrorMessage(raw: string): string {
-  let cleaned = raw.replace(/^[A-Za-z0-9_$]+:\s*(?=Unknown property)/i, "");
+export function cleanTemplateErrorMessage(raw: string): string {
+  const isTemplateError =
+    /Unknown property/i.test(raw) ||
+    /text\/grammar\.tem\.md/i.test(raw) ||
+    /template not on an/i.test(raw);
+
+  let cleaned = raw;
+  if (isTemplateError) {
+    cleaned = cleaned.replace(/^[A-Za-z0-9_$]+:\s*/, "");
+  }
 
   cleaned = cleaned
-    .replace(/\s+line\s+-\d+(\s+column?\s+-\d+)?/gi, "")
     .replace(/\s+File\s+text\/grammar\.tem\.md/gi, "")
+    .replace(/\s+[Ll]ine\s+-?\d+(\s+[Cc]olumn?\s+-?\d+)?/gi, "")
     .trim();
 
-  const unknownProp = cleaned.match(/^Unknown property:\s+(\S+)$/);
+  const unknownProp = cleaned.match(/Unknown (?:property:\s*|variable\s*`?)([A-Za-z0-9_$]+)`?/i);
   if (unknownProp) {
     return `Unknown variable \`${unknownProp[1]}\` — it is not declared in model.cto`;
   }
   return cleaned;
 }
 
-function findTemplateErrorLocation(
+export function findTemplateErrorLocation(
   message: string,
   templateText: string,
 ): { line: number; column: number; endColumn: number } | null {
-  const match = message.match(/Unknown (?:property:|variable `?)([A-Za-z0-9_]+)/);
+  const match = message.match(/Unknown (?:property:\s*|variable\s*`?)([A-Za-z0-9_$]+)/i);
   if (!match) return null;
 
   const varName = match[1];
-  const token = `{{${varName}`;
+
+  const tagRegex = new RegExp(`\\{\\{\\s*(?:#[a-zA-Z]+\\s+)?${varName}\\b`);
   const lines = templateText.split("\n");
 
   for (let i = 0; i < lines.length; i++) {
-    const col = lines[i].indexOf(token);
-    if (col !== -1) {
+    const matchLine = lines[i].match(tagRegex);
+    if (matchLine && matchLine.index !== undefined) {
+      const col = matchLine.index;
       const closeIndex = lines[i].indexOf("}}", col);
-      const endCol = closeIndex !== -1 ? closeIndex + 3 : col + token.length + 1;
+      const endCol = closeIndex !== -1 ? closeIndex + 3 : col + matchLine[0].length + 1;
       return { line: i + 1, column: col + 1, endColumn: endCol };
     }
   }
