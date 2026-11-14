@@ -110,6 +110,28 @@ describe('ModelDataView', () => {
     expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.notChecked)).toBeInTheDocument();
   });
 
+  it('does not route template/text errors to the data or model pane', () => {
+    useAppStore.setState({ error: 'Unknown property: notAField File text/grammar.tem.md' });
+    render(<ModelDataView />);
+    expect(pane(MODEL_DATA.model.paneLabel).getByText(MODEL_DATA.model.ok)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.ok)).toBeInTheDocument();
+  });
+
+  it('routes a data error containing "Unknown property" to the data pane, not text', () => {
+    useAppStore.setState({ error: 'Data error: the user has an Unknown property in their payload' });
+    render(<ModelDataView />);
+    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.error)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.model.paneLabel).getByText(MODEL_DATA.model.ok)).toBeInTheDocument();
+  });
+
+  it('routes a multiline legacy c: error to the model pane', () => {
+    useAppStore.setState({ error: 'Rebuild error\nc: line 3 column 5 Invalid syntax' });
+    render(<ModelDataView />);
+    const model = pane(MODEL_DATA.model.paneLabel);
+    expect(model.getByText(MODEL_DATA.error)).toBeInTheDocument();
+    expect(pane(MODEL_DATA.data.paneLabel).getByText(MODEL_DATA.data.notChecked)).toBeInTheDocument();
+  });
+
   it('"format" pretty-prints the data through the store', () => {
     useAppStore.setState({ editorAgreementData: '{"$class":"x","penaltyPercentage":10.5,"capPercentage":55}' });
     render(<ModelDataView />);
@@ -218,6 +240,15 @@ describe('ModelDataView', () => {
     expect(rail.getByText(checks.dataValid).closest('li')).toHaveClass('nd-check-todo');
     expect(rail.getByText(checks.needsModel)).toBeInTheDocument();
     expect(rail.getByText(HELP_RAIL.count(0, 2))).toBeInTheDocument();
+  });
+
+  it('keeps the checklist green when the error belongs to the text step', () => {
+    useAppStore.setState({ error: 'Unknown property: notAField File text/grammar.tem.md' });
+    render(<ModelDataView />);
+    const rail = within(screen.getByRole('complementary'));
+    const checks = MODEL_DATA.help.checks;
+    expect(rail.getByText(checks.modelParses).closest('li')).toHaveClass('nd-check-done');
+    expect(rail.getByText(checks.dataValid).closest('li')).toHaveClass('nd-check-done');
   });
 
   it('the help rail can be closed and brought back with the "? Help" chip', () => {
