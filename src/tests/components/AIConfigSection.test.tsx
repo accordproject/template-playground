@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { act as reactAct } from 'react-dom/test-utils';
 import AIConfigSection from '../../components/AIConfigSection';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
@@ -170,6 +171,79 @@ describe('AIConfigSection', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+  });
+
+  // Discovery failures must not be mistaken for successful model validation.
+  async function renderSavedConfig() {
+    localStorageMock.setItem('aiProvider', 'openai');
+    localStorageMock.setItem('aiModel', 'gpt-4o');
+    vi.mocked(loadAndDecryptApiKey).mockResolvedValue({
+      apiKey: 'test-key', protectionLevel: 'webauthn',
+    });
+    await reactAct(() => { render(<AIConfigSection />); return Promise.resolve(); });
+  }
+
+  it.each(['http', 'network', 'abort'])('preserves a saved model after %s discovery failure', async (failure) => {
+    global.fetch = failure === 'http'
+      ? vi.fn().mockResolvedValue({ ok: false, status: 503, statusText: 'Service Unavailable' })
+      : vi.fn().mockRejectedValue(failure === 'abort'
+        ? new DOMException('Aborted', 'AbortError') : new TypeError('Failed to fetch'));
+    await renderSavedConfig();
+    expect(global.fetch).toHaveBeenCalled();
+    expect(modelSelect()).toHaveValue('gpt-4o');
+    expect(saveButton()).toBeEnabled();
+    await reactAct(() => { fireEvent.click(saveButton()); return Promise.resolve(); });
+    expect(mockSetAIConfig).toHaveBeenCalledWith(expect.objectContaining({ model: 'gpt-4o' }));
+  });
+
+  it.each([{ models: ['gpt-4o'] }, { models: ['gpt-4'] }, { models: [] }])('validates the saved model against successful discovery: $models', async ({ models }) => {
+    global.fetch = makeFetchMock(models);
+    await renderSavedConfig();
+    expect(modelSelect()).toHaveValue(models.includes('gpt-4o') ? 'gpt-4o' : '');
+    if (models.includes('gpt-4o')) expect(saveButton()).toBeEnabled();
+    else expect(saveButton()).toBeDisabled();
+  });
+
+  it('clears the previous provider selection even when the new discovery fails', async () => {
+    global.fetch = makeFetchMock(['gpt-4o']);
+    await renderSavedConfig();
+    expect(modelSelect()).toHaveValue('gpt-4o');
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 503 });
+    await reactAct(() => {
+      fireEvent.change(providerSelect(), { target: { value: 'anthropic' } });
+      return Promise.resolve();
+    });
+    expect(modelSelect()).toHaveValue('');
+    expect(screen.queryByRole('option', { name: 'gpt-4o' })).not.toBeInTheDocument();
+    expect(saveButton()).toBeDisabled();
+  });
+
+  it.each(['success', 'failure'])('ignores an aborted old provider request that settles with %s', async (outcome) => {
+    let resolveOld!: (response: Response) => void;
+    let rejectOld!: (error: unknown) => void;
+    const pending = new Promise<Response>((resolve, reject) => { resolveOld = resolve; rejectOld = reject; });
+    const fetchMock = vi.fn<[RequestInfo | URL, RequestInit?], Promise<Response>>().mockReturnValueOnce(pending)
+      .mockImplementation(makeFetchMock(['claude-test']));
+    global.fetch = fetchMock;
+    await renderSavedConfig();
+    const signal = fetchMock.mock.calls[0][1]!.signal!;
+    await reactAct(() => {
+      fireEvent.change(providerSelect(), { target: { value: 'anthropic' } });
+      return Promise.resolve();
+    });
+    expect(signal.aborted).toBe(true);
+    await reactAct(() => {
+      fireEvent.change(modelSelect(), { target: { value: 'claude-test' } });
+      return Promise.resolve();
+    });
+    await reactAct(() => {
+      if (outcome === 'success') resolveOld(new Response(JSON.stringify({ data: [{ id: 'gpt-4o' }] })));
+      else rejectOld(new DOMException('Aborted', 'AbortError'));
+      return Promise.resolve();
+    });
+    expect(modelSelect()).toHaveValue('claude-test');
+    expect(saveButton()).toBeEnabled();
+    expect(screen.queryByRole('option', { name: 'gpt-4o' })).not.toBeInTheDocument();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
