@@ -127,9 +127,24 @@ test.describe('Template rendering sandbox', () => {
     const hello = page.getByRole('button', { name: /(^|\s)Hello World$/ });
     const confirm = page.getByRole('button', { name: 'Continue' });
     await expect(async () => {
+      // An earlier attempt can leave the confirmation open, and it covers the
+      // menu, so clear it before clicking anything else. Continue loads the
+      // sample, which renames the trigger to "Samples: Hello World" — a name
+      // `hello` matches too, so the pick ends with this attempt.
+      if (await confirm.isVisible()) {
+        await confirm.click({ timeout: 5_000 });
+        await expect(samples).toContainText('Hello World', { timeout: 5_000 });
+        return;
+      }
+      // The pick can also have landed without a dialog, and clicking the menu
+      // then reopens it over the trigger.
+      if ((await samples.textContent())?.includes('Hello World')) return;
       if (!(await hello.isVisible())) await samples.click();
       await hello.click({ timeout: 5_000 });
-      if (await confirm.isVisible({ timeout: 3_000 }).catch(() => false)) await confirm.click();
+      // On a slow runner the dialog opens a moment after the click, so wait
+      // for it or for the selection instead of checking isVisible() at once.
+      await expect(confirm.or(samples.filter({ hasText: 'Hello World' }))).toBeVisible({ timeout: 5_000 });
+      if (await confirm.isVisible()) await confirm.click({ timeout: 5_000 });
       await expect(samples).toContainText('Hello World', { timeout: 5_000 });
     }).toPass({ timeout: 60_000 });
 
