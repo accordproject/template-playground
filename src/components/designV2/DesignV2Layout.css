@@ -107,6 +107,15 @@
   overflow: hidden;
 }
 
+/* ---------- One-time "new design" banner (DesignV2Notice) ---------- */
+.nd-notice { flex: none; }
+@media (max-width: 640px) {
+  /* Stack the actions under the text so the message keeps its width. */
+  .nd-notice .ant-alert { flex-wrap: wrap; }
+  .nd-notice .ant-alert-content { flex: 1 1 calc(100% - 40px); }
+  .nd-notice .ant-alert-action { margin-inline-start: 0; margin-top: 12px; width: 100%; }
+}
+
 /* ---------- Header ---------- */
 .nd-header { flex: none; background: #fff; }
 .nd-header-row {

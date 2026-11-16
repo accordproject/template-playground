@@ -20,7 +20,6 @@ describe("Tour integration", () => {
   beforeEach(() => {
     localStorage.clear();
     useAppStore.setState({
-      isLogicFeatureEnabled: true,
       logicTs: "contract Logic {}",
       isLogicPanelVisible: false,
       isContractRunnerVisible: false,

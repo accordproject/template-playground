@@ -7,6 +7,7 @@ import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
 import Footer from "./Footer";
+import DesignV2Notice from "./DesignV2Notice";
 import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
 import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
@@ -130,6 +131,7 @@ const DesignV2Layout = () => {
       <SandboxFrame />
       <Rail />
       <div className="nd-main">
+        <DesignV2Notice />
         <Header view={view} onNavigate={navigate} isSkipped={isSkipped} />
         <div className="nd-body">
           <div className="nd-body-content">
