@@ -205,8 +205,32 @@ export const groupTemplates = (
   return groups;
 };
 
-/** Downloads a `.cta` from a URL. Only http(s) is accepted. */
-export const fetchArchive = async (url: string): Promise<Uint8Array> => {
+/** Maximum allowed size for a downloaded template archive (25 MB). */
+export const MAX_ARCHIVE_DOWNLOAD_BYTES = 25 * 1024 * 1024;
+
+/** Default timeout for remote template archive downloads (15 seconds). */
+export const ARCHIVE_DOWNLOAD_TIMEOUT_MS = 15_000;
+
+export interface FetchArchiveOptions {
+  timeoutMs?: number;
+  maxBytes?: number;
+  signal?: AbortSignal;
+}
+
+const isLocalHostname = (hostname: string): boolean =>
+  hostname === "localhost" ||
+  hostname === "127.0.0.1" ||
+  hostname === "[::1]" ||
+  hostname.endsWith(".localhost");
+
+/**
+ * Downloads a `.cta` from a URL with timeout and byte-limit defenses.
+ * Accepts https by default, allowing plain http only for local hosts.
+ */
+export const fetchArchive = async (
+  url: string,
+  options: FetchArchiveOptions = {},
+): Promise<Uint8Array> => {
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -216,12 +240,104 @@ export const fetchArchive = async (url: string): Promise<Uint8Array> => {
   if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
     throw new Error("Only http and https URLs can be imported.");
   }
+  if (parsed.protocol === "http:" && !isLocalHostname(parsed.hostname)) {
+    throw new Error("Insecure HTTP URLs are not supported for remote archives. Please use HTTPS.");
+  }
+
+  const timeoutMs = options.timeoutMs ?? ARCHIVE_DOWNLOAD_TIMEOUT_MS;
+  const maxBytes = options.maxBytes ?? MAX_ARCHIVE_DOWNLOAD_BYTES;
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`The archive download timed out after ${Math.round(timeoutMs / 1000)} seconds.`));
+    }, timeoutMs);
+  });
+
+  const abortPromise = options.signal
+    ? new Promise<never>((_, reject) => {
+        if (options.signal?.aborted) {
+          reject(new Error("The download was cancelled."));
+          return;
+        }
+        options.signal?.addEventListener(
+          "abort",
+          () => {
+            reject(new Error("The download was cancelled."));
+          },
+          { once: true },
+        );
+      })
+    : null;
+
   let response: Response;
   try {
-    response = await fetch(parsed.href);
-  } catch {
+    const fetchPromise = options.signal ? fetch(parsed.href, { signal: options.signal }) : fetch(parsed.href);
+    response = abortPromise
+      ? await Promise.race([fetchPromise, timeoutPromise, abortPromise])
+      : await Promise.race([fetchPromise, timeoutPromise]);
+  } catch (error: unknown) {
+    if (timer) clearTimeout(timer);
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("timed out") || message.includes("cancelled")) {
+      throw error;
+    }
     throw new Error("The archive could not be downloaded — the server may block requests from other sites (CORS).");
+  } finally {
+    if (timer) clearTimeout(timer);
   }
-  if (!response.ok) throw new Error(`The server answered ${response.status}.`);
-  return new Uint8Array(await response.arrayBuffer());
+
+  if (!response.ok) {
+    throw new Error(`The server answered ${response.status}.`);
+  }
+
+  const contentLengthHeader = response.headers?.get("content-length");
+  if (contentLengthHeader) {
+    const contentLength = Number(contentLengthHeader);
+    if (!Number.isNaN(contentLength) && contentLength > maxBytes) {
+      throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
+    }
+  }
+
+  try {
+    if (response.body && typeof response.body.getReader === "function") {
+      const reader = response.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let totalBytes = 0;
+      let done = false;
+
+      while (!done) {
+        const chunk = await reader.read();
+        done = chunk.done;
+        if (done) break;
+        if (chunk.value) {
+          totalBytes += chunk.value.byteLength;
+          if (totalBytes > maxBytes) {
+            void reader.cancel();
+            throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
+          }
+          chunks.push(chunk.value);
+        }
+      }
+
+      const result = new Uint8Array(totalBytes);
+      let offset = 0;
+      for (const c of chunks) {
+        result.set(c, offset);
+        offset += c.byteLength;
+      }
+      return result;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    if (arrayBuffer.byteLength > maxBytes) {
+      throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
+    }
+    return new Uint8Array(arrayBuffer);
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("exceeds the maximum allowed size")) {
+      throw error;
+    }
+    throw error;
+  }
 };
