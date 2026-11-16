@@ -740,4 +740,26 @@ html[data-theme="dark"] .nd-sim-pane-ok .nd-sim-tabs .ant-tabs-nav { background:
     width: auto; flex: none; max-height: 40%;
     border-left: 0; border-top: 1px solid var(--nd-line);
   }
+  /*
+   * Stacked, the Logic column is a column-flex child, so its height has to come
+   * from its content — but container-type: size suppresses content-based sizing
+   * and collapses the column, so the card is drawn over the chips above it. Drop
+   * the containment here, let the column size itself, and scroll the body.
+   */
+  .nd-body-content:has(.nd-view-logic) { overflow-y: auto; }
+  .nd-view-logic { flex-direction: column; min-height: 0; overflow: visible; }
+  .nd-view-logic .nd-editor-column { container-type: normal; flex: none; min-height: auto; overflow: visible; }
+  .nd-view-logic .nd-logic-card { flex: none; min-height: 220px; overflow: visible; }
+  .nd-view-logic .nd-logic-empty { min-height: 180px; overflow: visible; }
+  /* The card no longer stretches to the viewport, so Monaco needs a height of its own. */
+  .nd-view-logic .nd-logic-editor { display: flex; flex: none; width: 100%; height: clamp(260px, 45vh, 380px); min-height: 260px; padding: 0; overflow: hidden; }
+  .nd-view-logic .nd-logic-editor .editorwrapper { flex: 1; width: 100%; height: 100%; min-width: 0; min-height: 0; }
+  .nd-view-logic .nd-help-rail { max-height: none; overflow: visible; }
+}
+/* Phones: the chip list takes a row of its own so each chip can wrap inside the card. */
+@media (max-width: 600px) {
+  .nd-logic-chips { width: 100%; }
+  .nd-logic-chip { width: 100%; min-width: 0; box-sizing: border-box; flex-wrap: wrap; white-space: normal; overflow-wrap: anywhere; }
+  .nd-logic-chip-label, .nd-logic-chip-tag { min-width: 0; max-width: 100%; }
+  .nd-logic-chip-action { max-width: 100%; white-space: normal; }
 }
