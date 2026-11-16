@@ -10,7 +10,7 @@ import Footer from "./Footer";
 import DesignV2Notice from "./DesignV2Notice";
 import SandboxFrame from "../SandboxFrame";
 import { ViewSwitch } from "./views";
-import { DEFAULT_TEMPLATE, usePickTemplate } from "./usePickTemplate";
+import { DEFAULT_TEMPLATE, cardNameFor, hasWorkInProgress, usePickTemplate } from "./usePickTemplate";
 import { ensureLogicCompiles, usePendingLogic } from "./useCompileOnArrival";
 import { FOOTER } from "./constants";
 import { FIRST_STEP, STEPS, STEP_ID, type DesignV2View } from "../../types/designV2.types";
@@ -60,11 +60,15 @@ const DesignV2Layout = () => {
 
   /**
    * "Start building": enter the flow on a template — the first card unless
-   * one was already picked, or a share link already loaded one.
+   * one was already picked, a share link already loaded one, or the user
+   * already has work open (for example from the classic playground), which is
+   * kept rather than replaced.
    */
   const handleStart = () => {
     if (!selectedTemplate) {
-      if (useAppStore.getState().sampleName === SHARED_TEMPLATE_NAME) selectTemplate(SHARED_TEMPLATE_NAME);
+      const app = useAppStore.getState();
+      if (app.sampleName === SHARED_TEMPLATE_NAME) selectTemplate(SHARED_TEMPLATE_NAME);
+      else if (hasWorkInProgress(app)) selectTemplate(cardNameFor(app.sampleName));
       else pick(DEFAULT_TEMPLATE);
     }
     start();
