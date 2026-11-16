@@ -105,7 +105,7 @@ describe('DesignV2Layout theme', () => {
 
 beforeEach(() => {
   localStorage.removeItem('designV2WelcomeSeen');
-  useAppStore.setState({ sampleName: 'Playground' });
+  useAppStore.setState({ sampleName: 'Playground', error: undefined });
 });
 
 afterEach(() => { vi.restoreAllMocks(); });
@@ -209,6 +209,31 @@ describe('DesignV2Layout — Start building', () => {
     expect(screen.getByRole('button', { name: `${WELCOME.start} →` })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
     expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])('keeps a failed share link on welcome with its error (returning: %s)', (returning) => {
+    if (returning) localStorage.setItem('designV2WelcomeSeen', 'true');
+    const error = 'Failed to load shared content: Invalid share link data';
+    useAppStore.setState({ error });
+    renderLayout();
+
+    expect(useDesignV2Store.getState().view).toBe('welcome');
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+    expect(screen.getByText(error)).toBeVisible();
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it('opens a loaded shared template on Text even when rendering reports an error', () => {
+    const error = 'Unknown property in template';
+    useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME, error });
+    renderLayout();
+
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
+    expect(screen.getByText(error)).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: FOOTER.back }));
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(screen.getByText(error)).toBeVisible();
     expect(loadSample).not.toHaveBeenCalled();
   });
 

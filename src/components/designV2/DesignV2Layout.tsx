@@ -3,6 +3,7 @@ import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
 import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
 import { pendingLogic } from "../../editors/logicSource";
+import Errors from "../../utils/helpers/Errors";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
 import Header from "./Header";
@@ -64,10 +65,11 @@ const DesignV2Layout = () => {
     const state = useDesignV2Store.getState();
     if (state.view !== "welcome") return;
     // App loads shared content before mounting this layout; it takes priority over onboarding.
-    if (useAppStore.getState().sampleName === SHARED_TEMPLATE_NAME) {
+    const app = useAppStore.getState();
+    if (app.sampleName === SHARED_TEMPLATE_NAME) {
       state.selectTemplate(SHARED_TEMPLATE_NAME);
       state.setView(STEP_ID.text);
-    } else {
+    } else if (!app.error) {
       state.initialize();
     }
   }, []);
@@ -151,6 +153,7 @@ const DesignV2Layout = () => {
       <div className="nd-main">
         {showChrome && <DesignV2Notice />}
         <Header view={view} onNavigate={navigate} isSkipped={isSkipped} />
+        {!showFooter && <Errors />}
         <div className="nd-body">
           <div className="nd-body-content">
             <ViewSwitch view={view} onStart={handleStart} />

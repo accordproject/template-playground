@@ -22,6 +22,16 @@ test('shows welcome once, then opens Template after a reload', async ({ page }) 
 });
 
 for (const prefix of ['#data=', '?data=']) {
+  for (const returning of [false, true]) {
+    test(`a broken ${prefix} link stays on welcome and shows its error (returning: ${returning})`, async ({ page }) => {
+      if (returning) await page.addInitScript(() => localStorage.setItem('designV2WelcomeSeen', 'true'));
+      await page.goto(`/${prefix}${LZString.compressToEncodedURIComponent('{}')}`);
+      await expect(page.getByRole('button', { name: 'Start building →' })).toBeVisible();
+      await expect(page.getByText('Failed to load shared content: Invalid share link data')).toBeVisible();
+      await expect(page.getByRole('button', { name: /2 Text/ })).toHaveCount(0);
+    });
+  }
+
   test(`a ${prefix} share link opens Text before the welcome preference`, async ({ page }) => {
     const payload = LZString.compressToEncodedURIComponent(JSON.stringify({
       templateMarkdown: 'Hello {{name}}!',
