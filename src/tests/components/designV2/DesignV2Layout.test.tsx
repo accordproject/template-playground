@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import { message } from 'antd';
@@ -103,6 +103,13 @@ describe('DesignV2Layout theme', () => {
   });
 });
 
+beforeEach(() => {
+  localStorage.removeItem('designV2WelcomeSeen');
+  useAppStore.setState({ sampleName: 'Playground' });
+});
+
+afterEach(() => { vi.restoreAllMocks(); });
+
 describe('DesignV2Layout — Start building', () => {
   const loadSample = vi.fn().mockResolvedValue(undefined);
 
@@ -117,7 +124,35 @@ describe('DesignV2Layout — Start building', () => {
       editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       editorLogicTs: '',
     });
-    useDesignV2Store.setState({ view: 'welcome', selectedTemplate: null });
+    useDesignV2Store.getState().resetFlow();
+  });
+
+  it('shows the welcome on the first visit', () => {
+    localStorage.setItem('hasVisited', 'true');
+    renderLayout();
+    expect(screen.getByRole('button', { name: `${WELCOME.start} →` })).toBeInTheDocument();
+    expect(localStorage.getItem('designV2WelcomeSeen')).toBeNull();
+  });
+
+  it('opens the template picker on a returning visit', () => {
+    const firstVisit = renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    firstVisit.unmount();
+    useDesignV2Store.getState().resetFlow();
+    loadSample.mockClear();
+
+    renderLayout();
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(screen.queryByRole('button', { name: `${WELCOME.start} →` })).not.toBeInTheDocument();
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it('shows welcome and can start when storage is unavailable', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked'); });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
   });
 
   it('keeps edits made in the classic playground instead of loading the first card', () => {
@@ -161,13 +196,19 @@ describe('DesignV2Layout — Start building', () => {
     expect(loadSample).not.toHaveBeenCalled();
   });
 
-  it('keeps a template opened from a share link instead of loading the first card', () => {
+  it.each([false, true])('opens a shared template on Text before onboarding (returning: %s)', (returning) => {
+    if (returning) localStorage.setItem('designV2WelcomeSeen', 'true');
     useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME });
     renderLayout();
-    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
 
-    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
     expect(useDesignV2Store.getState().selectedTemplate).toBe(SHARED_TEMPLATE_NAME);
+    expect(localStorage.getItem('designV2WelcomeSeen')).toBe('true');
+    expect(loadSample).not.toHaveBeenCalled();
+    act(() => useDesignV2Store.getState().setView('welcome'));
+    expect(screen.getByRole('button', { name: `${WELCOME.start} →` })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
     expect(loadSample).not.toHaveBeenCalled();
   });
 

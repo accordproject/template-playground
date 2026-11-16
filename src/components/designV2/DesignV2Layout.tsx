@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
 import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
@@ -59,6 +59,18 @@ const DesignV2Layout = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
   const pick = usePickTemplate();
+
+  useEffect(() => {
+    const state = useDesignV2Store.getState();
+    if (state.view !== "welcome") return;
+    // App loads shared content before mounting this layout; it takes priority over onboarding.
+    if (useAppStore.getState().sampleName === SHARED_TEMPLATE_NAME) {
+      state.selectTemplate(SHARED_TEMPLATE_NAME);
+      state.setView(STEP_ID.text);
+    } else {
+      state.initialize();
+    }
+  }, []);
 
   /**
    * "Start building": enter the flow on a template — the first card unless
@@ -137,7 +149,7 @@ const DesignV2Layout = () => {
       <SandboxFrame />
       <Rail />
       <div className="nd-main">
-        <DesignV2Notice />
+        {showChrome && <DesignV2Notice />}
         <Header view={view} onNavigate={navigate} isSkipped={isSkipped} />
         <div className="nd-body">
           <div className="nd-body-content">
