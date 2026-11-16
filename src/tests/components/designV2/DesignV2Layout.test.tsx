@@ -56,10 +56,10 @@ const deferredCompile = () => {
   return { done, finish };
 };
 
-const renderLayout = () =>
+const renderLayout = (hasShareLink = false) =>
   render(
     <MemoryRouter>
-      <DesignV2Layout />
+      <DesignV2Layout hasShareLink={hasShareLink} />
     </MemoryRouter>
   );
 
@@ -196,10 +196,12 @@ describe('DesignV2Layout — Start building', () => {
     expect(loadSample).not.toHaveBeenCalled();
   });
 
-  it.each([false, true])('opens a shared template on Text before onboarding (returning: %s)', (returning) => {
+  it.each([false, true])('preserves the shared-link route set by App (returning: %s)', (returning) => {
     if (returning) localStorage.setItem('designV2WelcomeSeen', 'true');
     useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME });
-    renderLayout();
+    useDesignV2Store.getState().selectTemplate(SHARED_TEMPLATE_NAME);
+    useDesignV2Store.getState().setView(STEP_ID.text);
+    renderLayout(true);
 
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
     expect(useDesignV2Store.getState().selectedTemplate).toBe(SHARED_TEMPLATE_NAME);
@@ -216,7 +218,7 @@ describe('DesignV2Layout — Start building', () => {
     if (returning) localStorage.setItem('designV2WelcomeSeen', 'true');
     const error = 'Failed to load shared content: Invalid share link data';
     useAppStore.setState({ error });
-    renderLayout();
+    renderLayout(true);
 
     expect(useDesignV2Store.getState().view).toBe('welcome');
     expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
@@ -227,7 +229,8 @@ describe('DesignV2Layout — Start building', () => {
   it('opens a loaded shared template on Text even when rendering reports an error', () => {
     const error = 'Unknown property in template';
     useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME, error });
-    renderLayout();
+    useDesignV2Store.getState().setView(STEP_ID.text);
+    renderLayout(true);
 
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
     expect(screen.getByText(error)).toBeVisible();

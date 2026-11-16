@@ -47,8 +47,29 @@ for (const prefix of ['#data=', '?data=']) {
 
     await page.getByRole('button', { name: '← Back', exact: true }).click();
     await expect(page.getByRole('button', { name: /1 Template/ })).toHaveAttribute('aria-current', 'step');
+    // Same-document navigation keeps the V2 store alive, unlike a page reload.
+    const nextPayload = LZString.compressToEncodedURIComponent(
+      LZString.decompressFromEncodedURIComponent(payload).replace('Ada', 'Bea')
+    );
+    await page.evaluate((url) => {
+      history.pushState({}, '', url);
+      dispatchEvent(new PopStateEvent('popstate'));
+    }, `/${prefix}${nextPayload}`);
+    await expect(text).toHaveAttribute('aria-current', 'step', { timeout: 30_000 });
     // On reload the stored preference must not send a shared link to Template.
     await page.reload();
     await expect(text).toHaveAttribute('aria-current', 'step', { timeout: 30_000 });
+
+    await page.evaluate((url) => {
+      history.pushState({}, '', url);
+      dispatchEvent(new PopStateEvent('popstate'));
+    }, `/${prefix}${LZString.compressToEncodedURIComponent('{}')}`);
+    await expect(page.getByRole('button', { name: 'Start building →' })).toBeVisible();
+    await expect(page.getByText('Failed to load shared content: Invalid share link data')).toBeVisible();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('switch', { name: 'Use classic playground' }).click();
+    await page.getByRole('switch', { name: 'Use classic playground' }).click();
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Start building →' })).toBeVisible();
   });
 }

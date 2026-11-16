@@ -176,7 +176,7 @@ interface AppState {
    * logic as edited instead.
    */
   generateShareableLink: (fresh?: { agreementHtml?: string; logicTs: string }) => string;
-  loadFromLink: (compressedData: string) => Promise<void>;
+  loadFromLink: (compressedData: string) => Promise<boolean>;
   /**
    * Replaces the whole template with imported content (a `.cta`, a library
    * template). Throws on failure, so the caller can show the reason.
@@ -1130,6 +1130,7 @@ const useAppStore = create<AppState>()(
               logicTs,
               agreementHtml,
             });
+            return true;
           } catch (error) {
             set(() => ({
               error:
@@ -1137,6 +1138,7 @@ const useAppStore = create<AppState>()(
                 (error instanceof Error ? error.message : "Unknown error"),
               isProblemPanelVisible: true,
             }));
+            return false;
           }
         },
         loadImportedTemplate: async ({

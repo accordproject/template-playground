@@ -51,7 +51,7 @@ import "./DesignV2Layout.css";
  * Deploy is still a placeholder.
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
-const DesignV2Layout = () => {
+const DesignV2Layout = ({ hasShareLink = false }: { hasShareLink?: boolean }) => {
   // The CSS shell follows html[data-theme] (set in App.tsx); antd needs the algorithm passed in.
   const isDark = useAppStore((s) => s.backgroundColor === "#121212");
   const view = useDesignV2Store((s) => s.view);
@@ -62,17 +62,9 @@ const DesignV2Layout = () => {
   const pick = usePickTemplate();
 
   useEffect(() => {
-    const state = useDesignV2Store.getState();
-    if (state.view !== "welcome") return;
-    // App loads shared content before mounting this layout; it takes priority over onboarding.
-    const app = useAppStore.getState();
-    if (app.sampleName === SHARED_TEMPLATE_NAME) {
-      state.selectTemplate(SHARED_TEMPLATE_NAME);
-      state.setView(STEP_ID.text);
-    } else if (!app.error) {
-      state.initialize();
-    }
-  }, []);
+    // App routes each link load once; remounting must not replay that navigation.
+    if (!hasShareLink) useDesignV2Store.getState().initialize();
+  }, [hasShareLink]);
 
   /**
    * "Start building": enter the flow on a template — the first card unless

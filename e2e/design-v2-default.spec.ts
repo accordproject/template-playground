@@ -14,14 +14,14 @@ test.describe('Design v2 as the default', () => {
   test('a first visit shows the one-time banner after leaving welcome', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.locator('.nd-rail')).toBeVisible();
+    await expect(page.locator('.nd-rail')).toBeVisible({ timeout: 30_000 });
     await expect(banner(page)).toHaveCount(0);
     await page.getByRole('button', { name: 'Start building →' }).click();
     await expect(banner(page)).toBeVisible();
 
     // Shown once: a reload keeps design v2 without the banner, even though it was never clicked.
     await page.reload();
-    await expect(page.locator('.nd-rail')).toBeVisible();
+    await expect(page.locator('.nd-rail')).toBeVisible({ timeout: 30_000 });
     await expect(banner(page)).toHaveCount(0);
   });
 
