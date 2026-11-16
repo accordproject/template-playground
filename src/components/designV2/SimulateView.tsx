@@ -178,11 +178,13 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
 const SimulateView = () => {
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
   const history = useAppStore((s) => s.executionHistory);
-  const executionState = useAppStore((s) => s.executionState);
+  const isTemplateStateful = useAppStore((s) => s.isTemplateStateful);
+  const isContractInitialized = useAppStore((s) => s.isContractInitialized);
   const isExecuting = useAppStore((s) => s.isExecuting);
   const requestJson = useAppStore((s) => s.requestJson);
   const setRequestJson = useAppStore((s) => s.setRequestJson);
   const initContract = useAppStore((s) => s.initContract);
+  const resetExecution = useAppStore((s) => s.resetExecution);
   const triggerContract = useAppStore((s) => s.triggerContract);
 
   const selectedRunId = useDesignV2Store((s) => s.selectedRunId);
@@ -195,14 +197,19 @@ const SimulateView = () => {
   const noLogic = usePendingLogic() === null;
   const stats = runStats(history);
   const selected = history.find((run) => run.id === selectedRunId) ?? history[history.length - 1] ?? null;
-  const initialised = Boolean(executionState);
+  const canSend = !isTemplateStateful || isContractInitialized;
   const triggerRuns = history.filter((run) => run.method === "trigger");
   const lastTrigger = triggerRuns[triggerRuns.length - 1];
 
   const openLogic = () => setView(STEP_ID.logic);
 
   const restart = async () => {
-    await initContract();
+    if (isTemplateStateful) {
+        await initContract();
+    } else {
+        resetExecution();
+    }
+
     selectRun(null);
   };
 
@@ -237,7 +244,7 @@ const SimulateView = () => {
             size="small"
             onClick={() => { void restart(); }}
             disabled={!compiled || isExecuting}
-            title={SIMULATE.restartHint}
+            title={isTemplateStateful ? SIMULATE.restartHint : SIMULATE.restartHintStateless}
           >
             {SIMULATE.restart}
           </Button>
@@ -246,16 +253,23 @@ const SimulateView = () => {
         <div className="nd-sim-list" role="list" aria-label={SIMULATE.runsLabel}>
           {history.length === 0 ? (
             <div className="nd-sim-empty">
-              <span>{SIMULATE.noRuns}</span>
-              <Button
-                type="primary"
-                ghost
-                size="small"
-                onClick={() => { void restart(); }}
-                disabled={!compiled || isExecuting}
-              >
-                {SIMULATE.init}
-              </Button>
+                <span>
+                    {isTemplateStateful
+                        ? SIMULATE.noRuns
+                        : SIMULATE.noRunsStateless}
+                </span>
+
+                {isTemplateStateful && (
+                    <Button
+                        type="primary"
+                        ghost
+                        size="small"
+                        onClick={() => { void restart(); }}
+                        disabled={!compiled || isExecuting}
+                    >
+                        {SIMULATE.init}
+                    </Button>
+                )}
             </div>
           ) : (
             history.map((run) => (
@@ -290,8 +304,8 @@ const SimulateView = () => {
               type="primary"
               onClick={() => { void send(); }}
               loading={isExecuting}
-              disabled={!compiled || !initialised || isExecuting}
-              title={compiled && !initialised ? SIMULATE.sendHintNoInit : undefined}
+              disabled={!compiled || !canSend || isExecuting}
+              title={compiled && !canSend ? SIMULATE.sendHintNoInit : undefined}
             >
               {SIMULATE.send}
             </Button>
