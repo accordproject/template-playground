@@ -91,7 +91,6 @@ const MainContainer = () => {
   const toggleDataCollapse = useAppStore((s) => s.toggleDataCollapse);
 
 
-  const isLogicFeatureEnabled = useAppStore((s) => s.isLogicFeatureEnabled);
   
 
   
@@ -108,8 +107,8 @@ const MainContainer = () => {
     : 100 / totalEditorPanels;
 
 
-  const activeLogicWorkspace = isLogicPanelVisible && isLogicFeatureEnabled ;
-  const activeRunnerWorkspace = isContractRunnerVisible && isLogicFeatureEnabled ;
+  const activeLogicWorkspace = isLogicPanelVisible;
+  const activeRunnerWorkspace = isContractRunnerVisible;
   const horizontalPanelKey = `${String(isEditorsVisible)}-${String(activeLogicWorkspace)}-${String(activeRunnerWorkspace)}-${String(isPreviewVisible)}-${String(isAIChatOpen)}`;
 
   // Create distinct preview background for better visual separation

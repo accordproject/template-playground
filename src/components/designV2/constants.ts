@@ -24,6 +24,18 @@ export const URLS = {
   vscodeDev: "https://vscode.dev/",
   apapMcp: "https://docs.accordproject.org/docs/ref-apap/#mcp-support-experimental",
   templateLibrary: "https://templates.accordproject.org/",
+  /** Where the "new design" banner sends people to report problems: the design v2 bug bash. */
+  designFeedback: "https://github.com/accordproject/template-playground/issues/1096",
+} as const;
+
+/** One-time banner shown to people moved to design v2 by the new default (see DesignV2Notice.tsx). */
+export const NOTICE = {
+  label: "About the new design",
+  title: "Welcome to the new Template Playground",
+  feedback: "Report a problem",
+  switchToClassic: "Switch to classic",
+  dismiss: "Got it",
+  switched: "Switched to the classic playground. You can turn the new design back on in Settings.",
 } as const;
 
 export const RAIL = {

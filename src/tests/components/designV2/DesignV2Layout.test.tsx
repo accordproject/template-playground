@@ -11,6 +11,7 @@ import useAppStore, { SHARED_TEMPLATE_NAME } from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { FIRST_STEP, STEP_ID } from '../../../types/designV2.types';
 import * as latePayment from '../../../samples/latePaymentPenalty';
+import * as playground from '../../../samples/playground';
 import { V2_PALETTE } from '../../../components/designV2/theme';
 import type { ComponentProps } from 'react';
 import { theme as antdTheme, type ConfigProvider, type ThemeConfig } from 'antd';
@@ -107,8 +108,37 @@ describe('DesignV2Layout — Start building', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useAppStore.setState({ loadSample, sampleName: 'Playground' });
+    // The untouched startup sample.
+    useAppStore.setState({
+      loadSample,
+      sampleName: playground.NAME,
+      editorValue: playground.TEMPLATE,
+      editorModelCto: playground.MODEL,
+      editorAgreementData: JSON.stringify(playground.DATA, null, 2),
+      editorLogicTs: '',
+    });
     useDesignV2Store.setState({ view: 'welcome', selectedTemplate: null });
+  });
+
+  it('keeps edits made in the classic playground instead of loading the first card', () => {
+    useAppStore.setState({ editorValue: 'Edited in classic {{name}}' });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(playground.NAME);
+    expect(useAppStore.getState().editorValue).toBe('Edited in classic {{name}}');
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it('keeps a sample loaded in the classic playground and selects its gallery card', () => {
+    const card = START_SAMPLES[1];
+    useAppStore.setState({ sampleName: card.sampleName });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(card.name);
+    expect(loadSample).not.toHaveBeenCalled();
   });
 
   it('picks and loads the first gallery card when nothing was picked', () => {

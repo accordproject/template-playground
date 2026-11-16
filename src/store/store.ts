@@ -24,6 +24,11 @@ import { templateFromContent } from "../utils/templateArchive";
 import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
+import {
+  readDesignV2Preference,
+  shouldShowDesignV2Notice,
+  writeDesignV2Preference,
+} from "../utils/designV2Preference";
 
 /** sampleName of a template opened from a share link; design v2 starts on it instead of the first card. */
 export const SHARED_TEMPLATE_NAME = "Shared template";
@@ -223,11 +228,13 @@ interface AppState {
   setSettingsOpen: (value: boolean) => void;
   keyProtectionLevel: KeyProtectionLevel | null;
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
-  isLogicFeatureEnabled: boolean;
-  setLogicFeatureEnabled: (value: boolean) => void;
-  /** Feature flag for the new playground design (work in progress). */
+  /** Whether the step-based design v2 layout is shown. It is the default; false means the classic layout. */
   isDesignV2Enabled: boolean;
   setDesignV2Enabled: (value: boolean) => void;
+  /** Whether the one-time "new design" banner is showing (only for people on design v2 by default). */
+  showDesignV2Notice: boolean;
+  /** Hides the "new design" banner for the rest of the visit. */
+  dismissDesignV2Notice: () => void;
   /**
    * Updates the live editor value without committing or triggering compilation.
    * @param ts - The current TypeScript source from the editor
@@ -679,6 +686,7 @@ const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
       const initialTheme = getInitialTheme();
+      const initialDesignV2 = readDesignV2Preference();
       const initialPanels = getInitialPanelState(); // Load saved panels
       const initialChain = getInitialChain();
       const initialChainIndex = initialChain.length - 1;
@@ -735,26 +743,14 @@ const useAppStore = create<AppState>()(
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
-        isLogicFeatureEnabled:
-          typeof window !== "undefined"
-            ? localStorage.getItem("isLogicFeatureEnabled") === "true"
-            : false,
-        setLogicFeatureEnabled: (value: boolean) => {
-          if (typeof window !== "undefined") {
-            localStorage.setItem("isLogicFeatureEnabled", String(value));
-          }
-          set({ isLogicFeatureEnabled: value });
-        },
-        isDesignV2Enabled:
-          typeof window !== "undefined"
-            ? localStorage.getItem("isDesignV2Enabled") === "true"
-            : false,
+        // Design v2 is the default; a stored "false" keeps the classic layout (see designV2Preference.ts).
+        isDesignV2Enabled: initialDesignV2.enabled,
         setDesignV2Enabled: (value: boolean) => {
-          if (typeof window !== "undefined") {
-            localStorage.setItem("isDesignV2Enabled", String(value));
-          }
+          writeDesignV2Preference(value);
           set({ isDesignV2Enabled: value });
         },
+        showDesignV2Notice: shouldShowDesignV2Notice(initialDesignV2),
+        dismissDesignV2Notice: () => set({ showDesignV2Notice: false }),
         logicTs: "",
         editorLogicTs: "",
         compiledLogicJs: null,
@@ -944,9 +940,8 @@ const useAppStore = create<AppState>()(
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
           if (sample) {
-            const state = get();
             const logicTs = sample.LOGIC ?? "";
-            const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
+            const hasLogic = !!sample.LOGIC;
             const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
             const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
             invalidateCompilations();
@@ -996,10 +991,17 @@ const useAppStore = create<AppState>()(
 
             await get().rebuild();
 
-            // Auto-trigger logic tour when a user opens a logic contract sample for the first time
-            if (hasLogic && typeof window !== "undefined" && !localStorage.getItem("hasVisitedLogicTour")) {
+            // Auto-trigger logic tour when a user opens a logic contract sample for the first time.
+            // The tour targets the classic layout, so design v2 users neither see it nor use it up.
+            if (
+              hasLogic &&
+              !get().isDesignV2Enabled &&
+              typeof window !== "undefined" &&
+              !localStorage.getItem("hasVisitedLogicTour")
+            ) {
               localStorage.setItem("hasVisitedLogicTour", "true");
               setTimeout(() => {
+                if (get().isDesignV2Enabled) return;
                 try {
                   void tour.show("logic-transition-prompt");
                 } catch (e) {
@@ -1188,7 +1190,6 @@ const useAppStore = create<AppState>()(
             isLogicPanelVisible: hasLogic,
           }));
           if (hasLogic) {
-            get().setLogicFeatureEnabled(true);
             savePanelState({ ...get(), isLogicPanelVisible: true });
           }
           await get().rebuild();

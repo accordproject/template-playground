@@ -7,6 +7,7 @@ import SampleArt from "./SampleArt";
 import ImportTemplates from "./ImportTemplates";
 import { DeployView } from "./DeployView";
 import useDesignV2Store from "../../store/designV2Store";
+import useAppStore from "../../store/store";
 import { usePickTemplate } from "./usePickTemplate";
 import { STEP_KEY, type DesignV2View } from "../../types/designV2.types";
 import {
@@ -15,6 +16,7 @@ import {
   START,
   START_SAMPLES,
   START_BLANK,
+  sampleNameFor,
   type StartSample,
 } from "./constants";
 
@@ -131,8 +133,13 @@ export const StartView = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const goNext = useDesignV2Store((s) => s.goNext);
   const pick = usePickTemplate();
+  // Opening the card already in use carries on with it as it is, so edits
+  // (including work kept from the classic playground) are not reloaded away.
+  // It only counts as in use while the app still holds that card's sample:
+  // the classic playground may have loaded another one since.
   const open = (name: string) => {
-    pick(name);
+    const inUse = name === selectedTemplate && useAppStore.getState().sampleName === sampleNameFor(name);
+    if (!inUse) pick(name);
     goNext();
   };
 
