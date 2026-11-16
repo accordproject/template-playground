@@ -84,9 +84,12 @@ const EditorPane = ({
  * "@template decorator" errors are model problems; everything else (invalid
  * JSON, an instance that does not match the model) is a data problem.
  */
-const errorPane = (error: string | undefined): "model" | "data" | null => {
+export const errorPane = (error: string | undefined): "model" | "data" | "text" | null => {
   if (!error) return null;
-  return /^c:|Invalid CTO model|@template decorator/i.test(error) ? "model" : "data";
+  const lines = error.split("\n");
+  if (lines.some((l) => /^c:|Invalid CTO model|@template decorator/i.test(l))) return "model";
+  if (lines.some((l) => /text\/grammar\.tem\.md|grammar\.tem\.md/i.test(l))) return "text";
+  return "data";
 };
 
 /**
@@ -203,62 +206,62 @@ export const ModelDataView = () => {
         {previewOpen && <PreviewPane />}
         <div className={`nd-split ${openCount === 1 ? "nd-split-single" : ""}`} hidden={previewOpen}>
           {panes.model && (
-          <EditorPane
-            label={MODEL_DATA.model.paneLabel}
-            file={MODEL_DATA.model.file}
-            badge={MODEL_DATA.model.badge}
-            badgeClass="nd-badge-teal"
-            badgeHref={MODEL_DATA.model.badgeHref}
-            badgeTitle={MODEL_DATA.model.badgeTitle}
-            error={modelError}
-            okText={MODEL_DATA.model.ok}
-            onClose={() => setPaneOpen("model", false)}
-            canClose={openCount > 1}
-            actions={
-              <>
-                <Button type="text" size="small" onClick={formatModel} disabled={!editorModelCto.trim()}>
-                  {MODEL_DATA.format}
-                </Button>
-                <Button type="text" size="small" onClick={() => void copyModel()}>
-                  {MODEL_DATA.copy}
-                </Button>
-              </>
-            }
-          >
-            <TemplateModel />
-          </EditorPane>
+            <EditorPane
+              label={MODEL_DATA.model.paneLabel}
+              file={MODEL_DATA.model.file}
+              badge={MODEL_DATA.model.badge}
+              badgeClass="nd-badge-teal"
+              badgeHref={MODEL_DATA.model.badgeHref}
+              badgeTitle={MODEL_DATA.model.badgeTitle}
+              error={modelError}
+              okText={MODEL_DATA.model.ok}
+              onClose={() => setPaneOpen("model", false)}
+              canClose={openCount > 1}
+              actions={
+                <>
+                  <Button type="text" size="small" onClick={formatModel} disabled={!editorModelCto.trim()}>
+                    {MODEL_DATA.format}
+                  </Button>
+                  <Button type="text" size="small" onClick={() => void copyModel()}>
+                    {MODEL_DATA.copy}
+                  </Button>
+                </>
+              }
+            >
+              <TemplateModel />
+            </EditorPane>
           )}
 
           {panes.data && (
-          <EditorPane
-            label={MODEL_DATA.data.paneLabel}
-            file={MODEL_DATA.data.file}
-            badge={MODEL_DATA.data.badge}
-            badgeClass="nd-badge-blue"
-            error={dataError}
-            okText={MODEL_DATA.data.ok}
-            pendingText={modelError ? MODEL_DATA.data.notChecked : undefined}
-            onClose={() => setPaneOpen("data", false)}
-            canClose={openCount > 1}
-            actions={
-              <>
-                <Button type="text" size="small" onClick={formatData}>
-                  {MODEL_DATA.format}
-                </Button>
-                <Button
-                  type="text"
-                  size="small"
-                  onClick={resetData}
-                  disabled={!canReset}
-                  title={sample ? MODEL_DATA.data.resetTitle(sample.NAME) : undefined}
-                >
-                  {MODEL_DATA.reset}
-                </Button>
-              </>
-            }
-          >
-            <AgreementData />
-          </EditorPane>
+            <EditorPane
+              label={MODEL_DATA.data.paneLabel}
+              file={MODEL_DATA.data.file}
+              badge={MODEL_DATA.data.badge}
+              badgeClass="nd-badge-blue"
+              error={dataError}
+              okText={MODEL_DATA.data.ok}
+              pendingText={modelError ? MODEL_DATA.data.notChecked : undefined}
+              onClose={() => setPaneOpen("data", false)}
+              canClose={openCount > 1}
+              actions={
+                <>
+                  <Button type="text" size="small" onClick={formatData}>
+                    {MODEL_DATA.format}
+                  </Button>
+                  <Button
+                    type="text"
+                    size="small"
+                    onClick={resetData}
+                    disabled={!canReset}
+                    title={sample ? MODEL_DATA.data.resetTitle(sample.NAME) : undefined}
+                  >
+                    {MODEL_DATA.reset}
+                  </Button>
+                </>
+              }
+            >
+              <AgreementData />
+            </EditorPane>
           )}
         </div>
       </div>
