@@ -155,6 +155,16 @@ describe('DesignV2Layout — Start building', () => {
     expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
   });
 
+  it('opens Template for a returning no-link visit despite an ordinary rendering error', () => {
+    localStorage.setItem('designV2WelcomeSeen', 'true');
+    useAppStore.setState({ error: 'Invalid model syntax' });
+    renderLayout();
+
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(screen.getByText('Invalid model syntax')).toBeVisible();
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
   it('keeps edits made in the classic playground instead of loading the first card', () => {
     useAppStore.setState({ editorValue: 'Edited in classic {{name}}' });
     renderLayout();
