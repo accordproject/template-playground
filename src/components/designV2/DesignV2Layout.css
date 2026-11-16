@@ -95,6 +95,8 @@ html[data-theme="dark"] {
 html[data-theme="dark"] .nd-root,
 html[data-theme="dark"] .nd-menu { color-scheme: dark; }
 html[data-theme="dark"] .nd-menu { color: var(--nd-ink); }
+/* The hero stays navy in both themes; antd's dark ghost button would be dark-on-dark. */
+html[data-theme="dark"] .nd-hero-actions .ant-btn-default.ant-btn-background-ghost:not(:disabled):not(:hover) { color: #fff; border-color: #fff; }
 
 .nd-spacer { flex: 1; }
 .nd-mono { font-family: var(--nd-mono); }
