@@ -991,10 +991,17 @@ const useAppStore = create<AppState>()(
 
             await get().rebuild();
 
-            // Auto-trigger logic tour when a user opens a logic contract sample for the first time
-            if (hasLogic && typeof window !== "undefined" && !localStorage.getItem("hasVisitedLogicTour")) {
+            // Auto-trigger logic tour when a user opens a logic contract sample for the first time.
+            // The tour targets the classic layout, so design v2 users neither see it nor use it up.
+            if (
+              hasLogic &&
+              !get().isDesignV2Enabled &&
+              typeof window !== "undefined" &&
+              !localStorage.getItem("hasVisitedLogicTour")
+            ) {
               localStorage.setItem("hasVisitedLogicTour", "true");
               setTimeout(() => {
+                if (get().isDesignV2Enabled) return;
                 try {
                   void tour.show("logic-transition-prompt");
                 } catch (e) {

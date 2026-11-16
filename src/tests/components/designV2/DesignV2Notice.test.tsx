@@ -43,6 +43,16 @@ describe('DesignV2Notice', () => {
     expect(localStorage.getItem('designV2NoticeSeen')).toBe('true');
   });
 
+  it('does not come back when it is mounted again (navigation or a layout switch)', () => {
+    const first = render(<DesignV2Notice />);
+    expect(screen.getByRole('region', { name: NOTICE.label })).toBeInTheDocument();
+    first.unmount();
+
+    render(<DesignV2Notice />);
+
+    expect(screen.queryByRole('region', { name: NOTICE.label })).not.toBeInTheDocument();
+  });
+
   it('"Got it" hides the notice and keeps design v2', () => {
     render(<DesignV2Notice />);
 

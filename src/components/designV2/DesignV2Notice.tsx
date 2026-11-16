@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Button, Space, Typography, message } from "antd";
 import useAppStore from "../../store/store";
 import { markDesignV2NoticeSeen } from "../../utils/designV2Preference";
@@ -14,15 +14,23 @@ import { NOTICE, URLS } from "./constants";
  * doesn't interrupt someone already typing in an editor.
  */
 const DesignV2Notice = () => {
-  const show = useAppStore((s) => s.showDesignV2Notice);
-  const dismiss = useAppStore((s) => s.dismissDesignV2Notice);
+  // Visibility is local to this mount: the store's eligibility is consumed as
+  // soon as the banner appears, so a remount (navigating away and back, or
+  // switching layouts in Settings) never shows it again.
+  const [show, setShow] = useState(() => useAppStore.getState().showDesignV2Notice);
+  const consume = useAppStore((s) => s.dismissDesignV2Notice);
   const setDesignV2Enabled = useAppStore((s) => s.setDesignV2Enabled);
 
   useEffect(() => {
-    if (show) markDesignV2NoticeSeen();
-  }, [show]);
+    if (!show) return;
+    markDesignV2NoticeSeen();
+    consume();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on first show
+  }, []);
 
   if (!show) return null;
+
+  const dismiss = () => setShow(false);
 
   const switchToClassic = () => {
     dismiss();
