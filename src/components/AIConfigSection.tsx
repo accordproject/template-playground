@@ -2,7 +2,7 @@
  * AI Configuration form section - can be embedded in SettingsModal or used standalone.
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Button,
   Checkbox,
@@ -10,26 +10,27 @@ import {
   Divider,
   Form,
   Input,
+  Modal,
   Select,
   Slider,
   Space,
   Typography,
-} from 'antd';
+} from "antd";
+import { LockOutlined, WarningOutlined } from "@ant-design/icons";
 import {
-  LockOutlined,
-  WarningOutlined,
-} from '@ant-design/icons';
-import { AIConfig, KeyProtectionLevel } from '../types/components/AIAssistant.types';
-import { useDebounce } from 'use-debounce';
-import useAppStore from '../store/store';
+  AIConfig,
+  KeyProtectionLevel,
+} from "../types/components/AIAssistant.types";
+import { useDebounce } from "use-debounce";
+import useAppStore from "../store/store";
 import {
   isWebAuthnPRFSupported,
   encryptAndStoreApiKey,
   loadAndDecryptApiKey,
   clearStoredKey,
-} from '../utils/secureKeyStorage';
-import { fetchModels } from '../utils/fetchModels';
-import { getProviderCapabilities } from '@accordproject/template-engine/lib/llm';
+} from "../utils/secureKeyStorage";
+import { fetchModels } from "../utils/fetchModels";
+import { getProviderCapabilities } from "@accordproject/template-engine/lib/llm";
 
 const { Text } = Typography;
 
@@ -40,47 +41,59 @@ interface AIConfigSectionProps {
   onSaveSuccess?: () => void;
 }
 
-const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element => {
-  const { keyProtectionLevel, setKeyProtectionLevel } = useAppStore((state) => ({
-    keyProtectionLevel: state.keyProtectionLevel,
-    setKeyProtectionLevel: state.setKeyProtectionLevel,
-  }));
+const AIConfigSection = ({
+  onSaveSuccess,
+}: AIConfigSectionProps): JSX.Element => {
+  const { keyProtectionLevel, setKeyProtectionLevel } = useAppStore(
+    (state) => ({
+      keyProtectionLevel: state.keyProtectionLevel,
+      setKeyProtectionLevel: state.setKeyProtectionLevel,
+    }),
+  );
 
-  const [provider, setProvider] = useState<string>('');
-  const [model, setModel] = useState<string>('');
-  const [apiKey, setApiKey] = useState<string>('');
-  const [customEndpoint, setCustomEndpoint] = useState<string>('');
-  const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
-  const [maxTokens, setMaxTokens] = useState<string>('');
-  const [effort, setEffort] = useState<string>('');
+  const [provider, setProvider] = useState<string>("");
+  const [model, setModel] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string>("");
+  const [customEndpoint, setCustomEndpoint] = useState<string>("");
+  const [showAdvancedSettings, setShowAdvancedSettings] =
+    useState<boolean>(false);
+  const [maxTokens, setMaxTokens] = useState<string>("");
+  const [effort, setEffort] = useState<string>("");
   const [temperature, setTemperature] = useState<number>(DEFAULT_TEMPERATURE);
   const [thinking, setThinking] = useState<boolean>(true);
   const [showFullPrompt, setShowFullPrompt] = useState<boolean>(false);
-  const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] = useState<boolean>(true);
-  const [enableInlineSuggestions, setEnableInlineSuggestions] = useState<boolean>(true);
+  const [enableCodeSelectionMenu, setEnableCodeSelectionMenu] =
+    useState<boolean>(true);
+  const [enableInlineSuggestions, setEnableInlineSuggestions] =
+    useState<boolean>(true);
   const [webauthnAvailable, setWebauthnAvailable] = useState<boolean>(false);
   const [isEncrypting, setIsEncrypting] = useState<boolean>(false);
-  const [securityMessage, setSecurityMessage] = useState<string>('');
+  const [securityMessage, setSecurityMessage] = useState<string>("");
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [debouncedApiKey] = useDebounce(apiKey, 1000);
 
   // Check WebAuthn PRF support on mount
   useEffect(() => {
-    isWebAuthnPRFSupported().then(setWebauthnAvailable).catch(() => setWebauthnAvailable(false));
+    isWebAuthnPRFSupported()
+      .then(setWebauthnAvailable)
+      .catch(() => setWebauthnAvailable(false));
   }, []);
 
   // Load config on mount
   const loadConfig = useCallback(async () => {
-    const savedProvider = localStorage.getItem('aiProvider');
-    const savedModel = localStorage.getItem('aiModel');
-    const savedCustomEndpoint = localStorage.getItem('aiCustomEndpoint');
-    const savedMaxTokens = localStorage.getItem('aiResMaxTokens');
-    const savedEffort = localStorage.getItem('aiEffort');
-    const savedTemperature = localStorage.getItem('aiTemperature');
+    const savedProvider = localStorage.getItem("aiProvider");
+    const savedModel = localStorage.getItem("aiModel");
+    const savedCustomEndpoint = localStorage.getItem("aiCustomEndpoint");
+    const savedMaxTokens = localStorage.getItem("aiResMaxTokens");
+    const savedEffort = localStorage.getItem("aiEffort");
+    const savedTemperature = localStorage.getItem("aiTemperature");
 
-    const savedShowFullPrompt = localStorage.getItem('aiShowFullPrompt') === 'true';
-    const savedEnableCodeSelection = localStorage.getItem('aiEnableCodeSelectionMenu') !== 'false';
-    const savedEnableInlineSuggestions = localStorage.getItem('aiEnableInlineSuggestions') !== 'false';
+    const savedShowFullPrompt =
+      localStorage.getItem("aiShowFullPrompt") === "true";
+    const savedEnableCodeSelection =
+      localStorage.getItem("aiEnableCodeSelectionMenu") !== "false";
+    const savedEnableInlineSuggestions =
+      localStorage.getItem("aiEnableInlineSuggestions") !== "false";
 
     if (savedProvider) setProvider(savedProvider);
     if (savedModel) setModel(savedModel);
@@ -93,7 +106,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         setTemperature(Math.min(1, Math.max(0, parsed)));
       }
     }
-    setThinking(localStorage.getItem('aiThinking') !== 'false');
+    setThinking(localStorage.getItem("aiThinking") !== "false");
 
     setShowFullPrompt(savedShowFullPrompt);
     setEnableCodeSelectionMenu(savedEnableCodeSelection);
@@ -111,19 +124,23 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         if (result) {
           setApiKey(result.apiKey);
           setKeyProtectionLevel(result.protectionLevel);
-          if (result.protectionLevel === 'legacy-plaintext') {
-            setSecurityMessage('\u26a0\ufe0f Your API key was stored unencrypted. Save again to protect it with WebAuthn.');
+          if (result.protectionLevel === "legacy-plaintext") {
+            setSecurityMessage(
+              "\u26a0\ufe0f Your API key was stored unencrypted. Save again to protect it with WebAuthn.",
+            );
           }
         }
       } catch {
         // Decryption failed (e.g. user cancelled WebAuthn prompt)
-        setSecurityMessage('Could not unlock stored API key. Please re-enter it.');
+        setSecurityMessage(
+          "Could not unlock stored API key. Please re-enter it.",
+        );
       }
     }
   }, [setKeyProtectionLevel]);
 
   useEffect(() => {
-    setSecurityMessage('');
+    setSecurityMessage("");
     loadConfig().catch(console.warn);
   }, [loadConfig]);
 
@@ -135,7 +152,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
 
     // Only gate on API key for providers that require it (e.g., OpenAI, Anthropic, etc.).
     // Ollama does not require an API key, so allow it to proceed without debouncedApiKey.
-    const requiresApiKey = provider !== 'ollama';
+    const requiresApiKey = provider !== "ollama";
     if (requiresApiKey && !debouncedApiKey) {
       setAvailableModels([]);
       return;
@@ -152,7 +169,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       });
       if (!controller.signal.aborted) {
         setAvailableModels(models);
-        setModel(prev => models.includes(prev) ? prev : '');
+        setModel((prev) => (models.includes(prev) ? prev : ""));
       }
     };
 
@@ -164,8 +181,12 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   }, [provider, debouncedApiKey, customEndpoint]);
 
   useEffect(() => {
-    if (availableModels.length > 0 && model && !availableModels.includes(model)) {
-      setModel('');
+    if (
+      availableModels.length > 0 &&
+      model &&
+      !availableModels.includes(model)
+    ) {
+      setModel("");
     }
   }, [model, availableModels]);
 
@@ -174,68 +195,79 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
    * contract executor so the form never offers a control the request would
    * silently drop.
    */
-  const capabilities = useMemo(() => getProviderCapabilities(provider), [provider]);
+  const capabilities = useMemo(
+    () => getProviderCapabilities(provider),
+    [provider],
+  );
 
   useEffect(() => {
     // Drop an effort level the newly selected provider does not accept.
     setEffort((prev) =>
-      prev && (capabilities.effort as readonly string[] | null)?.includes(prev) ? prev : ''
+      prev && (capabilities.effort as readonly string[] | null)?.includes(prev)
+        ? prev
+        : "",
     );
   }, [capabilities]);
 
   const handleSave = async () => {
     setIsEncrypting(true);
 
-    localStorage.setItem('aiProvider', provider);
-    localStorage.setItem('aiModel', model);
+    localStorage.setItem("aiProvider", provider);
+    localStorage.setItem("aiModel", model);
 
-    if (provider === 'openai-compatible') {
-      localStorage.setItem('aiCustomEndpoint', customEndpoint);
+    if (provider === "openai-compatible") {
+      localStorage.setItem("aiCustomEndpoint", customEndpoint);
     } else {
-      localStorage.removeItem('aiCustomEndpoint');
+      localStorage.removeItem("aiCustomEndpoint");
     }
 
     if (maxTokens) {
-      localStorage.setItem('aiResMaxTokens', maxTokens);
+      localStorage.setItem("aiResMaxTokens", maxTokens);
     } else {
-      localStorage.removeItem('aiResMaxTokens');
+      localStorage.removeItem("aiResMaxTokens");
     }
 
     // Execution tuning — only persisted for the providers that honour it, so a
     // stale value can't leak across a provider switch.
     if (capabilities.effort && effort) {
-      localStorage.setItem('aiEffort', effort);
+      localStorage.setItem("aiEffort", effort);
     } else {
-      localStorage.removeItem('aiEffort');
+      localStorage.removeItem("aiEffort");
     }
 
     if (capabilities.temperature) {
-      localStorage.setItem('aiTemperature', String(temperature));
+      localStorage.setItem("aiTemperature", String(temperature));
     } else {
-      localStorage.removeItem('aiTemperature');
+      localStorage.removeItem("aiTemperature");
     }
 
     if (capabilities.thinking) {
-      localStorage.setItem('aiThinking', String(thinking));
+      localStorage.setItem("aiThinking", String(thinking));
     } else {
-      localStorage.removeItem('aiThinking');
+      localStorage.removeItem("aiThinking");
     }
 
-    localStorage.setItem('aiShowFullPrompt', showFullPrompt.toString());
-    localStorage.setItem('aiEnableCodeSelectionMenu', enableCodeSelectionMenu.toString());
-    localStorage.setItem('aiEnableInlineSuggestions', enableInlineSuggestions.toString());
+    localStorage.setItem("aiShowFullPrompt", showFullPrompt.toString());
+    localStorage.setItem(
+      "aiEnableCodeSelectionMenu",
+      enableCodeSelectionMenu.toString(),
+    );
+    localStorage.setItem(
+      "aiEnableInlineSuggestions",
+      enableInlineSuggestions.toString(),
+    );
 
     // Securely store the API key
-    let protectionLevel: KeyProtectionLevel = 'memory-only';
+    let protectionLevel: KeyProtectionLevel = "memory-only";
 
-    if (apiKey && provider !== 'ollama') {
+    if (apiKey && provider !== "ollama") {
       if (webauthnAvailable) {
         try {
           const success = await encryptAndStoreApiKey(apiKey);
           if (success) {
-            protectionLevel = 'webauthn';
+            protectionLevel = "webauthn";
             // Only remove legacy plaintext key when encryption succeeds
-            localStorage.removeItem('aiApiKey');
+            localStorage.removeItem("aiApiKey");
           }
         } catch {
           // Encryption failed — fall through to memory-only
@@ -249,16 +281,18 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     const config: AIConfig = {
       provider,
       model,
-      apiKey: provider === 'ollama' ? '' : apiKey,
-      includeTemplateMarkContent: localStorage.getItem('aiIncludeTemplateMark') === 'true',
-      includeConcertoModelContent: localStorage.getItem('aiIncludeConcertoModel') === 'true',
-      includeDataContent: localStorage.getItem('aiIncludeData') === 'true',
+      apiKey: provider === "ollama" ? "" : apiKey,
+      includeTemplateMarkContent:
+        localStorage.getItem("aiIncludeTemplateMark") === "true",
+      includeConcertoModelContent:
+        localStorage.getItem("aiIncludeConcertoModel") === "true",
+      includeDataContent: localStorage.getItem("aiIncludeData") === "true",
       showFullPrompt,
       enableCodeSelectionMenu,
       enableInlineSuggestions,
     };
 
-    if (provider === 'openai-compatible' && customEndpoint) {
+    if (provider === "openai-compatible" && customEndpoint) {
       config.customEndpoint = customEndpoint;
     }
 
@@ -286,93 +320,102 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   };
 
   const handleReset = () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to reset all AI configuration? This will clear your API key and all settings.'
-    );
+    Modal.confirm({
+      title: "Reset AI Configuration?",
+      content:
+        "Are you sure you want to reset all AI configuration? This will clear your API key and all settings.",
+      okText: "Reset",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: () => {
+        // Clear all AI-related localStorage items (including encrypted key data)
+        clearStoredKey();
+        const keysToRemove = [
+          "aiProvider",
+          "aiModel",
+          "aiCustomEndpoint",
+          "aiResMaxTokens",
+          "aiEffort",
+          "aiTemperature",
+          "aiThinking",
+          "aiShowFullPrompt",
+          "aiEnableCodeSelectionMenu",
+          "aiEnableInlineSuggestions",
+          "aiIncludeTemplateMark",
+          "aiIncludeConcertoModel",
+          "aiIncludeData",
+        ];
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
 
-    if (confirmed) {
-      // Clear all AI-related localStorage items (including encrypted key data)
-      clearStoredKey();
-      const keysToRemove = [
-        'aiProvider',
-        'aiModel',
-        'aiCustomEndpoint',
-        'aiResMaxTokens',
-        'aiEffort',
-        'aiTemperature',
-        'aiThinking',
-        'aiShowFullPrompt',
-        'aiEnableCodeSelectionMenu',
-        'aiEnableInlineSuggestions',
-        'aiIncludeTemplateMark',
-        'aiIncludeConcertoModel',
-        'aiIncludeData',
-      ];
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+        // Reset all state variables to default
+        setProvider("");
+        setModel("");
+        setApiKey("");
+        setCustomEndpoint("");
+        setMaxTokens("");
+        setEffort("");
+        setTemperature(DEFAULT_TEMPERATURE);
+        setThinking(true);
+        setShowFullPrompt(false);
+        setEnableCodeSelectionMenu(true);
+        setEnableInlineSuggestions(true);
+        setKeyProtectionLevel(null);
+        setSecurityMessage("");
 
-      // Reset all state variables to default
-      setProvider('');
-      setModel('');
-      setApiKey('');
-      setCustomEndpoint('');
-      setMaxTokens('');
-      setEffort('');
-      setTemperature(DEFAULT_TEMPERATURE);
-      setThinking(true);
-      setShowFullPrompt(false);
-      setEnableCodeSelectionMenu(true);
-      setEnableInlineSuggestions(true);
-      setKeyProtectionLevel(null);
-      setSecurityMessage('');
-
-      // Clear the in-memory AI config in Zustand so stale keys don't persist
-      const { setAIConfig } = useAppStore.getState();
-      setAIConfig(null);
-    }
+        // Clear the in-memory AI config in Zustand so stale keys don't persist
+        const { setAIConfig } = useAppStore.getState();
+        setAIConfig(null);
+      },
+    });
   };
 
-  const isSaveDisabled = isEncrypting || !provider || !model ||
+  const isSaveDisabled =
+    isEncrypting ||
+    !provider ||
+    !model ||
     (availableModels.length > 0 && !availableModels.includes(model)) ||
-    (provider !== 'ollama' && !apiKey) ||
-    (provider === 'openai-compatible' && !customEndpoint);
+    (provider !== "ollama" && !apiKey) ||
+    (provider === "openai-compatible" && !customEndpoint);
 
   const providerOptions = [
-    { value: 'anthropic', label: 'Anthropic' },
-    { value: 'google', label: 'Google' },
-    { value: 'groq', label: 'Groq' },
-    { value: 'mistral', label: 'Mistral' },
-    { value: 'ollama', label: 'Ollama (Local)' },
-    { value: 'openai', label: 'OpenAI' },
-    { value: 'openrouter', label: 'OpenRouter' },
-    { value: 'openai-compatible', label: 'OpenAI Compatible API' },
+    { value: "anthropic", label: "Anthropic" },
+    { value: "google", label: "Google" },
+    { value: "groq", label: "Groq" },
+    { value: "mistral", label: "Mistral" },
+    { value: "ollama", label: "Ollama (Local)" },
+    { value: "openai", label: "OpenAI" },
+    { value: "openrouter", label: "OpenRouter" },
+    { value: "openai-compatible", label: "OpenAI Compatible API" },
   ];
 
-  const modelOptions = availableModels.map(m => ({ value: m, label: m }));
+  const modelOptions = availableModels.map((m) => ({ value: m, label: m }));
 
   const providerHint: Record<string, React.ReactNode> = {
-    openai: 'Example: gpt-5, gpt-5-mini',
-    anthropic: 'Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929',
-    google: 'Example: gemini-3-pro, gemini-2.5-flash',
-    groq: 'Example: llama-3.3-70b-versatile, openai/gpt-oss-120b',
-    mistral: 'Example: mistral-large-latest, mistral-medium-latest',
-    openrouter: 'Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct',
+    openai: "Example: gpt-5, gpt-5-mini",
+    anthropic: "Example: claude-opus-4-1-20250805, claude-sonnet-4-5-20250929",
+    google: "Example: gemini-3-pro, gemini-2.5-flash",
+    groq: "Example: llama-3.3-70b-versatile, openai/gpt-oss-120b",
+    mistral: "Example: mistral-large-latest, mistral-medium-latest",
+    openrouter: "Example: openai/gpt-5, meta-llama/llama-3.3-70b-instruct",
     ollama: (
       <Text type="warning">
-        ⚠️ For browser access, configure <code>OLLAMA_ORIGINS</code> to this site&apos;s origin
-        (for example, <code>https://template-playground.accordproject.org</code>), not{' '}
-        <code>&quot;*&quot;</code>. Using <code>&quot;*&quot;</code> allows any website to send
-        requests to your local Ollama server.
-        <br />Example models: tinyllama, qwen2.5:0.5b, llama3
+        ⚠️ For browser access, configure <code>OLLAMA_ORIGINS</code> to this
+        site&apos;s origin (for example,{" "}
+        <code>https://template-playground.accordproject.org</code>), not{" "}
+        <code>&quot;*&quot;</code>. Using <code>&quot;*&quot;</code> allows any
+        website to send requests to your local Ollama server.
+        <br />
+        Example models: tinyllama, qwen2.5:0.5b, llama3
       </Text>
     ),
   };
 
   const advancedItems = [
     {
-      key: 'advanced',
-      label: 'Advanced Settings',
+      key: "advanced",
+      label: "Advanced Settings",
       children: (
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" style={{ width: "100%" }}>
           <Form.Item
             label="Max Tokens"
             extra="Maximum number of tokens the model can generate in response"
@@ -401,9 +444,12 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
                 onChange={setEffort}
                 placeholder="Provider default"
                 allowClear
-                onClear={() => setEffort('')}
-                options={capabilities.effort.map((level) => ({ value: level, label: level }))}
-                style={{ width: '100%' }}
+                onClear={() => setEffort("")}
+                options={capabilities.effort.map((level) => ({
+                  value: level,
+                  label: level,
+                }))}
+                style={{ width: "100%" }}
               />
             </Form.Item>
           )}
@@ -435,13 +481,13 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
                 Extended Thinking
               </Checkbox>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                Improves accuracy on the arithmetic contract logic tends to do. Thinking tokens
-                count towards Max Tokens, so keep that generous.
+                Improves accuracy on the arithmetic contract logic tends to do.
+                Thinking tokens count towards Max Tokens, so keep that generous.
               </Text>
             </>
           )}
 
-          <Divider style={{ margin: '4px 0' }} />
+          <Divider style={{ margin: "4px 0" }} />
 
           <Checkbox
             id="showFullPrompt"
@@ -451,7 +497,8 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
             Show Full Prompts in Chat History
           </Checkbox>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            When enabled, you&apos;ll see the complete prompt sent to the AI (including any context), not just your input
+            When enabled, you&apos;ll see the complete prompt sent to the AI
+            (including any context), not just your input
           </Text>
 
           <Checkbox
@@ -462,7 +509,8 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
             Enable Code Selection Menu
           </Checkbox>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            When enabled, selecting code in editors will show a menu with &quot;Explain&quot; and &quot;Chat&quot; options
+            When enabled, selecting code in editors will show a menu with
+            &quot;Explain&quot; and &quot;Chat&quot; options
           </Text>
 
           <Checkbox
@@ -473,7 +521,8 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
             Enable Inline AI Suggestions
           </Checkbox>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            When enabled, AI will provide ghost text suggestions as you type in the editors
+            When enabled, AI will provide ghost text suggestions as you type in
+            the editors
           </Text>
         </Space>
       ),
@@ -481,7 +530,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
   ];
 
   return (
-    <Form layout="vertical" style={{ width: '100%' }}>
+    <Form layout="vertical" style={{ width: "100%" }}>
       <Form.Item label="Provider">
         <Select
           id="ai-provider-select"
@@ -489,11 +538,11 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
           onChange={setProvider}
           placeholder="Select a provider"
           options={providerOptions}
-          style={{ width: '100%' }}
+          style={{ width: "100%" }}
         />
       </Form.Item>
 
-      {provider === 'openai-compatible' && (
+      {provider === "openai-compatible" && (
         <Form.Item
           label="API Endpoint"
           extra="Enter the full base URL of the OpenAI-compatible API"
@@ -514,29 +563,46 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="Enter API key"
         />
-        {keyProtectionLevel === 'webauthn' && (
+        {keyProtectionLevel === "webauthn" && (
           <Space size={4} style={{ marginTop: 4 }}>
-            <LockOutlined style={{ color: '#52c41a', fontSize: 12 }} />
-            <Text style={{ color: '#52c41a', fontSize: 12 }}>
+            <LockOutlined style={{ color: "#52c41a", fontSize: 12 }} />
+            <Text style={{ color: "#52c41a", fontSize: 12 }}>
               Protected with Passkey (WebAuthn)
             </Text>
           </Space>
         )}
-        {keyProtectionLevel === 'memory-only' && (
+        {keyProtectionLevel === "memory-only" && (
           <Space size={4} style={{ marginTop: 4 }}>
-            <WarningOutlined style={{ color: '#faad14', fontSize: 12 }} />
-            <Text style={{ color: '#faad14', fontSize: 12 }}>
+            <WarningOutlined style={{ color: "#faad14", fontSize: 12 }} />
+            <Text style={{ color: "#faad14", fontSize: 12 }}>
               Stored in memory only (cleared on refresh)
             </Text>
           </Space>
         )}
-        {!webauthnAvailable && apiKey && provider !== 'ollama' && !keyProtectionLevel && (
-          <Text style={{ color: '#faad14', fontSize: 12, display: 'block', marginTop: 4 }}>
-            ⚠️ WebAuthn not available. Key will be stored in memory only.
-          </Text>
-        )}
+        {!webauthnAvailable &&
+          apiKey &&
+          provider !== "ollama" &&
+          !keyProtectionLevel && (
+            <Text
+              style={{
+                color: "#faad14",
+                fontSize: 12,
+                display: "block",
+                marginTop: 4,
+              }}
+            >
+              ⚠️ WebAuthn not available. Key will be stored in memory only.
+            </Text>
+          )}
         {securityMessage && (
-          <Text style={{ color: '#fa8c16', fontSize: 12, display: 'block', marginTop: 4 }}>
+          <Text
+            style={{
+              color: "#fa8c16",
+              fontSize: 12,
+              display: "block",
+              marginTop: 4,
+            }}
+          >
             {securityMessage}
           </Text>
         )}
@@ -553,15 +619,19 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
           placeholder="Select a model"
           options={modelOptions}
           notFoundContent="No models available"
-          style={{ width: '100%' }}
+          style={{ width: "100%" }}
         />
       </Form.Item>
 
       <Collapse
         items={advancedItems}
-        activeKey={showAdvancedSettings ? ['advanced'] : []}
+        activeKey={showAdvancedSettings ? ["advanced"] : []}
         onChange={(keys) =>
-          setShowAdvancedSettings(Array.isArray(keys) ? keys.includes('advanced') : keys === 'advanced')
+          setShowAdvancedSettings(
+            Array.isArray(keys)
+              ? keys.includes("advanced")
+              : keys === "advanced",
+          )
         }
         bordered
         style={{ marginBottom: 16 }}
@@ -571,17 +641,14 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         type="primary"
         block
         disabled={isSaveDisabled}
-        onClick={() => { handleSave().catch(console.warn); }}
+        onClick={() => {
+          handleSave().catch(console.warn);
+        }}
       >
-        {isEncrypting ? 'Encrypting & Saving...' : 'Save Configuration'}
+        {isEncrypting ? "Encrypting & Saving..." : "Save Configuration"}
       </Button>
 
-      <Button
-        danger
-        block
-        onClick={handleReset}
-        style={{ marginTop: 8 }}
-      >
+      <Button danger block onClick={handleReset} style={{ marginTop: 8 }}>
         Reset Configuration
       </Button>
     </Form>

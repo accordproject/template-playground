@@ -1,20 +1,27 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import AIConfigSection from '../../components/AIConfigSection';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+  within,
+} from "@testing-library/react";
+import "@testing-library/jest-dom";
+import AIConfigSection from "../../components/AIConfigSection";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
 const mockSetKeyProtectionLevel = vi.fn();
 const mockSetAIConfig = vi.fn();
 
-vi.mock('../../store/store', () => {
+vi.mock("../../store/store", () => {
   const store = vi.fn((selector: (state: object) => unknown) =>
     selector({
-      backgroundColor: '#ffffff',
+      backgroundColor: "#ffffff",
       keyProtectionLevel: null,
       setKeyProtectionLevel: mockSetKeyProtectionLevel,
-    })
+    }),
   );
   // expose getState for handleSave / handleReset
   (store as unknown as { getState: () => object }).getState = () => ({
@@ -24,7 +31,7 @@ vi.mock('../../store/store', () => {
   return { default: store };
 });
 
-vi.mock('../../utils/secureKeyStorage', () => ({
+vi.mock("../../utils/secureKeyStorage", () => ({
   isWebAuthnPRFSupported: vi.fn().mockResolvedValue(false),
   encryptAndStoreApiKey: vi.fn().mockResolvedValue(true),
   loadAndDecryptApiKey: vi.fn().mockResolvedValue(null),
@@ -32,13 +39,13 @@ vi.mock('../../utils/secureKeyStorage', () => ({
 }));
 
 // Bypass the 1-second debounce so model-fetch effects fire synchronously in tests
-vi.mock('use-debounce', () => ({
+vi.mock("use-debounce", () => ({
   useDebounce: (value: unknown) => [value],
 }));
 
 // Mock antd Select to use a native <select> for simpler test interactions
-vi.mock('antd', async (importOriginal) => {
-  const actual = await importOriginal() as Record<string, unknown>;
+vi.mock("antd", async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
 
   interface NativeSelectProps {
     value?: string;
@@ -61,7 +68,7 @@ vi.mock('antd', async (importOriginal) => {
   }: NativeSelectProps) => (
     <select
       id={id}
-      value={value ?? ''}
+      value={value ?? ""}
       onChange={(e) => onChange?.(e.target.value)}
       style={style}
     >
@@ -84,7 +91,7 @@ import {
   encryptAndStoreApiKey,
   loadAndDecryptApiKey,
   clearStoredKey,
-} from '../../utils/secureKeyStorage';
+} from "../../utils/secureKeyStorage";
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
@@ -102,15 +109,18 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+Object.defineProperty(window, "localStorage", { value: localStorageMock });
 
 /** Build a minimal fetch mock that returns a list of models.
  *  - `format: 'openai'` (default) wraps models as `{ data: [{ id }] }`
  *  - `format: 'ollama'` wraps models as `{ models: [{ name }] }`
  */
-function makeFetchMock(models: string[], format: 'openai' | 'ollama' = 'openai') {
+function makeFetchMock(
+  models: string[],
+  format: "openai" | "ollama" = "openai",
+) {
   const body =
-    format === 'ollama'
+    format === "ollama"
       ? { models: models.map((name) => ({ name })) }
       : { data: models.map((id) => ({ id })) };
   return vi.fn().mockResolvedValue({
@@ -127,19 +137,21 @@ function makeFetchMock(models: string[], format: 'openai' | 'ollama' = 'openai')
 const WAIT = { timeout: 8000 };
 
 /** Provider <select> (the first native select) */
-const providerSelect = () => document.querySelectorAll('select')[0] as HTMLSelectElement;
+const providerSelect = () =>
+  document.querySelectorAll("select")[0] as HTMLSelectElement;
 
 /** Model <select> (the second native select) */
-const modelSelect = () => document.querySelectorAll('select')[1] as HTMLSelectElement;
+const modelSelect = () =>
+  document.querySelectorAll("select")[1] as HTMLSelectElement;
 
 /** Save button, found without the expensive accessibility checks */
 const saveButton = () =>
-  screen.getByRole('button', { name: /Save Configuration/i, hidden: true });
+  screen.getByRole("button", { name: /Save Configuration/i, hidden: true });
 
 /** Resolves once a model <option> with the given label has been rendered */
 const waitForModelOption = (label: string) =>
   waitFor(() => {
-    expect(screen.getByText(label, { selector: 'option' })).toBeInTheDocument();
+    expect(screen.getByText(label, { selector: "option" })).toBeInTheDocument();
   }, WAIT);
 
 /** Picks a model in the model select and clicks Save. */
@@ -154,7 +166,7 @@ async function selectModelAndSave(model: string) {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('AIConfigSection', () => {
+describe("AIConfigSection", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
@@ -174,19 +186,23 @@ describe('AIConfigSection', () => {
 
   // ── Rendering ──────────────────────────────────────────────────────────────
 
-  it('renders provider select, API key input, model select, and action buttons', async () => {
+  it("renders provider select, API key input, model select, and action buttons", async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
-    expect(screen.getByText('Provider')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter API key')).toBeInTheDocument();
-    expect(screen.getByText('Model Name')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Save Configuration/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Reset Configuration/i })).toBeInTheDocument();
+    expect(screen.getByText("Provider")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter API key")).toBeInTheDocument();
+    expect(screen.getByText("Model Name")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Save Configuration/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Reset Configuration/i }),
+    ).toBeInTheDocument();
   });
 
-  it('save button is disabled when no provider or model is selected', async () => {
+  it("save button is disabled when no provider or model is selected", async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
@@ -196,58 +212,68 @@ describe('AIConfigSection', () => {
 
   // ── Provider selection impacts required fields ─────────────────────────────
 
-  it('shows API Endpoint field only when openai-compatible provider is selected', async () => {
+  it("shows API Endpoint field only when openai-compatible provider is selected", async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
     // Not shown initially
-    expect(screen.queryByPlaceholderText('https://your-api-endpoint/v1')).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText("https://your-api-endpoint/v1"),
+    ).not.toBeInTheDocument();
 
     // Select openai-compatible
     await act(async () => {
       fireEvent.change(providerSelect(), {
-        target: { value: 'openai-compatible' },
+        target: { value: "openai-compatible" },
       });
     });
 
-    expect(screen.getByPlaceholderText('https://your-api-endpoint/v1')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("https://your-api-endpoint/v1"),
+    ).toBeInTheDocument();
   });
 
-  it('hides API Endpoint field when switching away from openai-compatible', async () => {
-    await act(async () => {
-      render(<AIConfigSection />);
-    });
-
-    await act(async () => {
-      fireEvent.change(providerSelect(), { target: { value: 'openai-compatible' } });
-    });
-    expect(screen.getByPlaceholderText('https://your-api-endpoint/v1')).toBeInTheDocument();
-
-    await act(async () => {
-      fireEvent.change(providerSelect(), { target: { value: 'openai' } });
-    });
-    expect(screen.queryByPlaceholderText('https://your-api-endpoint/v1')).not.toBeInTheDocument();
-  });
-
-  // ── Ollama-specific path ───────────────────────────────────────────────────
-
-  it('shows Ollama-specific hint text when Ollama provider is selected', async () => {
+  it("hides API Endpoint field when switching away from openai-compatible", async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
     await act(async () => {
       fireEvent.change(providerSelect(), {
-        target: { value: 'ollama' },
+        target: { value: "openai-compatible" },
+      });
+    });
+    expect(
+      screen.getByPlaceholderText("https://your-api-endpoint/v1"),
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.change(providerSelect(), { target: { value: "openai" } });
+    });
+    expect(
+      screen.queryByPlaceholderText("https://your-api-endpoint/v1"),
+    ).not.toBeInTheDocument();
+  });
+
+  // ── Ollama-specific path ───────────────────────────────────────────────────
+
+  it("shows Ollama-specific hint text when Ollama provider is selected", async () => {
+    await act(async () => {
+      render(<AIConfigSection />);
+    });
+
+    await act(async () => {
+      fireEvent.change(providerSelect(), {
+        target: { value: "ollama" },
       });
     });
 
     expect(screen.getByText(/OLLAMA_ORIGINS/)).toBeInTheDocument();
   });
 
-  it('save button remains disabled for Ollama when no model is selected', async () => {
-    global.fetch = makeFetchMock([], 'ollama');
+  it("save button remains disabled for Ollama when no model is selected", async () => {
+    global.fetch = makeFetchMock([], "ollama");
 
     await act(async () => {
       render(<AIConfigSection />);
@@ -255,7 +281,7 @@ describe('AIConfigSection', () => {
 
     await act(async () => {
       fireEvent.change(providerSelect(), {
-        target: { value: 'ollama' },
+        target: { value: "ollama" },
       });
     });
 
@@ -265,9 +291,9 @@ describe('AIConfigSection', () => {
 
   // ── localStorage loading on mount ─────────────────────────────────────────
 
-  it('loads saved provider from localStorage on mount', async () => {
-    localStorageMock.setItem('aiProvider', 'openai');
-    localStorageMock.setItem('aiModel', 'gpt-4');
+  it("loads saved provider from localStorage on mount", async () => {
+    localStorageMock.setItem("aiProvider", "openai");
+    localStorageMock.setItem("aiModel", "gpt-4");
     // No fetch needed — models aren't listed yet; we just check the provider select value
     global.fetch = makeFetchMock([]);
 
@@ -277,16 +303,16 @@ describe('AIConfigSection', () => {
 
     // The provider <select> should have its value set to 'openai'
     await waitFor(() => {
-      expect(providerSelect()).toHaveValue('openai');
+      expect(providerSelect()).toHaveValue("openai");
     }, WAIT);
   });
 
-  it('loads in-memory API key from Zustand store when available', async () => {
+  it("loads in-memory API key from Zustand store when available", async () => {
     vi.mocked(loadAndDecryptApiKey).mockResolvedValue(null);
     // Simulate key already in Zustand in-memory store
-    const useAppStore = (await import('../../store/store')).default;
+    const useAppStore = (await import("../../store/store")).default;
     (useAppStore as unknown as { getState: () => object }).getState = () => ({
-      aiConfig: { apiKey: 'my-stored-key' },
+      aiConfig: { apiKey: "my-stored-key" },
       setAIConfig: mockSetAIConfig,
     });
 
@@ -296,8 +322,10 @@ describe('AIConfigSection', () => {
       });
 
       await waitFor(() => {
-        const apiKeyInput = screen.getByPlaceholderText('Enter API key') as HTMLInputElement;
-        expect(apiKeyInput.value).toBe('my-stored-key');
+        const apiKeyInput = screen.getByPlaceholderText(
+          "Enter API key",
+        ) as HTMLInputElement;
+        expect(apiKeyInput.value).toBe("my-stored-key");
       }, WAIT);
     } finally {
       // Restore default even if the assertion above fails, so later tests are not affected
@@ -308,10 +336,10 @@ describe('AIConfigSection', () => {
     }
   });
 
-  it('shows security message when legacy-plaintext key is loaded', async () => {
+  it("shows security message when legacy-plaintext key is loaded", async () => {
     vi.mocked(loadAndDecryptApiKey).mockResolvedValue({
-      apiKey: 'legacy-key',
-      protectionLevel: 'legacy-plaintext',
+      apiKey: "legacy-key",
+      protectionLevel: "legacy-plaintext",
     });
 
     await act(async () => {
@@ -325,8 +353,8 @@ describe('AIConfigSection', () => {
 
   // ── Save persistence ───────────────────────────────────────────────────────
 
-  it('persists provider and model to localStorage on save', async () => {
-    global.fetch = makeFetchMock(['gpt-4', 'gpt-4o']);
+  it("persists provider and model to localStorage on save", async () => {
+    global.fetch = makeFetchMock(["gpt-4", "gpt-4o"]);
 
     await act(async () => {
       render(<AIConfigSection />);
@@ -335,30 +363,33 @@ describe('AIConfigSection', () => {
     // Select provider
     await act(async () => {
       fireEvent.change(providerSelect(), {
-        target: { value: 'openai' },
+        target: { value: "openai" },
       });
     });
 
     // Enter API key (triggers model fetch via debounced effect)
     await act(async () => {
-      fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
-        target: { value: 'test-key' },
+      fireEvent.change(screen.getByPlaceholderText("Enter API key"), {
+        target: { value: "test-key" },
       });
     });
 
     // Wait for models to be populated in the select, then choose one and save
-    await waitForModelOption('gpt-4');
-    await selectModelAndSave('gpt-4');
+    await waitForModelOption("gpt-4");
+    await selectModelAndSave("gpt-4");
 
     await waitFor(() => {
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('aiProvider', 'openai');
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('aiModel', 'gpt-4');
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        "aiProvider",
+        "openai",
+      );
+      expect(localStorageMock.setItem).toHaveBeenCalledWith("aiModel", "gpt-4");
     }, WAIT);
   });
 
-  it('removes aiCustomEndpoint from localStorage when provider is not openai-compatible', async () => {
-    localStorageMock.setItem('aiCustomEndpoint', 'https://old-endpoint/v1');
-    global.fetch = makeFetchMock(['gpt-4']);
+  it("removes aiCustomEndpoint from localStorage when provider is not openai-compatible", async () => {
+    localStorageMock.setItem("aiCustomEndpoint", "https://old-endpoint/v1");
+    global.fetch = makeFetchMock(["gpt-4"]);
 
     await act(async () => {
       render(<AIConfigSection />);
@@ -366,24 +397,26 @@ describe('AIConfigSection', () => {
 
     await act(async () => {
       fireEvent.change(providerSelect(), {
-        target: { value: 'openai' },
+        target: { value: "openai" },
       });
-      fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
-        target: { value: 'test-key' },
+      fireEvent.change(screen.getByPlaceholderText("Enter API key"), {
+        target: { value: "test-key" },
       });
     });
 
-    await waitForModelOption('gpt-4');
-    await selectModelAndSave('gpt-4');
+    await waitForModelOption("gpt-4");
+    await selectModelAndSave("gpt-4");
 
     await waitFor(() => {
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('aiCustomEndpoint');
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith(
+        "aiCustomEndpoint",
+      );
     }, WAIT);
   });
 
-  it('calls onSaveSuccess callback after saving with Ollama', async () => {
+  it("calls onSaveSuccess callback after saving with Ollama", async () => {
     const onSaveSuccess = vi.fn();
-    global.fetch = makeFetchMock(['tinyllama'], 'ollama');
+    global.fetch = makeFetchMock(["tinyllama"], "ollama");
 
     await act(async () => {
       render(<AIConfigSection onSaveSuccess={onSaveSuccess} />);
@@ -391,13 +424,13 @@ describe('AIConfigSection', () => {
 
     await act(async () => {
       fireEvent.change(providerSelect(), {
-        target: { value: 'ollama' },
+        target: { value: "ollama" },
       });
     });
 
     // Wait for Ollama models to be fetched
-    await waitForModelOption('tinyllama');
-    await selectModelAndSave('tinyllama');
+    await waitForModelOption("tinyllama");
+    await selectModelAndSave("tinyllama");
 
     await waitFor(() => {
       expect(onSaveSuccess).toHaveBeenCalledTimes(1);
@@ -405,45 +438,91 @@ describe('AIConfigSection', () => {
   });
 
   // ── Reset clears state ─────────────────────────────────────────────────────
-
-  it('clears localStorage and resets form state on confirmed reset', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    localStorageMock.setItem('aiProvider', 'openai');
-    localStorageMock.setItem('aiModel', 'gpt-4');
-
+  it("opens confirmation modal when reset button is clicked", async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Reset Configuration/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /Reset Configuration/i }),
+      );
     });
 
-    expect(clearStoredKey).toHaveBeenCalled();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('aiProvider');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('aiModel');
-    expect(mockSetAIConfig).toHaveBeenCalledWith(null);
+    expect(
+      await screen.findByText("Reset AI Configuration?"),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/Are you sure you want to reset all AI configuration/i),
+    ).toBeInTheDocument();
+
+    expect(clearStoredKey).not.toHaveBeenCalled();
+    expect(mockSetAIConfig).not.toHaveBeenCalled();
+
+    // Close the modal so it does not affect the next test
+    const dialog = await screen.findByRole("dialog");
+
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole("button", { name: /Cancel/i }));
+    });
   });
 
-  it('does NOT clear state when reset is cancelled', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
-    localStorageMock.setItem('aiProvider', 'openai');
+  it("does NOT clear state when reset is cancelled", async () => {
+    localStorageMock.setItem("aiProvider", "openai");
+    localStorageMock.setItem("aiModel", "gpt-4");
 
     await act(async () => {
       render(<AIConfigSection />);
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Reset Configuration/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /Reset Configuration/i }),
+      );
+    });
+
+    const dialog = await screen.findByRole("dialog");
+
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole("button", { name: /Cancel/i }));
     });
 
     expect(clearStoredKey).not.toHaveBeenCalled();
     expect(mockSetAIConfig).not.toHaveBeenCalled();
+    expect(localStorageMock.removeItem).not.toHaveBeenCalledWith("aiProvider");
+    expect(localStorageMock.removeItem).not.toHaveBeenCalledWith("aiModel");
+  });
+
+  it("clears localStorage and resets form state on confirmed reset", async () => {
+    localStorageMock.setItem("aiProvider", "openai");
+    localStorageMock.setItem("aiModel", "gpt-4");
+
+    await act(async () => {
+      render(<AIConfigSection />);
+    });
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /Reset Configuration/i }),
+      );
+    });
+
+    const dialog = await screen.findByRole("dialog");
+
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole("button", { name: "Reset" }));
+    });
+
+    expect(clearStoredKey).toHaveBeenCalled();
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith("aiProvider");
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith("aiModel");
+    expect(mockSetAIConfig).toHaveBeenCalledWith(null);
   });
 
   // ── WebAuthn handling ──────────────────────────────────────────────────────
 
-  it('shows WebAuthn unavailable warning when key is entered but WebAuthn is not supported', async () => {
+  it("shows WebAuthn unavailable warning when key is entered but WebAuthn is not supported", async () => {
     vi.mocked(isWebAuthnPRFSupported).mockResolvedValue(false);
 
     await act(async () => {
@@ -452,10 +531,10 @@ describe('AIConfigSection', () => {
 
     await act(async () => {
       fireEvent.change(providerSelect(), {
-        target: { value: 'openai' },
+        target: { value: "openai" },
       });
-      fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
-        target: { value: 'test-key' },
+      fireEvent.change(screen.getByPlaceholderText("Enter API key"), {
+        target: { value: "test-key" },
       });
     });
 
@@ -464,10 +543,10 @@ describe('AIConfigSection', () => {
     }, WAIT);
   });
 
-  it('uses WebAuthn encryption when available during save', async () => {
+  it("uses WebAuthn encryption when available during save", async () => {
     vi.mocked(isWebAuthnPRFSupported).mockResolvedValue(true);
     vi.mocked(encryptAndStoreApiKey).mockResolvedValue(true);
-    global.fetch = makeFetchMock(['gpt-4']);
+    global.fetch = makeFetchMock(["gpt-4"]);
 
     await act(async () => {
       render(<AIConfigSection />);
@@ -475,61 +554,67 @@ describe('AIConfigSection', () => {
 
     await act(async () => {
       fireEvent.change(providerSelect(), {
-        target: { value: 'openai' },
+        target: { value: "openai" },
       });
-      fireEvent.change(screen.getByPlaceholderText('Enter API key'), {
-        target: { value: 'my-api-key' },
+      fireEvent.change(screen.getByPlaceholderText("Enter API key"), {
+        target: { value: "my-api-key" },
       });
     });
 
-    await waitForModelOption('gpt-4');
-    await selectModelAndSave('gpt-4');
+    await waitForModelOption("gpt-4");
+    await selectModelAndSave("gpt-4");
 
     await waitFor(() => {
-      expect(encryptAndStoreApiKey).toHaveBeenCalledWith('my-api-key');
+      expect(encryptAndStoreApiKey).toHaveBeenCalledWith("my-api-key");
     }, WAIT);
   });
 
   // ── API key visibility toggle ──────────────────────────────────────────────
 
-  it('toggles API key visibility when eye button is clicked', async () => {
+  it("toggles API key visibility when eye button is clicked", async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
-    const apiKeyInput = screen.getByPlaceholderText('Enter API key') as HTMLInputElement;
-    expect(apiKeyInput.type).toBe('password');
+    const apiKeyInput = screen.getByPlaceholderText(
+      "Enter API key",
+    ) as HTMLInputElement;
+    expect(apiKeyInput.type).toBe("password");
 
     // antd Input.Password renders the toggle as an icon with aria-label="eye-invisible" when hidden
-    const toggleBtn = screen.getByRole('img', { name: 'eye-invisible' });
+    const toggleBtn = screen.getByRole("img", { name: "eye-invisible" });
     await act(async () => {
       fireEvent.click(toggleBtn);
     });
 
-    expect(apiKeyInput.type).toBe('text');
+    expect(apiKeyInput.type).toBe("text");
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('img', { name: 'eye' }));
+      fireEvent.click(screen.getByRole("img", { name: "eye" }));
     });
 
-    expect(apiKeyInput.type).toBe('password');
+    expect(apiKeyInput.type).toBe("password");
   });
 
   // ── Advanced Settings toggle ───────────────────────────────────────────────
 
-  it('shows advanced settings section when toggle is clicked', async () => {
+  it("shows advanced settings section when toggle is clicked", async () => {
     await act(async () => {
       render(<AIConfigSection />);
     });
 
-    expect(screen.queryByText('Max Tokens')).not.toBeInTheDocument();
+    expect(screen.queryByText("Max Tokens")).not.toBeInTheDocument();
 
-    const advancedBtn = screen.getByRole('button', { name: /Advanced Settings/i });
+    const advancedBtn = screen.getByRole("button", {
+      name: /Advanced Settings/i,
+    });
     await act(async () => {
       fireEvent.click(advancedBtn);
     });
 
-    expect(screen.getByText('Max Tokens')).toBeInTheDocument();
-    expect(screen.getByText('Show Full Prompts in Chat History')).toBeInTheDocument();
+    expect(screen.getByText("Max Tokens")).toBeInTheDocument();
+    expect(
+      screen.getByText("Show Full Prompts in Chat History"),
+    ).toBeInTheDocument();
   });
 });
