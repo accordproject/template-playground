@@ -2,8 +2,9 @@
  * What logic.ts is written against, read from model.cto: the @template
  * concept, the request/response transactions and the state asset. From
  * those, a logic skeleton with the right $class names and fields; the
- * "what to commit on Apply & Compile" rule of the legacy LogicEditor; and
- * the "what Simulate compiles on arrival" rule of the design-v2 flow.
+ * request Simulate sends for it; the "what to commit on Apply & Compile"
+ * rule of the legacy LogicEditor; and the "what Simulate compiles on
+ * arrival" rule of the design-v2 flow.
  */
 import { ModelManager } from "@accordproject/concerto-core";
 
@@ -15,6 +16,7 @@ import { ModelManager } from "@accordproject/concerto-core";
  */
 const RUNTIME_STATE_FQN = "org.accordproject.runtime@0.2.0.State";
 const RUNTIME_RESPONSE_FQN = "org.accordproject.runtime@0.2.0.Response";
+const RUNTIME_REQUEST_FQN = "org.accordproject.runtime@0.2.0.Request";
 
 /** Generic fallback when model.cto declares no request/response transactions. */
 export const DEFAULT_LOGIC_BOILERPLATE = `// Write your contract logic here.
@@ -64,6 +66,11 @@ export interface LogicType {
   identifier?: string;
 }
 
+export type LogicDeclaration =
+  | { kind: "concept"; fqn: string; fields: LogicField[] }
+  | { kind: "enum"; values: string[] }
+  | { kind: "scalar"; base: string };
+
 /** The parts of model.cto that logic.ts talks to. Each is missing when the model does not declare it. */
 export interface LogicModel {
   namespace: string;
@@ -75,6 +82,10 @@ export interface LogicModel {
   response?: LogicType;
   /** Asset named *State, else the first asset. */
   state?: LogicType;
+  /** Fully qualified name of every declaration, to recognise a request's $class. */
+  classes: string[];
+  /** Concepts, enums and scalars a request field can name, by simple and qualified name. */
+  declarations: Record<string, LogicDeclaration>;
 }
 
 /* Concerto's declaration classes, typed by the methods used here. */
@@ -95,6 +106,10 @@ interface ConcertoDeclaration {
   isAsset(): boolean;
   isEvent(): boolean;
   isConcept(): boolean;
+  isEnum(): boolean;
+  isScalarDeclaration(): boolean;
+  /** A scalar's super type; null on the other declarations. */
+  getType(): string | null;
 }
 
 /*
@@ -118,14 +133,38 @@ const identifierOf = (d: ConcertoDeclaration): string | undefined => {
   }
 };
 
+const fieldsOf = (d: ConcertoDeclaration): LogicField[] =>
+  propertiesOf(d)
+    .filter((p) => !p.getName().startsWith("$"))
+    .map((p) => ({ name: p.getName(), type: p.getType(), isArray: p.isArray(), isOptional: p.isOptional() }));
+
 const toType = (d: ConcertoDeclaration): LogicType => ({
   name: d.getName(),
   fqn: d.getFullyQualifiedName(),
   identifier: identifierOf(d),
-  fields: propertiesOf(d)
-    .filter((p) => !p.getName().startsWith("$"))
-    .map((p) => ({ name: p.getName(), type: p.getType(), isArray: p.isArray(), isOptional: p.isOptional() })),
+  fields: fieldsOf(d),
 });
+
+/** A scalar's base type; undefined when it extends a type the model does not declare. */
+const scalarBaseOf = (d: ConcertoDeclaration): string | undefined => {
+  try {
+    const base = d.getType();
+    return base ? base.split(".").pop() : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/** The declaration as a request field may name it; undefined for transactions, assets and events. */
+const declarationOf = (d: ConcertoDeclaration): LogicDeclaration | undefined => {
+  if (d.isEnum()) return { kind: "enum", values: propertiesOf(d).map((p) => p.getName()) };
+  if (d.isScalarDeclaration()) {
+    const base = scalarBaseOf(d);
+    return base ? { kind: "scalar", base } : undefined;
+  }
+  if (d.isTransaction() || d.isAsset() || d.isEvent()) return undefined;
+  return { kind: "concept", fqn: d.getFullyQualifiedName(), fields: fieldsOf(d) };
+};
 
 const endingWith = (list: ConcertoDeclaration[], suffix: string) => list.find((d) => d.getName().endsWith(suffix));
 
@@ -154,12 +193,26 @@ export const describeLogicModel = (modelCto: string): LogicModel | null => {
     const stateAssets = assets.filter((d) => d !== template);
     const state = endingWith(stateAssets, "State") ?? stateAssets[0];
 
+    // Keyed by both names so a field type resolves whether written plain or qualified.
+    const declarationsOf = (): Record<string, LogicDeclaration> => {
+      const map: Record<string, LogicDeclaration> = {};
+      for (const d of declarations) {
+        const declaration = declarationOf(d);
+        if (!declaration) continue;
+        map[d.getName()] = declaration;
+        map[d.getFullyQualifiedName()] = declaration;
+      }
+      return map;
+    };
+
     return {
       namespace: modelFile.getNamespace(),
       template: template && toType(template),
       request: request && toType(request),
       response: response && toType(response),
       state: state && toType(state),
+      classes: declarations.map((d) => d.getFullyQualifiedName()),
+      declarations: declarationsOf(),
     };
   } catch {
     return null;
@@ -254,6 +307,101 @@ export default ContractLogic;
  */
 export const nextLogicSource = (editorLogicTs: string, logicTs: string, modelCto: string): string =>
   editorLogicTs.trim() === '' && logicTs.trim() === '' ? scaffoldFromModel(describeLogicModel(modelCto)) : editorLogicTs;
+
+/** JSON stand-in for a required primitive field, as the engine takes them in a request. */
+const JSON_PLACEHOLDER: Record<string, unknown> = {
+  String: "",
+  Integer: 0,
+  Long: 0,
+  Double: 0,
+  Boolean: false,
+};
+
+/** The declaration a field's type names, written plain or fully qualified. */
+const declarationFor = (typeName: string, model: LogicModel | null): LogicDeclaration | undefined =>
+  model?.declarations[typeName] ?? model?.declarations[typeName.split(".").pop() ?? typeName];
+
+/** A scalar's value: its base type's placeholder, or that of the scalar it extends. */
+const scalarValue = (base: string, model: LogicModel | null, seen: string[]): unknown => {
+  if (base === "DateTime") return new Date().toISOString();
+  if (base in JSON_PLACEHOLDER) return JSON_PLACEHOLDER[base];
+  const next = declarationFor(base, model);
+  if (!next || next.kind !== "scalar" || seen.includes(base)) return undefined;
+  return scalarValue(next.base, model, [...seen, base]);
+};
+
+/**
+ * A first value for a required field: a primitive placeholder, the first enum
+ * value, a concept built from its own required fields, or a scalar's base
+ * value. Undefined when the type is not declared (imports are not resolved),
+ * so the request carries every field that can be filled.
+ */
+const requestValue = (field: LogicField, model: LogicModel | null, seen: string[] = []): unknown => {
+  if (field.isArray) return [];
+  if (field.type === "DateTime") return new Date().toISOString();
+  if (field.type in JSON_PLACEHOLDER) return JSON_PLACEHOLDER[field.type];
+
+  const declaration = declarationFor(field.type, model);
+  if (!declaration) return undefined;
+  if (declaration.kind === "enum") return declaration.values[0];
+  if (declaration.kind === "scalar") return scalarValue(declaration.base, model, [field.type]);
+  // A concept that contains itself, directly or through another, stops here.
+  if (seen.includes(declaration.fqn)) return undefined;
+
+  const body: Record<string, unknown> = { $class: declaration.fqn };
+  for (const nested of declaration.fields) {
+    if (nested.isOptional) continue;
+    const value = requestValue(nested, model, [...seen, declaration.fqn]);
+    if (value !== undefined) body[nested.name] = value;
+  }
+  return body;
+};
+
+/**
+ * The request Simulate sends for this model: its request transaction, with
+ * the required fields filled in (first values for primitives, enum values,
+ * concepts and scalars), or the engine's runtime Request when the model
+ * declares none (what DEFAULT_LOGIC_BOILERPLATE expects). Built from the same
+ * LogicModel as scaffoldFromModel, so the logic and the request always agree.
+ */
+export const defaultRequestFromModel = (model: LogicModel | null): string => {
+  const request = model?.request;
+  if (!request) return JSON.stringify({ $class: RUNTIME_REQUEST_FQN }, null, 2);
+
+  const body: Record<string, unknown> = { $class: request.fqn };
+  for (const field of request.fields) {
+    if (field.isOptional) continue;
+    const value = requestValue(field, model);
+    if (value !== undefined) body[field.name] = value;
+  }
+  return JSON.stringify(body, null, 2);
+};
+
+/**
+ * Whether Simulate needs the model's default request in place of this one:
+ * it is empty, is not JSON, is the boilerplate's runtime Request while the
+ * model declares a request of its own, or is for a class the model does not
+ * declare (an imported template's request kept from another model, or the
+ * Counter request samples without one used to get). A request the user typed
+ * for this model is kept as it is.
+ */
+export const needsDefaultRequest = (requestJson: string, model: LogicModel | null): boolean => {
+  if (requestJson.trim() === "") return true;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(requestJson);
+  } catch {
+    return true;
+  }
+
+  const className = (parsed as { $class?: unknown } | null)?.$class;
+  if (typeof className !== "string" || className === "") return true;
+  // The runtime Request belongs to the boilerplate, not the model: replace it
+  // once the model declares a request transaction of its own.
+  if (className === RUNTIME_REQUEST_FQN) return model?.request !== undefined;
+  return !(model?.classes ?? []).includes(className);
+};
 
 /**
  * The logic the design-v2 flow compiles before Simulate: whatever is in the

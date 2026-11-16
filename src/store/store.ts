@@ -29,6 +29,11 @@ import {
   shouldShowDesignV2Notice,
   writeDesignV2Preference,
 } from "../utils/designV2Preference";
+import {
+  defaultRequestFromModel,
+  describeLogicModel,
+  needsDefaultRequest,
+} from "../editors/logicSource";
 
 /** sampleName of a template opened from a share link; design v2 starts on it instead of the first card. */
 export const SHARED_TEMPLATE_NAME = "Shared template";
@@ -850,7 +855,9 @@ const useAppStore = create<AppState>()(
           persistChain(chain);
         },
 
-        requestJson: '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}',
+        // The startup template (playground) declares no request: send the runtime one,
+        // rather than the Counter sample's request, which its model does not know.
+        requestJson: defaultRequestFromModel(describeLogicModel(playground.MODEL)),
         setRequestJson: (json: string) => set({ requestJson: json }),
 
         toggleModelCollapse: () =>
@@ -945,8 +952,10 @@ const useAppStore = create<AppState>()(
           if (sample) {
             const logicTs = sample.LOGIC ?? "";
             const hasLogic = !!sample.LOGIC;
-            const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
-            const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
+            // A sample without a request gets one for its own model, not the Counter sample's.
+            const requestJson = sample.REQUEST
+              ? JSON.stringify(sample.REQUEST, null, 2)
+              : defaultRequestFromModel(describeLogicModel(sample.MODEL));
             invalidateCompilations();
             set(() => ({
               ...TEMPLATE_CACHE_RESET,
@@ -1176,12 +1185,18 @@ const useAppStore = create<AppState>()(
           get().resetExecution();
           // Compiles still running belong to the previous template (see invalidateCompilations).
           invalidateCompilations();
+          // The previous template's request means nothing to this one: keep the
+          // archive's own request only when it is for this model, else use the default.
+          const model = describeLogicModel(modelCto);
+          const initialRequest =
+            requestJson && !needsDefaultRequest(requestJson, model)
+              ? requestJson
+              : defaultRequestFromModel(model);
           set(() => ({
             ...TEMPLATE_CACHE_RESET,
             sampleName: importedTemplateName(name),
             importedData: data,
-            // The previous template's request means nothing to this one.
-            requestJson: requestJson ?? "",
+            requestJson: initialRequest,
             templateMarkdown,
             editorValue: templateMarkdown,
             modelCto,
