@@ -33,13 +33,20 @@ export const RAIL = {
   discord: "Discord",
   github: "GitHub",
   menuTitle: "Playground",
-  menuSubtitle: "Open a demo, learn the format, or start over.",
+  menuSubtitle: "Browse templates, learn the format, or start over.",
   items: {
-    demo: { label: "Open the demo document", hint: (sample: string) => `See the rendered ${sample} as a signer would` },
-    tour: { label: "Replay the guided tour", hint: "Back to step 0 — pick a starting point" },
+    tour: { label: "Replay the introduction", hint: "Back to step 0 — pick a starting point" },
     examples: { label: "Browse example templates", hint: "Employment offer, NDA, supply agreement…" },
     docs: { label: "Docs: template format", hint: "Text, model and logic explained" },
     reset: { label: "Reset the playground", hint: "Clear edits and start from the sample" },
+  },
+  /** Confirmation before "Reset the playground" discards the user's work. */
+  resetConfirm: {
+    title: "Reset the playground?",
+    content: (sample: string) =>
+      `This replaces your text, model, data and logic with the ${sample} sample and clears the simulation history. Your edits can't be recovered.`,
+    ok: "Reset",
+    cancel: "Cancel",
   },
 } as const;
 
