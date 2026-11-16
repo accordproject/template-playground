@@ -51,6 +51,8 @@ import "./DesignV2Layout.css";
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
 const DesignV2Layout = () => {
+  // The CSS shell follows html[data-theme] (set in App.tsx); antd needs the algorithm passed in.
+  const isDark = useAppStore((s) => s.backgroundColor === "#121212");
   const view = useDesignV2Store((s) => s.view);
   const setView = useDesignV2Store((s) => s.setView);
   const start = useDesignV2Store((s) => s.start);
@@ -129,7 +131,7 @@ const DesignV2Layout = () => {
   const showFooter = showChrome && view !== FIRST_STEP;
 
   return (
-    <ConfigProvider theme={designV2Theme()}>
+    <ConfigProvider theme={designV2Theme(isDark)}>
     <div className="nd-root">
       {/* Hidden iframe the store runs compiled logic in (initContract / triggerContract). */}
       <SandboxFrame />
