@@ -102,11 +102,23 @@ describe('StartView', () => {
   it('opening the current card carries on with it without reloading, so edits are kept', () => {
     const [, second] = START_SAMPLES;
     useDesignV2Store.setState({ selectedTemplate: second.name });
+    useAppStore.setState({ sampleName: second.sampleName });
     render(<StartView />);
 
     fireEvent.click(screen.getByRole('button', { name: START.openLabel(second.name) }));
     expect(loadSample).not.toHaveBeenCalled();
     expect(useDesignV2Store.getState().selectedTemplate).toBe(second.name);
+    expect(useDesignV2Store.getState().view).toBe(secondStep);
+  });
+
+  it('reloads the current card when another sample was loaded since (in the classic playground)', () => {
+    const [first, second] = START_SAMPLES;
+    useDesignV2Store.setState({ selectedTemplate: second.name });
+    useAppStore.setState({ sampleName: first.sampleName });
+    render(<StartView />);
+
+    fireEvent.click(screen.getByRole('button', { name: START.openLabel(second.name) }));
+    expect(loadSample).toHaveBeenCalledWith(second.sampleName);
     expect(useDesignV2Store.getState().view).toBe(secondStep);
   });
 
