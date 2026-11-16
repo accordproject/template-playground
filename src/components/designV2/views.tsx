@@ -131,8 +131,10 @@ export const StartView = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const goNext = useDesignV2Store((s) => s.goNext);
   const pick = usePickTemplate();
+  // Opening the card already in use carries on with it as it is, so edits
+  // (including work kept from the classic playground) are not reloaded away.
   const open = (name: string) => {
-    pick(name);
+    if (name !== selectedTemplate) pick(name);
     goNext();
   };
 
