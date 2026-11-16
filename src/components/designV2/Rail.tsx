@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dropdown, Modal, type MenuProps } from "antd";
 import { GithubOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
 import { FaDiscord } from "react-icons/fa";
-import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
+import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import { STEP_ID } from "../../types/designV2.types";
 import * as playground from "../../samples/playground";
@@ -23,11 +23,9 @@ const MenuItemText = ({ label, hint }: MenuItemTextProps) => (
 
 /**
  * Dark 56px navigation rail on the far left of design v2.
- * The ☰ button opens the Playground menu (demo, tour, samples, docs, reset),
+ * The ☰ button opens the Playground menu (tour, samples, docs, reset),
  * rendered with antd Dropdown so keyboard and focus handling come for free.
  * Menu items:
- * - demo: show the current template rendered (Text step, Preview), without
- *   loading anything, so the user's edits are never touched;
  * - tour: back to the v2 welcome view (v2's introduction; the legacy guided
  *   tour targets v1 elements and is not used here);
  * - examples: the template gallery (Template step);
@@ -41,23 +39,11 @@ const Rail = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   // Hook form so the dialog picks up design v2's ConfigProvider theme.
   const [modal, modalContext] = Modal.useModal();
-  const sampleName = useAppStore((s) => s.sampleName);
   const loadSample = useAppStore((s) => s.loadSample);
   const resetExecution = useAppStore((s) => s.resetExecution);
   const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
   const setView = useDesignV2Store((s) => s.setView);
-  const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
-  const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
   const resetFlow = useDesignV2Store((s) => s.resetFlow);
-
-  const openDemo = () => {
-    // A share link loaded before any card was picked: name it, as "Start building" does.
-    if (useDesignV2Store.getState().selectedTemplate === null && sampleName === SHARED_TEMPLATE_NAME) {
-      selectTemplate(SHARED_TEMPLATE_NAME);
-    }
-    setPreviewOpen(true);
-    setView(STEP_ID.text);
-  };
 
   const confirmReset = () => {
     void modal.confirm({
@@ -77,11 +63,6 @@ const Rail = () => {
   };
 
   const menuItems: MenuProps["items"] = [
-    {
-      key: "demo",
-      icon: <span className="nd-menu-icon nd-menu-icon-teal">◧</span>,
-      label: <MenuItemText label={RAIL.items.demo.label} hint={RAIL.items.demo.hint(sampleName)} />,
-    },
     {
       key: "tour",
       icon: <span className="nd-menu-icon nd-menu-icon-blue">▶</span>,
@@ -106,9 +87,6 @@ const Rail = () => {
 
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
     switch (key) {
-      case "demo":
-        openDemo();
-        break;
       case "tour":
         setView("welcome");
         break;

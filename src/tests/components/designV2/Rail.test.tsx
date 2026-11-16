@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Rail from "../../../components/designV2/Rail";
 import { RAIL, URLS } from "../../../components/designV2/constants";
-import useAppStore, { SHARED_TEMPLATE_NAME } from "../../../store/store";
+import useAppStore from "../../../store/store";
 import useDesignV2Store from "../../../store/designV2Store";
 import { STEP_ID } from "../../../types/designV2.types";
 import * as playground from "../../../samples/playground";
@@ -58,15 +58,15 @@ describe("Design V2 Rail", () => {
 
     openMenu();
 
-    expect(screen.getByRole("menuitem", { name: /Open the demo document/ })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /Replay the introduction/ })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /Browse example templates/ })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /Docs: template format/ })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /Reset the playground/ })).toBeInTheDocument();
+    expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+      expect.stringContaining("Replay the introduction"),
+      expect.stringContaining("Browse example templates"),
+      expect.stringContaining("Docs: template format"),
+      expect.stringContaining("Reset the playground"),
+    ]);
   });
 
   it.each([
-    ["Open the demo document"],
     ["Replay the introduction"],
     ["Browse example templates"],
     ["Docs: template format"],
@@ -77,32 +77,6 @@ describe("Design V2 Rail", () => {
     clickMenuItem(label);
 
     expect(screen.queryByRole("menuitem", { name: new RegExp(label) })).not.toBeInTheDocument();
-  });
-
-  describe("Open the demo document", () => {
-    it("previews the current template on the Text step without loading a sample", () => {
-      useDesignV2Store.setState({ view: STEP_ID.logic, selectedTemplate: "Counter Contract" });
-      render(<Rail />);
-
-      clickMenuItem("Open the demo document");
-
-      expect(loadSample).not.toHaveBeenCalled();
-      expect(resetExecution).not.toHaveBeenCalled();
-      const state = useDesignV2Store.getState();
-      expect(state.view).toBe(STEP_ID.text);
-      expect(state.previewOpen).toBe(true);
-      expect(state.selectedTemplate).toBe("Counter Contract");
-    });
-
-    it("names a template loaded from a share link, as Start building does", () => {
-      useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME });
-      render(<Rail />);
-
-      clickMenuItem("Open the demo document");
-
-      expect(useDesignV2Store.getState().selectedTemplate).toBe(SHARED_TEMPLATE_NAME);
-      expect(loadSample).not.toHaveBeenCalled();
-    });
   });
 
   it("replays the v2 introduction by returning to the welcome view", () => {

@@ -33,9 +33,8 @@ export const RAIL = {
   discord: "Discord",
   github: "GitHub",
   menuTitle: "Playground",
-  menuSubtitle: "Open a demo, learn the format, or start over.",
+  menuSubtitle: "Browse templates, learn the format, or start over.",
   items: {
-    demo: { label: "Open the demo document", hint: (sample: string) => `See the rendered ${sample} as a signer would` },
     tour: { label: "Replay the introduction", hint: "Back to step 0 — pick a starting point" },
     examples: { label: "Browse example templates", hint: "Employment offer, NDA, supply agreement…" },
     docs: { label: "Docs: template format", hint: "Text, model and logic explained" },
