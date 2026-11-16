@@ -239,8 +239,15 @@ const UrlModal = ({ open, onClose }: UrlModalProps) => {
   const [url, setUrl] = useState("");
   const close = () => {
     cancel();
+    setUrl("");
     onClose();
   };
+
+  useEffect(() => {
+    if (open) {
+      setUrl("");
+    }
+  }, [open]);
 
   const submit = async () => {
     const target = url.trim();
@@ -254,7 +261,10 @@ const UrlModal = ({ open, onClose }: UrlModalProps) => {
     }
     const fileName = decoded.replace(/\.(cta|zip)$/i, "");
     const ok = await run(async () => readTemplateArchive(await fetchArchive(target), fileName || "template"));
-    if (ok) onClose();
+    if (ok) {
+      setUrl("");
+      onClose();
+    }
   };
 
   return (
