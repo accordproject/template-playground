@@ -41,7 +41,6 @@ const Rail = () => {
   const [modal, modalContext] = Modal.useModal();
   const loadSample = useAppStore((s) => s.loadSample);
   const resetExecution = useAppStore((s) => s.resetExecution);
-  const isDark = useAppStore((s) => s.backgroundColor === "#121212");
   const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
   const setView = useDesignV2Store((s) => s.setView);
   const resetFlow = useDesignV2Store((s) => s.resetFlow);
@@ -117,7 +116,7 @@ const Rail = () => {
           open={menuOpen}
           onOpenChange={setMenuOpen}
           dropdownRender={(menu) => (
-            <div className="nd-menu" data-theme={isDark ? "dark" : "light"}>
+            <div className="nd-menu">
               <div className="nd-menu-head">
                 <div className="nd-menu-title">{RAIL.menuTitle}</div>
                 <div className="nd-menu-sub">{RAIL.menuSubtitle}</div>

@@ -11,8 +11,27 @@ import useAppStore, { SHARED_TEMPLATE_NAME } from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { FIRST_STEP, STEP_ID } from '../../../types/designV2.types';
 import * as latePayment from '../../../samples/latePaymentPenalty';
-import { designV2Theme } from '../../../components/designV2/theme';
-import { theme as antdTheme } from 'antd';
+import { V2_PALETTE } from '../../../components/designV2/theme';
+import type { ComponentProps } from 'react';
+import { theme as antdTheme, type ConfigProvider, type ThemeConfig } from 'antd';
+
+type ConfigProviderProps = ComponentProps<typeof ConfigProvider>;
+
+/** Every theme the app passes to antd's ConfigProvider, in render order. */
+const configProviderThemes = vi.hoisted(() => [] as ThemeConfig[]);
+
+vi.mock('antd', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('antd')>();
+  const { createElement } = await import('react');
+  const RecordingConfigProvider = Object.assign(
+    (props: ConfigProviderProps) => {
+      if (props.theme) configProviderThemes.push(props.theme);
+      return createElement(actual.ConfigProvider, props);
+    },
+    actual.ConfigProvider
+  );
+  return { ...actual, ConfigProvider: RecordingConfigProvider };
+});
 
 /*
  * Covers entering the flow: "Start building" must land on the first gallery
@@ -44,26 +63,42 @@ const renderLayout = () =>
   );
 
 describe('DesignV2Layout theme', () => {
+  /** The theme the layout's own ConfigProvider (v2 font) received on its latest render; nested providers are skipped. */
+  const providedTheme = () => {
+    const v2Themes = configProviderThemes.filter((t) => t.token?.fontFamily === V2_PALETTE.fontFamily);
+    expect(v2Themes.length).toBeGreaterThan(0);
+    return v2Themes[v2Themes.length - 1];
+  };
+
   beforeEach(() => {
+    configProviderThemes.length = 0;
     useAppStore.setState({ backgroundColor: '#ffffff', textColor: '#121212' });
+    document.documentElement.setAttribute('data-theme', 'light');
     useDesignV2Store.setState({ view: 'welcome' });
   });
 
-  it('uses the existing light theme by default', () => {
+  it('gives antd the light algorithm and the v2 palette by default', () => {
     renderLayout();
-    expect(document.querySelector('.nd-root')).toHaveAttribute('data-theme', 'light');
-    expect(designV2Theme(false).algorithm).toBe(antdTheme.defaultAlgorithm);
+
+    expect(providedTheme().algorithm).toBe(antdTheme.defaultAlgorithm);
+    expect(providedTheme().token).toMatchObject({ colorPrimary: V2_PALETTE.teal, colorTextBase: V2_PALETTE.ink });
   });
 
-  it('uses the dark theme and updates when the app theme changes', () => {
+  it('follows the app theme: dark algorithm and dark tokens, and back again', () => {
     renderLayout();
     fireEvent.click(screen.getByRole('button', { name: RAIL.settings }));
-    fireEvent.click(screen.getByRole('switch', { name: 'Toggle dark mode' }));
-    expect(document.querySelector('.nd-root')).toHaveAttribute('data-theme', 'dark');
-    expect(designV2Theme(true).algorithm).toBe(antdTheme.darkAlgorithm);
 
     fireEvent.click(screen.getByRole('switch', { name: 'Toggle dark mode' }));
-    expect(document.querySelector('.nd-root')).toHaveAttribute('data-theme', 'light');
+    // The CSS shell reads the same attribute the app sets on <html>.
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+    expect(providedTheme().algorithm).toBe(antdTheme.darkAlgorithm);
+    expect(providedTheme().token).toMatchObject({ colorPrimary: '#50c5c7', colorLink: '#72d4d3' });
+    expect(providedTheme().token).not.toHaveProperty('colorTextBase');
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Toggle dark mode' }));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+    expect(providedTheme().algorithm).toBe(antdTheme.defaultAlgorithm);
+    expect(providedTheme().token).toMatchObject({ colorPrimary: V2_PALETTE.teal });
   });
 });
 
