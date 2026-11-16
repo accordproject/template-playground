@@ -1,12 +1,11 @@
-import { useRef, useState } from "react";
-import { Dropdown, type MenuProps } from "antd";
+import { useState } from "react";
+import { Dropdown, Modal, type MenuProps } from "antd";
 import { GithubOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
 import { FaDiscord } from "react-icons/fa";
-import useAppStore from "../../store/store";
+import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import { STEP_ID } from "../../types/designV2.types";
 import * as playground from "../../samples/playground";
-import tour from "../Tour";
 import SettingsModal from "../SettingsModal";
 import { RAIL, URLS } from "./constants";
 
@@ -26,20 +25,56 @@ const MenuItemText = ({ label, hint }: MenuItemTextProps) => (
  * Dark 56px navigation rail on the far left of design v2.
  * The ☰ button opens the Playground menu (demo, tour, samples, docs, reset),
  * rendered with antd Dropdown so keyboard and focus handling come for free.
- * Menu items load the demo, open the template gallery, replay the tour,
- * open documentation, or reset the current playground state.
+ * Menu items:
+ * - demo: show the current template rendered (Text step, Preview), without
+ *   loading anything, so the user's edits are never touched;
+ * - tour: back to the v2 welcome view (v2's introduction; the legacy guided
+ *   tour targets v1 elements and is not used here);
+ * - examples: the template gallery (Template step);
+ * - docs: the template format documentation in a new tab;
+ * - reset: after a confirmation, discard all edits, reload the sample and
+ *   return the flow to the welcome view.
  * Settings / Discord / GitHub live at the bottom of the rail; Settings opens
  * the shared SettingsModal so every existing toggle is available here too.
  */
 const Rail = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const demoTransitionId = useRef(0);
+  // Hook form so the dialog picks up design v2's ConfigProvider theme.
+  const [modal, modalContext] = Modal.useModal();
   const sampleName = useAppStore((s) => s.sampleName);
   const loadSample = useAppStore((s) => s.loadSample);
   const resetExecution = useAppStore((s) => s.resetExecution);
   const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
   const setView = useDesignV2Store((s) => s.setView);
   const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
+  const setPreviewOpen = useDesignV2Store((s) => s.setPreviewOpen);
+  const resetFlow = useDesignV2Store((s) => s.resetFlow);
+
+  const openDemo = () => {
+    // A share link loaded before any card was picked: name it, as "Start building" does.
+    if (useDesignV2Store.getState().selectedTemplate === null && sampleName === SHARED_TEMPLATE_NAME) {
+      selectTemplate(SHARED_TEMPLATE_NAME);
+    }
+    setPreviewOpen(true);
+    setView(STEP_ID.text);
+  };
+
+  const confirmReset = () => {
+    void modal.confirm({
+      title: RAIL.resetConfirm.title,
+      content: RAIL.resetConfirm.content(playground.NAME),
+      okText: RAIL.resetConfirm.ok,
+      cancelText: RAIL.resetConfirm.cancel,
+      okButtonProps: { danger: true },
+      maskClosable: true,
+      onOk: () => {
+        resetExecution();
+        resetFlow();
+        // Fire and forget, as the v1 sample picker does: progress and errors surface in the preview.
+        void loadSample(playground.NAME);
+      },
+    });
+  };
 
   const menuItems: MenuProps["items"] = [
     {
@@ -72,19 +107,10 @@ const Rail = () => {
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
     switch (key) {
       case "demo":
-        demoTransitionId.current += 1;
-        {
-          const transitionId = demoTransitionId.current;
-          selectTemplate(null);
-          void Promise.resolve(loadSample(playground.NAME)).then(() => {
-            if (transitionId === demoTransitionId.current) {
-              setView(STEP_ID.text);
-            }
-          });
-        }
+        openDemo();
         break;
       case "tour":
-        void tour.start();
+        setView("welcome");
         break;
       case "examples":
         setView(STEP_ID.template);
@@ -93,11 +119,7 @@ const Rail = () => {
         window.open(URLS.templateDocs, "_blank", "noopener,noreferrer");
         break;
       case "reset":
-        demoTransitionId.current += 1;
-        resetExecution();
-        selectTemplate(null);
-        setView("welcome");
-        void loadSample(playground.NAME);
+        confirmReset();
         break;
       default:
         break;
@@ -154,6 +176,7 @@ const Rail = () => {
         </a>
       </aside>
       <SettingsModal />
+      {modalContext}
     </>
   );
 };

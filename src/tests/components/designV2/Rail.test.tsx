@@ -1,19 +1,12 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Rail from "../../../components/designV2/Rail";
 import { RAIL, URLS } from "../../../components/designV2/constants";
-import useAppStore from "../../../store/store";
+import useAppStore, { SHARED_TEMPLATE_NAME } from "../../../store/store";
 import useDesignV2Store from "../../../store/designV2Store";
 import { STEP_ID } from "../../../types/designV2.types";
 import * as playground from "../../../samples/playground";
-import tour from "../../../components/Tour";
-
-vi.mock("../../../components/Tour", () => ({
-  default: {
-    start: vi.fn().mockResolvedValue(undefined),
-  },
-}));
 
 vi.mock("../../../components/SettingsModal", () => ({
   default: () => null,
@@ -31,6 +24,17 @@ const clickMenuItem = (name: string) => {
   fireEvent.click(screen.getByRole("menuitem", { name: new RegExp(name) }));
 };
 
+/** A flow part-way through: Simulate open, a template picked, Preview on, one pane closed, a run selected. */
+const midFlow = () =>
+  useDesignV2Store.setState({
+    view: STEP_ID.simulate,
+    selectedTemplate: "Counter Contract",
+    previewOpen: true,
+    modelDataPanes: { model: true, data: false },
+    selectedRunId: "run-1",
+    helpRailOpen: false,
+  });
+
 describe("Design V2 Rail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,7 +45,8 @@ describe("Design V2 Rail", () => {
       resetExecution,
       setSettingsOpen: vi.fn(),
     });
-    useDesignV2Store.setState({ view: "welcome" });
+    useDesignV2Store.getState().resetFlow();
+    useDesignV2Store.setState({ helpRailOpen: true });
   });
 
   afterEach(() => {
@@ -54,18 +59,18 @@ describe("Design V2 Rail", () => {
     openMenu();
 
     expect(screen.getByRole("menuitem", { name: /Open the demo document/ })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /Replay the guided tour/ })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /Replay the introduction/ })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: /Browse example templates/ })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: /Docs: template format/ })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: /Reset the playground/ })).toBeInTheDocument();
   });
 
   it.each([
-    ["Open the demo document", "demo"],
-    ["Replay the guided tour", "tour"],
-    ["Browse example templates", "examples"],
-    ["Docs: template format", "docs"],
-    ["Reset the playground", "reset"],
+    ["Open the demo document"],
+    ["Replay the introduction"],
+    ["Browse example templates"],
+    ["Docs: template format"],
+    ["Reset the playground"],
   ])("closes the menu after selecting %s", (label) => {
     render(<Rail />);
 
@@ -74,22 +79,40 @@ describe("Design V2 Rail", () => {
     expect(screen.queryByRole("menuitem", { name: new RegExp(label) })).not.toBeInTheDocument();
   });
 
-  it("loads the demo sample and opens the Text step", async () => {
-    render(<Rail />);
+  describe("Open the demo document", () => {
+    it("previews the current template on the Text step without loading a sample", () => {
+      useDesignV2Store.setState({ view: STEP_ID.logic, selectedTemplate: "Counter Contract" });
+      render(<Rail />);
 
-    clickMenuItem("Open the demo document");
+      clickMenuItem("Open the demo document");
 
-    expect(loadSample).toHaveBeenCalledWith(playground.NAME);
-    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.text));
-    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+      expect(loadSample).not.toHaveBeenCalled();
+      expect(resetExecution).not.toHaveBeenCalled();
+      const state = useDesignV2Store.getState();
+      expect(state.view).toBe(STEP_ID.text);
+      expect(state.previewOpen).toBe(true);
+      expect(state.selectedTemplate).toBe("Counter Contract");
+    });
+
+    it("names a template loaded from a share link, as Start building does", () => {
+      useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME });
+      render(<Rail />);
+
+      clickMenuItem("Open the demo document");
+
+      expect(useDesignV2Store.getState().selectedTemplate).toBe(SHARED_TEMPLATE_NAME);
+      expect(loadSample).not.toHaveBeenCalled();
+    });
   });
 
-  it("replays the guided tour", () => {
+  it("replays the v2 introduction by returning to the welcome view", () => {
+    useDesignV2Store.setState({ view: STEP_ID.modelData });
     render(<Rail />);
 
-    clickMenuItem("Replay the guided tour");
+    clickMenuItem("Replay the introduction");
 
-    expect(tour.start).toHaveBeenCalledTimes(1);
+    expect(useDesignV2Store.getState().view).toBe("welcome");
+    expect(loadSample).not.toHaveBeenCalled();
   });
 
   it("opens the template gallery", () => {
@@ -108,35 +131,53 @@ describe("Design V2 Rail", () => {
     expect(window.open).toHaveBeenCalledWith(URLS.templateDocs, "_blank", "noopener,noreferrer");
   });
 
-  it("resets execution state and loads the demo sample", () => {
-    useDesignV2Store.setState({ view: STEP_ID.simulate, selectedTemplate: "Counter Contract" });
-    render(<Rail />);
+  describe("Reset the playground", () => {
+    it("asks for confirmation before discarding anything", async () => {
+      midFlow();
+      render(<Rail />);
 
-    clickMenuItem("Reset the playground");
+      clickMenuItem("Reset the playground");
 
-    expect(resetExecution).toHaveBeenCalledTimes(1);
-    expect(loadSample).toHaveBeenCalledWith(playground.NAME);
-    expect(useDesignV2Store.getState().view).toBe("welcome");
-    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
-  });
-
-  it("does not let a pending demo navigation override reset", async () => {
-    let resolveDemo!: () => void;
-    const pendingDemo = new Promise<void>((resolve) => {
-      resolveDemo = resolve;
-    });
-    loadSample.mockImplementation(() => pendingDemo);
-
-    render(<Rail />);
-
-    clickMenuItem("Open the demo document");
-    clickMenuItem("Reset the playground");
-
-    await act(async () => {
-      resolveDemo();
-      await pendingDemo;
+      expect(await screen.findByText(RAIL.resetConfirm.title)).toBeInTheDocument();
+      expect(screen.getByText(RAIL.resetConfirm.content(playground.NAME))).toBeInTheDocument();
+      expect(resetExecution).not.toHaveBeenCalled();
+      expect(loadSample).not.toHaveBeenCalled();
+      expect(useDesignV2Store.getState().view).toBe(STEP_ID.simulate);
     });
 
-    expect(useDesignV2Store.getState().view).toBe("welcome");
+    it("leaves everything as it was when cancelled", async () => {
+      midFlow();
+      render(<Rail />);
+
+      clickMenuItem("Reset the playground");
+      fireEvent.click(await screen.findByRole("button", { name: RAIL.resetConfirm.cancel }));
+
+      await waitFor(() => expect(screen.queryByText(RAIL.resetConfirm.title)).not.toBeInTheDocument());
+      expect(resetExecution).not.toHaveBeenCalled();
+      expect(loadSample).not.toHaveBeenCalled();
+      const state = useDesignV2Store.getState();
+      expect(state.view).toBe(STEP_ID.simulate);
+      expect(state.selectedTemplate).toBe("Counter Contract");
+      expect(state.selectedRunId).toBe("run-1");
+    });
+
+    it("on confirm, clears the run history, reloads the sample and resets the whole flow", async () => {
+      midFlow();
+      render(<Rail />);
+
+      clickMenuItem("Reset the playground");
+      fireEvent.click(await screen.findByRole("button", { name: RAIL.resetConfirm.ok }));
+
+      await waitFor(() => expect(resetExecution).toHaveBeenCalledTimes(1));
+      expect(loadSample).toHaveBeenCalledWith(playground.NAME);
+      const state = useDesignV2Store.getState();
+      expect(state.view).toBe("welcome");
+      expect(state.selectedTemplate).toBeNull();
+      expect(state.previewOpen).toBe(false);
+      expect(state.modelDataPanes).toEqual({ model: true, data: true });
+      expect(state.selectedRunId).toBeNull();
+      // A layout preference, not part of the flow.
+      expect(state.helpRailOpen).toBe(false);
+    });
   });
 });
