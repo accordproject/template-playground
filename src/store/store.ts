@@ -23,7 +23,7 @@ import { validateBeforeRebuild } from "../utils/validators";
 import { templateFromContent } from "../utils/templateArchive";
 import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox, templateMayRunCode } from "./rebuildSandbox";
-import { isRebuildUserLogic, type RebuildUserLogic } from "../constants/rebuildSandbox";
+import { isRebuildTemplateLogic, type RebuildTemplateLogic } from "../constants/rebuildSandbox";
 import tour from "../components/Tour";
 
 /** sampleName of a template opened from a share link; design v2 starts on it instead of the first card. */
@@ -125,7 +125,7 @@ interface AppState {
    * when `compileLogic` succeeds and sent with every render so formulas can
    * call the helpers logic.ts declares. Null until the logic has compiled.
    */
-  compiledUserLogic: RebuildUserLogic | null;
+  compiledTemplateLogic: RebuildTemplateLogic | null;
   // model.cto the last compilation ran against; logic compiled against an older model is stale.
   compiledModelCto: string | null;
   // True while compilation is running.
@@ -465,15 +465,23 @@ const rebuildDeBounce = debounce(rebuild, 500);
  * and the guard. It reuses the logic that `compileLogic(true)` has just
  * compiled, so all it adds is a parse of logic.ts for its top-level names.
  *
+ * TODO: drop the cast once template-engine offers this through its public
+ * API (https://github.com/accordproject/template-engine/issues/231).
+ *
  * @returns the compiled logic, or null when the engine does not provide it
  *   (formulas then fail to resolve helpers, as they did before)
  */
-async function compileUserLogicForFormulas(processor: unknown): Promise<RebuildUserLogic | null> {
+async function compileTemplateLogicForFormulas(processor: unknown): Promise<RebuildTemplateLogic | null> {
   const candidate = processor as { compileUserLogicForDraft?: () => Promise<unknown> };
-  if (typeof candidate.compileUserLogicForDraft !== "function") return null;
+  if (typeof candidate.compileUserLogicForDraft !== "function") {
+    console.warn(
+      "TemplateArchiveProcessor.compileUserLogicForDraft() is missing from this version of @accordproject/template-engine, so formulas cannot call helpers from the template logic.",
+    );
+    return null;
+  }
   try {
     const logic = await candidate.compileUserLogicForDraft();
-    return isRebuildUserLogic(logic) ? logic : null;
+    return isRebuildTemplateLogic(logic) ? logic : null;
   } catch (error: unknown) {
     console.error("Could not prepare the template logic for formulas", error);
     return null;
@@ -484,7 +492,7 @@ async function rebuild(
   template: string,
   model: string,
   dataString: string,
-  userLogic: RebuildUserLogic | null,
+  templateLogic: RebuildTemplateLogic | null,
   format: AgreementFormat = "html",
 ): Promise<string> {
   /*
@@ -503,7 +511,7 @@ async function rebuild(
   // imported statically; that lets the UI render before it arrives. The
   // download starts here so it overlaps with rendering in the sandbox.
   const markdownTransform = import("@accordproject/markdown-transform");
-  const ciceroMarkJson = await rebuildInSandbox(template, model, dataString, userLogic ?? undefined);
+  const ciceroMarkJson = await rebuildInSandbox(template, model, dataString, templateLogic ?? undefined);
   return convertCiceroMark(ciceroMarkJson, format, markdownTransform);
 }
 
@@ -790,7 +798,7 @@ const useAppStore = create<AppState>()(
         logicTs: "",
         editorLogicTs: "",
         compiledLogicJs: null,
-        compiledUserLogic: null,
+        compiledTemplateLogic: null,
         compiledModelCto: null,
         isCompiling: false,
         compilationErrors: [],
@@ -1000,7 +1008,7 @@ const useAppStore = create<AppState>()(
               logicTs,
               editorLogicTs: logicTs,
               compiledLogicJs: null,
-              compiledUserLogic: null,
+              compiledTemplateLogic: null,
               compilationErrors: [],
               isCompiling: false,
               // A new sample is a new contract — nothing the last one produced
@@ -1045,11 +1053,11 @@ const useAppStore = create<AppState>()(
         },
 
         renderAgreement: async (format: AgreementFormat = "html") => {
-          const { templateMarkdown, modelCto, data, compiledUserLogic } = get();
+          const { templateMarkdown, modelCto, data, compiledTemplateLogic } = get();
           const revision = renderSourceRevision;
           let html: string;
           try {
-            html = await rebuild(templateMarkdown, modelCto, data, compiledUserLogic, format);
+            html = await rebuild(templateMarkdown, modelCto, data, compiledTemplateLogic, format);
           } catch (error: unknown) {
             // A render that failed after the sources changed failed for sources that are gone.
             if (renderSourceRevision !== revision) throw new SourcesChangedError();
@@ -1068,13 +1076,13 @@ const useAppStore = create<AppState>()(
           return html;
         },
         rebuild: async () => {
-          const { templateMarkdown, modelCto, data, compiledUserLogic } = get();
+          const { templateMarkdown, modelCto, data, compiledTemplateLogic } = get();
           try {
             const result = await rebuildDeBounce(
               templateMarkdown,
               modelCto,
               data,
-              compiledUserLogic,
+              compiledTemplateLogic,
             );
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
@@ -1088,7 +1096,7 @@ const useAppStore = create<AppState>()(
           set(() => ({ templateMarkdown: template }));
           const { modelCto, data } = get();
           try {
-            const result = await rebuildDeBounce(template, modelCto, data, get().compiledUserLogic);
+            const result = await rebuildDeBounce(template, modelCto, data, get().compiledTemplateLogic);
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
@@ -1104,7 +1112,7 @@ const useAppStore = create<AppState>()(
           set(() => ({ modelCto: model }));
           const { templateMarkdown, data } = get();
           try {
-            const result = await rebuildDeBounce(templateMarkdown, model, data, get().compiledUserLogic);
+            const result = await rebuildDeBounce(templateMarkdown, model, data, get().compiledTemplateLogic);
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
@@ -1123,7 +1131,7 @@ const useAppStore = create<AppState>()(
               get().templateMarkdown,
               get().modelCto,
               data,
-              get().compiledUserLogic,
+              get().compiledTemplateLogic,
             );
             set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
@@ -1219,7 +1227,7 @@ const useAppStore = create<AppState>()(
             logicTs: logicTs || "",
             editorLogicTs: logicTs || "",
             compiledLogicJs: null,
-            compiledUserLogic: null,
+            compiledTemplateLogic: null,
             compilationErrors: [],
             isCompiling: false,
             isLogicPanelVisible: hasLogic,
@@ -1293,7 +1301,7 @@ const useAppStore = create<AppState>()(
           set(() => ({ logicTs: ts, editorLogicTs: ts }));
           await get().compileLogic();
           // Formulas may call the helpers just compiled: re-render if the template has any code.
-          if (get().compiledUserLogic && templateMayRunCode(get().templateMarkdown)) {
+          if (get().compiledTemplateLogic && templateMayRunCode(get().templateMarkdown)) {
             await get().rebuild();
           }
         },
@@ -1356,7 +1364,7 @@ const useAppStore = create<AppState>()(
             isCompiling: true,
             compilationErrors: [],
             compiledLogicJs: null,
-            compiledUserLogic: null,
+            compiledTemplateLogic: null,
             compiledModelCto: null,
           });
           try {
@@ -1481,11 +1489,11 @@ const useAppStore = create<AppState>()(
               }
               code += `\nreturn ${match[1]};\n`;
 
-              const compiledUserLogic = await compileUserLogicForFormulas(processor);
+              const compiledTemplateLogic = await compileTemplateLogicForFormulas(processor);
               publish({
                 isCompiling: false,
                 compiledLogicJs: code,
-                compiledUserLogic,
+                compiledTemplateLogic,
                 compilationErrors: [],
               });
             }

@@ -24,7 +24,7 @@ vi.mock('@accordproject/template-engine/lib/TypeScriptCompilationContext', () =>
 });
 
 const COMPILED_CLASS = 'class L extends TemplateLogic {}\nexport default L;';
-const USER_LOGIC = {
+const TEMPLATE_LOGIC = {
   source: 'export function f() {}',
   compiledJs: 'export function f() {}',
   prelude: 'function f() {}',
@@ -67,7 +67,7 @@ describe('useAppStore - compileLogic', () => {
       modelCto: 'namespace org.example',
       isCompiling: false,
       compilationErrors: [],
-      compiledUserLogic: null,
+      compiledTemplateLogic: null,
     });
     vi.clearAllMocks();
   });
@@ -88,7 +88,7 @@ describe('useAppStore - compileLogic', () => {
       buildTemplateFromMemory: vi.fn().mockResolvedValue(mockTemplateObject)
     });
     // Stale logic from an earlier successful compile must not survive a failure.
-    useAppStore.setState({ compiledUserLogic: USER_LOGIC });
+    useAppStore.setState({ compiledTemplateLogic: TEMPLATE_LOGIC });
 
     const store = useAppStore.getState();
     await store.compileLogic();
@@ -96,7 +96,7 @@ describe('useAppStore - compileLogic', () => {
     const state = useAppStore.getState();
     expect(state.isCompiling).toBe(false);
     expect(state.isProblemPanelVisible).toBe(true);
-    expect(state.compiledUserLogic).toBeNull();
+    expect(state.compiledTemplateLogic).toBeNull();
 
     // The prepended text is `\n${contextStr}          ` — the declarations
     // block is not currently included. Offset is: 1 (leading newline) + 2
@@ -121,7 +121,7 @@ describe('useAppStore - compileLogic', () => {
   it('prepares the compiled logic for formulas, reusing the logic compiled with the cache on', async () => {
     useAppStore.setState({ buildTemplateFromMemory: vi.fn().mockResolvedValue(mockTemplateObject) });
     const compileLogic = vi.fn().mockResolvedValue({ 'logic/logic.ts': { errors: [], code: COMPILED_CLASS } });
-    const compileUserLogicForDraft = vi.fn().mockResolvedValue(USER_LOGIC);
+    const compileUserLogicForDraft = vi.fn().mockResolvedValue(TEMPLATE_LOGIC);
     processorFactory.mockReturnValue({ compileLogic, compileUserLogicForDraft });
 
     await useAppStore.getState().compileLogic();
@@ -129,19 +129,25 @@ describe('useAppStore - compileLogic', () => {
     expect(compileLogic).toHaveBeenCalledWith(true);
     expect(compileUserLogicForDraft).toHaveBeenCalledTimes(1);
     const state = useAppStore.getState();
-    expect(state.compiledUserLogic).toEqual(USER_LOGIC);
+    expect(state.compiledTemplateLogic).toEqual(TEMPLATE_LOGIC);
     expect(state.compiledLogicJs).toContain('return L;');
     expect(state.compilationErrors).toEqual([]);
     expect(state.isCompiling).toBe(false);
   });
 
   it('leaves the formula logic empty when the engine does not provide it, or provides something malformed', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     useAppStore.setState({ buildTemplateFromMemory: vi.fn().mockResolvedValue(mockTemplateObject) });
     processorFactory.mockReturnValue({
       compileLogic: vi.fn().mockResolvedValue({ 'logic/logic.ts': { errors: [], code: COMPILED_CLASS } }),
     });
     await useAppStore.getState().compileLogic();
-    expect(useAppStore.getState().compiledUserLogic).toBeNull();
+    expect(useAppStore.getState().compiledTemplateLogic).toBeNull();
+    // a missing engine method is a regression, so it must be visible
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('compileUserLogicForDraft() is missing'));
+    warn.mockClear();
     expect(useAppStore.getState().compiledLogicJs).toContain('return L;');
 
     processorFactory.mockReturnValue({
@@ -149,15 +155,19 @@ describe('useAppStore - compileLogic', () => {
       compileUserLogicForDraft: vi.fn().mockResolvedValue({ source: 1 }),
     });
     await useAppStore.getState().compileLogic();
-    expect(useAppStore.getState().compiledUserLogic).toBeNull();
+    expect(useAppStore.getState().compiledTemplateLogic).toBeNull();
 
     processorFactory.mockReturnValue({
       compileLogic: vi.fn().mockResolvedValue({ 'logic/logic.ts': { errors: [], code: COMPILED_CLASS } }),
       compileUserLogicForDraft: vi.fn().mockRejectedValue(new Error('parse failed')),
     });
     await useAppStore.getState().compileLogic();
-    expect(useAppStore.getState().compiledUserLogic).toBeNull();
+    expect(useAppStore.getState().compiledTemplateLogic).toBeNull();
     expect(useAppStore.getState().compiledLogicJs).toContain('return L;');
+    expect(warn).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+    error.mockRestore();
   });
 
   it('records the model.cto it compiled against, so a later model edit makes the logic stale', async () => {

@@ -2,7 +2,7 @@ import { ModelManager } from "@accordproject/concerto-core";
 import { TemplateMarkInterpreter } from "@accordproject/template-engine";
 import { TemplateMarkTransformer } from "@accordproject/markdown-template";
 import { loadBundledModels } from "../utils/modelCache";
-import type { RebuildUserLogic, SerializedRebuildError } from "../constants/rebuildSandbox";
+import type { RebuildTemplateLogic, SerializedRebuildError } from "../constants/rebuildSandbox";
 
 /**
  * Renders a TemplateMark template against its model and data, producing a
@@ -18,7 +18,7 @@ import type { RebuildUserLogic, SerializedRebuildError } from "../constants/rebu
  * @param template - TemplateMark markdown source
  * @param model - Concerto CTO model source
  * @param dataString - JSON data, as a string
- * @param userLogic - the template's compiled logic, so formulas can call
+ * @param templateLogic - the template's compiled logic, so formulas can call
  *   the helpers it declares (as `TemplateArchiveProcessor.draft()` does)
  * @returns the CiceroMark document as JSON
  * @throws whatever the transformer or engine throws
@@ -27,7 +27,7 @@ export async function generateCiceroMark(
   template: string,
   model: string,
   dataString: string,
-  userLogic?: RebuildUserLogic,
+  templateLogic?: RebuildTemplateLogic,
 ): Promise<unknown> {
   const modelManager = new ModelManager({ offline: true });
   /*
@@ -40,7 +40,7 @@ export async function generateCiceroMark(
   loadBundledModels(modelManager);
   modelManager.addCTOModel(model, undefined, true);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-  const engine = new TemplateMarkInterpreter(modelManager as any, {}, undefined, userLogic);
+  const engine = new TemplateMarkInterpreter(modelManager as any, {}, undefined, templateLogic);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const templateMarkTransformer = new TemplateMarkTransformer();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call

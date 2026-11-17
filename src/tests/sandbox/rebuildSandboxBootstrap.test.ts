@@ -108,14 +108,14 @@ describe("rendering sandbox bootstrap", () => {
 
   it("forwards the template's compiled logic with a request, rebuilt from checked fields", () => {
     const { workers, fromParent } = runBootstrap();
-    const userLogic = {
+    const templateLogic = {
       source: "export function f() {}",
       compiledJs: "export function f() {}",
       prelude: "function f() {}",
       symbols: ["f"],
       extra: "dropped",
     };
-    fromParent({ type: REBUILD_REQUEST, requestId: 1, template: "t", model: "m", data: "{}", userLogic });
+    fromParent({ type: REBUILD_REQUEST, requestId: 1, template: "t", model: "m", data: "{}", templateLogic });
     expect(workers[0].received).toEqual([
       {
         type: REBUILD_REQUEST,
@@ -123,7 +123,7 @@ describe("rendering sandbox bootstrap", () => {
         template: "t",
         model: "m",
         data: "{}",
-        userLogic: {
+        templateLogic: {
           source: "export function f() {}",
           compiledJs: "export function f() {}",
           prelude: "function f() {}",
@@ -141,9 +141,9 @@ describe("rendering sandbox bootstrap", () => {
       template: "t",
       model: "m",
       data: "{}",
-      userLogic: { source: "x", compiledJs: "x", prelude: "x", symbols: ["ok", 5] },
+      templateLogic: { source: "x", compiledJs: "x", prelude: "x", symbols: ["ok", 5] },
     });
-    fromParent({ type: REBUILD_REQUEST, requestId: 3, template: "t", model: "m", data: "{}", userLogic: "text" });
+    fromParent({ type: REBUILD_REQUEST, requestId: 3, template: "t", model: "m", data: "{}", templateLogic: "text" });
     expect(workers[0].received).toEqual([
       { type: REBUILD_REQUEST, requestId: 2, template: "t", model: "m", data: "{}" },
       { type: REBUILD_REQUEST, requestId: 3, template: "t", model: "m", data: "{}" },

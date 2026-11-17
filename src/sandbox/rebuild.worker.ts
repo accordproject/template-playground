@@ -23,7 +23,7 @@ import {
   isRebuildPingMessage,
   isRebuildRequestMessage,
   type RebuildResultMessage,
-  type RebuildUserLogic,
+  type RebuildTemplateLogic,
   type RebuildWorkerMessage,
   type SerializedRebuildError,
 } from "../constants/rebuildSandbox";
@@ -47,7 +47,7 @@ scope.onmessage = (event: MessageEvent<unknown>) => {
     return;
   }
   if (!isRebuildRequestMessage(msg)) return;
-  void handleRequest(msg.requestId, msg.template, msg.model, msg.data, msg.userLogic);
+  void handleRequest(msg.requestId, msg.template, msg.model, msg.data, msg.templateLogic);
 };
 
 /**
@@ -59,11 +59,11 @@ async function handleRequest(
   template: string,
   model: string,
   data: string,
-  userLogic?: RebuildUserLogic,
+  templateLogic?: RebuildTemplateLogic,
 ): Promise<void> {
   let reply: RebuildResultMessage;
   try {
-    const ciceroMark = await generateCiceroMark(template, model, data, userLogic);
+    const ciceroMark = await generateCiceroMark(template, model, data, templateLogic);
     reply = { type: REBUILD_RESULT, requestId, success: true, ciceroMark };
   } catch (error: unknown) {
     reply = { type: REBUILD_RESULT, requestId, success: false, error: serializeSafely(error) };

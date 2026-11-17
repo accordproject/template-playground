@@ -63,7 +63,7 @@ export const REBUILD_PONG = "rebuild-pong";
  * engine computes it on the main thread, where the logic is compiled, and it
  * travels with every render as plain data.
  */
-export interface RebuildUserLogic {
+export interface RebuildTemplateLogic {
   /** Raw TypeScript source of logic/logic.ts. */
   source: string;
   /** Its compiled JavaScript (an ES module). */
@@ -74,9 +74,9 @@ export interface RebuildUserLogic {
   prelude: string;
 }
 
-export function isRebuildUserLogic(value: unknown): value is RebuildUserLogic {
+export function isRebuildTemplateLogic(value: unknown): value is RebuildTemplateLogic {
   if (!value || typeof value !== "object") return false;
-  const logic = value as Partial<RebuildUserLogic>;
+  const logic = value as Partial<RebuildTemplateLogic>;
   return (
     typeof logic.source === "string" &&
     typeof logic.compiledJs === "string" &&
@@ -96,7 +96,7 @@ export interface RebuildRequestMessage {
   /** JSON data, as a string. */
   data: string;
   /** The compiled logic, when the template has some that compiled. */
-  userLogic?: RebuildUserLogic;
+  templateLogic?: RebuildTemplateLogic;
 }
 
 /**
@@ -180,6 +180,6 @@ export function isRebuildRequestMessage(value: unknown): value is RebuildRequest
     typeof msg.template === "string" &&
     typeof msg.model === "string" &&
     typeof msg.data === "string" &&
-    (msg.userLogic === undefined || isRebuildUserLogic(msg.userLogic))
+    (msg.templateLogic === undefined || isRebuildTemplateLogic(msg.templateLogic))
   );
 }

@@ -161,7 +161,7 @@ export function buildRebuildSandboxDocument({
   }
 
   // The template's compiled logic, rebuilt from checked fields, or null.
-  function relayableUserLogic(value) {
+  function relayableTemplateLogic(value) {
     if (!value || typeof value !== "object") return null;
     if (
       typeof value.source !== "string" ||
@@ -252,8 +252,8 @@ export function buildRebuildSandboxDocument({
         model: msg.model,
         data: msg.data
       };
-      var userLogic = relayableUserLogic(msg.userLogic);
-      if (userLogic) request.userLogic = userLogic;
+      var templateLogic = relayableTemplateLogic(msg.templateLogic);
+      if (templateLogic) request.templateLogic = templateLogic;
       worker.postMessage(request);
     } else if (msg.type === T.ping) {
       // Heartbeat: only meaningful for a running worker.

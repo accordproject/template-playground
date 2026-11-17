@@ -114,8 +114,8 @@ describe("rebuildSandbox bridge", () => {
 
     it("sends the template's compiled logic with the request, and nothing when there is none", async () => {
       const { postMessage } = readySandbox();
-      const userLogic = { source: "s", compiledJs: "c", prelude: "p", symbols: ["f"] };
-      const withLogic = rebuildInSandbox(PLAIN, "m", "{}", userLogic);
+      const templateLogic = { source: "s", compiledJs: "c", prelude: "p", symbols: ["f"] };
+      const withLogic = rebuildInSandbox(PLAIN, "m", "{}", templateLogic);
       const without = rebuildInSandbox(PLAIN, "m", "{}");
       await Promise.resolve();
 
@@ -125,9 +125,9 @@ describe("rebuildSandbox bridge", () => {
         template: PLAIN,
         model: "m",
         data: "{}",
-        userLogic,
+        templateLogic,
       });
-      expect(posted(postMessage)[1]).not.toHaveProperty("userLogic");
+      expect(posted(postMessage)[1]).not.toHaveProperty("templateLogic");
 
       result(1, "a");
       result(2, "b");
@@ -137,8 +137,8 @@ describe("rebuildSandbox bridge", () => {
 
     it("does not treat the logic alone as code: a plain template keeps the warm worker", async () => {
       const { postMessage } = readySandbox();
-      const userLogic = { source: "s", compiledJs: "c", prelude: "p", symbols: ["f"] };
-      const promise = rebuildInSandbox(PLAIN, "m", "{}", userLogic);
+      const templateLogic = { source: "s", compiledJs: "c", prelude: "p", symbols: ["f"] };
+      const promise = rebuildInSandbox(PLAIN, "m", "{}", templateLogic);
       await Promise.resolve();
       result(1, "ok");
       await expect(promise).resolves.toBe("ok");

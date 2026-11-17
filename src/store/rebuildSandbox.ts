@@ -43,7 +43,7 @@ import {
   type RebuildRequestMessage,
   type RebuildRestartMessage,
   type RebuildSandboxMessage,
-  type RebuildUserLogic,
+  type RebuildTemplateLogic,
 } from "../constants/rebuildSandbox";
 
 /**
@@ -255,7 +255,7 @@ export async function rebuildInSandbox(
   template: string,
   model: string,
   data: string,
-  userLogic?: RebuildUserLogic,
+  templateLogic?: RebuildTemplateLogic,
 ): Promise<unknown> {
   await waitForRebuildSandbox();
   const target = frame?.contentWindow;
@@ -301,7 +301,7 @@ export async function rebuildInSandbox(
     template,
     model,
     data,
-    ...(userLogic ? { userLogic } : {}),
+    ...(templateLogic ? { templateLogic } : {}),
   };
   /*
    * '*' is required because the sandboxed iframe has an opaque origin
