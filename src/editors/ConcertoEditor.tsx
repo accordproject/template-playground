@@ -125,10 +125,12 @@ export default function ConcertoEditor({
 }: ConcertoEditorProps) {
   const { handleSelection, MenuComponent } = useCodeSelection("concerto");
   const monacoInstance = useMonaco();
-  const { error, aiConfig, showLineNumbers } = useAppStore((state) => ({
+  const { error, aiConfig, showLineNumbers, backgroundColor, textColor } = useAppStore((state) => ({
     error: state.error,
     aiConfig: state.aiConfig,
     showLineNumbers: state.showLineNumbers,
+    backgroundColor: state.backgroundColor,
+    textColor: state.textColor,
   }));
   const ctoErr = error?.startsWith("c:") ? error : undefined;
 
@@ -213,7 +215,23 @@ export default function ConcertoEditor({
 
   return (
     <div className="editorwrapper h-full w-full">
-      <Suspense fallback={<div>Loading Editor...</div>}>
+      <Suspense
+        fallback={
+          <div
+            style={{
+              height: "100%",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor,
+              color: textColor,
+            }}
+          >
+            Loading Editor...
+          </div>
+        }
+      >
         <MonacoEditor
           options={options}
           language="concerto"

@@ -15,8 +15,6 @@ const SettingsModal: React.FC = () => {
     setShowLineNumbers,
     backgroundColor,
     toggleDarkMode,
-    isLogicFeatureEnabled,
-    setLogicFeatureEnabled,
     isDesignV2Enabled,
     setDesignV2Enabled
   } = useAppStore((state) => ({
@@ -26,8 +24,6 @@ const SettingsModal: React.FC = () => {
     setShowLineNumbers: state.setShowLineNumbers,
     backgroundColor: state.backgroundColor,
     toggleDarkMode: state.toggleDarkMode,
-    isLogicFeatureEnabled: state.isLogicFeatureEnabled,
-    setLogicFeatureEnabled: state.setLogicFeatureEnabled,
     isDesignV2Enabled: state.isDesignV2Enabled,
     setDesignV2Enabled: state.setDesignV2Enabled,
   }));
@@ -87,39 +83,20 @@ const SettingsModal: React.FC = () => {
 
           <Divider style={{ margin: 0 }} />
 
-          {/* Logic Feature Flag Toggle */}
+          {/* Opt-out of the default (design v2) layout */}
           <Row justify="space-between" align="middle" style={{ width: '100%' }}>
             <Col flex="auto">
-              <Text strong style={{ display: 'block' }}>Enable Template Logic (Experimental)</Text>
+              <Text strong style={{ display: 'block' }}>Use classic playground</Text>
               <Text type="secondary" style={{ fontSize: 13 }}>
-                Turn on the experimental TypeScript logic editor and compilation features (GSoC Project).
+                Switch back to the previous single-screen layout. Turn this off to use the new step-by-step design.
               </Text>
             </Col>
             <Col>
               <Switch
-                checked={isLogicFeatureEnabled}
-                onChange={setLogicFeatureEnabled}
-                aria-label="Toggle template logic"
-              />
-            </Col>
-          </Row>
-
-          <Divider style={{ margin: 0 }} />
-
-          {/* Design v2 feature flag toggle */}
-          <Row justify="space-between" align="middle" style={{ width: '100%' }}>
-            <Col flex="auto">
-              <Text strong style={{ display: 'block' }}>Enable Design v2 (Work in Progress)</Text>
-              <Text type="secondary" style={{ fontSize: 13 }}>
-                Preview the redesigned playground layout. This design is still under development and may be incomplete or change without notice.
-              </Text>
-            </Col>
-            <Col>
-              <Switch
-                data-testid="design-v2-toggle"
-                checked={isDesignV2Enabled}
-                onChange={setDesignV2Enabled}
-                aria-label="Toggle design v2"
+                data-testid="classic-playground-toggle"
+                checked={!isDesignV2Enabled}
+                onChange={(useClassic) => setDesignV2Enabled(!useClassic)}
+                aria-label="Use classic playground"
               />
             </Col>
           </Row>

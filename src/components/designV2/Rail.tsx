@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Dropdown, type MenuProps } from "antd";
+import { Dropdown, Modal, type MenuProps } from "antd";
 import { GithubOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
 import { FaDiscord } from "react-icons/fa";
 import useAppStore from "../../store/store";
+import useDesignV2Store from "../../store/designV2Store";
+import { STEP_ID } from "../../types/designV2.types";
+import * as playground from "../../samples/playground";
 import SettingsModal from "../SettingsModal";
 import { RAIL, URLS } from "./constants";
 
@@ -20,24 +23,46 @@ const MenuItemText = ({ label, hint }: MenuItemTextProps) => (
 
 /**
  * Dark 56px navigation rail on the far left of design v2.
- * The ☰ button opens the Playground menu (demo, tour, samples, docs, reset),
+ * The ☰ button opens the Playground menu (tour, samples, docs, reset),
  * rendered with antd Dropdown so keyboard and focus handling come for free.
- * Menu items are not wired to actions yet.
+ * Menu items:
+ * - tour: back to the v2 welcome view (v2's introduction; the legacy guided
+ *   tour targets v1 elements and is not used here);
+ * - examples: the template gallery (Template step);
+ * - docs: the template format documentation in a new tab;
+ * - reset: after a confirmation, discard all edits, reload the sample and
+ *   return the flow to the welcome view.
  * Settings / Discord / GitHub live at the bottom of the rail; Settings opens
  * the shared SettingsModal so every existing toggle is available here too.
  */
 const Rail = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const sampleName = useAppStore((s) => s.sampleName);
+  // Hook form so the dialog picks up design v2's ConfigProvider theme.
+  const [modal, modalContext] = Modal.useModal();
+  const loadSample = useAppStore((s) => s.loadSample);
+  const resetExecution = useAppStore((s) => s.resetExecution);
   const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
+  const setView = useDesignV2Store((s) => s.setView);
+  const resetFlow = useDesignV2Store((s) => s.resetFlow);
 
-  // Actions intentionally not wired yet — visual skeleton only.
+  const confirmReset = () => {
+    void modal.confirm({
+      title: RAIL.resetConfirm.title,
+      content: RAIL.resetConfirm.content(playground.NAME),
+      okText: RAIL.resetConfirm.ok,
+      cancelText: RAIL.resetConfirm.cancel,
+      okButtonProps: { danger: true },
+      maskClosable: true,
+      onOk: () => {
+        resetExecution();
+        resetFlow();
+        // Fire and forget, as the v1 sample picker does: progress and errors surface in the preview.
+        void loadSample(playground.NAME);
+      },
+    });
+  };
+
   const menuItems: MenuProps["items"] = [
-    {
-      key: "demo",
-      icon: <span className="nd-menu-icon nd-menu-icon-teal">◧</span>,
-      label: <MenuItemText label={RAIL.items.demo.label} hint={RAIL.items.demo.hint(sampleName)} />,
-    },
     {
       key: "tour",
       icon: <span className="nd-menu-icon nd-menu-icon-blue">▶</span>,
@@ -60,11 +85,32 @@ const Rail = () => {
     },
   ];
 
+  const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
+    switch (key) {
+      case "tour":
+        setView("welcome");
+        break;
+      case "examples":
+        setView(STEP_ID.template);
+        break;
+      case "docs":
+        window.open(URLS.templateDocs, "_blank", "noopener,noreferrer");
+        break;
+      case "reset":
+        confirmReset();
+        break;
+      default:
+        break;
+    }
+
+    setMenuOpen(false);
+  };
+
   return (
     <>
       <aside className="nd-rail" aria-label={RAIL.navLabel}>
         <Dropdown
-          menu={{ items: menuItems, onClick: () => setMenuOpen(false) }}
+          menu={{ items: menuItems, onClick: handleMenuClick }}
           trigger={["click"]}
           placement="bottomLeft"
           open={menuOpen}
@@ -108,6 +154,7 @@ const Rail = () => {
         </a>
       </aside>
       <SettingsModal />
+      {modalContext}
     </>
   );
 };

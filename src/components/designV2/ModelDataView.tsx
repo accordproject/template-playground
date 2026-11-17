@@ -8,6 +8,7 @@ import AgreementData from "../../editors/editorsContainer/AgreementData";
 import { formatConcertoModel } from "../../utils/formatConcertoModel";
 import HelpRail, { HelpRailReopen, type ChecklistItem } from "./HelpRail";
 import PreviewToggle from "./PreviewToggle";
+import PreviewPane from "./PreviewPane";
 import { MODEL_DATA } from "./constants";
 
 interface EditorPaneProps {
@@ -83,9 +84,12 @@ const EditorPane = ({
  * "@template decorator" errors are model problems; everything else (invalid
  * JSON, an instance that does not match the model) is a data problem.
  */
-const errorPane = (error: string | undefined): "model" | "data" | null => {
+export const errorPane = (error: string | undefined): "model" | "data" | "text" | null => {
   if (!error) return null;
-  return /^c:|Invalid CTO model|@template decorator/i.test(error) ? "model" : "data";
+  const lines = error.split("\n");
+  if (lines.some((l) => /^c:|Invalid CTO model|@template decorator/i.test(l))) return "model";
+  if (lines.some((l) => /text\/grammar\.tem\.md|grammar\.tem\.md/i.test(l))) return "text";
+  return "data";
 };
 
 /**
@@ -101,13 +105,16 @@ const errorPane = (error: string | undefined): "model" | "data" | null => {
  * Either pane can be closed with its × so the other one takes the full
  * width; a "+ file" chip next to the title brings it back. At least one pane
  * always stays open (see designV2Store.setPaneOpen). The title row carries
- * the Preview toggle, since the data changes what the preview shows.
+ * the Write | Preview switch, since the data changes what the preview shows;
+ * Preview shows the agreement in the panes' place. The panes stay mounted
+ * (only hidden), so their editors keep their undo history.
  */
 export const ModelDataView = () => {
   const editorModelCto = useAppStore((s) => s.editorModelCto);
   const editorAgreementData = useAppStore((s) => s.editorAgreementData);
   const error = useAppStore((s) => s.error);
   const sampleName = useAppStore((s) => s.sampleName);
+  const importedData = useAppStore((s) => s.importedData);
   const samples = useAppStore((s) => s.samples);
   const setEditorModelCto = useAppStore((s) => s.setEditorModelCto);
   const setModelCto = useAppStore((s) => s.setModelCto);
@@ -115,6 +122,7 @@ export const ModelDataView = () => {
   const setData = useAppStore((s) => s.setData);
   const panes = useDesignV2Store((s) => s.modelDataPanes);
   const setPaneOpen = useDesignV2Store((s) => s.setPaneOpen);
+  const previewOpen = useDesignV2Store((s) => s.previewOpen);
   const openCount = Number(panes.model) + Number(panes.data);
   const closedPanes = (["model", "data"] as const).filter((pane) => !panes[pane]);
 
@@ -133,8 +141,13 @@ export const ModelDataView = () => {
   };
 
   const copyModel = async () => {
-    await navigator.clipboard?.writeText(editorModelCto);
-    void message.success(MODEL_DATA.model.copied);
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(editorModelCto);
+      void message.success(MODEL_DATA.model.copied);
+    } catch {
+      void message.error(MODEL_DATA.model.copyFailed);
+    }
   };
 
   const formatData = () => {
@@ -147,18 +160,19 @@ export const ModelDataView = () => {
     }
   };
 
-  // "reset" puts the loaded sample's original data.json back; it is greyed out while nothing changed.
-  const sample = samples.find((s) => s.NAME === sampleName);
-  const sampleData = sample ? JSON.stringify(sample.DATA, null, 2) : undefined;
+  // "reset" puts the original data.json back — the bundled sample's, or the
+  // imported template's as it arrived; it is greyed out while nothing changed.
+  const sample = importedData === null ? samples.find((s) => s.NAME === sampleName) : undefined;
+  const sampleData = importedData ?? (sample ? JSON.stringify(sample.DATA, null, 2) : undefined);
   const canReset = sampleData !== undefined && sampleData !== editorAgreementData;
   const resetData = () => {
-    if (!sample || sampleData === undefined) {
+    if (sampleData === undefined) {
       void message.warning(MODEL_DATA.data.resetUnavailable);
       return;
     }
     setEditorAgreementData(sampleData);
     void setData(sampleData);
-    void message.success(MODEL_DATA.data.resetDone(sample.NAME));
+    void message.success(MODEL_DATA.data.resetDone(sampleName));
   };
 
   // Checklist tones mirror the store's validation result and nothing else.
@@ -180,7 +194,7 @@ export const ModelDataView = () => {
             <h1>{MODEL_DATA.title}</h1>
             <p className="nd-editor-subtitle">{MODEL_DATA.subtitle}</p>
           </div>
-          {closedPanes.map((pane: ModelDataPane) => (
+          {!previewOpen && closedPanes.map((pane: ModelDataPane) => (
             <Button key={pane} type="dashed" size="small" onClick={() => setPaneOpen(pane, true)}>
               {MODEL_DATA.reopenPane(MODEL_DATA[pane].file)}
             </Button>
@@ -189,64 +203,65 @@ export const ModelDataView = () => {
           <HelpRailReopen />
         </div>
 
-        <div className={`nd-split ${openCount === 1 ? "nd-split-single" : ""}`}>
+        {previewOpen && <PreviewPane />}
+        <div className={`nd-split ${openCount === 1 ? "nd-split-single" : ""}`} hidden={previewOpen}>
           {panes.model && (
-          <EditorPane
-            label={MODEL_DATA.model.paneLabel}
-            file={MODEL_DATA.model.file}
-            badge={MODEL_DATA.model.badge}
-            badgeClass="nd-badge-teal"
-            badgeHref={MODEL_DATA.model.badgeHref}
-            badgeTitle={MODEL_DATA.model.badgeTitle}
-            error={modelError}
-            okText={MODEL_DATA.model.ok}
-            onClose={() => setPaneOpen("model", false)}
-            canClose={openCount > 1}
-            actions={
-              <>
-                <Button type="text" size="small" onClick={formatModel} disabled={!editorModelCto.trim()}>
-                  {MODEL_DATA.format}
-                </Button>
-                <Button type="text" size="small" onClick={() => void copyModel()}>
-                  {MODEL_DATA.copy}
-                </Button>
-              </>
-            }
-          >
-            <TemplateModel />
-          </EditorPane>
+            <EditorPane
+              label={MODEL_DATA.model.paneLabel}
+              file={MODEL_DATA.model.file}
+              badge={MODEL_DATA.model.badge}
+              badgeClass="nd-badge-teal"
+              badgeHref={MODEL_DATA.model.badgeHref}
+              badgeTitle={MODEL_DATA.model.badgeTitle}
+              error={modelError}
+              okText={MODEL_DATA.model.ok}
+              onClose={() => setPaneOpen("model", false)}
+              canClose={openCount > 1}
+              actions={
+                <>
+                  <Button type="text" size="small" onClick={formatModel} disabled={!editorModelCto.trim()}>
+                    {MODEL_DATA.format}
+                  </Button>
+                  <Button type="text" size="small" onClick={() => void copyModel()}>
+                    {MODEL_DATA.copy}
+                  </Button>
+                </>
+              }
+            >
+              <TemplateModel />
+            </EditorPane>
           )}
 
           {panes.data && (
-          <EditorPane
-            label={MODEL_DATA.data.paneLabel}
-            file={MODEL_DATA.data.file}
-            badge={MODEL_DATA.data.badge}
-            badgeClass="nd-badge-blue"
-            error={dataError}
-            okText={MODEL_DATA.data.ok}
-            pendingText={modelError ? MODEL_DATA.data.notChecked : undefined}
-            onClose={() => setPaneOpen("data", false)}
-            canClose={openCount > 1}
-            actions={
-              <>
-                <Button type="text" size="small" onClick={formatData}>
-                  {MODEL_DATA.format}
-                </Button>
-                <Button
-                  type="text"
-                  size="small"
-                  onClick={resetData}
-                  disabled={!canReset}
-                  title={sample ? MODEL_DATA.data.resetTitle(sample.NAME) : undefined}
-                >
-                  {MODEL_DATA.reset}
-                </Button>
-              </>
-            }
-          >
-            <AgreementData />
-          </EditorPane>
+            <EditorPane
+              label={MODEL_DATA.data.paneLabel}
+              file={MODEL_DATA.data.file}
+              badge={MODEL_DATA.data.badge}
+              badgeClass="nd-badge-blue"
+              error={dataError}
+              okText={MODEL_DATA.data.ok}
+              pendingText={modelError ? MODEL_DATA.data.notChecked : undefined}
+              onClose={() => setPaneOpen("data", false)}
+              canClose={openCount > 1}
+              actions={
+                <>
+                  <Button type="text" size="small" onClick={formatData} disabled={!editorAgreementData.trim()}>
+                    {MODEL_DATA.format}
+                  </Button>
+                  <Button
+                    type="text"
+                    size="small"
+                    onClick={resetData}
+                    disabled={!canReset}
+                    title={sample ? MODEL_DATA.data.resetTitle(sample.NAME) : undefined}
+                  >
+                    {MODEL_DATA.reset}
+                  </Button>
+                </>
+              }
+            >
+              <AgreementData />
+            </EditorPane>
           )}
         </div>
       </div>
