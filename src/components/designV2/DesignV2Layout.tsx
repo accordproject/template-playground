@@ -109,6 +109,11 @@ const DesignV2Layout = () => {
         }
         setView(target);
       } catch (error) {
+        // A failure that arrives after a newer move started, or after the step
+        // changed, belongs to a move the user has already left behind: drop it
+        // like the success path does, rather than interrupting them.
+        const superseded = move !== latestMove.current || useDesignV2Store.getState().view !== from;
+        if (superseded) return;
         console.error("Navigation failed:", error);
         void message.error(FOOTER.navigationFailed);
       }
