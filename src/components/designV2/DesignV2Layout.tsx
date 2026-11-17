@@ -1,7 +1,8 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
 import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
+import { registerWebMcp } from "../../mcp/registerWebMcp";
 import { pendingLogic } from "../../editors/logicSource";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
@@ -59,6 +60,11 @@ const DesignV2Layout = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
   const pick = usePickTemplate();
+
+  useEffect(() => {
+    const cleanup = registerWebMcp();
+    return cleanup;
+  }, []);
 
   /**
    * "Start building": enter the flow on a template — the first card unless
