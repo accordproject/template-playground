@@ -747,6 +747,14 @@ const useAppStore = create<AppState>()(
         isDesignV2Enabled: initialDesignV2.enabled,
         setDesignV2Enabled: (value: boolean) => {
           writeDesignV2Preference(value);
+          // Switching to Design V2 automatically selects the latest step in the chain
+          // because Design V2 does not have a ChainStepper UI.
+          if (value) {
+            const { executionChain, selectChainStep } = get();
+            if (executionChain.length > 0) {
+              selectChainStep(executionChain.length - 1);
+            }
+          }
           set({ isDesignV2Enabled: value });
         },
         showDesignV2Notice: shouldShowDesignV2Notice(initialDesignV2),
@@ -1706,7 +1714,7 @@ const useAppStore = create<AppState>()(
         },
 
         triggerContract: async () => {
-          const { compiledLogicJs, data, requestJson, executionState, isTemplateStateful, isContractInitialized, llmExecutionMode, executeInSandbox, executionChain, selectedChainIndex, executionHistory } = get();
+          const { compiledLogicJs, data, requestJson, isTemplateStateful, isContractInitialized, llmExecutionMode, executeInSandbox, executionChain, selectedChainIndex, executionHistory } = get();
 
           const forceLLM = llmExecutionMode === 'force';
           const useTypeScript = !forceLLM && !!compiledLogicJs;
@@ -1743,17 +1751,23 @@ const useAppStore = create<AppState>()(
            * priorState-in/state-out contract doesn't model — so require the
            * latest step to be selected first (mirrored by the disabled Send
            * Request button in ContractRequestEditor).
+           * In Design V2, there is no ChainStepper UI to manually select steps,
+           * so automatically target the latest step in the chain.
            */
           if (
             isTemplateStateful &&
             executionChain.length > 0 &&
             selectedChainIndex !== executionChain.length - 1
           ) {
-            set({
-              compilationErrors: [{ message: "Execution Error: Select the latest step in the chain before sending a new request." }],
-              isProblemPanelVisible: true
-            });
-            return;
+            if (get().isDesignV2Enabled) {
+              get().selectChainStep(executionChain.length - 1);
+            } else {
+              set({
+                compilationErrors: [{ message: "Execution Error: Select the latest step in the chain before sending a new request." }],
+                isProblemPanelVisible: true
+              });
+              return;
+            }
           }
 
           set({ executingOperation: 'trigger' });
@@ -1764,11 +1778,12 @@ const useAppStore = create<AppState>()(
           let parsedRequest: object = {};
           let parsedState: object | null = null;
           let stage: LogicExecutionResult["stage"] = "run";
+          const currentExecutionState = get().executionState;
 
           try {
             const parsedData = JSON.parse(data) as object;
             try {
-              parsedState = executionState ? (JSON.parse(executionState) as object) : {};
+              parsedState = currentExecutionState ? (JSON.parse(currentExecutionState) as object) : {};
             } catch (parseErr) {
               stage = "parse";
               throw parseErr;
@@ -1794,7 +1809,7 @@ const useAppStore = create<AppState>()(
              */
             set({
               executionResponse: output.result ? JSON.stringify(output.result, null, 2) : '',
-              executionState: output.state ? JSON.stringify(output.state, null, 2) : executionState,
+              executionState: output.state ? JSON.stringify(output.state, null, 2) : currentExecutionState,
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
               lastExecutionEngine: useTypeScript ? ExecutionEngine.TypeScript : ExecutionEngine.LLM,
               executionHistory: [...executionHistory, {
