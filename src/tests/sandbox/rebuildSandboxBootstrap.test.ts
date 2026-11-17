@@ -106,6 +106,50 @@ describe("rendering sandbox bootstrap", () => {
     ]);
   });
 
+  it("forwards the template's compiled logic with a request, rebuilt from checked fields", () => {
+    const { workers, fromParent } = runBootstrap();
+    const templateLogic = {
+      source: "export function f() {}",
+      compiledJs: "export function f() {}",
+      prelude: "function f() {}",
+      symbols: ["f"],
+      extra: "dropped",
+    };
+    fromParent({ type: REBUILD_REQUEST, requestId: 1, template: "t", model: "m", data: "{}", templateLogic });
+    expect(workers[0].received).toEqual([
+      {
+        type: REBUILD_REQUEST,
+        requestId: 1,
+        template: "t",
+        model: "m",
+        data: "{}",
+        templateLogic: {
+          source: "export function f() {}",
+          compiledJs: "export function f() {}",
+          prelude: "function f() {}",
+          symbols: ["f"],
+        },
+      },
+    ]);
+  });
+
+  it("drops malformed logic from a request rather than the whole request", () => {
+    const { workers, fromParent } = runBootstrap();
+    fromParent({
+      type: REBUILD_REQUEST,
+      requestId: 2,
+      template: "t",
+      model: "m",
+      data: "{}",
+      templateLogic: { source: "x", compiledJs: "x", prelude: "x", symbols: ["ok", 5] },
+    });
+    fromParent({ type: REBUILD_REQUEST, requestId: 3, template: "t", model: "m", data: "{}", templateLogic: "text" });
+    expect(workers[0].received).toEqual([
+      { type: REBUILD_REQUEST, requestId: 2, template: "t", model: "m", data: "{}" },
+      { type: REBUILD_REQUEST, requestId: 3, template: "t", model: "m", data: "{}" },
+    ]);
+  });
+
   it("ignores messages that are not from its parent, and malformed requests", () => {
     const { workers, fromParent } = runBootstrap();
     fromParent({ type: REBUILD_REQUEST, requestId: 1, template: "t", model: "m", data: "{}" }, { other: "window" });

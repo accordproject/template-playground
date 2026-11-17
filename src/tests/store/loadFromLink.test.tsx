@@ -50,7 +50,18 @@ describe("useAppStore loadFromLink", () => {
 
     vi.mocked(decompress).mockReturnValue(mockData);
 
-    useAppStore.setState({ rebuild: vi.fn(), compileLogic: vi.fn(), isLogicPanelVisible: false });
+    const calls: string[] = [];
+    useAppStore.setState({
+      rebuild: vi.fn(() => {
+        calls.push("rebuild");
+        return Promise.resolve();
+      }),
+      compileLogic: vi.fn(() => {
+        calls.push("compileLogic");
+        return Promise.resolve();
+      }),
+      isLogicPanelVisible: false,
+    });
 
     await useAppStore.getState().loadFromLink("some-compressed-data-with-logic");
 
@@ -59,6 +70,8 @@ describe("useAppStore loadFromLink", () => {
     expect(state.editorLogicTs).toBe(mockData.logicTs);
     expect(state.isLogicPanelVisible).toBe(true);
     expect(localStorage.getItem("ui-panels")).toContain('"isLogicPanelVisible":true');
+    // The logic compiles first, so the render can resolve helpers formulas call.
+    expect(calls).toEqual(["compileLogic", "rebuild"]);
   });
 
   it("should set an error when mandatory fields are missing", async () => {
