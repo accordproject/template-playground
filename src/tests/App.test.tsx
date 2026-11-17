@@ -53,6 +53,7 @@ describe('App - Design v2 feature flag routing', () => {
   beforeEach(() => {
     localStorage.setItem('hasVisited', 'true');
     state.isDesignV2Enabled = false;
+    state.init.mockClear();
     state.loadFromLink.mockReset().mockResolvedValue(true);
     useDesignV2Store.getState().resetFlow();
   });
@@ -110,5 +111,34 @@ describe('App - Design v2 feature flag routing', () => {
     await waitFor(() => expect(useDesignV2Store.getState().view).toBe('welcome'));
     expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
 
+  });
+
+  it.each(['?data=valid', '#data=valid'])('preserves %s when redirecting a shared link from /learn', async (url) => {
+    state.isDesignV2Enabled = true;
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/learn' + url] });
+    render(<RouterProvider router={router} />);
+
+    await screen.findByTestId('design-v2-shell');
+    expect(router.state.location.pathname).toBe('/');
+    expect(router.state.location.search + router.state.location.hash).toBe(url);
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.text));
+    expect(state.loadFromLink).toHaveBeenCalledTimes(1);
+    expect(state.init).not.toHaveBeenCalled();
+  });
+
+  it.each(['?data=invalid', '#data=invalid'])('keeps a failed %s redirect on welcome', async (url) => {
+    state.isDesignV2Enabled = true;
+    state.loadFromLink.mockResolvedValue(false);
+    useDesignV2Store.getState().start();
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/learn' + url] });
+    render(<RouterProvider router={router} />);
+
+    await screen.findByTestId('design-v2-shell');
+    expect(router.state.location.pathname).toBe('/');
+    expect(router.state.location.search + router.state.location.hash).toBe(url);
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe('welcome'));
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+    expect(state.loadFromLink).toHaveBeenCalledTimes(1);
+    expect(state.init).not.toHaveBeenCalled();
   });
 });

@@ -124,6 +124,7 @@ test.describe('Template rendering sandbox', () => {
     // Named after its icon too ("file-text Hello World").
     const hello = page.getByRole('button', { name: /(^|\s)Hello World$/ });
     await samples.click();
+    await expect(hello).toBeVisible();
     await hello.click();
     const confirm = page.getByRole('dialog');
     await expect(confirm).toBeVisible();

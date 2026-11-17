@@ -48,12 +48,13 @@ const App = () => {
           compressedData = searchParams.get("data");
         }
         if (compressedData) {
+          if (location.pathname !== "/") {
+            navigate({ pathname: "/", search: location.search, hash: location.hash }, { replace: true });
+            return;
+          }
           const loaded = await loadFromLink(compressedData);
           if (cancelled) return;
           setLinkLoad({ loaded });
-          if (window.location.pathname !== "/") {
-            navigate("/", { replace: true });
-          }
         } else {
           await init();
           if (!cancelled) setLinkLoad(null);
@@ -66,7 +67,7 @@ const App = () => {
     };
     void initializeApp();
     return () => { cancelled = true; };
-  }, [init, loadFromLink, searchParams, navigate, location.hash]);
+  }, [init, loadFromLink, searchParams, navigate, location.pathname, location.search, location.hash]);
 
   useEffect(() => {
     if (!isDesignV2Enabled || !linkLoad || handledLink.current === linkLoad) return;

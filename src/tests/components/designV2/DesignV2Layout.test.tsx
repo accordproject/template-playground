@@ -63,6 +63,14 @@ const renderLayout = (hasShareLink = false) =>
     </MemoryRouter>
   );
 
+// Every suite shares the persisted welcome preference and app store.
+beforeEach(() => {
+  localStorage.removeItem('designV2WelcomeSeen');
+  useAppStore.setState({ sampleName: 'Playground', error: undefined });
+});
+
+afterEach(() => { vi.restoreAllMocks(); });
+
 describe('DesignV2Layout theme', () => {
   /** The theme the layout's own ConfigProvider (v2 font) received on its latest render; nested providers are skipped. */
   const providedTheme = () => {
@@ -102,13 +110,6 @@ describe('DesignV2Layout theme', () => {
     expect(providedTheme().token).toMatchObject({ colorPrimary: V2_PALETTE.teal });
   });
 });
-
-beforeEach(() => {
-  localStorage.removeItem('designV2WelcomeSeen');
-  useAppStore.setState({ sampleName: 'Playground', error: undefined });
-});
-
-afterEach(() => { vi.restoreAllMocks(); });
 
 describe('DesignV2Layout — Start building', () => {
   const loadSample = vi.fn().mockResolvedValue(undefined);
