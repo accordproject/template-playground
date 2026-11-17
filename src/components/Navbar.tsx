@@ -205,7 +205,7 @@ function Navbar() {
   const screens = useBreakpoint();
   const location = useLocation();
 
-  const { samples, loadSample, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs, isLogicFeatureEnabled } =
+  const { samples, loadSample, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs } =
     useStoreWithEqualityFn(
       useAppStore,
       (state) => ({
@@ -216,7 +216,6 @@ function Navbar() {
         editorModelCto: state.editorModelCto,
         editorAgreementData: state.editorAgreementData,
         editorLogicTs: state.editorLogicTs,
-        isLogicFeatureEnabled: state.isLogicFeatureEnabled,
       }),
       shallow
     );
@@ -247,9 +246,8 @@ function Navbar() {
         Modal.confirm({
           title: "Load Sample Template",
           icon: <ExclamationCircleOutlined />,
-          content: isLogicFeatureEnabled
-            ? "Loading a new sample will replace your current Concerto Model, TemplateMark, JSON Data, and Logic. Any unsaved changes will be lost. Do you want to continue?"
-            : "Loading a new sample will replace your current Concerto Model, TemplateMark, and JSON Data. Any unsaved changes will be lost. Do you want to continue?",
+          content:
+            "Loading a new sample will replace your current Concerto Model, TemplateMark, JSON Data, and Logic. Any unsaved changes will be lost. Do you want to continue?",
           okText: "Continue",
           cancelText: "Cancel",
           maskClosable: true,
@@ -269,7 +267,7 @@ function Navbar() {
         void performLoadSample(name);
       }
     },
-    [performLoadSample, samples, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs, isLogicFeatureEnabled]
+    [performLoadSample, samples, sampleName, editorValue, editorModelCto, editorAgreementData, editorLogicTs]
   );
 
   const props = useSpring({

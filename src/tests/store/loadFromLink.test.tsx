@@ -12,7 +12,6 @@ describe("useAppStore loadFromLink", () => {
       logicTs: "",
       editorLogicTs: "",
       isLogicPanelVisible: false,
-      isLogicFeatureEnabled: false,
       isProblemPanelVisible: false,
       error: undefined,
     });
@@ -70,7 +69,6 @@ describe("useAppStore loadFromLink", () => {
     expect(state.logicTs).toBe(mockData.logicTs);
     expect(state.editorLogicTs).toBe(mockData.logicTs);
     expect(state.isLogicPanelVisible).toBe(true);
-    expect(state.isLogicFeatureEnabled).toBe(true);
     expect(localStorage.getItem("ui-panels")).toContain('"isLogicPanelVisible":true');
     // The logic compiles first, so the render can resolve helpers formulas call.
     expect(calls).toEqual(["compileLogic", "rebuild"]);

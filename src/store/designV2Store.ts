@@ -33,7 +33,7 @@ export interface DesignV2State {
   setPreviewOpen: (open: boolean) => void;
   togglePreview: () => void;
   /** Pick a template card (or the blank template). */
-  selectTemplate: (name: string) => void;
+  selectTemplate: (name: string | null) => void;
   /** Open or close one pane of the Data step. Closing the last open pane is ignored. */
   setPaneOpen: (pane: ModelDataPane, open: boolean) => void;
   setHelpRailOpen: (open: boolean) => void;
@@ -44,19 +44,29 @@ export interface DesignV2State {
   selectedRunId: string | null;
   /** Open one run in the Simulate step; pass null to follow the latest run again. */
   selectRun: (id: string | null) => void;
+  /**
+   * Back to a fresh flow: the welcome view, no template picked, editors
+   * showing (not Preview), both Data panes open and the latest run followed.
+   * The help rail is a layout preference, so it is left as the user set it.
+   */
+  resetFlow: () => void;
 }
 
 const stepIndexOf = (view: DesignV2View) => STEPS.findIndex((s) => s.id === view);
 
+const INITIAL_FLOW = {
+  view: "welcome",
+  previewOpen: false,
+  selectedTemplate: null,
+  modelDataPanes: { model: true, data: true },
+  selectedRunId: null,
+} satisfies Partial<DesignV2State>;
+
 const useDesignV2Store = create<DesignV2State>()(
   devtools(
     (set, get) => ({
-      view: "welcome",
-      previewOpen: false,
-      selectedTemplate: null,
-      modelDataPanes: { model: true, data: true },
+      ...INITIAL_FLOW,
       helpRailOpen: true,
-      selectedRunId: null,
 
       setView: (view) => set({ view }, false, "designV2/setView"),
       start: () => set({ view: FIRST_STEP }, false, "designV2/start"),
@@ -86,6 +96,8 @@ const useDesignV2Store = create<DesignV2State>()(
         ),
       setHelpRailOpen: (open) => set({ helpRailOpen: open }, false, "designV2/setHelpRailOpen"),
       selectRun: (id) => set({ selectedRunId: id }, false, "designV2/selectRun"),
+      resetFlow: () =>
+        set({ ...INITIAL_FLOW, modelDataPanes: { ...INITIAL_FLOW.modelDataPanes } }, false, "designV2/resetFlow"),
     }),
     { name: "DesignV2Store" }
   )
