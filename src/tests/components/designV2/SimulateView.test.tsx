@@ -4,7 +4,7 @@ import { act } from 'react-dom/test-utils';
 import { message } from 'antd';
 import '@testing-library/jest-dom';
 import SimulateView from '../../../components/designV2/SimulateView';
-import useAppStore from '../../../store/store';
+import useAppStore, { type LogicExecutionResult } from '../../../store/store';
 import useDesignV2Store from '../../../store/designV2Store';
 import { SIMULATE } from '../../../components/designV2/constants';
 import { pretty, runSummary } from '../../../components/designV2/simulateRuns';
@@ -353,6 +353,32 @@ describe('SimulateView', () => {
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.eventsTab(0) }));
       expect(screen.getByText('No events emitted')).toBeInTheDocument();
+    });
+
+    it('the State tab of a run with an empty state object displays the noState message', () => {
+      const emptyStateRun: LogicExecutionResult = {
+        ...okRun,
+        id: '#empty-state',
+        stateAfter: {},
+      };
+      useAppStore.setState({ executionHistory: [emptyStateRun] });
+      useDesignV2Store.setState({ selectedRunId: '#empty-state' });
+      render(<SimulateView />);
+      fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
+      expect(screen.getByText(SIMULATE.noState)).toBeInTheDocument();
+    });
+
+    it('the State tab of a run with null stateAfter displays the noState message', () => {
+      const nullStateRun: LogicExecutionResult = {
+        ...okRun,
+        id: '#null-state',
+        stateAfter: null,
+      };
+      useAppStore.setState({ executionHistory: [nullStateRun] });
+      useDesignV2Store.setState({ selectedRunId: '#null-state' });
+      render(<SimulateView />);
+      fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
+      expect(screen.getByText(SIMULATE.noState)).toBeInTheDocument();
     });
 
     it('Send runs the request through triggerContract and follows the new run', async () => {

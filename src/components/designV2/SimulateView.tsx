@@ -97,6 +97,12 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
   };
 
   const failed = run.error !== null;
+  // A contract state is meaningful only if it is non-empty.
+  // Empty state objects ({}) produced by stateless triggers or empty inits should display the noState message.
+  const hasState = Boolean(
+    run.stateAfter &&
+      (typeof run.stateAfter !== "object" || Object.keys(run.stateAfter).length > 0)
+  );
   const tabs = [
     {
       key: "response",
@@ -121,7 +127,7 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
       children: (
         <div className="nd-sim-tab-body">
           {failed && <div className="nd-sim-note">{SIMULATE.stateUnchanged}</div>}
-          {run.stateAfter ? (
+          {hasState ? (
             <JsonView id="simulate-state" value={pretty(run.stateAfter)} />
           ) : (
             <pre className="nd-sim-code">{SIMULATE.noState}</pre>
