@@ -202,6 +202,13 @@ html[data-theme="dark"] .nd-hero-actions .ant-btn-default.ant-btn-background-gho
   display: flex; align-items: stretch; flex-wrap: wrap; gap: 7px;
   padding: 2px 16px 11px;
 }
+/* Narrow screens swap the step cards for a compact picker (see Header.tsx). */
+.nd-stepper-compact { display: none; padding: 2px 16px 11px; }
+.nd-stepper-compact-button { width: 100%; display: flex; align-items: center; justify-content: space-between; text-align: left; font-weight: 600; }
+@media (max-width: 600px) {
+  .nd-stepper-cards { display: none; }
+  .nd-stepper-compact { display: block; }
+}
 .nd-step {
   flex: 1 1 118px; min-width: 118px;
   display: flex; align-items: center; gap: 9px;
