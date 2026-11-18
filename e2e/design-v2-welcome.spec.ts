@@ -73,6 +73,9 @@ for (const prefix of ['#data=', '?data=']) {
     await expect(page.getByText('Failed to load shared content: Invalid share link data')).toBeVisible();
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByRole('switch', { name: 'Use classic playground' }).click();
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(page.getByRole('button', { name: /^Samples:/ })).not.toContainText('Shared template');
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByRole('switch', { name: 'Use classic playground' }).click();
     await page.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Start building →' })).toBeVisible();

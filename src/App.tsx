@@ -36,7 +36,7 @@ const App = () => {
   const compressedData = location.hash.startsWith("#data=")
     ? location.hash.substring(6)
     : searchParams.get("data");
-  const redirectLink = Boolean(compressedData) && location.pathname !== "/";
+  const redirectLink = compressedData !== null && location.pathname !== "/";
 
   useEffect(() => {
     if (redirectLink) {
@@ -46,26 +46,26 @@ const App = () => {
 
   useEffect(() => {
     if (redirectLink) return;
-    let cancelled = false;
+    const controller = new AbortController();
     const initializeApp = async () => {
       try {
         setLoading(true);
-        if (compressedData) {
-          const loaded = await loadFromLink(compressedData);
-          if (cancelled) return;
+        if (compressedData !== null) {
+          const loaded = await loadFromLink(compressedData, controller.signal);
+          if (controller.signal.aborted) return;
           setLinkLoad(loaded ? { status: 'loaded' } : { status: 'failed', error: useAppStore.getState().error });
         } else {
           await init();
-          if (!cancelled) setLinkLoad(null);
+          if (!controller.signal.aborted) setLinkLoad(null);
         }
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
     void initializeApp();
-    return () => { cancelled = true; };
+    return () => controller.abort();
   }, [init, loadFromLink, compressedData, redirectLink]);
 
   useEffect(() => {

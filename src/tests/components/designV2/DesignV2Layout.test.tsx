@@ -63,14 +63,6 @@ const renderLayout = (linkStatus?: 'loaded' | 'failed', linkError?: string) =>
     </MemoryRouter>
   );
 
-// Every suite shares the persisted welcome preference and app store.
-beforeEach(() => {
-  localStorage.removeItem('designV2WelcomeSeen');
-  useAppStore.setState({ sampleName: 'Playground', error: undefined });
-});
-
-afterEach(() => { vi.restoreAllMocks(); });
-
 describe('DesignV2Layout theme', () => {
   /** The theme the layout's own ConfigProvider (v2 font) received on its latest render; nested providers are skipped. */
   const providedTheme = () => {
@@ -116,10 +108,12 @@ describe('DesignV2Layout — Start building', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.removeItem('designV2WelcomeSeen');
     // The untouched startup sample.
     useAppStore.setState({
       loadSample,
       sampleName: playground.NAME,
+      error: undefined,
       editorValue: playground.TEMPLATE,
       editorModelCto: playground.MODEL,
       editorAgreementData: JSON.stringify(playground.DATA, null, 2),
@@ -127,6 +121,8 @@ describe('DesignV2Layout — Start building', () => {
     });
     useDesignV2Store.getState().resetFlow();
   });
+
+  afterEach(() => { vi.restoreAllMocks(); });
 
   it('shows the welcome on the first visit', () => {
     localStorage.setItem('hasVisited', 'true');
@@ -228,7 +224,7 @@ describe('DesignV2Layout — Start building', () => {
   it.each([false, true])('keeps a failed share link on welcome with its error (returning: %s)', (returning) => {
     if (returning) localStorage.setItem('designV2WelcomeSeen', 'true');
     const error = 'Failed to load shared content: Invalid share link data';
-    useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME, error: 'Unrelated rendering error' });
+    useAppStore.setState({ error });
     renderLayout('failed', error);
 
     expect(useDesignV2Store.getState().view).toBe('welcome');
@@ -238,6 +234,21 @@ describe('DesignV2Layout — Start building', () => {
     expect(useDesignV2Store.getState().selectedTemplate).toBe(DEFAULT_TEMPLATE);
     expect(loadSample).toHaveBeenCalledWith(sampleNameFor(DEFAULT_TEMPLATE));
     expect(screen.queryByText(error)).not.toBeInTheDocument();
+  });
+
+  it('hides the failed-link message after reset clears the error', () => {
+    const error = 'Failed to load shared content: Invalid share link data';
+    useAppStore.setState({ error });
+    renderLayout('failed', error);
+    expect(screen.getByRole('alert')).toHaveTextContent(error);
+
+    act(() => {
+      useDesignV2Store.getState().resetFlow();
+      useAppStore.setState({ error: undefined });
+    });
+    expect(screen.queryByText(error)).not.toBeInTheDocument();
+    act(() => useAppStore.setState({ error: 'Unrelated rendering error' }));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('opens a loaded shared template on Text even when rendering reports an error', () => {
@@ -317,6 +328,8 @@ describe('DesignV2Layout — Write | Preview switch', () => {
 });
 
 describe('DesignV2Layout — moving to Simulate', () => {
+  afterEach(() => { act(() => message.destroy()); });
+
   /** setLogicTs stand-in: commits the source and reports the given outcome. */
   const compileTo = (outcome: 'ok' | 'error') =>
     vi.fn(async (ts: string) => {

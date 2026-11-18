@@ -176,7 +176,7 @@ interface AppState {
    * logic as edited instead.
    */
   generateShareableLink: (fresh?: { agreementHtml?: string; logicTs: string }) => string;
-  loadFromLink: (compressedData: string) => Promise<boolean>;
+  loadFromLink: (compressedData: string, signal?: AbortSignal) => Promise<boolean>;
   /**
    * Replaces the whole template with imported content (a `.cta`, a library
    * template). Throws on failure, so the caller can show the reason.
@@ -551,7 +551,11 @@ const savePanelState = (state: Partial<AppState>) => {
       isContractRunnerVisible: state.isContractRunnerVisible,
       isAIChatOpen: state.isAIChatOpen,
     };
-    localStorage.setItem("ui-panels", JSON.stringify(panels));
+    try {
+      localStorage.setItem("ui-panels", JSON.stringify(panels));
+    } catch {
+      // The in-memory layout still works if storage is unavailable.
+    }
   }
 };
 
@@ -650,6 +654,8 @@ export const currentExportRevision = () => exportSourceRevision;
 
 /** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
 let latestCompileRun = 0;
+let latestPreviewRun = 0;
+let latestLinkRun = 0;
 /**
  * Generation of the template sources, bumped each time they are replaced (a
  * sample or a shared link is loaded). Work started for one template — such
@@ -669,6 +675,7 @@ let latestTemplateBuild = 0;
  * (TEMPLATE_CACHE_RESET) in the same update as the new sources.
  */
 const invalidateCompilations = () => {
+  latestPreviewRun++;
   latestCompileRun++;
   latestTemplateBuild++;
   templateGeneration++;
@@ -685,6 +692,8 @@ const TEMPLATE_CACHE_RESET = { templateObject: null, isTemplateStateful: true } 
 const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
+      // An archive may have the same display name as a link, and a user can edit a loaded link.
+      let sharedContentRevision: number | undefined;
       const initialTheme = getInitialTheme();
       const initialDesignV2 = readDesignV2Preference();
       const initialPanels = getInitialPanelState(); // Load saved panels
@@ -940,6 +949,7 @@ const useAppStore = create<AppState>()(
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
           if (sample) {
+            sharedContentRevision = undefined;
             const logicTs = sample.LOGIC ?? "";
             const hasLogic = !!sample.LOGIC;
             const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
@@ -1036,6 +1046,7 @@ const useAppStore = create<AppState>()(
           return html;
         },
         rebuild: async () => {
+          const run = ++latestPreviewRun;
           const { templateMarkdown, modelCto, data } = get();
           try {
             const result = await rebuildDeBounce(
@@ -1043,8 +1054,9 @@ const useAppStore = create<AppState>()(
               modelCto,
               data,
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            if (run === latestPreviewRun) set(() => ({ agreementHtml: result, error: undefined }));
           } catch (error: unknown) {
+            if (run !== latestPreviewRun) return;
             set(() => ({
               error: formatError(error),
               isProblemPanelVisible: true,
@@ -1053,51 +1065,21 @@ const useAppStore = create<AppState>()(
         },
         setTemplateMarkdown: async (template: string) => {
           set(() => ({ templateMarkdown: template }));
-          const { modelCto, data } = get();
-          try {
-            const result = await rebuildDeBounce(template, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
-          } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
-          }
+          await get().rebuild();
         },
         setEditorValue: (value: string) => {
           set(() => ({ editorValue: value }));
         },
         setModelCto: async (model: string) => {
           set(() => ({ modelCto: model }));
-          const { templateMarkdown, data } = get();
-          try {
-            const result = await rebuildDeBounce(templateMarkdown, model, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
-          } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
-          }
+          await get().rebuild();
         },
         setEditorModelCto: (value: string) => {
           set(() => ({ editorModelCto: value }));
         },
         setData: async (data: string) => {
           set(() => ({ data }));
-          try {
-            const result = await rebuildDeBounce(
-              get().templateMarkdown,
-              get().modelCto,
-              data,
-            );
-            set(() => ({ agreementHtml: result, error: undefined }));
-          } catch (error: unknown) {
-            set(() => ({
-              error: formatError(error),
-              isProblemPanelVisible: true,
-            }));
-          }
+          await get().rebuild();
         },
         setEditorAgreementData: (value: string) => {
           set(() => ({ editorAgreementData: value }));
@@ -1115,14 +1097,24 @@ const useAppStore = create<AppState>()(
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
-        loadFromLink: async (compressedData: string) => {
+        loadFromLink: async (compressedData, signal) => {
+          if (signal?.aborted) return false;
+          const run = ++latestLinkRun;
+          let generation = templateGeneration;
+          const current = () => run === latestLinkRun && generation === templateGeneration && !signal?.aborted;
+          const cancel = () => {
+            if (run !== latestLinkRun || generation !== templateGeneration) return;
+            invalidateCompilations();
+            set({ isCompiling: false });
+          };
+          signal?.addEventListener('abort', cancel, { once: true });
           try {
             const { templateMarkdown, modelCto, data, agreementHtml, logicTs } =
               decompress(compressedData);
             if (!templateMarkdown || !modelCto || !data) {
               throw new Error("Invalid share link data");
             }
-            await get().loadImportedTemplate({
+            const loading = get().loadImportedTemplate({
               name: SHARED_TEMPLATE_NAME,
               templateMarkdown,
               modelCto,
@@ -1130,8 +1122,23 @@ const useAppStore = create<AppState>()(
               logicTs,
               agreementHtml,
             });
-            return true;
+            generation = templateGeneration;
+            sharedContentRevision = exportSourceRevision;
+            await loading;
+            return current();
           } catch (error) {
+            if (!current()) return false;
+            const state = get();
+            if (sharedContentRevision === exportSourceRevision &&
+              state.editorValue === state.templateMarkdown && state.editorModelCto === state.modelCto &&
+              state.editorAgreementData === state.data && state.editorLogicTs === state.logicTs) {
+              const resetting = get().loadSample(playground.NAME);
+              generation = templateGeneration;
+              await resetting;
+              if (!current()) return false;
+            }
+            // An earlier ordinary startup render must not erase the rejected-link error.
+            latestPreviewRun++;
             set(() => ({
               error:
                 "Failed to load shared content: " +
@@ -1139,6 +1146,8 @@ const useAppStore = create<AppState>()(
               isProblemPanelVisible: true,
             }));
             return false;
+          } finally {
+            signal?.removeEventListener('abort', cancel);
           }
         },
         loadImportedTemplate: async ({
@@ -1158,6 +1167,7 @@ const useAppStore = create<AppState>()(
           agreementHtml?: string;
           requestJson?: string;
         }) => {
+          sharedContentRevision = undefined;
           const hasLogic = Boolean(logicTs && logicTs.trim().length > 0);
           /*
            * A loaded link or archive is a different template — nothing the
@@ -1194,8 +1204,9 @@ const useAppStore = create<AppState>()(
           if (hasLogic) {
             savePanelState({ ...get(), isLogicPanelVisible: true });
           }
+          const generation = templateGeneration;
           await get().rebuild();
-          if (hasLogic) {
+          if (hasLogic && generation === templateGeneration) {
             await get().compileLogic();
           }
         },

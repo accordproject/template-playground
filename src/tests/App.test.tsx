@@ -18,7 +18,7 @@ import { FIRST_STEP, STEP_ID } from '../types/designV2.types';
 const state = vi.hoisted(() => ({
   isDesignV2Enabled: false,
   init: vi.fn().mockResolvedValue(undefined),
-  loadFromLink: vi.fn().mockResolvedValue(true),
+  loadFromLink: vi.fn<[string, AbortSignal], Promise<boolean>>().mockResolvedValue(true),
 }));
 
 vi.mock('../store/store', () => ({
@@ -94,7 +94,7 @@ describe('App - Design v2 feature flag routing', () => {
     await screen.findByTestId('design-v2-shell');
     await act(() => router.navigate('/' + url));
     await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.text));
-    expect(state.loadFromLink).toHaveBeenCalledWith('valid');
+    expect(state.loadFromLink).toHaveBeenCalledWith('valid', expect.any(AbortSignal));
     expect(useDesignV2Store.getState().selectedTemplate).toBe('Shared template');
 
     act(() => useDesignV2Store.getState().setView(FIRST_STEP));
@@ -111,6 +111,22 @@ describe('App - Design v2 feature flag routing', () => {
     await act(() => router.navigate('/'));
     await screen.findByTestId('design-v2-shell');
     expect(state.init).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels the pending store load when leaving a shared link', async () => {
+    state.isDesignV2Enabled = true;
+    let finish!: (loaded: boolean) => void;
+    const pending = new Promise<boolean>((resolve) => { finish = resolve; });
+    state.loadFromLink.mockReturnValueOnce(pending);
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/#data=pending'] });
+    render(<RouterProvider router={router} />);
+    await waitFor(() => expect(state.loadFromLink).toHaveBeenCalledTimes(1));
+    const [, signal] = state.loadFromLink.mock.calls[0];
+    await act(() => router.navigate('/'));
+    await screen.findByTestId('design-v2-shell');
+    expect(signal.aborted).toBe(true);
+    await act(async () => { finish(true); await pending; });
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
   });
 
   it('a failed new link clears the old selection and returns to welcome', async () => {
@@ -138,7 +154,7 @@ describe('App - Design v2 feature flag routing', () => {
     expect(state.init).not.toHaveBeenCalled();
   });
 
-  it.each(['?data=invalid', '#data=invalid'])('keeps a failed %s redirect on welcome', async (url) => {
+  it.each(['?data=invalid', '#data=invalid', '?data=', '#data='])('keeps a failed %s redirect on welcome', async (url) => {
     state.isDesignV2Enabled = true;
     state.loadFromLink.mockResolvedValue(false);
     useDesignV2Store.getState().start();

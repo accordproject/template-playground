@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Alert, ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
-import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
+import useAppStore from "../../store/store";
 import { pendingLogic } from "../../editors/logicSource";
 import { designV2Theme } from "./theme";
 import Rail from "./Rail";
@@ -53,6 +53,7 @@ import "./DesignV2Layout.css";
 const DesignV2Layout = ({ linkStatus, linkError }: { linkStatus?: "loaded" | "failed"; linkError?: string }) => {
   // The CSS shell follows html[data-theme] (set in App.tsx); antd needs the algorithm passed in.
   const isDark = useAppStore((s) => s.backgroundColor === "#121212");
+  const showLinkError = useAppStore((s) => linkStatus === "failed" && !!linkError && s.error === linkError);
   const view = useDesignV2Store((s) => s.view);
   const setView = useDesignV2Store((s) => s.setView);
   const start = useDesignV2Store((s) => s.start);
@@ -74,8 +75,7 @@ const DesignV2Layout = ({ linkStatus, linkError }: { linkStatus?: "loaded" | "fa
   const handleStart = () => {
     if (!selectedTemplate) {
       const app = useAppStore.getState();
-      if (app.sampleName === SHARED_TEMPLATE_NAME && linkStatus === "failed") pick(DEFAULT_TEMPLATE);
-      else if (hasWorkInProgress(app)) selectTemplate(cardNameFor(app.sampleName));
+      if (hasWorkInProgress(app)) selectTemplate(cardNameFor(app.sampleName));
       else pick(DEFAULT_TEMPLATE);
     }
     start();
@@ -144,7 +144,7 @@ const DesignV2Layout = ({ linkStatus, linkError }: { linkStatus?: "loaded" | "fa
       <div className="nd-main">
         {showChrome && <DesignV2Notice />}
         <Header view={view} onNavigate={navigate} isSkipped={isSkipped} />
-        {view === "welcome" && !selectedTemplate && linkStatus === "failed" && linkError && (
+        {view === "welcome" && !selectedTemplate && showLinkError && (
           <Alert type="error" showIcon message={linkError} style={{ overflowWrap: "anywhere" }} />
         )}
         <div className="nd-body">
