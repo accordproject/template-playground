@@ -24,6 +24,18 @@ export const URLS = {
   vscodeDev: "https://vscode.dev/",
   apapMcp: "https://docs.accordproject.org/docs/ref-apap/#mcp-support-experimental",
   templateLibrary: "https://templates.accordproject.org/",
+  /** Where the "new design" banner sends people to report problems: the design v2 bug bash. */
+  designFeedback: "https://github.com/accordproject/template-playground/issues/1096",
+} as const;
+
+/** One-time banner shown to people moved to design v2 by the new default (see DesignV2Notice.tsx). */
+export const NOTICE = {
+  label: "About the new design",
+  title: "Welcome to the new Template Playground",
+  feedback: "Report a problem",
+  switchToClassic: "Switch to classic",
+  dismiss: "Got it",
+  switched: "Switched to the classic playground. You can turn the new design back on in Settings.",
 } as const;
 
 export const RAIL = {
@@ -33,13 +45,20 @@ export const RAIL = {
   discord: "Discord",
   github: "GitHub",
   menuTitle: "Playground",
-  menuSubtitle: "Open a demo, learn the format, or start over.",
+  menuSubtitle: "Browse templates, learn the format, or start over.",
   items: {
-    demo: { label: "Open the demo document", hint: (sample: string) => `See the rendered ${sample} as a signer would` },
-    tour: { label: "Replay the guided tour", hint: "Back to step 0 — pick a starting point" },
+    tour: { label: "Replay the introduction", hint: "Back to step 0 — pick a starting point" },
     examples: { label: "Browse example templates", hint: "Employment offer, NDA, supply agreement…" },
     docs: { label: "Docs: template format", hint: "Text, model and logic explained" },
     reset: { label: "Reset the playground", hint: "Clear edits and start from the sample" },
+  },
+  /** Confirmation before "Reset the playground" discards the user's work. */
+  resetConfirm: {
+    title: "Reset the playground?",
+    content: (sample: string) =>
+      `This replaces your text, model, data and logic with the ${sample} sample and clears the simulation history. Your edits can't be recovered.`,
+    ok: "Reset",
+    cancel: "Cancel",
   },
 } as const;
 
@@ -51,6 +70,11 @@ export const HEADER = {
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
   stepperLabel: "Steps",
+  /** The compact step picker shown in place of the cards on narrow screens (see Header.tsx). */
+  stepPickerLabel: "Choose a step",
+  /** Its button: "Step 4 of 6 · Logic". */
+  stepPosition: (position: number, total: number, label: string) =>
+    `Step ${position} of ${total} · ${label}`,
   /** Under a step the flow passes over (Simulate for a template without logic), and its tooltip. */
   skippedMeta: "no logic",
   skippedHint: "This template has no logic. Add some on the Logic step to simulate it.",
@@ -407,6 +431,8 @@ export const SIMULATE = {
   title: "Simulate",
   restart: "↺ restart",
   restartHint: "Start the contract again and clear the runs",
+  restartHintStateless: "Clear the runs and start a fresh simulation",
+  noRunsStateless: "Nothing has happened yet — send a message to simulate this template.",
   runsLabel: "Runs",
   /** "3 runs · 2 ok · 1 failed" — the pill next to the title. */
   stats: (runs: number, ok: number, failed: number) =>

@@ -41,6 +41,8 @@ interface HeaderProps {
 /**
  * White header: eyebrow + sample name row, followed by the stepper (one entry per item in STEPS).
  * The name row shows the template picked on the Start step, falling back to the loaded sample.
+ * The stepper has two forms: the cards, and a compact picker that replaces them on narrow
+ * screens (see DesignV2Layout.css). Both are rendered; CSS decides which one is shown.
  * The Write | Preview switch is not here: it sits on the Text and Data
  * steps, where the preview matters (see PreviewToggle.tsx).
  */
@@ -48,6 +50,26 @@ const Header = ({ view, onNavigate, isSkipped = () => false }: HeaderProps) => {
   const showChrome = view !== "welcome";
   const sampleName = useAppStore((s) => s.sampleName);
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
+
+  const currentIndex = STEPS.findIndex((step) => step.id === view);
+  const currentStep = currentIndex >= 0 ? STEPS[currentIndex] : undefined;
+
+  /** The compact picker's button: "Step 4 of 6 · Logic". */
+  const pickerLabel = currentStep
+    ? HEADER.stepPosition(currentIndex + 1, STEPS.length, currentStep.label)
+    : HEADER.stepPickerLabel;
+
+  /** The same steps as the cards, for the compact picker on narrow screens. */
+  const stepItems: MenuProps["items"] = STEPS.map((step) => {
+    const skipped = isSkipped(step.id);
+    return {
+      key: String(step.id),
+      label: `${step.label} · ${skipped ? HEADER.skippedMeta : step.meta}`,
+      disabled: skipped,
+      title: skipped ? HEADER.skippedHint : undefined,
+      onClick: () => onNavigate(step.id),
+    };
+  });
 
   return (
     <header className="nd-header">
@@ -62,7 +84,16 @@ const Header = ({ view, onNavigate, isSkipped = () => false }: HeaderProps) => {
         </div>
         <div className="nd-spacer" />
         <div className="nd-header-actions">
-          <Button type="text" size="small">{HEADER.docs}</Button>
+          <Button
+            type="text"
+            size="small"
+            href={URLS.templateDocs}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${HEADER.docs} (opens in a new tab)`}
+          >
+            {HEADER.docs}
+          </Button>
           <Dropdown menu={{ items: HELP_MENU }} trigger={["click"]} placement="bottomRight">
             <Button type="text" size="small" aria-label={HEADER.helpMenuLabel}>
               {HEADER.help} <CaretDownFilled className="nd-help-caret" />
@@ -72,29 +103,44 @@ const Header = ({ view, onNavigate, isSkipped = () => false }: HeaderProps) => {
       </div>
 
       {showChrome && (
-        <nav className="nd-stepper" aria-label={HEADER.stepperLabel}>
-          {STEPS.map((step) => {
-            const active = step.id === view;
-            const skipped = isSkipped(step.id);
-            return (
-              <button
-                key={String(step.id)}
-                type="button"
-                aria-current={active ? "step" : undefined}
-                className={`nd-step ${active ? "nd-step-active" : ""} ${skipped ? "nd-step-skipped" : ""}`}
-                disabled={skipped}
-                title={skipped ? HEADER.skippedHint : undefined}
-                onClick={() => onNavigate(step.id)}
-              >
-                <span className="nd-step-badge">{step.icon}</span>
-                <span className="nd-step-text">
-                  <span className="nd-step-label">{step.label}</span>
-                  <span className="nd-step-meta">{skipped ? HEADER.skippedMeta : step.meta}</span>
-                </span>
-              </button>
-            );
-          })}
-        </nav>
+        <>
+          <nav className="nd-stepper nd-stepper-cards" aria-label={HEADER.stepperLabel}>
+            {STEPS.map((step) => {
+              const active = step.id === view;
+              const skipped = isSkipped(step.id);
+              return (
+                <button
+                  key={String(step.id)}
+                  type="button"
+                  aria-current={active ? "step" : undefined}
+                  className={`nd-step ${active ? "nd-step-active" : ""} ${skipped ? "nd-step-skipped" : ""}`}
+                  disabled={skipped}
+                  title={skipped ? HEADER.skippedHint : undefined}
+                  onClick={() => onNavigate(step.id)}
+                >
+                  <span className="nd-step-badge">{step.icon}</span>
+                  <span className="nd-step-text">
+                    <span className="nd-step-label">{step.label}</span>
+                    <span className="nd-step-meta">{skipped ? HEADER.skippedMeta : step.meta}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <nav className="nd-stepper-compact" aria-label={HEADER.stepperLabel}>
+            <Dropdown
+              menu={{ items: stepItems, selectable: true, selectedKeys: [String(view)] }}
+              trigger={["click"]}
+              placement="bottomLeft"
+            >
+              <Button className="nd-stepper-compact-button" aria-label={pickerLabel}>
+                <span>{pickerLabel}</span>
+                <CaretDownFilled className="nd-help-caret" />
+              </Button>
+            </Dropdown>
+          </nav>
+        </>
       )}
     </header>
   );
