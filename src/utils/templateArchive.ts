@@ -8,6 +8,7 @@
  * decorator older library models lack, and sample data for archives that
  * ship none. cicero-core, Concerto, JSZip and TypeScript load on first use.
  */
+import { AGENT_INSTRUCTIONS, EDITOR_EXTENSIONS } from "../agent-context";
 import type JSZipType from "jszip";
 import { BUNDLED_MODELS, loadBundledModels } from "./modelCache";
 import { ciceroAccepts, ciceroVersion } from "./cicero";
@@ -212,6 +213,8 @@ export const exportTemplateFiles = async (content: TemplateContent, name: string
   const template = await exportTemplate(content, name);
   const metadata = template.getMetadata();
   const files: TemplateFile[] = [
+    { path: "AGENTS.md", contents: AGENT_INSTRUCTIONS },
+    { path: ".vscode/extensions.json", contents: EDITOR_EXTENSIONS },
     { path: "package.json", contents: JSON.stringify(metadata.getPackageJson(), null, 2) },
     { path: "text/grammar.tem.md", contents: template.getTemplate() },
   ];
