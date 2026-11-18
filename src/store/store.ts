@@ -604,14 +604,14 @@ const getInitialChain = (): ChainStep[] => {
 /** Persists the execution chain, or clears storage once it's empty. */
 const persistChain = (chain: ChainStep[]) => {
   if (typeof window === "undefined") return;
-  try {
-    if (chain.length === 0) {
-      localStorage.removeItem(CHAIN_STORAGE_KEY);
-    } else {
-      localStorage.setItem(CHAIN_STORAGE_KEY, JSON.stringify(chain));
-    }
-  } catch {
-    // ignore storage quota / access errors
+   try {
+     if (chain.length === 0) {
+       localStorage.removeItem(CHAIN_STORAGE_KEY);
+     } else {
+       localStorage.setItem(CHAIN_STORAGE_KEY, JSON.stringify(chain));
+     }
+   } catch {
+     // ignore storage quota / access errors
   }
 };
 
@@ -1621,10 +1621,10 @@ const useAppStore = create<AppState>()(
             return operation === "init"
               ? await executor.init(payload.data)
               : await executor.trigger(
-                payload.data,
-                payload.request,
-                payload.priorState,
-              );
+                  payload.data,
+                  payload.request,
+                  payload.priorState,
+                );
           } finally {
             set({ isExecuting: false });
           }
@@ -1929,23 +1929,24 @@ function logicDefinesInit(source: string): boolean {
 export function cleanTemplateErrorMessage(raw: string): string {
   const isTemplateError =
     /Unknown property/i.test(raw) ||
+    /Unknown variable/i.test(raw) ||
     /text\/grammar\.tem\.md/i.test(raw) ||
     /template not on an/i.test(raw);
 
   let cleaned = raw;
   if (isTemplateError) {
-    cleaned = cleaned.replace(/^[A-Za-z0-9_$]+:\s*/, "");
+    cleaned = cleaned
+      .replace(/^[A-Za-z0-9_$]+:\s*/, "")
+      .replace(/\s+File\s+text\/grammar\.tem\.md/gi, "")
+      .replace(/\s+[Ll]ine\s+-?\d+(\s+[Cc]olumn?\s+-?\d+)?/gi, "")
+      .trim();
+
+    const unknownProp = cleaned.match(/Unknown (?:property:\s*|variable\s*`?)([A-Za-z0-9_$]+)`?/i);
+    if (unknownProp) {
+      return `Unknown variable \`${unknownProp[1]}\` — add it to the template model`;
+    }
   }
 
-  cleaned = cleaned
-    .replace(/\s+File\s+text\/grammar\.tem\.md/gi, "")
-    .replace(/\s+[Ll]ine\s+-?\d+(\s+[Cc]olumn?\s+-?\d+)?/gi, "")
-    .trim();
-
-  const unknownProp = cleaned.match(/Unknown (?:property:\s*|variable\s*`?)([A-Za-z0-9_$]+)`?/i);
-  if (unknownProp) {
-    return `Unknown variable \`${unknownProp[1]}\` — it is not declared in model.cto`;
-  }
   return cleaned;
 }
 

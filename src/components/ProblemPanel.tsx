@@ -46,7 +46,7 @@ const ProblemPanel: React.FC = () => {
       // Detect source based on error content
       // c: prefix indicates Concerto/CTO errors
       if (part.startsWith('c:') || part.includes('CTO') || part.includes('.cto') ||
-        (part.includes('model') && !part.includes('grammar'))) {
+        (part.includes('model') && !part.includes('grammar') && !part.includes('template'))) {
         source = 'Concerto Model';
       } else if (part.includes('JSON') || part.includes('json') || part.includes('data')) {
         source = 'JSON Data';

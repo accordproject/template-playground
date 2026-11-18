@@ -59,26 +59,35 @@ export default function MarkdownEditor({
     }
   }, [monaco, backgroundColor, textColor, themeName]);
 
+    const applyMarkers = useCallback(
+    (editorInstance?: editor.IStandaloneCodeEditor | null) => {
+      if (!monaco) return;
+      const targetEditor = editorInstance ?? editorRef?.current;
+      const editorModel = targetEditor?.getModel() ?? null;
+      if (!editorModel) return;
+
+      const isTemplateError = error && !error.startsWith("c:");
+      if (isTemplateError && templateErrorLocation && templateErrorLocation.line > 0) {
+        monaco.editor.setModelMarkers(editorModel, "templateMarker", [
+          {
+            startLineNumber: templateErrorLocation.line,
+            startColumn: templateErrorLocation.column,
+            endLineNumber: templateErrorLocation.line,
+            endColumn: templateErrorLocation.endColumn,
+            message: error,
+            severity: monaco.MarkerSeverity.Error,
+          },
+        ]);
+      } else {
+        monaco.editor.setModelMarkers(editorModel, "templateMarker", []);
+      }
+    },
+    [monaco, editorRef, error, templateErrorLocation],
+  );
+
   useEffect(() => {
-    if (!monaco) return;
-    const editorModel = editorRef?.current?.getModel() ?? null;
-    if (!editorModel) return;
-    const isTemplateError = error && !error.startsWith('c:');
-    if (isTemplateError && templateErrorLocation && templateErrorLocation.line > 0) {
-      monaco.editor.setModelMarkers(editorModel, 'templateMarker', [
-        {
-          startLineNumber: templateErrorLocation.line,
-          startColumn: templateErrorLocation.column,
-          endLineNumber: templateErrorLocation.line,
-          endColumn: templateErrorLocation.endColumn,
-          message: error,
-          severity: 8,
-        },
-      ]);
-    } else {
-      monaco.editor.setModelMarkers(editorModel, 'templateMarker', []);
-    }
-  }, [error, templateErrorLocation, monaco, editorRef]);
+    applyMarkers();
+  }, [applyMarkers]);
 
   const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },
@@ -108,6 +117,7 @@ export default function MarkdownEditor({
     if (editorRef) {
       editorRef.current = editorInstance;
     }
+    applyMarkers(editorInstance);
     registerEditor('template', editorInstance);
     editorInstance.onDidChangeCursorSelection(() => {
       handleSelection(editorInstance);
