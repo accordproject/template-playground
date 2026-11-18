@@ -69,11 +69,16 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
     navigate("/");
   };
 
-  const copyToClipboard = (code: string) => {
-    void navigator.clipboard.writeText(code);
-    setCopied(code);
-    void message.success("Copied to clipboard!");
-    setTimeout(() => setCopied(null), 2000);
+  const copyToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(code);
+      void message.success("Copied to clipboard!");
+      setTimeout(() => setCopied(null), 2000);
+    } catch (error) {
+      void message.error("Failed to copy to clipboard");
+      console.error("Clipboard error:", error);
+    }
   };
 
   if (loading) {
@@ -134,7 +139,10 @@ const LearnContent: React.FC<LearnContentProps> = ({ file }) => {
               return (
                 <CodeBlockContainer>
                   <pre>{children}</pre>
-                  <CopyButton onClick={() => copyToClipboard(String(codeText))}>
+                  <CopyButton
+                    aria-label="Copy code"
+                    onClick={() => void copyToClipboard(String(codeText))}
+                  >
                     {copied === codeText ? <CheckOutlined /> : <CopyOutlined />}
                   </CopyButton>
                 </CodeBlockContainer>
