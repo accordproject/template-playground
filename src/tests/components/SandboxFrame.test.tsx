@@ -34,12 +34,14 @@ describe("SandboxFrame", () => {
   });
 
   it("should handle sandbox-ready message from iframe", () => {
-    render(<SandboxFrame />);
+    const { container } = render(<SandboxFrame />);
+    const iframe = container.querySelector("iframe");
 
-    // Simulate the sandbox-ready message from a null-origin iframe
+    // Simulate the sandbox-ready message from the sandbox iframe
     const readyEvent = new MessageEvent("message", {
       data: { type: SANDBOX_READY },
       origin: "null",
+      source: iframe?.contentWindow,
     });
     window.dispatchEvent(readyEvent);
 
@@ -47,11 +49,13 @@ describe("SandboxFrame", () => {
   });
 
   it("should ignore messages from non-null origins", () => {
-    render(<SandboxFrame />);
+    const { container } = render(<SandboxFrame />);
+    const iframe = container.querySelector("iframe");
 
     const maliciousEvent = new MessageEvent("message", {
       data: { type: SANDBOX_READY },
       origin: "https://malicious.com",
+      source: iframe?.contentWindow,
     });
     window.dispatchEvent(maliciousEvent);
 
@@ -59,11 +63,13 @@ describe("SandboxFrame", () => {
   });
 
   it("should ignore messages with unrecognized types", () => {
-    render(<SandboxFrame />);
+    const { container } = render(<SandboxFrame />);
+    const iframe = container.querySelector("iframe");
 
     const unknownEvent = new MessageEvent("message", {
       data: { type: "unknown-type" },
       origin: "null",
+      source: iframe?.contentWindow,
     });
     window.dispatchEvent(unknownEvent);
 
@@ -71,7 +77,8 @@ describe("SandboxFrame", () => {
   });
 
   it("should route execution-result messages to resolvers", () => {
-    render(<SandboxFrame />);
+    const { container } = render(<SandboxFrame />);
+    const iframe = container.querySelector("iframe");
 
     // Set up a mock resolver in the module-scoped map
     const mockResolver = vi.fn();
@@ -85,6 +92,7 @@ describe("SandboxFrame", () => {
         result: { count: 5 },
       },
       origin: "null",
+      source: iframe?.contentWindow,
     });
     window.dispatchEvent(resultEvent);
 
@@ -96,6 +104,45 @@ describe("SandboxFrame", () => {
     });
     // Resolver should be cleaned up after use
     expect(sandboxResolvers.has(42)).toBe(false);
+  });
+
+  it("ignores null-origin messages that did not come from its iframe", () => {
+    render(<SandboxFrame />);
+
+    const mockResolver = vi.fn();
+    sandboxResolvers.set(42, mockResolver);
+
+    // A message with origin: "null" but source: null (or another window)
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          type: EXECUTION_RESULT,
+          executionId: 42,
+          success: true,
+          result: { count: 5 },
+        },
+        origin: "null",
+        source: null,
+      }),
+    );
+
+    // Should NOT be called because it didn't come from this iframe's contentWindow
+    expect(mockResolver).not.toHaveBeenCalled();
+    expect(sandboxResolvers.has(42)).toBe(true);
+  });
+
+  it("ignores null-origin sandbox-ready messages that did not come from its iframe", () => {
+    render(<SandboxFrame />);
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: SANDBOX_READY },
+        origin: "null",
+        source: null,
+      }),
+    );
+
+    expect(useAppStore.getState().isSandboxReady).toBe(false);
   });
 
   it("should reject pending resolvers and reset state on unmount", () => {
