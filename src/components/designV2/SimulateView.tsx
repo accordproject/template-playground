@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Dropdown, Modal, Tabs, type MenuProps } from "antd";
+import { Button, Dropdown, Modal, Tabs, message, type MenuProps } from "antd";
 import JSONEditor from "../../editors/JSONEditor";
 import ObligationsList from "../ObligationsList";
 import useAppStore, { type LogicExecutionResult } from "../../store/store";
@@ -71,13 +71,29 @@ interface RunDetailProps {
   onOpenLogic: () => void;
 }
 
+/**
+ * A run's JSON (message, response, state) in a read-only Monaco JSON editor,
+ * as in the legacy runner, so it is highlighted and foldable like the
+ * request editor. Each pane has its own id: it names the editor's model.
+ */
+const JsonView = ({ id, value }: { id: string; value: string }) => (
+  <div className="nd-sim-json">
+    <JSONEditor id={id} value={value} readOnly />
+  </div>
+);
+
 /** Right-hand column: the run's request on top, then Response / State after / Events tabs. */
 const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
   const [copied, setCopied] = useState(false);
-  const copyRequest = () => {
-    void navigator.clipboard?.writeText(pretty(run.request));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+  const copyRequest = async () => {
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(pretty(run.request));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      void message.error(SIMULATE.copyFailed);
+    }
   };
 
   const failed = run.error !== null;
@@ -96,7 +112,7 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
           </Button>
         </div>
       ) : (
-        <pre className="nd-sim-code">{pretty(run.response)}</pre>
+        <JsonView id="simulate-response" value={pretty(run.response)} />
       ),
     },
     {
@@ -105,7 +121,11 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
       children: (
         <div className="nd-sim-tab-body">
           {failed && <div className="nd-sim-note">{SIMULATE.stateUnchanged}</div>}
-          <pre className="nd-sim-code">{run.stateAfter ? pretty(run.stateAfter) : SIMULATE.noState}</pre>
+          {run.stateAfter ? (
+            <JsonView id="simulate-state" value={pretty(run.stateAfter)} />
+          ) : (
+            <pre className="nd-sim-code">{SIMULATE.noState}</pre>
+          )}
         </div>
       ),
     },
@@ -136,11 +156,11 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
           <span className="nd-sim-pane-title">{SIMULATE.request}</span>
           <span className="nd-mono nd-muted">{SIMULATE.json}</span>
           <span className="nd-spacer" />
-          <Button type="link" size="small" onClick={copyRequest}>
+          <Button type="link" size="small" onClick={() => void copyRequest()}>
             {copied ? SIMULATE.copied : SIMULATE.requestActions}
           </Button>
         </div>
-        <pre className="nd-sim-code">{pretty(run.request)}</pre>
+        <JsonView id="simulate-message" value={pretty(run.request)} />
       </section>
 
       <section
@@ -158,11 +178,13 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
 const SimulateView = () => {
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
   const history = useAppStore((s) => s.executionHistory);
-  const executionState = useAppStore((s) => s.executionState);
+  const isTemplateStateful = useAppStore((s) => s.isTemplateStateful);
+  const isContractInitialized = useAppStore((s) => s.isContractInitialized);
   const isExecuting = useAppStore((s) => s.isExecuting);
   const requestJson = useAppStore((s) => s.requestJson);
   const setRequestJson = useAppStore((s) => s.setRequestJson);
   const initContract = useAppStore((s) => s.initContract);
+  const resetExecution = useAppStore((s) => s.resetExecution);
   const triggerContract = useAppStore((s) => s.triggerContract);
 
   const selectedRunId = useDesignV2Store((s) => s.selectedRunId);
@@ -175,14 +197,19 @@ const SimulateView = () => {
   const noLogic = usePendingLogic() === null;
   const stats = runStats(history);
   const selected = history.find((run) => run.id === selectedRunId) ?? history[history.length - 1] ?? null;
-  const initialised = Boolean(executionState);
+  const canSend = !isTemplateStateful || isContractInitialized;
   const triggerRuns = history.filter((run) => run.method === "trigger");
   const lastTrigger = triggerRuns[triggerRuns.length - 1];
 
   const openLogic = () => setView(STEP_ID.logic);
 
   const restart = async () => {
-    await initContract();
+    if (isTemplateStateful) {
+        await initContract();
+    } else {
+        resetExecution();
+    }
+
     selectRun(null);
   };
 
@@ -217,7 +244,7 @@ const SimulateView = () => {
             size="small"
             onClick={() => { void restart(); }}
             disabled={!compiled || isExecuting}
-            title={SIMULATE.restartHint}
+            title={isTemplateStateful ? SIMULATE.restartHint : SIMULATE.restartHintStateless}
           >
             {SIMULATE.restart}
           </Button>
@@ -226,16 +253,23 @@ const SimulateView = () => {
         <div className="nd-sim-list" role="list" aria-label={SIMULATE.runsLabel}>
           {history.length === 0 ? (
             <div className="nd-sim-empty">
-              <span>{SIMULATE.noRuns}</span>
-              <Button
-                type="primary"
-                ghost
-                size="small"
-                onClick={() => { void restart(); }}
-                disabled={!compiled || isExecuting}
-              >
-                {SIMULATE.init}
-              </Button>
+                <span>
+                    {isTemplateStateful
+                        ? SIMULATE.noRuns
+                        : SIMULATE.noRunsStateless}
+                </span>
+
+                {isTemplateStateful && (
+                    <Button
+                        type="primary"
+                        ghost
+                        size="small"
+                        onClick={() => { void restart(); }}
+                        disabled={!compiled || isExecuting}
+                    >
+                        {SIMULATE.init}
+                    </Button>
+                )}
             </div>
           ) : (
             history.map((run) => (
@@ -270,8 +304,8 @@ const SimulateView = () => {
               type="primary"
               onClick={() => { void send(); }}
               loading={isExecuting}
-              disabled={!compiled || !initialised || isExecuting}
-              title={compiled && !initialised ? SIMULATE.sendHintNoInit : undefined}
+              disabled={!compiled || !canSend || isExecuting}
+              title={compiled && !canSend ? SIMULATE.sendHintNoInit : undefined}
             >
               {SIMULATE.send}
             </Button>
@@ -281,6 +315,7 @@ const SimulateView = () => {
 
       {selected ? (
         <RunDetail
+          key={selected.id}
           run={selected}
           busy={isExecuting}
           onRerun={() => { void rerun(selected); }}

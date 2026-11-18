@@ -17,7 +17,6 @@ const PlaygroundSidebar = () => {
     isPreviewVisible,
     isProblemPanelVisible,
     isLogicPanelVisible,
-    isLogicFeatureEnabled,
     isAIChatOpen,
     isContractRunnerVisible,
     setEditorsVisible,
@@ -34,7 +33,6 @@ const PlaygroundSidebar = () => {
     isProblemPanelVisible: state.isProblemPanelVisible,
     isLogicPanelVisible: state.isLogicPanelVisible,
     isContractRunnerVisible: state.isContractRunnerVisible,
-    isLogicFeatureEnabled: state.isLogicFeatureEnabled,
     isAIChatOpen: state.isAIChatOpen,
     setEditorsVisible: state.setEditorsVisible,
     setPreviewVisible: state.setPreviewVisible,
@@ -72,7 +70,7 @@ const PlaygroundSidebar = () => {
     }
   };
 
-  const isLogicActive = isLogicPanelVisible && isLogicFeatureEnabled ;
+  const isLogicActive = isLogicPanelVisible;
 
   const handleEditorToggle = () => {
     if (isEditorsVisible && !isPreviewVisible && !isLogicActive && !isContractRunnerVisible) {
@@ -113,7 +111,7 @@ const PlaygroundSidebar = () => {
       onClick: handleEditorToggle,
       active: isEditorsVisible
     },
-    ...(isLogicFeatureEnabled ? [{
+    {
       title: "Logic", 
       icon: FiCpu,
       onClick: () => {
@@ -124,13 +122,13 @@ const PlaygroundSidebar = () => {
         setLogicPanelVisible(!isLogicPanelVisible);
       },
       active: isLogicPanelVisible
-    }] : []),
-    ...(isLogicFeatureEnabled ? [{
+    },
+    {
       title: "Execution",
       icon: FiPlayCircle,
       onClick: handleRunnerToggle,
       active: isContractRunnerVisible
-    }] : []),
+    },
     { 
       title: "Preview", 
       icon: VscOutput,
