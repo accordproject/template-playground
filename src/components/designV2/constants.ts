@@ -70,6 +70,11 @@ export const HEADER = {
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
   stepperLabel: "Steps",
+  /** The compact step picker shown in place of the cards on narrow screens (see Header.tsx). */
+  stepPickerLabel: "Choose a step",
+  /** Its button: "Step 4 of 6 · Logic". */
+  stepPosition: (position: number, total: number, label: string) =>
+    `Step ${position} of ${total} · ${label}`,
   /** Under a step the flow passes over (Simulate for a template without logic), and its tooltip. */
   skippedMeta: "no logic",
   skippedHint: "This template has no logic. Add some on the Logic step to simulate it.",
