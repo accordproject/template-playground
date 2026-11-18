@@ -189,6 +189,49 @@ describe('useAppStore - execution engine selection', () => {
       expect(useAppStore.getState().executionChain).toHaveLength(3);
     });
 
+    it('automatically selects the latest step when triggering via forced LLM in Design V2', async () => {
+      useAppStore.setState({
+        isDesignV2Enabled: true,
+        isTemplateStateful: true,
+        llmExecutionMode: LLMMode.Force,
+        executionChain: [step0, step1],
+        selectedChainIndex: 0,
+        executionState: JSON.stringify(step0.state),
+      });
+
+      await useAppStore.getState().triggerContract();
+
+      expect(executeWithLLM).toHaveBeenCalledTimes(1);
+      const llmArgs = executeWithLLM.mock.calls[0][1] as { priorState: unknown };
+      expect(llmArgs.priorState).toEqual({ count: 1 });
+      expect(useAppStore.getState().selectedChainIndex).toBe(2);
+    });
+
+    it('preserves prior state when trigger response omits replacement state in Design V2', async () => {
+      executeInSandbox.mockResolvedValueOnce({ result: { ok: true }, state: undefined, events: [] });
+
+      useAppStore.setState({
+        isDesignV2Enabled: true,
+        isTemplateStateful: true,
+        executionChain: [step0, step1],
+        selectedChainIndex: 0,
+        executionState: JSON.stringify(step0.state),
+      });
+
+      await useAppStore.getState().triggerContract();
+
+      const state = useAppStore.getState();
+      expect(executeInSandbox).toHaveBeenCalledTimes(1);
+      // executionState falls back to step 1's state
+      expect(JSON.parse(state.executionState)).toEqual({ count: 1 });
+      // The newly created step in executionChain preserves step 1's state
+      const latestStep = state.executionChain[state.executionChain.length - 1];
+      expect(latestStep.state).toEqual({ count: 1 });
+      // executionHistory stateAfter preserves step 1's state
+      const latestRun = state.executionHistory[state.executionHistory.length - 1];
+      expect(latestRun.stateAfter).toEqual({ count: 1 });
+    });
+
     it('syncs to the latest chain step when enabling Design V2', () => {
       useAppStore.setState({
         isDesignV2Enabled: false,
