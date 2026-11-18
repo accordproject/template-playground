@@ -74,6 +74,12 @@ export const DEFAULT_TEMPLATE_NAME = "playground-template";
 /** Path of the logic file the playground writes, the template engine's default entry point. */
 const LOGIC_FILE = "logic/logic.ts";
 
+/** Limits applied before an imported archive is parsed or extracted. */
+export const MAX_ARCHIVE_BYTES = 25 * 1024 * 1024;
+export const MAX_ARCHIVE_FILES = 200;
+export const MAX_ARCHIVE_ENTRY_BYTES = 10 * 1024 * 1024;
+export const MAX_ARCHIVE_UNCOMPRESSED_BYTES = 50 * 1024 * 1024;
+
 /**
  * A template name as package.json and file names want it: lower case,
  * letters and digits joined by dashes ("Late Payment Penalty (with Logic)"
@@ -97,6 +103,39 @@ const parseJson = (text: string | undefined): unknown => {
     return JSON.parse(text) as unknown;
   } catch {
     return null;
+  }
+};
+
+interface ZipEntryMetadata {
+  dir: boolean;
+  _data?: {
+    uncompressedSize?: number;
+  };
+}
+
+const validateArchiveLimits = (bytes: ArrayBuffer | Uint8Array, zip: JSZipType): void => {
+  if (bytes.byteLength > MAX_ARCHIVE_BYTES) {
+    throw new Error(`The template archive is too large. Archives must be smaller than ${MAX_ARCHIVE_BYTES / (1024 * 1024)} MB.`);
+  }
+
+  const entries = Object.values(zip.files).filter((entry) => !entry.dir);
+  if (entries.length > MAX_ARCHIVE_FILES) {
+    throw new Error(`The template archive contains too many files. Archives are limited to ${MAX_ARCHIVE_FILES} files.`);
+  }
+
+  let totalUncompressedBytes = 0;
+  for (const entry of entries) {
+    const size = (entry as unknown as ZipEntryMetadata)._data?.uncompressedSize;
+    if (size === undefined) continue;
+    if (size > MAX_ARCHIVE_ENTRY_BYTES) {
+      throw new Error(`The template archive contains a file larger than ${MAX_ARCHIVE_ENTRY_BYTES / (1024 * 1024)} MB.`);
+    }
+    totalUncompressedBytes += size;
+    if (totalUncompressedBytes > MAX_ARCHIVE_UNCOMPRESSED_BYTES) {
+      throw new Error(
+        `The template archive expands to more than ${MAX_ARCHIVE_UNCOMPRESSED_BYTES / (1024 * 1024)} MB, which is not supported.`,
+      );
+    }
   }
 };
 
@@ -537,6 +576,9 @@ export const readTemplateArchive = async (
   bytes: ArrayBuffer | Uint8Array,
   fallbackName: string,
 ): Promise<ImportedTemplate> => {
+  if (bytes.byteLength > MAX_ARCHIVE_BYTES) {
+    throw new Error(`The template archive is too large. Archives must be smaller than ${MAX_ARCHIVE_BYTES / (1024 * 1024)} MB.`);
+  }
   const [{ default: JSZip }, { Template, TemplateLoader }] = await Promise.all([
     import("jszip"),
     import("@accordproject/cicero-core"),
@@ -547,6 +589,7 @@ export const readTemplateArchive = async (
   } catch {
     throw new Error("That file is not a template archive (.cta).");
   }
+  validateArchiveLimits(bytes, zip);
   const paths = Object.keys(zip.files).filter((p) => !zip.files[p].dir);
   // TemplateLoader's own reader, as Template.fromArchive reads these files.
   const read = async (path: string) =>

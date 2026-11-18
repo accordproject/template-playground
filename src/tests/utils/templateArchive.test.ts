@@ -8,6 +8,8 @@ import { BUNDLED_MODELS, loadBundledModels } from "../../utils/modelCache";
 import JSZip from "jszip";
 import {
   DEFAULT_TEMPLATE_NAME,
+  MAX_ARCHIVE_BYTES,
+  MAX_ARCHIVE_FILES,
   buildExportArchive,
   templateFromContent,
   templateSlug,
@@ -102,6 +104,16 @@ describe("template archive", () => {
     const zip = new JSZip();
     zip.file("package.json", "{}");
     await expect(readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/grammar/);
+  });
+
+  it("rejects archives that exceed size or file-count limits", async () => {
+    await expect(readTemplateArchive(new Uint8Array(MAX_ARCHIVE_BYTES + 1), "x")).rejects.toThrow(/too large/);
+
+    const zip = new JSZip();
+    for (let index = 0; index <= MAX_ARCHIVE_FILES; index += 1) {
+      zip.file(`extra/${index}.txt`, "");
+    }
+    await expect(readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "x")).rejects.toThrow(/too many files/);
   });
 
   it("refuses templates it can't run: Cicero 0.x, Ergo or JavaScript-only logic", async () => {
