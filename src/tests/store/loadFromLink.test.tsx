@@ -30,7 +30,7 @@ describe("useAppStore loadFromLink", () => {
     // Mock rebuild to avoid side effects
     useAppStore.setState({ rebuild: vi.fn() });
 
-    await useAppStore.getState().loadFromLink("some-compressed-data");
+    expect(await useAppStore.getState().loadFromLink("some-compressed-data")).toBe(true);
 
     const state = useAppStore.getState();
     expect(state.templateMarkdown).toBe(mockData.templateMarkdown);
@@ -68,11 +68,23 @@ describe("useAppStore loadFromLink", () => {
 
     vi.mocked(decompress).mockReturnValue(mockData as DecompressedData);
 
-    await useAppStore.getState().loadFromLink("invalid-data");
+    expect(await useAppStore.getState().loadFromLink("invalid-data")).toBe(false);
 
     const state = useAppStore.getState();
     expect(state.isProblemPanelVisible).toBe(true);
     expect(state.error).toContain("Invalid share link data");
+  });
+
+  it('reports a loaded template even when its preview has an error', async () => {
+    vi.mocked(decompress).mockReturnValue({
+      templateMarkdown: '{{missing}}', modelCto: 'namespace test@1.0.0', data: '{}',
+    });
+    useAppStore.setState({ rebuild: vi.fn(() => {
+      useAppStore.setState({ error: 'Unknown property missing' });
+      return Promise.resolve();
+    }) });
+    expect(await useAppStore.getState().loadFromLink('valid-payload')).toBe(true);
+    expect(useAppStore.getState().error).toBe('Unknown property missing');
   });
 
   it("marks the template as shared and drops the previous template's request", async () => {

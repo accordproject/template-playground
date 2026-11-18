@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { ConfigProvider, message } from "antd";
+import { useEffect, useRef } from "react";
+import { Alert, ConfigProvider, message } from "antd";
 import useDesignV2Store from "../../store/designV2Store";
 import useAppStore, { SHARED_TEMPLATE_NAME } from "../../store/store";
 import { pendingLogic } from "../../editors/logicSource";
@@ -50,7 +50,7 @@ import "./DesignV2Layout.css";
  * Deploy is still a placeholder.
  * Rendered from App.tsx when the "Enable Design v2" (isDesignV2Enabled) feature flag is on.
  */
-const DesignV2Layout = () => {
+const DesignV2Layout = ({ linkStatus, linkError }: { linkStatus?: "loaded" | "failed"; linkError?: string }) => {
   // The CSS shell follows html[data-theme] (set in App.tsx); antd needs the algorithm passed in.
   const isDark = useAppStore((s) => s.backgroundColor === "#121212");
   const view = useDesignV2Store((s) => s.view);
@@ -59,6 +59,11 @@ const DesignV2Layout = () => {
   const selectedTemplate = useDesignV2Store((s) => s.selectedTemplate);
   const selectTemplate = useDesignV2Store((s) => s.selectTemplate);
   const pick = usePickTemplate();
+
+  useEffect(() => {
+    // App routes each link load once; remounting must not replay that navigation.
+    if (!linkStatus) useDesignV2Store.getState().initialize();
+  }, [linkStatus]);
 
   /**
    * "Start building": enter the flow on a template — the first card unless
@@ -69,7 +74,7 @@ const DesignV2Layout = () => {
   const handleStart = () => {
     if (!selectedTemplate) {
       const app = useAppStore.getState();
-      if (app.sampleName === SHARED_TEMPLATE_NAME) selectTemplate(SHARED_TEMPLATE_NAME);
+      if (app.sampleName === SHARED_TEMPLATE_NAME && linkStatus === "failed") pick(DEFAULT_TEMPLATE);
       else if (hasWorkInProgress(app)) selectTemplate(cardNameFor(app.sampleName));
       else pick(DEFAULT_TEMPLATE);
     }
@@ -137,8 +142,11 @@ const DesignV2Layout = () => {
       <SandboxFrame />
       <Rail />
       <div className="nd-main">
-        <DesignV2Notice />
+        {showChrome && <DesignV2Notice />}
         <Header view={view} onNavigate={navigate} isSkipped={isSkipped} />
+        {view === "welcome" && !selectedTemplate && linkStatus === "failed" && linkError && (
+          <Alert type="error" showIcon message={linkError} style={{ overflowWrap: "anywhere" }} />
+        )}
         <div className="nd-body">
           <div className="nd-body-content">
             <ViewSwitch view={view} onStart={handleStart} />

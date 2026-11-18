@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import { message } from 'antd';
@@ -56,12 +56,20 @@ const deferredCompile = () => {
   return { done, finish };
 };
 
-const renderLayout = () =>
+const renderLayout = (linkStatus?: 'loaded' | 'failed', linkError?: string) =>
   render(
     <MemoryRouter>
-      <DesignV2Layout />
+      <DesignV2Layout linkStatus={linkStatus} linkError={linkError} />
     </MemoryRouter>
   );
+
+// Every suite shares the persisted welcome preference and app store.
+beforeEach(() => {
+  localStorage.removeItem('designV2WelcomeSeen');
+  useAppStore.setState({ sampleName: 'Playground', error: undefined });
+});
+
+afterEach(() => { vi.restoreAllMocks(); });
 
 describe('DesignV2Layout theme', () => {
   /** The theme the layout's own ConfigProvider (v2 font) received on its latest render; nested providers are skipped. */
@@ -117,7 +125,45 @@ describe('DesignV2Layout — Start building', () => {
       editorAgreementData: JSON.stringify(playground.DATA, null, 2),
       editorLogicTs: '',
     });
-    useDesignV2Store.setState({ view: 'welcome', selectedTemplate: null });
+    useDesignV2Store.getState().resetFlow();
+  });
+
+  it('shows the welcome on the first visit', () => {
+    localStorage.setItem('hasVisited', 'true');
+    renderLayout();
+    expect(screen.getByRole('button', { name: `${WELCOME.start} →` })).toBeInTheDocument();
+    expect(localStorage.getItem('designV2WelcomeSeen')).toBeNull();
+  });
+
+  it('opens the template picker on a returning visit', () => {
+    const firstVisit = renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    firstVisit.unmount();
+    useDesignV2Store.getState().resetFlow();
+    loadSample.mockClear();
+
+    renderLayout();
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(screen.queryByRole('button', { name: `${WELCOME.start} →` })).not.toBeInTheDocument();
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it('shows welcome and can start when storage is unavailable', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked'); });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+  });
+
+  it('opens Template for a returning no-link visit despite an ordinary rendering error', () => {
+    localStorage.setItem('designV2WelcomeSeen', 'true');
+    useAppStore.setState({ error: 'Invalid model syntax' });
+    renderLayout();
+
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(screen.queryByText('Invalid model syntax')).not.toBeInTheDocument();
+    expect(loadSample).not.toHaveBeenCalled();
   });
 
   it('keeps edits made in the classic playground instead of loading the first card', () => {
@@ -161,13 +207,50 @@ describe('DesignV2Layout — Start building', () => {
     expect(loadSample).not.toHaveBeenCalled();
   });
 
-  it('keeps a template opened from a share link instead of loading the first card', () => {
+  it.each([false, true])('preserves the shared-link route set by App (returning: %s)', (returning) => {
+    if (returning) localStorage.setItem('designV2WelcomeSeen', 'true');
     useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME });
-    renderLayout();
-    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    useDesignV2Store.getState().selectTemplate(SHARED_TEMPLATE_NAME);
+    useDesignV2Store.getState().setView(STEP_ID.text);
+    renderLayout('loaded');
 
-    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
     expect(useDesignV2Store.getState().selectedTemplate).toBe(SHARED_TEMPLATE_NAME);
+    expect(localStorage.getItem('designV2WelcomeSeen')).toBe('true');
+    expect(loadSample).not.toHaveBeenCalled();
+    act(() => useDesignV2Store.getState().setView('welcome'));
+    expect(screen.getByRole('button', { name: `${WELCOME.start} →` })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])('keeps a failed share link on welcome with its error (returning: %s)', (returning) => {
+    if (returning) localStorage.setItem('designV2WelcomeSeen', 'true');
+    const error = 'Failed to load shared content: Invalid share link data';
+    useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME, error: 'Unrelated rendering error' });
+    renderLayout('failed', error);
+
+    expect(useDesignV2Store.getState().view).toBe('welcome');
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+    expect(screen.getByRole('alert')).toHaveTextContent(error);
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(DEFAULT_TEMPLATE);
+    expect(loadSample).toHaveBeenCalledWith(sampleNameFor(DEFAULT_TEMPLATE));
+    expect(screen.queryByText(error)).not.toBeInTheDocument();
+  });
+
+  it('opens a loaded shared template on Text even when rendering reports an error', () => {
+    const error = 'Unknown property in template';
+    useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME, error });
+    useDesignV2Store.getState().setView(STEP_ID.text);
+    renderLayout('loaded');
+
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
+    expect(screen.getByText(error)).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: FOOTER.back }));
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(screen.queryByText(error)).not.toBeInTheDocument();
     expect(loadSample).not.toHaveBeenCalled();
   });
 
