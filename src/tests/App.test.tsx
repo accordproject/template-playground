@@ -23,7 +23,7 @@ const state = vi.hoisted(() => ({
 
 vi.mock('../store/store', () => ({
   SHARED_TEMPLATE_NAME: 'Shared template',
-  default: vi.fn((selector: (s: Record<string, unknown>) => unknown) =>
+  default: Object.assign(vi.fn((selector: (s: Record<string, unknown>) => unknown) =>
     selector({
       init: state.init,
       loadFromLink: state.loadFromLink,
@@ -31,7 +31,7 @@ vi.mock('../store/store', () => ({
       textColor: '#121212',
       isDesignV2Enabled: state.isDesignV2Enabled,
     })
-  ),
+  ), { getState: () => ({ error: 'Failed to load shared content' }) }),
 }));
 
 vi.mock('../components/Tour', () => ({ default: { start: vi.fn().mockResolvedValue(undefined) } }));
@@ -99,6 +99,18 @@ describe('App - Design v2 feature flag routing', () => {
 
     act(() => useDesignV2Store.getState().setView(FIRST_STEP));
     expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+  });
+
+  it('initializes only once when navigating between ordinary routes', async () => {
+    state.isDesignV2Enabled = true;
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/'] });
+    render(<RouterProvider router={router} />);
+    await screen.findByTestId('design-v2-shell');
+    await act(() => router.navigate('/learn'));
+    await screen.findByTestId('learn-page');
+    await act(() => router.navigate('/'));
+    await screen.findByTestId('design-v2-shell');
+    expect(state.init).toHaveBeenCalledTimes(1);
   });
 
   it('a failed new link clears the old selection and returns to welcome', async () => {

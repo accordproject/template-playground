@@ -56,10 +56,10 @@ const deferredCompile = () => {
   return { done, finish };
 };
 
-const renderLayout = (hasShareLink = false) =>
+const renderLayout = (linkStatus?: 'loaded' | 'failed', linkError?: string) =>
   render(
     <MemoryRouter>
-      <DesignV2Layout hasShareLink={hasShareLink} />
+      <DesignV2Layout linkStatus={linkStatus} linkError={linkError} />
     </MemoryRouter>
   );
 
@@ -162,7 +162,7 @@ describe('DesignV2Layout — Start building', () => {
     renderLayout();
 
     expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
-    expect(screen.getByText('Invalid model syntax')).toBeVisible();
+    expect(screen.queryByText('Invalid model syntax')).not.toBeInTheDocument();
     expect(loadSample).not.toHaveBeenCalled();
   });
 
@@ -212,7 +212,7 @@ describe('DesignV2Layout — Start building', () => {
     useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME });
     useDesignV2Store.getState().selectTemplate(SHARED_TEMPLATE_NAME);
     useDesignV2Store.getState().setView(STEP_ID.text);
-    renderLayout(true);
+    renderLayout('loaded');
 
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
     expect(useDesignV2Store.getState().selectedTemplate).toBe(SHARED_TEMPLATE_NAME);
@@ -228,26 +228,29 @@ describe('DesignV2Layout — Start building', () => {
   it.each([false, true])('keeps a failed share link on welcome with its error (returning: %s)', (returning) => {
     if (returning) localStorage.setItem('designV2WelcomeSeen', 'true');
     const error = 'Failed to load shared content: Invalid share link data';
-    useAppStore.setState({ error });
-    renderLayout(true);
+    useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME, error: 'Unrelated rendering error' });
+    renderLayout('failed', error);
 
     expect(useDesignV2Store.getState().view).toBe('welcome');
     expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
-    expect(screen.getByText(error)).toBeVisible();
-    expect(loadSample).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toHaveTextContent(error);
+    fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(DEFAULT_TEMPLATE);
+    expect(loadSample).toHaveBeenCalledWith(sampleNameFor(DEFAULT_TEMPLATE));
+    expect(screen.queryByText(error)).not.toBeInTheDocument();
   });
 
   it('opens a loaded shared template on Text even when rendering reports an error', () => {
     const error = 'Unknown property in template';
     useAppStore.setState({ sampleName: SHARED_TEMPLATE_NAME, error });
     useDesignV2Store.getState().setView(STEP_ID.text);
-    renderLayout(true);
+    renderLayout('loaded');
 
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
     expect(screen.getByText(error)).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: FOOTER.back }));
     expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
-    expect(screen.getByText(error)).toBeVisible();
+    expect(screen.queryByText(error)).not.toBeInTheDocument();
     expect(loadSample).not.toHaveBeenCalled();
   });
 

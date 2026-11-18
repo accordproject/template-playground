@@ -30,31 +30,30 @@ const App = () => {
   // Design v2 ships its own header, so the legacy navbar is hidden on the playground route.
   const hideNavbar = isDesignV2Enabled && location.pathname === "/";
   const [loading, setLoading] = useState(true);
-  const [linkLoad, setLinkLoad] = useState<{ loaded: boolean } | null>(null);
+  const [linkLoad, setLinkLoad] = useState<{ status: 'loaded' | 'failed'; error?: string } | null>(null);
   const handledLink = useRef<typeof linkLoad>(null);
   const [searchParams] = useSearchParams();
-
+  const compressedData = location.hash.startsWith("#data=")
+    ? location.hash.substring(6)
+    : searchParams.get("data");
+  const redirectLink = Boolean(compressedData) && location.pathname !== "/";
 
   useEffect(() => {
+    if (redirectLink) {
+      navigate({ pathname: "/", search: location.search, hash: location.hash }, { replace: true });
+    }
+  }, [redirectLink, navigate, location.search, location.hash]);
+
+  useEffect(() => {
+    if (redirectLink) return;
     let cancelled = false;
     const initializeApp = async () => {
       try {
         setLoading(true);
-        // Prioritize hash for new links, fallback to searchParams for old links
-        let compressedData: string | null = null;
-        if (location.hash.startsWith("#data=")) {
-          compressedData = location.hash.substring(6);
-        } else {
-          compressedData = searchParams.get("data");
-        }
         if (compressedData) {
-          if (location.pathname !== "/") {
-            navigate({ pathname: "/", search: location.search, hash: location.hash }, { replace: true });
-            return;
-          }
           const loaded = await loadFromLink(compressedData);
           if (cancelled) return;
-          setLinkLoad({ loaded });
+          setLinkLoad(loaded ? { status: 'loaded' } : { status: 'failed', error: useAppStore.getState().error });
         } else {
           await init();
           if (!cancelled) setLinkLoad(null);
@@ -67,14 +66,15 @@ const App = () => {
     };
     void initializeApp();
     return () => { cancelled = true; };
-  }, [init, loadFromLink, searchParams, navigate, location.pathname, location.search, location.hash]);
+  }, [init, loadFromLink, compressedData, redirectLink]);
 
   useEffect(() => {
     if (!isDesignV2Enabled || !linkLoad || handledLink.current === linkLoad) return;
     handledLink.current = linkLoad;
     const flow = useDesignV2Store.getState();
-    flow.selectTemplate(linkLoad.loaded ? SHARED_TEMPLATE_NAME : null);
-    flow.setView(linkLoad.loaded ? STEP_ID.text : "welcome");
+    const loaded = linkLoad.status === 'loaded';
+    flow.selectTemplate(loaded ? SHARED_TEMPLATE_NAME : null);
+    flow.setView(loaded ? STEP_ID.text : "welcome");
   }, [isDesignV2Enabled, linkLoad]);
 
   useEffect(() => {
@@ -148,7 +148,7 @@ const App = () => {
                     </div>
                   ) : (
                     <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
-                      <DesignV2Layout hasShareLink={linkLoad !== null} />
+                      <DesignV2Layout linkStatus={linkLoad?.status} linkError={linkLoad?.error} />
                     </Suspense>
                   )
                 ) : (
