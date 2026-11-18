@@ -663,15 +663,6 @@ export const IMPORT = {
     inputLabel: "Template archive (.cta)",
     accept: ".cta,.zip",
   },
-  url: {
-    button: "From a URL",
-    hint: "A .cta link, e.g. from another library",
-    modalTitle: "Import from a URL",
-    label: "Archive URL",
-    placeholder: "https://example.org/archives/my-template@1.0.0.cta",
-    submit: "Import",
-    cancel: "Cancel",
-  },
   imported: (name: string) => `Imported ${name}`,
   failed: (reason: string) => `Import failed: ${reason}`,
 } as const;
