@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { StartView } from '../../../components/designV2/views';
 import useDesignV2Store from '../../../store/designV2Store';
 import useAppStore from '../../../store/store';
-import { START, START_SAMPLES, sampleNameFor } from '../../../components/designV2/constants';
+import { START, START_BLANK, START_SAMPLES, sampleNameFor } from '../../../components/designV2/constants';
 import { FIRST_STEP, STEPS } from '../../../types/designV2.types';
 import { SAMPLES } from '../../../samples';
 
 /**
  * Covers the "Choose a template" gallery: one card per START_SAMPLES entry,
  * each with its own "Start with this template" button that picks the
- * template, loads its sample and opens the next step in one click.
- * "+ Start blank" does the same with the blank template.
+ * template, loads its sample and opens the next step in one click. The
+ * blank template is a fourth card that does the same with the empty sample.
  */
 describe('START_SAMPLES', () => {
   it('every card points at a real sample in src/samples', () => {
@@ -22,11 +22,19 @@ describe('START_SAMPLES', () => {
     }
   });
 
-  it('every card points at a sample that ships logic and a default request', () => {
+  it('is a tour: text-only cards first, then one that ships logic with a default request', () => {
+    const samples = START_SAMPLES.map((card) => SAMPLES.find((s) => s.NAME === card.sampleName)!);
+    const withLogic = samples.filter((s) => s.LOGIC);
+    expect(withLogic.length).toBeGreaterThanOrEqual(1);
+    expect(withLogic.length).toBeLessThan(samples.length);
+    for (const sample of withLogic) expect(sample.REQUEST, sample.NAME).toBeTruthy();
+    expect(samples[0].LOGIC).toBeUndefined();
+  });
+
+  it('speaks about the agreement, not the engine', () => {
     for (const card of START_SAMPLES) {
-      const sample = SAMPLES.find((s) => s.NAME === card.sampleName)!;
-      expect(sample.LOGIC, card.name).toBeTruthy();
-      expect(sample.REQUEST, card.name).toBeTruthy();
+      const copy = [card.tagline, ...card.demonstrates].join(' ');
+      expect(copy, card.name).not.toMatch(/init\(\)|trigger\(\)|request|\bstate\b|event/i);
     }
   });
 
@@ -56,7 +64,17 @@ describe('StartView', () => {
       for (const point of sample.demonstrates) expect(screen.getByText(point)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: START.openLabel(sample.name) })).toBeInTheDocument();
     }
-    expect(screen.getAllByText(START.open)).toHaveLength(START_SAMPLES.length);
+    expect(screen.getAllByText(START.open)).toHaveLength(START_SAMPLES.length + 1);
+  });
+
+  it('renders the blank template as a card like the others, without a demonstrates list', () => {
+    render(<StartView />);
+    const card = screen.getByRole('article', { name: START_BLANK.name });
+    expect(card).toHaveClass('nd-sample-card', `nd-sample-card-${START_BLANK.accent}`);
+    expect(within(card).getByText(START_BLANK.tagline)).toBeInTheDocument();
+    expect(within(card).queryByRole('list')).not.toBeInTheDocument();
+    expect(within(card).getByRole('button', { name: START.openLabel(START_BLANK.name) })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /start blank/i })).not.toBeInTheDocument();
   });
 
   it('marks no card as current until a template is picked', () => {
@@ -81,6 +99,29 @@ describe('StartView', () => {
     expect(useDesignV2Store.getState().view).toBe(secondStep);
   });
 
+  it('opening the current card carries on with it without reloading, so edits are kept', () => {
+    const [, second] = START_SAMPLES;
+    useDesignV2Store.setState({ selectedTemplate: second.name });
+    useAppStore.setState({ sampleName: second.sampleName });
+    render(<StartView />);
+
+    fireEvent.click(screen.getByRole('button', { name: START.openLabel(second.name) }));
+    expect(loadSample).not.toHaveBeenCalled();
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(second.name);
+    expect(useDesignV2Store.getState().view).toBe(secondStep);
+  });
+
+  it('reloads the current card when another sample was loaded since (in the classic playground)', () => {
+    const [first, second] = START_SAMPLES;
+    useDesignV2Store.setState({ selectedTemplate: second.name });
+    useAppStore.setState({ sampleName: first.sampleName });
+    render(<StartView />);
+
+    fireEvent.click(screen.getByRole('button', { name: START.openLabel(second.name) }));
+    expect(loadSample).toHaveBeenCalledWith(second.sampleName);
+    expect(useDesignV2Store.getState().view).toBe(secondStep);
+  });
+
   it('clicking the card body does nothing — only the button opens a template', () => {
     render(<StartView />);
     fireEvent.click(screen.getByText(START_SAMPLES[0].name));
@@ -89,9 +130,9 @@ describe('StartView', () => {
     expect(loadSample).not.toHaveBeenCalled();
   });
 
-  it('"+ Start blank" opens the next step on the blank template', () => {
+  it("the blank card's button opens the next step on the blank template", () => {
     render(<StartView />);
-    fireEvent.click(screen.getByRole('button', { name: START.blank }));
+    fireEvent.click(screen.getByRole('button', { name: START.openLabel(START_BLANK.name) }));
     expect(useDesignV2Store.getState().selectedTemplate).toBe(START.blankName);
     expect(loadSample).toHaveBeenCalledWith(sampleNameFor(START.blankName));
     expect(useDesignV2Store.getState().view).toBe(secondStep);

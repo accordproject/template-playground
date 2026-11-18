@@ -80,7 +80,11 @@ export const REQUEST = {
   invoiceValue: 1000
 };
 
-export const LOGIC = `/*
+export const LOGIC = `import type { IPaymentObligation } from './generated/org.accordproject.obligation@0.2.0';
+import type { IParticipant } from './generated/concerto@1.0.0';
+import type { CurrencyCode } from './generated/org.accordproject.money@0.3.0';
+
+/*
  * Late Payment Penalty Logic
  * Demonstrates: Date/time handling, mathematical calculations, and cap enforcements
  */
@@ -116,13 +120,13 @@ class LatePaymentLogic extends TemplateLogic<any> {
       return {
         result: {
           $class: 'org.acme.latepayment@1.0.0.LatePaymentResponse',
-          $timestamp: new Date(),
+          $timestamp: new Date().toISOString(),
           penalty: 0,
           sellerMayTerminate: false
         },
         events: [{
           $class: 'org.acme.latepayment@1.0.0.LatePaymentEvent',
-          $timestamp: new Date(),
+          $timestamp: new Date().toISOString(),
           penaltyCalculated: false,
           contractTerminated: false
         }],
@@ -161,30 +165,39 @@ class LatePaymentLogic extends TemplateLogic<any> {
     // Terminate condition
     const sellerMayTerminate = daysOverdue > data.termination.amount;
 
+    /*
+     * An Obligation is identified and references its governing contract and
+     * parties. The generated types model relationships as the target
+     * interfaces, but the wire format of a Concerto relationship is a string.
+     */
+    const obligation: IPaymentObligation = {
+      $class: 'org.accordproject.obligation@0.2.0.PaymentObligation',
+      $timestamp: new Date().toISOString(),
+      $identifier: state.stateId + '-penalty-' + (currentCount + 1),
+      contract: 'resource:org.accordproject.contract@0.2.0.Contract#late-payment' as unknown as IContract,
+      amount: {
+        $class: 'org.accordproject.money@0.3.0.MonetaryAmount',
+        doubleValue: penalty,
+        currencyCode: 'USD' as CurrencyCode
+      },
+      description: 'Penalty for late payment',
+      promisor: 'resource:org.accordproject.party@0.2.0.Party#Buyer' as unknown as IParticipant,
+      promisee: 'resource:org.accordproject.party@0.2.0.Party#Seller' as unknown as IParticipant,
+      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+    };
+
     return {
       result: {
         $class: 'org.acme.latepayment@1.0.0.LatePaymentResponse',
-        $timestamp: new Date(),
+        $timestamp: new Date().toISOString(),
         penalty: penalty,
         sellerMayTerminate: sellerMayTerminate
       },
       events: [
-        {
-          $class: 'org.accordproject.obligation@0.2.0.PaymentObligation',
-          $timestamp: new Date(),
-          amount: {
-            $class: 'org.accordproject.money@0.3.0.MonetaryAmount',
-            doubleValue: penalty,
-            currencyCode: 'USD'
-          },
-          description: 'Penalty for late payment',
-          promisor: 'resource:org.accordproject.party@0.2.0.Party#Buyer',
-          promisee: 'resource:org.accordproject.party@0.2.0.Party#Seller',
-          deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-        },
+        obligation,
         {
           $class: 'org.acme.latepayment@1.0.0.LatePaymentEvent',
-          $timestamp: new Date(),
+          $timestamp: new Date().toISOString(),
           penaltyCalculated: true,
           contractTerminated: sellerMayTerminate
         }
@@ -200,4 +213,6 @@ class LatePaymentLogic extends TemplateLogic<any> {
     };
   }
 }
+
+export default LatePaymentLogic;
 `;

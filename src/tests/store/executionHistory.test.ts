@@ -18,6 +18,8 @@ describe("useAppStore - executionHistory", () => {
       executionHistory: [],
       compilationErrors: [],
       isProblemPanelVisible: false,
+      isTemplateStateful: true,
+      isContractInitialized: false,
     });
   });
 

@@ -11,7 +11,9 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
-    // Set localStorage to prevent shepherd tour from appearing
+    // Set localStorage to prevent the shepherd tour from appearing, and pin
+    // the existing specs to the classic layout: design v2 is the default, but
+    // these specs drive the classic UI. design-v2-default.spec.ts clears this.
     storageState: {
       cookies: [],
       origins: [
@@ -21,6 +23,10 @@ export default defineConfig({
             {
               name: 'hasVisited',
               value: 'true',
+            },
+            {
+              name: 'isDesignV2Enabled',
+              value: 'false',
             },
           ],
         },
