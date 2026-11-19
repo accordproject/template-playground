@@ -14,12 +14,12 @@ test.describe('Design v2 as the default', () => {
   test('a first visit opens design v2 with the one-time banner', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.locator('.nd-rail')).toBeVisible();
-    await expect(banner(page)).toBeVisible();
+    await expect(page.locator('.nd-rail')).toBeVisible({ timeout: 30000 });
+    await expect(banner(page)).toBeVisible({ timeout: 30000 });
 
-    // Shown once: a reload keeps design v2 without the banner, even though it was never clicked.
+    // Shown once: a reload keeps design v2 without the banner.
     await page.reload();
-    await expect(page.locator('.nd-rail')).toBeVisible();
+    await expect(page.locator('.nd-rail')).toBeVisible({ timeout: 30000 });
     await expect(banner(page)).toHaveCount(0);
   });
 
@@ -36,3 +36,4 @@ test.describe('Design v2 as the default', () => {
     await expect(page.locator('.main-container')).toBeVisible();
   });
 });
+

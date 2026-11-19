@@ -127,10 +127,23 @@ test.describe('Template rendering sandbox', () => {
     const hello = page.getByRole('button', { name: /(^|\s)Hello World$/ });
     const confirm = page.getByRole('button', { name: 'Continue' });
     await expect(async () => {
-      if (!(await hello.isVisible())) await samples.click();
-      await hello.click({ timeout: 5_000 });
-      if (await confirm.isVisible({ timeout: 3_000 }).catch(() => false)) await confirm.click();
-      await expect(samples).toContainText('Hello World', { timeout: 5_000 });
+      // If a previous attempt already opened the confirmation dialog,
+      // resolve it before interacting with the sample menu again.
+      if (await confirm.isVisible()) {
+        await confirm.click();
+      } else {
+        if (!(await hello.isVisible())) {
+          await samples.click();
+        }
+
+        await hello.click({ timeout: 5_000 });
+        await expect(confirm).toBeVisible({ timeout: 5_000 });
+        await confirm.click();
+      }
+
+      await expect(samples).toContainText('Hello World', {
+        timeout: 5_000,
+      });
     }).toPass({ timeout: 60_000 });
 
     await expect(preview).toContainText('Hello John Doe!', { timeout: RENDER_TIMEOUT });
