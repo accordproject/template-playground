@@ -219,18 +219,19 @@ export const DeployView = () => {
             {card.button}
           </Button>
         )}
-        {card.secondary && (
+        {card.editorTargets?.map((target) => (
           <Button
+            key={target.href}
             block
             style={{ marginTop: 8 }}
-            href={card.secondary.href}
+            href={target.href}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`${card.secondary.label} ↗ (opens in a new tab)`}
+            aria-label={`${target.label} (opens in a new tab)`}
           >
-            {card.secondary.label} ↗
+            {target.label}
           </Button>
-        )}
+        ))}
       </div>
     </article>
   );
