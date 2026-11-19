@@ -1958,8 +1958,9 @@ export function findTemplateErrorLocation(
   if (!match) return null;
 
   const varName = match[1];
+  const escapedName = varName.replace(/[$]/g, "\\$&");
 
-  const tagRegex = new RegExp(`\\{\\{\\s*(?:#[a-zA-Z]+\\s+)?${varName}\\b`);
+  const tagRegex = new RegExp(`\\{\\{\\s*(?:#[a-zA-Z]+\\s+)?${escapedName}\\b`);
   const lines = templateText.split("\n");
 
   for (let i = 0; i < lines.length; i++) {

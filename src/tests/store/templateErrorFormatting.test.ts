@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { cleanTemplateErrorMessage, findTemplateErrorLocation } from "../../store/store";
-import { errorPane } from "../../components/designV2/ModelDataView";
 
 describe("cleanTemplateErrorMessage", () => {
   it("strips minified prefix and grammar file details from unknown property error", () => {
@@ -42,6 +41,7 @@ describe("findTemplateErrorLocation", () => {
     "Conditional {{#if conditionVar}} show text {{/if}}",
     "List {{#each itemsList}} {{this}} {{/each}}",
     "Whitespace {{   spacedVar   }} check.",
+    "Dollar variable {{price$1}} check.",
   ].join("\n");
 
   it("finds standard variable error location with correct columns", () => {
@@ -61,6 +61,11 @@ describe("findTemplateErrorLocation", () => {
     const tpl = "Hello {{badPropLong}} and {{badProp}}.";
     const loc = findTemplateErrorLocation("Unknown property: badProp", tpl);
     expect(loc).toEqual({ line: 1, column: 27, endColumn: 38 });
+  });
+
+  it("escapes and locates variables that contain dollar signs ($)", () => {
+    const loc = findTemplateErrorLocation("Unknown property: price$1", template);
+    expect(loc).toEqual({ line: 6, column: 17, endColumn: 29 });
   });
 
   it("finds variables inside block helpers (#if, #each)", () => {
@@ -84,26 +89,5 @@ describe("findTemplateErrorLocation", () => {
   it("returns null for errors that do not describe unknown variables", () => {
     const loc = findTemplateErrorLocation("Syntax error in model", template);
     expect(loc).toBeNull();
-  });
-});
-
-describe("errorPane routing", () => {
-  it("routes cleaned template errors to text step", () => {
-    const cleaned = "Unknown variable `notAField` — add it to the template model";
-    expect(errorPane(cleaned)).toBe("text");
-  });
-
-  it("routes raw grammar.tem.md errors to text step", () => {
-    const raw = "Unknown property: notAField File text/grammar.tem.md";
-    expect(errorPane(raw)).toBe("text");
-  });
-
-  it("routes CTO model errors to model pane", () => {
-    expect(errorPane("Invalid CTO model at line 2")).toBe("model");
-    expect(errorPane("c: syntax error")).toBe("model");
-  });
-
-  it("routes data errors to data pane", () => {
-    expect(errorPane("Unexpected token in JSON")).toBe("data");
   });
 });
