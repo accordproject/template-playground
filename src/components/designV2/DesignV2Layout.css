@@ -644,6 +644,7 @@ html[data-theme="dark"] .nd-hero-actions .ant-btn-default.ant-btn-background-gho
   background: var(--nd-card); border: 1px solid var(--nd-page-line); border-radius: 8px; padding: 34px 32px; min-height: 200px;
   box-shadow: 0 1px 3px rgba(15, 32, 39, 0.05);
 }
+.nd-preview-page-stale { opacity: 0.55; }
 
 /* Footer */
 .nd-footer {
