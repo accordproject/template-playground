@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { DirectoryHandle } from '../../../utils/saveToFolder';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
 import '@testing-library/jest-dom';
 import { message } from 'antd';
 import { DeployView } from '../../../components/designV2/DeployView';
@@ -495,5 +496,77 @@ describe('DeployView', () => {
       const { zip } = await download();
       expect(zip.file('logic/logic.ts')).toBeNull();
     }, 30_000);
+
+    it('delays showing disabled and loading state so fast actions do not flicker', async () => {
+      vi.useFakeTimers();
+      let resolveRender!: (v: string) => void;
+      const pendingRender = new Promise<string>((resolve) => {
+        resolveRender = resolve;
+      });
+      useAppStore.setState({
+        renderAgreement: vi.fn(() => pendingRender),
+      });
+
+      render(<DeployView />);
+      const copyButton = screen.getByRole('button', { name: 'Copy text' });
+      const pdfButton = screen.getByRole('button', { name: 'Download PDF' });
+      const mdButton = screen.getByRole('button', { name: 'Download .md' });
+
+      fireEvent.click(copyButton);
+
+      // Immediately after click (< 150ms): neither loading nor disabled should show yet
+      expect(copyButton.closest('.ant-btn-loading')).toBeNull();
+      expect(pdfButton).not.toBeDisabled();
+      expect(mdButton).not.toBeDisabled();
+
+      // Action finishes quickly before 150ms:
+      await act(() => {
+        resolveRender('done');
+        return pendingRender;
+      });
+      expect(copyButton.closest('.ant-btn-loading')).toBeNull();
+      expect(pdfButton).not.toBeDisabled();
+      expect(mdButton).not.toBeDisabled();
+
+      vi.useRealTimers();
+    });
+
+    it('disables other buttons and shows loading when an action runs longer than 150ms', async () => {
+      vi.useFakeTimers();
+      let resolveRender!: (v: string) => void;
+      const pendingRender = new Promise<string>((resolve) => {
+        resolveRender = resolve;
+      });
+      useAppStore.setState({
+        renderAgreement: vi.fn(() => pendingRender),
+      });
+
+      render(<DeployView />);
+      const copyButton = screen.getByRole('button', { name: 'Copy text' });
+      const pdfButton = screen.getByRole('button', { name: 'Download PDF' });
+      const mdButton = screen.getByRole('button', { name: 'Download .md' });
+
+      fireEvent.click(copyButton);
+
+      // Advance past 150ms while still running:
+      act(() => {
+        vi.advanceTimersByTime(160);
+      });
+
+      expect(copyButton.closest('.ant-btn-loading')).not.toBeNull();
+      expect(pdfButton).toBeDisabled();
+      expect(mdButton).toBeDisabled();
+
+      // Once the action settles, buttons re-enable:
+      await act(() => {
+        resolveRender('done');
+        return pendingRender;
+      });
+
+      expect(pdfButton).not.toBeDisabled();
+      expect(mdButton).not.toBeDisabled();
+
+      vi.useRealTimers();
+    });
   });
 });
