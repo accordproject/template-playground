@@ -205,23 +205,132 @@ export const groupTemplates = (
   return groups;
 };
 
-/** Downloads a `.cta` from a URL. Only http(s) is accepted. */
-export const fetchArchive = async (url: string): Promise<Uint8Array> => {
+/** Maximum allowed size for a downloaded template archive (25 MB). */
+export const MAX_ARCHIVE_DOWNLOAD_BYTES = 25 * 1024 * 1024;
+
+/** Default timeout for remote template archive downloads (15 seconds). */
+export const ARCHIVE_DOWNLOAD_TIMEOUT_MS = 15_000;
+
+export interface FetchArchiveOptions {
+  timeoutMs?: number;
+  maxBytes?: number;
+  signal?: AbortSignal;
+}
+
+/**
+ * Downloads a `.cta` from a URL with timeout and byte-limit defenses.
+ * Accepts https URLs only.
+ */
+export const fetchArchive = async (
+  url: string,
+  options: FetchArchiveOptions = {},
+): Promise<Uint8Array> => {
   let parsed: URL;
   try {
     parsed = new URL(url);
   } catch {
     throw new Error("That is not a valid URL.");
   }
-  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-    throw new Error("Only http and https URLs can be imported.");
+  if (parsed.protocol !== "https:") {
+    throw new Error("Only https URLs can be imported.");
   }
-  let response: Response;
+
+  const timeoutMs = options.timeoutMs ?? ARCHIVE_DOWNLOAD_TIMEOUT_MS;
+  const maxBytes = options.maxBytes ?? MAX_ARCHIVE_DOWNLOAD_BYTES;
+
+  const controller = new AbortController();
+  let timedOut = false;
+
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+
+  let unhookSignal: (() => void) | undefined;
+  if (options.signal) {
+    if (options.signal.aborted) {
+      clearTimeout(timer);
+      throw new Error("The download was cancelled.");
+    }
+    const onAbort = () => controller.abort();
+    options.signal.addEventListener("abort", onAbort, { once: true });
+    unhookSignal = () => options.signal?.removeEventListener("abort", onAbort);
+  }
+
   try {
-    response = await fetch(parsed.href);
-  } catch {
-    throw new Error("The archive could not be downloaded — the server may block requests from other sites (CORS).");
+    let response: Response;
+    try {
+      response = await fetch(parsed.href, { signal: controller.signal });
+    } catch (error: unknown) {
+      if (timedOut) {
+        throw new Error(`The archive download timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
+      }
+      if (options.signal?.aborted) {
+        throw new Error("The download was cancelled.");
+      }
+      throw new Error("The archive could not be downloaded — the server may block requests from other sites (CORS).");
+    }
+
+    if (!response.ok) {
+      throw new Error(`The server answered ${response.status}.`);
+    }
+
+    const contentLengthHeader = response.headers?.get("content-length");
+    if (contentLengthHeader) {
+      const contentLength = Number(contentLengthHeader);
+      if (!Number.isNaN(contentLength) && contentLength > maxBytes) {
+        throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
+      }
+    }
+
+    if (response.body && typeof response.body.getReader === "function") {
+      const reader = response.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let totalBytes = 0;
+      let done = false;
+
+      while (!done) {
+        let chunk: ReadableStreamReadResult<Uint8Array>;
+        try {
+          chunk = await reader.read();
+        } catch (error: unknown) {
+          if (timedOut) {
+            throw new Error(`The archive download timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
+          }
+          if (options.signal?.aborted) {
+            throw new Error("The download was cancelled.");
+          }
+          throw error;
+        }
+
+        done = chunk.done;
+        if (done) break;
+        if (chunk.value) {
+          totalBytes += chunk.value.byteLength;
+          if (totalBytes > maxBytes) {
+            void reader.cancel();
+            throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
+          }
+          chunks.push(chunk.value);
+        }
+      }
+
+      const result = new Uint8Array(totalBytes);
+      let offset = 0;
+      for (const c of chunks) {
+        result.set(c, offset);
+        offset += c.byteLength;
+      }
+      return result;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    if (arrayBuffer.byteLength > maxBytes) {
+      throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
+    }
+    return new Uint8Array(arrayBuffer);
+  } finally {
+    clearTimeout(timer);
+    unhookSignal?.();
   }
-  if (!response.ok) throw new Error(`The server answered ${response.status}.`);
-  return new Uint8Array(await response.arrayBuffer());
 };
