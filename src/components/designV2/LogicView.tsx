@@ -3,7 +3,7 @@ import { Button, Space, Typography, message } from "antd";
 import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import LogicMonaco from "../../editors/LogicMonaco";
-import { describeLogicModel, scaffoldFromModel } from "../../editors/logicSource";
+import { defaultRequestFromModel, describeLogicModel, needsDefaultRequest, scaffoldFromModel } from "../../editors/logicSource";
 import { STEP_ID } from "../../types/designV2.types";
 import HelpRail, { HelpRailReopen, type ChecklistItem, type ChecklistTone } from "./HelpRail";
 import { LOGIC } from "./constants";
@@ -49,6 +49,7 @@ export const LogicView = () => {
   const compilationErrors = useAppStore((s) => s.compilationErrors);
   const compiledLogicJs = useAppStore((s) => s.compiledLogicJs);
   const setEditorLogicTs = useAppStore((s) => s.setEditorLogicTs);
+  const setRequestJson = useAppStore((s) => s.setRequestJson);
   const setView = useDesignV2Store((s) => s.setView);
 
   useCompileOnArrival();
@@ -65,6 +66,12 @@ export const LogicView = () => {
   const [showEditor, setShowEditor] = useState(() => editorLogicTs.trim() !== "");
   const startFromBoilerplate = () => {
     setEditorLogicTs(scaffoldFromModel(model));
+    // The boilerplate is written for this model, so Simulate needs a request
+    // that matches it. An empty or foreign request is replaced; one the user
+    // typed for this model is left alone.
+    if (needsDefaultRequest(useAppStore.getState().requestJson, model)) {
+      setRequestJson(defaultRequestFromModel(model));
+    }
     setShowEditor(true);
   };
 
