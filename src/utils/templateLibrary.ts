@@ -217,15 +217,9 @@ export interface FetchArchiveOptions {
   signal?: AbortSignal;
 }
 
-const isLocalHostname = (hostname: string): boolean =>
-  hostname === "localhost" ||
-  hostname === "127.0.0.1" ||
-  hostname === "[::1]" ||
-  hostname.endsWith(".localhost");
-
 /**
  * Downloads a `.cta` from a URL with timeout and byte-limit defenses.
- * Accepts https by default, allowing plain http only for local hosts.
+ * Accepts https URLs only.
  */
 export const fetchArchive = async (
   url: string,
@@ -237,69 +231,58 @@ export const fetchArchive = async (
   } catch {
     throw new Error("That is not a valid URL.");
   }
-  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-    throw new Error("Only http and https URLs can be imported.");
-  }
-  if (parsed.protocol === "http:" && !isLocalHostname(parsed.hostname)) {
-    throw new Error("Insecure HTTP URLs are not supported for remote archives. Please use HTTPS.");
+  if (parsed.protocol !== "https:") {
+    throw new Error("Only https URLs can be imported.");
   }
 
   const timeoutMs = options.timeoutMs ?? ARCHIVE_DOWNLOAD_TIMEOUT_MS;
   const maxBytes = options.maxBytes ?? MAX_ARCHIVE_DOWNLOAD_BYTES;
 
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => {
-      reject(new Error(`The archive download timed out after ${Math.round(timeoutMs / 1000)} seconds.`));
-    }, timeoutMs);
-  });
+  const controller = new AbortController();
+  let timedOut = false;
 
-  const abortPromise = options.signal
-    ? new Promise<never>((_, reject) => {
-        if (options.signal?.aborted) {
-          reject(new Error("The download was cancelled."));
-          return;
-        }
-        options.signal?.addEventListener(
-          "abort",
-          () => {
-            reject(new Error("The download was cancelled."));
-          },
-          { once: true },
-        );
-      })
-    : null;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
 
-  let response: Response;
-  try {
-    const fetchPromise = options.signal ? fetch(parsed.href, { signal: options.signal }) : fetch(parsed.href);
-    response = abortPromise
-      ? await Promise.race([fetchPromise, timeoutPromise, abortPromise])
-      : await Promise.race([fetchPromise, timeoutPromise]);
-  } catch (error: unknown) {
-    if (timer) clearTimeout(timer);
-    const message = error instanceof Error ? error.message : String(error);
-    if (message.includes("timed out") || message.includes("cancelled")) {
-      throw error;
+  let unhookSignal: (() => void) | undefined;
+  if (options.signal) {
+    if (options.signal.aborted) {
+      clearTimeout(timer);
+      throw new Error("The download was cancelled.");
     }
-    throw new Error("The archive could not be downloaded — the server may block requests from other sites (CORS).");
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
-
-  if (!response.ok) {
-    throw new Error(`The server answered ${response.status}.`);
-  }
-
-  const contentLengthHeader = response.headers?.get("content-length");
-  if (contentLengthHeader) {
-    const contentLength = Number(contentLengthHeader);
-    if (!Number.isNaN(contentLength) && contentLength > maxBytes) {
-      throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
-    }
+    const onAbort = () => controller.abort();
+    options.signal.addEventListener("abort", onAbort, { once: true });
+    unhookSignal = () => options.signal?.removeEventListener("abort", onAbort);
   }
 
   try {
+    let response: Response;
+    try {
+      response = await fetch(parsed.href, { signal: controller.signal });
+    } catch (error: unknown) {
+      if (timedOut) {
+        throw new Error(`The archive download timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
+      }
+      if (options.signal?.aborted) {
+        throw new Error("The download was cancelled.");
+      }
+      throw new Error("The archive could not be downloaded — the server may block requests from other sites (CORS).");
+    }
+
+    if (!response.ok) {
+      throw new Error(`The server answered ${response.status}.`);
+    }
+
+    const contentLengthHeader = response.headers?.get("content-length");
+    if (contentLengthHeader) {
+      const contentLength = Number(contentLengthHeader);
+      if (!Number.isNaN(contentLength) && contentLength > maxBytes) {
+        throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
+      }
+    }
+
     if (response.body && typeof response.body.getReader === "function") {
       const reader = response.body.getReader();
       const chunks: Uint8Array[] = [];
@@ -307,7 +290,19 @@ export const fetchArchive = async (
       let done = false;
 
       while (!done) {
-        const chunk = await reader.read();
+        let chunk: ReadableStreamReadResult<Uint8Array>;
+        try {
+          chunk = await reader.read();
+        } catch (error: unknown) {
+          if (timedOut) {
+            throw new Error(`The archive download timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
+          }
+          if (options.signal?.aborted) {
+            throw new Error("The download was cancelled.");
+          }
+          throw error;
+        }
+
         done = chunk.done;
         if (done) break;
         if (chunk.value) {
@@ -334,10 +329,8 @@ export const fetchArchive = async (
       throw new Error(`The template archive exceeds the maximum allowed size of ${maxBytes / (1024 * 1024)} MB.`);
     }
     return new Uint8Array(arrayBuffer);
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes("exceeds the maximum allowed size")) {
-      throw error;
-    }
-    throw error;
+  } finally {
+    clearTimeout(timer);
+    unhookSignal?.();
   }
 };

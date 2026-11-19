@@ -115,33 +115,20 @@ describe("template library", () => {
       vi.useRealTimers();
     });
 
-    it("rejects invalid URLs and non-http(s) protocols", async () => {
+    it("rejects invalid URLs and non-https protocols", async () => {
       await expect(fetchArchive("not-a-valid-url")).rejects.toThrow("That is not a valid URL.");
       await expect(fetchArchive("ftp://example.com/test.cta")).rejects.toThrow(
-        "Only http and https URLs can be imported.",
+        "Only https URLs can be imported.",
       );
       await expect(fetchArchive("javascript:alert(1)")).rejects.toThrow(
-        "Only http and https URLs can be imported.",
+        "Only https URLs can be imported.",
       );
-    });
-
-    it("rejects insecure plain HTTP for remote hosts but allows localhost", async () => {
       await expect(fetchArchive("http://example.com/archive.cta")).rejects.toThrow(
-        "Insecure HTTP URLs are not supported for remote archives. Please use HTTPS.",
+        "Only https URLs can be imported.",
       );
-
-      const payload = new Uint8Array([1, 2, 3, 4]);
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue({
-          ok: true,
-          headers: new Headers({ "content-length": "4" }),
-          arrayBuffer: () => Promise.resolve(payload.buffer),
-        }),
+      await expect(fetchArchive("http://localhost:3000/archive.cta")).rejects.toThrow(
+        "Only https URLs can be imported.",
       );
-
-      const localResult = await fetchArchive("http://localhost:3000/archive.cta");
-      expect(localResult).toEqual(payload);
     });
 
     it("downloads valid archives over HTTPS", async () => {
@@ -242,10 +229,43 @@ describe("template library", () => {
     it("rejects when fetch times out", async () => {
       vi.stubGlobal(
         "fetch",
-        vi.fn().mockImplementation(() => new Promise(() => {})),
+        vi.fn().mockImplementation((_url, { signal }: { signal?: AbortSignal } = {}) => {
+          return new Promise((_, reject) => {
+            signal?.addEventListener("abort", () => {
+              reject(new DOMException("The operation was aborted", "AbortError"));
+            });
+          });
+        }),
       );
 
       await expect(fetchArchive("https://example.com/slow.cta", { timeoutMs: 50 })).rejects.toThrow(
+        /timed out after/,
+      );
+    });
+
+    it("rejects when reading the body stalls and times out", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation((_url, { signal }: { signal: AbortSignal }) => {
+          const mockReader = {
+            read: vi.fn().mockImplementation(() => {
+              return new Promise((_, reject) => {
+                signal.addEventListener("abort", () => {
+                  reject(new Error("aborted"));
+                });
+              });
+            }),
+            cancel: vi.fn().mockResolvedValue(undefined),
+          };
+          return Promise.resolve({
+            ok: true,
+            headers: new Headers(),
+            body: { getReader: () => mockReader },
+          });
+        }),
+      );
+
+      await expect(fetchArchive("https://example.com/stalled-body.cta", { timeoutMs: 50 })).rejects.toThrow(
         /timed out after/,
       );
     });
