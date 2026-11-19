@@ -150,7 +150,7 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         customEndpoint,
         signal: controller.signal,
       });
-      if (!controller.signal.aborted) {
+      if (!controller.signal.aborted && models !== null) {
         setAvailableModels(models);
         setModel(prev => models.includes(prev) ? prev : '');
       }
@@ -162,12 +162,6 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
       controller.abort();
     };
   }, [provider, debouncedApiKey, customEndpoint]);
-
-  useEffect(() => {
-    if (availableModels.length > 0 && model && !availableModels.includes(model)) {
-      setModel('');
-    }
-  }, [model, availableModels]);
 
   /*
    * Which tuning knobs the selected provider honours. Shared with the LLM
@@ -347,7 +341,10 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
     { value: 'openai-compatible', label: 'OpenAI Compatible API' },
   ];
 
-  const modelOptions = availableModels.map(m => ({ value: m, label: m }));
+  // Keep a saved selection visible while discovery is unavailable.
+  const modelOptions = (model && !availableModels.includes(model)
+    ? [model, ...availableModels]
+    : availableModels).map(m => ({ value: m, label: m }));
 
   const providerHint: Record<string, React.ReactNode> = {
     openai: 'Example: gpt-5, gpt-5-mini',
@@ -486,7 +483,11 @@ const AIConfigSection = ({ onSaveSuccess }: AIConfigSectionProps): JSX.Element =
         <Select
           id="ai-provider-select"
           value={provider || undefined}
-          onChange={setProvider}
+          onChange={(nextProvider) => {
+            setProvider(nextProvider);
+            setModel('');
+            setAvailableModels([]);
+          }}
           placeholder="Select a provider"
           options={providerOptions}
           style={{ width: '100%' }}
