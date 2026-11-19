@@ -232,7 +232,7 @@ export const DeployView = () => {
             block
             type="primary"
             loading={showBusy && working === card.title}
-            disabled={showBusy}
+            disabled={showBusy && working !== null}
             onClick={() => void run(card)}
           >
             {card.button}
