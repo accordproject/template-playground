@@ -56,6 +56,13 @@ const deferredCompile = () => {
   return { done, finish };
 };
 
+/** A promise with its reject handle, to fail a compile when the test says so. */
+const deferredFailure = () => {
+  let fail!: (error: unknown) => void;
+  const done = new Promise<void>((_resolve, reject) => { fail = reject; });
+  return { done, fail };
+};
+
 const renderLayout = () =>
   render(
     <MemoryRouter>
@@ -279,6 +286,50 @@ describe('DesignV2Layout — moving to Simulate', () => {
     await waitFor(() => expect(screen.getByText(FOOTER.logicBlocked)).toBeInTheDocument());
     expect(useDesignV2Store.getState().view).toBe(STEP_ID.logic);
     expect(screen.getByText("Cannot find name 'foo'.")).toBeInTheDocument();
+  });
+
+  it('reports an unexpected compile rejection without navigating or throwing', async () => {
+    const failure = new Error('compile crashed');
+    const setLogicTs = vi.fn().mockRejectedValue(failure);
+    useAppStore.setState({ setLogicTs });
+    const showError = vi.spyOn(message, 'error');
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    // From Text, so the Logic step's compile-on-arrival cannot reject on its own:
+    // the only compile here is the one the navigation awaits.
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: /Simulate/ }));
+
+    await waitFor(() => expect(showError).toHaveBeenCalledWith(FOOTER.navigationFailed));
+
+    expect(useDesignV2Store.getState().view).toBe(STEP_ID.text);
+    expect(logError).toHaveBeenCalledWith('Navigation failed:', failure);
+    logError.mockRestore();
+    showError.mockRestore();
+  });
+
+  it('drops a stale compile rejection instead of reporting a move the user left behind', async () => {
+    const { done, fail } = deferredFailure();
+    const failure = new Error('compile crashed');
+    const setLogicTs = vi.fn(() => done);
+    useAppStore.setState({ setLogicTs });
+    const showError = vi.spyOn(message, 'error');
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    useDesignV2Store.setState({ view: STEP_ID.text });
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: /Simulate/ }));
+    await waitFor(() => expect(setLogicTs).toHaveBeenCalledTimes(1));
+    // The user moved on while the compile ran: the rejection that follows is
+    // for a move that is already void, so it must not surface at all.
+    act(() => useDesignV2Store.setState({ view: FIRST_STEP }));
+    await act(async () => { fail(failure); await Promise.resolve(); });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(showError).not.toHaveBeenCalledWith(FOOTER.navigationFailed);
+    expect(logError).not.toHaveBeenCalledWith('Navigation failed:', failure);
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    logError.mockRestore();
+    showError.mockRestore();
   });
 
   it('the stepper goes through the same gate, from any step', async () => {
