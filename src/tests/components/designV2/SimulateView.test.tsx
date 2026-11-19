@@ -405,6 +405,27 @@ describe('SimulateView', () => {
       await waitFor(() => expect(JSON.parse(useAppStore.getState().requestJson)).toEqual(okRun.request));
     });
 
+    it('re-run is disabled for a request that was not valid JSON, so the editor keeps its text', () => {
+      useAppStore.setState({ executionHistory: [initRun, okRun, parseFailedRun], requestJson: '{ "invoiceValue": ' });
+      useDesignV2Store.setState({ selectedRunId: parseFailedRun.id });
+      render(<SimulateView />);
+      const rerun = screen.getByRole('button', { name: SIMULATE.rerun });
+      expect(rerun).toBeDisabled();
+      fireEvent.click(rerun);
+      expect(triggerContract).not.toHaveBeenCalled();
+      expect(useAppStore.getState().requestJson).toBe('{ "invoiceValue": ');
+    });
+
+    it('"reuse" leaves out requests that were not valid JSON', async () => {
+      useAppStore.setState({ executionHistory: [initRun, okRun, parseFailedRun] });
+      render(<SimulateView />);
+      const reuse = screen.getByRole('button', { name: SIMULATE.reuseMenuLabel });
+      expect(reuse).toHaveTextContent(SIMULATE.reuse(okRun.id));
+      fireEvent.click(reuse);
+      await screen.findByText(`${okRun.id} · ${runSummary(okRun)}`);
+      expect(screen.queryByText(`${parseFailedRun.id} · ${runSummary(parseFailedRun)}`)).toBeNull();
+    });
+
     it('hides "reuse" when there are no trigger runs', () => {
       useAppStore.setState({ executionHistory: [initRun] });
       render(<SimulateView />);
