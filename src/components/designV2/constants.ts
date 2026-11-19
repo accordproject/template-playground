@@ -465,6 +465,7 @@ export const SIMULATE = {
   openTrigger: "open trigger() ↗",
   stateUnchanged: "This run failed, so the state is the same as before it.",
   noState: "No state — init() did not return one.",
+  noStateStateless: "This template is stateless, so runs don't keep a state.",
   rerun: "↻ re-run",
   noSelection: "Pick a run on the left to see what was sent and what came back.",
   status: { ok: "✓ ok", failed: "✕ failed" },
