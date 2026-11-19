@@ -90,6 +90,8 @@ export function getTrackedFiles() {
     .filter(existsSync);
 }
 
+// This heuristic check flags suspicious formatting patterns.
+// It is not a malware detector or a security boundary.
 export function runScan() {
   const findings = scanFiles(getTrackedFiles());
 
