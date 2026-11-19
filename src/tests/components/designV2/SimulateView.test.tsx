@@ -355,26 +355,39 @@ describe('SimulateView', () => {
       expect(screen.getByText('No events emitted')).toBeInTheDocument();
     });
 
-    it('the State tab of a run with an empty state object displays the noState message', () => {
+    it('the State tab of a stateful run with an empty state object displays the noState message', () => {
       const emptyStateRun: LogicExecutionResult = {
         ...okRun,
         id: '#empty-state',
         stateAfter: {},
       };
-      useAppStore.setState({ executionHistory: [emptyStateRun] });
+      useAppStore.setState({ isTemplateStateful: true, executionHistory: [emptyStateRun] });
       useDesignV2Store.setState({ selectedRunId: '#empty-state' });
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
       expect(screen.getByText(SIMULATE.noState)).toBeInTheDocument();
     });
 
-    it('the State tab of a run with null stateAfter displays the noState message', () => {
+    it('the State tab of a stateless run displays the stateless noState message', () => {
+      const statelessRun: LogicExecutionResult = {
+        ...okRun,
+        id: '#stateless-run',
+        stateAfter: {},
+      };
+      useAppStore.setState({ isTemplateStateful: false, executionHistory: [statelessRun] });
+      useDesignV2Store.setState({ selectedRunId: '#stateless-run' });
+      render(<SimulateView />);
+      fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));
+      expect(screen.getByText(SIMULATE.noStateStateless)).toBeInTheDocument();
+    });
+
+    it('the State tab of a stateful run with null stateAfter displays the noState message', () => {
       const nullStateRun: LogicExecutionResult = {
         ...okRun,
         id: '#null-state',
         stateAfter: null,
       };
-      useAppStore.setState({ executionHistory: [nullStateRun] });
+      useAppStore.setState({ isTemplateStateful: true, executionHistory: [nullStateRun] });
       useDesignV2Store.setState({ selectedRunId: '#null-state' });
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('tab', { name: SIMULATE.stateAfter }));

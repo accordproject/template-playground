@@ -67,6 +67,7 @@ const RunRow = ({ run, active, onSelect }: RunRowProps) => (
 interface RunDetailProps {
   run: LogicExecutionResult;
   busy: boolean;
+  isTemplateStateful: boolean;
   onRerun: () => void;
   onOpenLogic: () => void;
 }
@@ -83,7 +84,7 @@ const JsonView = ({ id, value }: { id: string; value: string }) => (
 );
 
 /** Right-hand column: the run's request on top, then Response / State after / Events tabs. */
-const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
+const RunDetail = ({ run, busy, isTemplateStateful, onRerun, onOpenLogic }: RunDetailProps) => {
   const [copied, setCopied] = useState(false);
   const copyRequest = async () => {
     try {
@@ -99,10 +100,7 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
   const failed = run.error !== null;
   // A contract state is meaningful only if it is non-empty.
   // Empty state objects ({}) produced by stateless triggers or empty inits should display the noState message.
-  const hasState = Boolean(
-    run.stateAfter &&
-      (typeof run.stateAfter !== "object" || Object.keys(run.stateAfter).length > 0)
-  );
+  const hasState = Boolean(run.stateAfter && Object.keys(run.stateAfter).length > 0);
   const tabs = [
     {
       key: "response",
@@ -130,7 +128,9 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
           {hasState ? (
             <JsonView id="simulate-state" value={pretty(run.stateAfter)} />
           ) : (
-            <pre className="nd-sim-code">{SIMULATE.noState}</pre>
+            <pre className="nd-sim-code">
+              {isTemplateStateful ? SIMULATE.noState : SIMULATE.noStateStateless}
+            </pre>
           )}
         </div>
       ),
@@ -324,6 +324,7 @@ const SimulateView = () => {
           key={selected.id}
           run={selected}
           busy={isExecuting}
+          isTemplateStateful={isTemplateStateful}
           onRerun={() => { void rerun(selected); }}
           onOpenLogic={openLogic}
         />
