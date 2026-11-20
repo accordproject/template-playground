@@ -66,5 +66,11 @@ describe("saveToFolder", () => {
     expect(parent.tree.get("Docs/counter/model/model.cto")).toBe(counter.MODEL);
     expect(parent.tree.get("Docs/counter/logic/logic.ts")).toBe(counter.LOGIC);
     expect(JSON.parse(parent.tree.get("Docs/counter/sample.json")!)).toEqual(counter.DATA);
+
+    expect(parent.tree.get("Docs/counter/AGENTS.md")).toContain("Accord Project Template");
+    expect(
+      (JSON.parse(parent.tree.get("Docs/counter/.vscode/extensions.json")!) as { recommendations: string[] })
+        .recommendations,
+    ).toContain("accordproject.concerto-vscode-extension");
   }, 60_000);
 });
