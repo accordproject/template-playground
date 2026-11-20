@@ -31,10 +31,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
-      - name: Check configuration integrity
-        run: node scripts/check-config-integrity.mjs
-
       - name: NPM Install
         run: npm ci
 

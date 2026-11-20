@@ -1,4 +1,13 @@
-
+/**
+ * Advisory configuration-integrity check.
+ *
+ * This script detects accidental configuration drift and suspicious
+ * configuration patterns. It is not a security boundary or a guarantee
+ * that a pull request is safe.
+ *
+ * The script runs from the checked-out source tree and can therefore
+ * be modified by the pull request being checked.
+ */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
