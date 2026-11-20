@@ -22,6 +22,8 @@ export const URLS = {
   vscodeTutorial: "https://docs.accordproject.org/docs/tutorial-vscode/",
   apapDeploy: "https://docs.accordproject.org/docs/ref-apap/#deploy-a-template",
   vscodeDev: "https://vscode.dev/",
+  vscodeDownload: "https://code.visualstudio.com/download",
+  claudeCodeDocs: "https://code.claude.com/docs/en/quickstart",
   apapMcp: "https://docs.accordproject.org/docs/ref-apap/#mcp-support-experimental",
   templateLibrary: "https://templates.accordproject.org/",
   /** Where the "new design" banner sends people to report problems: the design v2 bug bash. */
@@ -502,7 +504,7 @@ export interface DeployCard {
   /** Which in-app action the button runs when there is no `href`. */
   action?: "pdf" | "markdown" | "share" | "copy" | "archive" | "vscode";
   /** A second, link-only button under the main one. */
-  secondary?: { label: string; href: string };
+  editorTargets?: readonly { label: string; href: string }[];
   /** Toast shown when the action succeeds. */
   done?: string;
 }
@@ -579,18 +581,22 @@ export const DEPLOY = {
           done: "Template archive downloaded",
         },
         {
-          title: "Open in vscode.dev",
+          title: "Open in an editor",
           icon: "vscode",
           description:
-            "Save the template as a folder on your computer and open it in VS Code for the Web to keep editing it there.",
+            "Save the template as a folder, then continue working with the editor or coding agent you prefer.",
           details: [
-            "First save the folder, then open vscode.dev",
-            "There, choose File › Open Folder and pick the saved folder",
-            "Chrome or Edge — they can save folders",
+            "Save the folder, then choose one of the three editor options below",
+            "VS Code Web and desktop VS Code can open the saved folder",
+            "For Claude Code, install the CLI and run claude from the folder in a terminal",
           ],
           button: "1. Save as folder",
           action: "vscode",
-          secondary: { label: "2. Open vscode.dev", href: URLS.vscodeDev },
+          editorTargets: [
+            { label: "VS Code for the Web", href: URLS.vscodeDev },
+            { label: "Desktop VS Code", href: URLS.vscodeDownload },
+            { label: "Claude Code", href: URLS.claudeCodeDocs },
+          ],
         },
         {
           title: "Deploy to an APAP server",
@@ -622,11 +628,11 @@ export const DEPLOY = {
     },
   ] satisfies readonly DeployGroup[],
   failed: (title: string) => `${title} failed`,
-  /** Toasts for the vscode.dev card. */
+   /** Toasts for the editor card. */
   folderSaved: (folder: string) =>
-    `Saved the template to “${folder}”. Now open vscode.dev, choose File › Open Folder and pick it.`,
+    `Saved the template to “${folder}”. Choose an editor below to continue.`,
   noFolderSupport:
-    "This browser can’t save folders, so the template was downloaded as a .cta (a zip). Unzip it, then open the folder in vscode.dev from Chrome or Edge, or in desktop VS Code.",
+    "This browser can’t save folders, so the template was downloaded as a .cta archive. Unzip it, then open the folder in VS Code Web or desktop VS Code, or open a terminal in it and run claude after installing Claude Code.",
   renderError: "The agreement doesn’t render with the current text, model and data — fix the error and try again.",
 } as const;
 
