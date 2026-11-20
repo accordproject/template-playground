@@ -628,10 +628,12 @@ export const DEPLOY = {
     },
   ] satisfies readonly DeployGroup[],
   failed: (title: string) => `${title} failed`,
-  /** Toasts for the editor card. */
-  folderSaved: (folder: string) => `Saved the template to "${folder}". Choose an editor below to continue.`,
-  noFolderSupport: "This browser cannot save folders, so the template was downloaded as a .cta archive. Unzip it, then open the folder in VS Code Web or desktop VS Code, or open a terminal in it and run claude after installing Claude Code.",
-  renderError: "The agreement doesn't render with the current text, model and data — fix the error and try again.",
+   /** Toasts for the editor card. */
+  folderSaved: (folder: string) =>
+    `Saved the template to “${folder}”. Choose an editor below to continue.`,
+  noFolderSupport:
+    "This browser can’t save folders, so the template was downloaded as a .cta archive. Unzip it, then open the folder in VS Code Web or desktop VS Code, or open a terminal in it and run claude after installing Claude Code.",
+  renderError: "The agreement doesn’t render with the current text, model and data — fix the error and try again.",
 } as const;
 
 /** Every Deploy card, in display order. */
