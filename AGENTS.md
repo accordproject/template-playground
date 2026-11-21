@@ -83,3 +83,14 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 - E2E tests live in `e2e/` and use Playwright
 - New features must include tests
 - When migrating components from Tailwind to Ant Design, update tests to use semantic selectors (`getByRole`, `getByLabel`, `getByPlaceholderText`) that remain stable across UI library changes
+
+## Reviewing
+
+When reviewing a pull request here, check in particular that it:
+
+1. **Targets Design V2.** Design V2 is the default playground, and the V1 interface is not taking further fixes or features. New work belongs under `src/components/designV2`. A change that only touches V1 components (for example the V1 navbar, sidebar or dialogs) is out of scope, so say so rather than reviewing the detail.
+2. **Is not a duplicate.** Search open and merged PRs for the same fix (same issue, same files, similar title) before reviewing. Maintainers keep the older or smaller PR and close the later one as a duplicate.
+3. **Settles design questions before code.** A change that adds agent-facing tools, names or schemas, or otherwise makes a design choice, should link the RFC or issue where that choice was agreed. Ask for the options and the reasoning to be written up there first.
+4. **Is one change.** Unrelated CSS or whitespace reformatting, wording or typography edits, test timeout changes, and code carried over from another PR belong in their own PRs.
+5. **Has tests that run.** `npm test` runs `vitest run`, which only picks up `*.test.*` and `*.spec.*` files, so a test file with another name is not run by CI. Tests for a new behaviour should fail without the change.
+6. **Takes account of earlier review threads.** Check resolved threads, including those from Copilot, before raising the same point again.
