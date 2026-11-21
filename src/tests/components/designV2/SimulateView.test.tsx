@@ -245,7 +245,7 @@ describe('SimulateView', () => {
         ).not.toBeInTheDocument();
     });
 
-    it('resets execution when restarting a stateless template', () => {
+    it('confirms before resetting stateless execution', async () => {
         useAppStore.setState({
             isTemplateStateful: false,
             isContractInitialized: false,
@@ -257,6 +257,10 @@ describe('SimulateView', () => {
             screen.getByRole('button', { name: SIMULATE.restart })
         );
 
+        expect(resetExecution).not.toHaveBeenCalled();
+        await act(async () => {
+          fireEvent.click(await screen.findByRole('button', { name: SIMULATE.restartConfirm.okText }));
+        });
         expect(resetExecution).toHaveBeenCalledTimes(1);
         expect(initContract).not.toHaveBeenCalled();
     });
@@ -375,9 +379,28 @@ describe('SimulateView', () => {
       expect(useAppStore.getState().requestJson).toBe('{ "invoiceValue": 5 }');
     });
 
-    it('restart re-initialises the contract', () => {
+    it('preserves the runs, state and selection when restart is cancelled', async () => {
+      useDesignV2Store.setState({ selectedRunId: '#1' });
+      const { executionHistory, executionState } = useAppStore.getState();
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.restart }));
+      await act(async () => {
+        fireEvent.click(await screen.findByRole('button', { name: SIMULATE.restartConfirm.cancelText }));
+      });
+      expect(initContract).not.toHaveBeenCalled();
+      expect(useAppStore.getState().executionHistory).toEqual(executionHistory);
+      expect(useAppStore.getState().executionState).toBe(executionState);
+      expect(useDesignV2Store.getState().selectedRunId).toBe('#1');
+    });
+
+    it('confirms before restarting a restored contract with no runs', async () => {
+      useAppStore.setState({ executionHistory: [], isContractInitialized: true });
+      render(<SimulateView />);
+      fireEvent.click(screen.getByRole('button', { name: SIMULATE.restart }));
+      expect(initContract).not.toHaveBeenCalled();
+      await act(async () => {
+        fireEvent.click(await screen.findByRole('button', { name: SIMULATE.restartConfirm.okText }));
+      });
       expect(initContract).toHaveBeenCalledTimes(1);
     });
 
@@ -389,11 +412,12 @@ describe('SimulateView', () => {
       expect(JSON.parse(useAppStore.getState().requestJson)).toEqual(okRun.request);
     });
 
-    it('re-run on the init run initialises again', () => {
+    it('re-run on the init run uses the restart confirmation', async () => {
       useDesignV2Store.setState({ selectedRunId: 'init' });
       render(<SimulateView />);
       fireEvent.click(screen.getByRole('button', { name: SIMULATE.rerun }));
-      expect(initContract).toHaveBeenCalledTimes(1);
+      expect(await screen.findByRole('button', { name: SIMULATE.restartConfirm.cancelText })).toBeInTheDocument();
+      expect(initContract).not.toHaveBeenCalled();
       expect(triggerContract).not.toHaveBeenCalled();
     });
 
