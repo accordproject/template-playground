@@ -13,7 +13,7 @@ concept Compensation {
 
 @template
 concept ServiceAgreement {
-    o String clientName
+    o String clientName regex=/\\S+/
     o String clientAddress
     o String providerName
     o String providerAddress
