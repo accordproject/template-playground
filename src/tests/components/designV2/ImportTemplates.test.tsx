@@ -109,6 +109,6 @@ describe('ImportTemplates', () => {
     expect(screen.queryByText('Hello World')).not.toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button', { name: IMPORT.library.pick('Late Fees', '1.0.0') }, SLOW));
     await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
-    expect(fetchMock).toHaveBeenCalledWith('https://templates.accordproject.org/archives/late-fees@1.0.0.cta');
+    expect(fetchMock).toHaveBeenCalledWith('https://templates.accordproject.org/archives/late-fees@1.0.0.cta', expect.anything());
   }, 30_000);
 });
