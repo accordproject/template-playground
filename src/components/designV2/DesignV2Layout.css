@@ -763,6 +763,17 @@ html[data-theme="dark"] .nd-sim-pane-ok .nd-sim-tabs .ant-tabs-nav { background:
   .nd-view-logic .nd-logic-editor { display: flex; flex: none; width: 100%; height: clamp(260px, 45vh, 380px); min-height: 260px; padding: 0; overflow: hidden; }
   .nd-view-logic .nd-logic-editor .editorwrapper { flex: 1; width: 100%; height: 100%; min-width: 0; min-height: 0; }
   .nd-view-logic .nd-help-rail { max-height: none; overflow: visible; }
+  /*
+   * The Text step stacks the same way: its editor card is a flex child of a
+   * column the help rail shares, so on a phone it shrinks to a few pixels.
+   * Let the body scroll and give the editor a height of its own, as above.
+   */
+  .nd-body-content:has(.nd-view-text) { overflow-y: auto; }
+  .nd-view-text { min-height: 0; overflow: visible; }
+  .nd-view-text .nd-editor-column { flex: none; min-height: auto; overflow: visible; }
+  .nd-view-text .nd-editor-card { flex: none; }
+  .nd-view-text .nd-editor-card-body-editor { flex: none; height: clamp(260px, 45vh, 380px); }
+  .nd-view-text .nd-help-rail { max-height: none; overflow: visible; }
 }
 /* Phones: the chip list takes a row of its own so each chip can wrap inside the card. */
 @media (max-width: 600px) {
