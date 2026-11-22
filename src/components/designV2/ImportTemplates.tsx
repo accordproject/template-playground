@@ -228,78 +228,15 @@ const LibraryModal = ({ open, onClose }: LibraryModalProps) => {
   );
 };
 
-interface UrlModalProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-/** Import a `.cta` from any URL — the entry point for third-party libraries. */
-const UrlModal = ({ open, onClose }: UrlModalProps) => {
-  const { run, busy, cancel } = useImportTemplate();
-  const [url, setUrl] = useState("");
-  const close = () => {
-    cancel();
-    setUrl("");
-    onClose();
-  };
-
-  useEffect(() => {
-    if (open) {
-      setUrl("");
-    }
-  }, [open]);
-
-  const submit = async () => {
-    const target = url.trim();
-    if (!target) return;
-    const rawName = target.split(/[?#]/)[0].split("/").pop() ?? "";
-    let decoded = rawName;
-    try {
-      decoded = decodeURIComponent(rawName);
-    } catch {
-      // keep the literal name; it is only a display fallback
-    }
-    const fileName = decoded.replace(/\.(cta|zip)$/i, "");
-    const ok = await run(async () => readTemplateArchive(await fetchArchive(target), fileName || "template"));
-    if (ok) {
-      setUrl("");
-      onClose();
-    }
-  };
-
-  return (
-    <Modal
-      open={open}
-      onCancel={close}
-      title={IMPORT.url.modalTitle}
-      okText={IMPORT.url.submit}
-      cancelText={IMPORT.url.cancel}
-      okButtonProps={{ disabled: !url.trim(), loading: busy }}
-      onOk={() => void submit()}
-      destroyOnClose
-    >
-      <Input
-        type="url"
-        value={url}
-        placeholder={IMPORT.url.placeholder}
-        aria-label={IMPORT.url.label}
-        onChange={(e) => setUrl(e.target.value)}
-        onPressEnter={() => void submit()}
-      />
-    </Modal>
-  );
-};
-
 /**
- * Three ways to bring in a template, as a row under the gallery cards:
- * the Accord Project library, a file from disk and a URL. Each behaves like
+ * Two ways to bring in a template, as a row under the gallery cards:
+ * the Accord Project library and a file from disk. Each behaves like
  * "Start with this template".
  */
 const ImportTemplates = () => {
   const { run, busy } = useImportTemplate();
   const fileInput = useRef<HTMLInputElement>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const [urlOpen, setUrlOpen] = useState(false);
 
   const onFile = (file: File | undefined) => {
     if (!file) return;
@@ -316,9 +253,6 @@ const ImportTemplates = () => {
         <Button disabled={busy} onClick={() => fileInput.current?.click()}>
           {IMPORT.upload.button}
         </Button>
-        <Button disabled={busy} onClick={() => setUrlOpen(true)}>
-          {IMPORT.url.button}
-        </Button>
         <Typography.Text type="secondary">{IMPORT.upload.hint}</Typography.Text>
       </Space>
       <input
@@ -333,7 +267,6 @@ const ImportTemplates = () => {
         }}
       />
       <LibraryModal open={libraryOpen} onClose={() => setLibraryOpen(false)} />
-      <UrlModal open={urlOpen} onClose={() => setUrlOpen(false)} />
     </Space>
   );
 };

@@ -72,81 +72,6 @@ describe('ImportTemplates', () => {
     expect(loadImportedTemplate).not.toHaveBeenCalled();
   }, 30_000);
 
-  it('imports from a URL', async () => {
-    const bytes = await makeArchive();
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) });
-    vi.stubGlobal('fetch', fetchMock);
-    render(<ImportTemplates />);
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
-    fireEvent.change(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW), { target: { value: 'https://example.org/a/nda@1.0.0.cta' } });
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.submit }));
-    await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
-    expect(fetchMock).toHaveBeenCalledWith('https://example.org/a/nda@1.0.0.cta');
-  }, 30_000);
-
-  it('resets the URL input when the dialog is closed and reopened', async () => {
-    render(<ImportTemplates />);
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
-    const input = await screen.findByLabelText(IMPORT.url.label, undefined, SLOW);
-    fireEvent.change(input, { target: { value: 'https://example.org/sample.cta' } });
-    expect(input).toHaveValue('https://example.org/sample.cta');
-
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.cancel }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
-    const reopenedInput = await screen.findByLabelText(IMPORT.url.label, undefined, SLOW);
-    expect(reopenedInput).toHaveValue('');
-  }, 30_000);
-
-  it('keeps the selection with the imported template when the dialog is closed while it loads', async () => {
-    const bytes = await makeArchive();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }));
-    // The sources are replaced at once; rendering and compiling take a while.
-    let finishLoading!: () => void;
-    loadImportedTemplate.mockImplementationOnce((template) => {
-      nameIt(template);
-      return new Promise<void>((resolve) => { finishLoading = resolve; });
-    });
-    render(<ImportTemplates />);
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
-    fireEvent.change(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW), { target: { value: 'https://example.org/a/nda@1.0.0.cta' } });
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.submit }));
-    await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    finishLoading();
-    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('Imported Nda'));
-    // Closing skipped the move to the next step, not the selection.
-    expect(useDesignV2Store.getState().view).toBe(STEPS[0].id);
-  }, 30_000);
-
-  it('does not close a reopened dialog when an earlier, cancelled import finishes', async () => {
-    const bytes = await makeArchive();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }));
-    let finishLoading!: () => void;
-    loadImportedTemplate.mockImplementationOnce((template) => {
-      nameIt(template);
-      return new Promise<void>((resolve) => { finishLoading = resolve; });
-    });
-    render(<ImportTemplates />);
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
-    fireEvent.change(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW), { target: { value: 'https://example.org/a/nda@1.0.0.cta' } });
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.submit }));
-    await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
-
-    // Close, then reopen the dialog before the first import has finished.
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: IMPORT.url.button }));
-    expect(await screen.findByLabelText(IMPORT.url.label, undefined, SLOW)).toBeInTheDocument();
-    finishLoading();
-    await waitFor(() => expect(useDesignV2Store.getState().selectedTemplate).toBe('Imported Nda'));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    // The reopened dialog is still open (antd removes a closed one from the DOM at once here).
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-  }, 30_000);
-
   it('lists only compatible templates, filters like the hosted library and imports the chosen one', async () => {
     const bytes = await makeArchive();
     const cicero1 = await makeArchive('^1.0.0');
@@ -184,6 +109,6 @@ describe('ImportTemplates', () => {
     expect(screen.queryByText('Hello World')).not.toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button', { name: IMPORT.library.pick('Late Fees', '1.0.0') }, SLOW));
     await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
-    expect(fetchMock).toHaveBeenCalledWith('https://templates.accordproject.org/archives/late-fees@1.0.0.cta');
+    expect(fetchMock).toHaveBeenCalledWith('https://templates.accordproject.org/archives/late-fees@1.0.0.cta', expect.anything());
   }, 30_000);
 });

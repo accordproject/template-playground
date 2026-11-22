@@ -78,20 +78,21 @@ describe('SettingsModal', () => {
     expect(toggle).toBeChecked();
   });
 
-  it('renders the Design v2 feature flag setting', () => {
+  it('renders the classic playground opt-out, on while the classic layout is in use', () => {
     render(<SettingsModal />);
 
-    expect(screen.getByText('Enable Design v2 (Work in Progress)')).toBeInTheDocument();
-    const toggle = screen.getByTestId('design-v2-toggle');
-    expect(toggle).not.toBeChecked();
+    expect(screen.getByText('Use classic playground')).toBeInTheDocument();
+    expect(screen.queryByText(/Work in Progress/)).not.toBeInTheDocument();
+    // The mocked store has isDesignV2Enabled: false, i.e. the classic layout.
+    expect(screen.getByRole('switch', { name: 'Use classic playground' })).toBeChecked();
   });
 
-  it('Design v2 toggle calls setDesignV2Enabled with the new value', () => {
+  it('turning the classic opt-out off switches to design v2', () => {
     render(<SettingsModal />);
 
-    fireEvent.click(screen.getByTestId('design-v2-toggle'));
+    fireEvent.click(screen.getByRole('switch', { name: 'Use classic playground' }));
 
-    expect(mocks.setDesignV2Enabled).toHaveBeenCalledWith(true, expect.anything());
+    expect(mocks.setDesignV2Enabled).toHaveBeenCalledWith(true);
   });
 
   it('renders divider between settings', () => {

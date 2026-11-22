@@ -7,7 +7,6 @@ describe('useAppStore - Logic State', () => {
     localStorage.clear();
     // Reset the store to initial state
     useAppStore.setState({
-      isLogicFeatureEnabled: false,
       editorLogicTs: '',
       logicTs: '',
       compiledLogicJs: null,
@@ -18,19 +17,10 @@ describe('useAppStore - Logic State', () => {
     });
   });
 
-  describe('Feature Flag (isLogicFeatureEnabled)', () => {
-    it('should default to false', () => {
-      const state = useAppStore.getState();
-      expect(state.isLogicFeatureEnabled).toBe(false);
-    });
-
-    it('should update and persist to localStorage', () => {
-      const store = useAppStore.getState();
-      store.setLogicFeatureEnabled(true);
-      
-      expect(useAppStore.getState().isLogicFeatureEnabled).toBe(true);
-      expect(localStorage.getItem('isLogicFeatureEnabled')).toBe('true');
-    });
+  it('has no template-logic feature flag: logic is always on', () => {
+    const state = useAppStore.getState() as unknown as Record<string, unknown>;
+    expect(state).not.toHaveProperty('isLogicFeatureEnabled');
+    expect(state).not.toHaveProperty('setLogicFeatureEnabled');
   });
 
   describe('Workspace Visibility (isLogicPanelVisible)', () => {

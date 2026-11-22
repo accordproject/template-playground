@@ -245,7 +245,7 @@ export const ModelDataView = () => {
               canClose={openCount > 1}
               actions={
                 <>
-                  <Button type="text" size="small" onClick={formatData}>
+                  <Button type="text" size="small" onClick={formatData} disabled={!editorAgreementData.trim()}>
                     {MODEL_DATA.format}
                   </Button>
                   <Button

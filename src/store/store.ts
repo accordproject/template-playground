@@ -24,6 +24,11 @@ import { templateFromContent } from "../utils/templateArchive";
 import { sandboxResolvers } from "./sandboxResolvers";
 import { rebuildInSandbox } from "./rebuildSandbox";
 import tour from "../components/Tour";
+import {
+  readDesignV2Preference,
+  shouldShowDesignV2Notice,
+  writeDesignV2Preference,
+} from "../utils/designV2Preference";
 
 /** sampleName of a template opened from a share link; design v2 starts on it instead of the first card. */
 export const SHARED_TEMPLATE_NAME = "Shared template";
@@ -98,6 +103,7 @@ interface AppState {
   data: string;
   editorAgreementData: string;
   agreementHtml: string;
+  agreementRevision: number;
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
@@ -223,11 +229,13 @@ interface AppState {
   setSettingsOpen: (value: boolean) => void;
   keyProtectionLevel: KeyProtectionLevel | null;
   setKeyProtectionLevel: (level: KeyProtectionLevel | null) => void;
-  isLogicFeatureEnabled: boolean;
-  setLogicFeatureEnabled: (value: boolean) => void;
-  /** Feature flag for the new playground design (work in progress). */
+  /** Whether the step-based design v2 layout is shown. It is the default; false means the classic layout. */
   isDesignV2Enabled: boolean;
   setDesignV2Enabled: (value: boolean) => void;
+  /** Whether the one-time "new design" banner is showing (only for people on design v2 by default). */
+  showDesignV2Notice: boolean;
+  /** Hides the "new design" banner for the rest of the visit. */
+  dismissDesignV2Notice: () => void;
   /**
    * Updates the live editor value without committing or triggering compilation.
    * @param ts - The current TypeScript source from the editor
@@ -616,6 +624,7 @@ export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "
  * is undone while a render runs still voids that render.
  */
 let renderSourceRevision = 0;
+export const currentRenderRevision = () => renderSourceRevision;
 /**
  * Revision of the logic as edited (editorLogicTs), bumped the same way. Kept
  * apart from renderSourceRevision because the logic doesn't change the
@@ -679,6 +688,7 @@ const useAppStore = create<AppState>()(
   immer(
     devtools((set, get) => {
       const initialTheme = getInitialTheme();
+      const initialDesignV2 = readDesignV2Preference();
       const initialPanels = getInitialPanelState(); // Load saved panels
       const initialChain = getInitialChain();
       const initialChainIndex = initialChain.length - 1;
@@ -711,6 +721,7 @@ const useAppStore = create<AppState>()(
         data: JSON.stringify(playground.DATA, null, 2),
         editorAgreementData: JSON.stringify(playground.DATA, null, 2),
         agreementHtml: "",
+        agreementRevision: 0,
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
         samples: SAMPLES,
@@ -735,26 +746,14 @@ const useAppStore = create<AppState>()(
         showLineNumbers: getInitialLineNumbers(),
         isSettingsOpen: false,
         keyProtectionLevel: null,
-        isLogicFeatureEnabled:
-          typeof window !== "undefined"
-            ? localStorage.getItem("isLogicFeatureEnabled") === "true"
-            : false,
-        setLogicFeatureEnabled: (value: boolean) => {
-          if (typeof window !== "undefined") {
-            localStorage.setItem("isLogicFeatureEnabled", String(value));
-          }
-          set({ isLogicFeatureEnabled: value });
-        },
-        isDesignV2Enabled:
-          typeof window !== "undefined"
-            ? localStorage.getItem("isDesignV2Enabled") === "true"
-            : false,
+        // Design v2 is the default; a stored "false" keeps the classic layout (see designV2Preference.ts).
+        isDesignV2Enabled: initialDesignV2.enabled,
         setDesignV2Enabled: (value: boolean) => {
-          if (typeof window !== "undefined") {
-            localStorage.setItem("isDesignV2Enabled", String(value));
-          }
+          writeDesignV2Preference(value);
           set({ isDesignV2Enabled: value });
         },
+        showDesignV2Notice: shouldShowDesignV2Notice(initialDesignV2),
+        dismissDesignV2Notice: () => set({ showDesignV2Notice: false }),
         logicTs: "",
         editorLogicTs: "",
         compiledLogicJs: null,
@@ -944,9 +943,8 @@ const useAppStore = create<AppState>()(
         loadSample: async (name: string) => {
           const sample = SAMPLES.find((s) => s.NAME === name);
           if (sample) {
-            const state = get();
             const logicTs = sample.LOGIC ?? "";
-            const hasLogic = !!sample.LOGIC && state.isLogicFeatureEnabled;
+            const hasLogic = !!sample.LOGIC;
             const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
             const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
             invalidateCompilations();
@@ -955,6 +953,7 @@ const useAppStore = create<AppState>()(
               sampleName: sample.NAME,
               importedData: null,
               agreementHtml: undefined,
+              agreementRevision: 0,
               error: undefined,
               templateMarkdown: sample.TEMPLATE,
               editorValue: sample.TEMPLATE,
@@ -996,10 +995,17 @@ const useAppStore = create<AppState>()(
 
             await get().rebuild();
 
-            // Auto-trigger logic tour when a user opens a logic contract sample for the first time
-            if (hasLogic && typeof window !== "undefined" && !localStorage.getItem("hasVisitedLogicTour")) {
+            // Auto-trigger logic tour when a user opens a logic contract sample for the first time.
+            // The tour targets the classic layout, so design v2 users neither see it nor use it up.
+            if (
+              hasLogic &&
+              !get().isDesignV2Enabled &&
+              typeof window !== "undefined" &&
+              !localStorage.getItem("hasVisitedLogicTour")
+            ) {
               localStorage.setItem("hasVisitedLogicTour", "true");
               setTimeout(() => {
+                if (get().isDesignV2Enabled) return;
                 try {
                   void tour.show("logic-transition-prompt");
                 } catch (e) {
@@ -1035,13 +1041,14 @@ const useAppStore = create<AppState>()(
         },
         rebuild: async () => {
           const { templateMarkdown, modelCto, data } = get();
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(
               templateMarkdown,
               modelCto,
               data,
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -1052,9 +1059,10 @@ const useAppStore = create<AppState>()(
         setTemplateMarkdown: async (template: string) => {
           set(() => ({ templateMarkdown: template }));
           const { modelCto, data } = get();
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(template, modelCto, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -1068,9 +1076,10 @@ const useAppStore = create<AppState>()(
         setModelCto: async (model: string) => {
           set(() => ({ modelCto: model }));
           const { templateMarkdown, data } = get();
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(templateMarkdown, model, data);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -1083,13 +1092,14 @@ const useAppStore = create<AppState>()(
         },
         setData: async (data: string) => {
           set(() => ({ data }));
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(
               get().templateMarkdown,
               get().modelCto,
               data,
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -1188,7 +1198,6 @@ const useAppStore = create<AppState>()(
             isLogicPanelVisible: hasLogic,
           }));
           if (hasLogic) {
-            get().setLogicFeatureEnabled(true);
             savePanelState({ ...get(), isLogicPanelVisible: true });
           }
           await get().rebuild();
@@ -1561,31 +1570,32 @@ const useAppStore = create<AppState>()(
             );
           }
 
-          const { buildLLMExecutorConfig, getLLMExecutor } = await import(
-            "../ai-assistant/llmProviders"
-          );
-          if (!aiConfig) {
-            throw new Error('AI is not configured. Open Settings → AI Configuration to set it up.');
-          }
-          const executorConfig = buildLLMExecutorConfig(aiConfig, llmExecutionMode);
-          /*
-           * The LLM executor derives its JSON Schema from the template's own
-           * ModelManager, so it needs a Template object. Rebuild it every run:
-           * templates without logic never go through compileLogic() (which is
-           * what usually builds one), and an edited model would otherwise be
-           * executed against a stale schema.
-           */
-          const template = await get().buildTemplateFromMemory();
-          if (!template) {
-            throw new Error(
-              "Could not build a template from the current model and grammar.",
-            );
-          }
-
-          const executor = getLLMExecutor(template, executorConfig);
-
+          // Preparation must hold the same lock as execution, before any await.
           set({ isExecuting: true });
           try {
+            const { buildLLMExecutorConfig, getLLMExecutor } = await import(
+              "../ai-assistant/llmProviders"
+            );
+            if (!aiConfig) {
+              throw new Error('AI is not configured. Open Settings → AI Configuration to set it up.');
+            }
+            const executorConfig = buildLLMExecutorConfig(aiConfig, llmExecutionMode);
+            /*
+             * The LLM executor derives its JSON Schema from the template's own
+             * ModelManager, so it needs a Template object. Rebuild it every run:
+             * templates without logic never go through compileLogic() (which is
+             * what usually builds one), and an edited model would otherwise be
+             * executed against a stale schema.
+             */
+            const template = await get().buildTemplateFromMemory();
+            if (!template) {
+              throw new Error(
+                "Could not build a template from the current model and grammar.",
+              );
+            }
+
+            const executor = getLLMExecutor(template, executorConfig);
+
             return operation === "init"
               ? await executor.init(payload.data)
               : await executor.trigger(

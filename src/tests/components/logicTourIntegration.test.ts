@@ -20,12 +20,13 @@ describe("Tour integration", () => {
   beforeEach(() => {
     localStorage.clear();
     useAppStore.setState({
-      isLogicFeatureEnabled: true,
       logicTs: "contract Logic {}",
       isLogicPanelVisible: false,
       isContractRunnerVisible: false,
       isEditorsVisible: true,
       isPreviewVisible: true,
+      // The logic tour belongs to the classic layout.
+      isDesignV2Enabled: false,
     });
   });
 
@@ -97,5 +98,28 @@ describe("Tour integration", () => {
 
     expect(localStorage.getItem("hasVisitedLogicTour")).toBe("true");
     expect(showSpy).toHaveBeenCalledWith("logic-transition-prompt");
+  }, 20000);
+
+  it("does not start (or use up) the logic tour in design v2", async () => {
+    useAppStore.setState({ isDesignV2Enabled: true });
+    const showSpy = vi.spyOn(tour, "show").mockImplementation(() => undefined);
+    showSpy.mockClear();
+
+    await useAppStore.getState().loadSample("Counter Contract (with Logic)");
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    expect(localStorage.getItem("hasVisitedLogicTour")).toBeNull();
+    expect(showSpy).not.toHaveBeenCalled();
+  }, 20000);
+
+  it("drops a pending logic tour if the user switches to design v2 before it opens", async () => {
+    const showSpy = vi.spyOn(tour, "show").mockImplementation(() => undefined);
+    showSpy.mockClear();
+
+    await useAppStore.getState().loadSample("Counter Contract (with Logic)");
+    useAppStore.setState({ isDesignV2Enabled: true });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    expect(showSpy).not.toHaveBeenCalled();
   }, 20000);
 });

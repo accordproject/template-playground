@@ -3,9 +3,11 @@
    Palette and spacing follow "Template Playground v4" design.
    ============================================================ */
 
-.nd-root {
+:root {
   --nd-ink: #0f2027;
   --nd-navy: #072330;
+  --nd-card: #fff;
+  --nd-canvas: radial-gradient(120% 90% at 50% -10%, #f7fbfc 0%, #e7f0f2 55%, #dde9ec 100%);
   --nd-teal: #0a8188;
   --nd-teal-dark: #0e5c7a;
   --nd-teal-tint: #dff4f5;
@@ -20,10 +22,27 @@
   --nd-amber: #a5620c;
   --nd-amber-tint: #fdeedc;
   --nd-blue: #1a6bb8;
+  --nd-card-line: #e5eff0;
+  --nd-card-line-hover: #9fd6dc;
+  --nd-content-strong: #16323c;
+  --nd-content: #24424c;
+  --nd-input-surface: #f6f9fa;
+  --nd-teal-wash: #e4f6f6;
+  --nd-teal-wash-line: #bfe9ea;
+  --nd-blue-tint: #e7f2fe;
+  --nd-amber-soft: #fff3e2;
+  --nd-amber-strong-tint: #fbe7c7;
+  --nd-amber-head: #fffaf3;
+  --nd-page-line: #e4eff0;
+  --nd-empty-line: #d3e1e7;
+  --nd-empty-bg: rgba(255, 255, 255, 0.5);
+  --nd-menu-line: #d8e5e8;
   --nd-font: "IBM Plex Sans", system-ui, sans-serif;
   --nd-mono: "IBM Plex Mono", ui-monospace, monospace;
   --nd-serif: "IBM Plex Serif", Georgia, serif;
+}
 
+.nd-root {
   font-family: var(--nd-font);
   font-size: 14px;
   letter-spacing: -0.012em;
@@ -36,6 +55,48 @@
   /* Short viewports: the shell scrolls instead of clipping header/footer. */
   overflow: auto;
 }
+
+html[data-theme="dark"] {
+  --nd-ink: #e6eef0;
+  --nd-navy: #101c22;
+  --nd-card: #1d292f;
+  --nd-canvas: radial-gradient(120% 90% at 50% -10%, #26363d 0%, #1a292f 55%, #142228 100%);
+  --nd-teal: #50c5c7;
+  --nd-teal-dark: #72d4d3;
+  --nd-teal-tint: #203b40;
+  --nd-text-2: #c4d2d5;
+  --nd-text-3: #a8bbc0;
+  --nd-text-4: #91a8ae;
+  --nd-muted: #81999f;
+  --nd-line: #35464d;
+  --nd-line-soft: #2b3b42;
+  --nd-surface: #19262c;
+  --nd-placeholder: rgba(230, 238, 240, 0.12);
+  --nd-amber: #e4ad62;
+  --nd-amber-tint: #423528;
+  --nd-blue: #81b9f0;
+  --nd-card-line: #35464d;
+  --nd-card-line-hover: #4d777d;
+  --nd-content-strong: #d5e1e3;
+  --nd-content: #b8c9cd;
+  --nd-input-surface: #223138;
+  --nd-teal-wash: #203b40;
+  --nd-teal-wash-line: #2f5559;
+  --nd-blue-tint: #26384a;
+  --nd-amber-soft: #3a2f22;
+  --nd-amber-strong-tint: #4a3a26;
+  --nd-amber-head: #2a2620;
+  --nd-page-line: #35464d;
+  --nd-empty-line: #35464d;
+  --nd-empty-bg: rgba(255, 255, 255, 0.03);
+  --nd-menu-line: #35464d;
+}
+
+html[data-theme="dark"] .nd-root,
+html[data-theme="dark"] .nd-menu { color-scheme: dark; }
+html[data-theme="dark"] .nd-menu { color: var(--nd-ink); }
+/* The hero stays navy in both themes; antd's dark ghost button would be dark-on-dark. */
+html[data-theme="dark"] .nd-hero-actions .ant-btn-default.ant-btn-background-ghost:not(:disabled):not(:hover) { color: #fff; border-color: #fff; }
 
 .nd-spacer { flex: 1; }
 .nd-mono { font-family: var(--nd-mono); }
@@ -76,7 +137,7 @@
 /* ---------- Playground menu (from the rail) ---------- */
 /* Rendered inside antd Dropdown (see Rail.tsx dropdownRender). */
 .nd-menu {
-  width: 296px; background: #fff; border: 1px solid #d8e5e8; border-radius: 12px;
+  width: 296px; background: var(--nd-card); border: 1px solid var(--nd-menu-line); border-radius: 12px;
   box-shadow: 0 22px 54px rgba(7, 35, 48, 0.28); overflow: hidden;
   display: flex; flex-direction: column;
 }
@@ -93,22 +154,31 @@
 }
 .nd-menu-icon-teal { background: var(--nd-teal-tint); color: var(--nd-teal); }
 .nd-menu-item-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.nd-menu-item-label { font-size: 12.5px; font-weight: 600; color: #16323c; }
+.nd-menu-item-label { font-size: 12.5px; font-weight: 600; color: var(--nd-content-strong); }
 .nd-menu-item-hint { font-size: 11px; color: var(--nd-text-4); line-height: 1.4; }
-.nd-menu-icon-blue { background: #e7f2fe; color: #1a6bb8; }
-.nd-menu-icon-amber { background: #fdeedc; color: #a5620c; }
+.nd-menu-icon-blue { background: var(--nd-blue-tint); color: var(--nd-blue); }
+.nd-menu-icon-amber { background: var(--nd-amber-tint); color: var(--nd-amber); }
 
 /* ---------- Main column ---------- */
 .nd-main {
   flex: 1; min-width: 0; min-height: 520px;
   display: flex; flex-direction: column;
-  background: radial-gradient(120% 90% at 50% -10%, #f7fbfc 0%, #e7f0f2 55%, #dde9ec 100%);
+  background: var(--nd-canvas);
   border-radius: 10px 0 0 18px;
   overflow: hidden;
 }
 
+/* ---------- One-time "new design" banner (DesignV2Notice) ---------- */
+.nd-notice { flex: none; }
+@media (max-width: 640px) {
+  /* Stack the actions under the text so the message keeps its width. */
+  .nd-notice .ant-alert { flex-wrap: wrap; }
+  .nd-notice .ant-alert-content { flex: 1 1 calc(100% - 40px); }
+  .nd-notice .ant-alert-action { margin-inline-start: 0; margin-top: 12px; width: 100%; }
+}
+
 /* ---------- Header ---------- */
-.nd-header { flex: none; background: #fff; }
+.nd-header { flex: none; background: var(--nd-card); }
 .nd-header-row {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 11px 22px 9px;
@@ -132,10 +202,17 @@
   display: flex; align-items: stretch; flex-wrap: wrap; gap: 7px;
   padding: 2px 16px 11px;
 }
+/* Narrow screens swap the step cards for a compact picker (see Header.tsx). */
+.nd-stepper-compact { display: none; padding: 2px 16px 11px; }
+.nd-stepper-compact-button { width: 100%; display: flex; align-items: center; justify-content: space-between; text-align: left; font-weight: 600; }
+@media (max-width: 600px) {
+  .nd-stepper-cards { display: none; }
+  .nd-stepper-compact { display: block; }
+}
 .nd-step {
   flex: 1 1 118px; min-width: 118px;
   display: flex; align-items: center; gap: 9px;
-  background: #fff; border: 1px solid var(--nd-line-soft);
+  background: var(--nd-card); border: 1px solid var(--nd-line-soft);
   border-radius: 8px; padding: 8px 10px;
   cursor: pointer; text-align: left;
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
@@ -240,17 +317,17 @@
 .nd-sample-card {
   --nd-spine: var(--nd-teal);
   text-align: left; min-height: 0;
-  background: #fff; border: 1px solid #e5eff0; border-radius: 12px; padding: 0;
+  background: var(--nd-card); border: 1px solid var(--nd-card-line); border-radius: 12px; padding: 0;
   box-shadow: 0 1px 2px rgba(15, 32, 39, 0.04);
   display: grid; grid-template-rows: subgrid; grid-row: span 2; overflow: hidden;
   transition: transform 220ms cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 220ms ease, border-color 220ms ease;
 }
-.nd-sample-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(7, 35, 48, 0.14); border-color: #9fd6dc; }
+.nd-sample-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(7, 35, 48, 0.14); border-color: var(--nd-card-line-hover); }
 .nd-sample-card-current,
 .nd-sample-card-current:hover { border-color: #12707b; box-shadow: 0 0 0 3px #dcebec; }
 .nd-sample-card-teal { --nd-spine: var(--nd-teal); --nd-spine-tint: var(--nd-teal-tint); }
 .nd-sample-card-amber { --nd-spine: var(--nd-amber); --nd-spine-tint: var(--nd-amber-tint); }
-.nd-sample-card-blue { --nd-spine: var(--nd-blue); --nd-spine-tint: #e7f2fe; }
+.nd-sample-card-blue { --nd-spine: var(--nd-blue); --nd-spine-tint: var(--nd-blue-tint); }
 /* The blank card: ink spine on a neutral ground, so it reads as "none of the above" */
 .nd-sample-card-ink { --nd-spine: #0a4a62; --nd-spine-tint: #eef3f5; }
 
@@ -303,7 +380,7 @@
   background: var(--nd-teal-tint); color: var(--nd-teal);
   font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center;
 }
-.nd-editor-icon-amber { background: #fff3e2; color: var(--nd-amber); }
+.nd-editor-icon-amber { background: var(--nd-amber-soft); color: var(--nd-amber); }
 .nd-editor-icon-ink { background: #f0f5f7; color: #0a4a62; }
 
 /* Logic step: the header with the two job rows, then the editor */
@@ -335,7 +412,7 @@
 .nd-editor-subtitle { margin: 0; color: var(--nd-text-3); font-size: 12.5px; line-height: 1.5; text-wrap: pretty; }
 .nd-editor-card {
   flex: 1; min-height: 0; display: flex; flex-direction: column;
-  background: #fff; border: 1px solid var(--nd-line); border-radius: 10px; overflow: hidden;
+  background: var(--nd-card); border: 1px solid var(--nd-line); border-radius: 10px; overflow: hidden;
   box-shadow: 0 10px 26px rgba(7, 35, 48, 0.08), 0 1px 2px rgba(15, 32, 39, 0.05);
 }
 .nd-editor-card-head, .nd-editor-card-foot {
@@ -363,7 +440,7 @@
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
 }
 /* Text step: amber-tinted card chrome and the formatting toolbar */
-.nd-pane-amber .nd-editor-card-head, .nd-pane-amber .nd-editor-card-foot { background: #fffaf3; }
+.nd-pane-amber .nd-editor-card-head, .nd-pane-amber .nd-editor-card-foot { background: var(--nd-amber-head); }
 .nd-text-toolbar { display: flex; align-items: center; gap: 2px; }
 .nd-text-toolbar .ant-btn { min-width: 30px; padding-inline: 6px; font-weight: 600; }
 .nd-text-toolbar .ant-btn:not(:disabled):hover { background: #f6ede1; }
@@ -382,7 +459,7 @@
   background: var(--nd-surface); border-left: 1px solid var(--nd-line);
   padding: 14px 13px; display: flex; flex-direction: column; gap: 10px;
 }
-.nd-card { flex: none; background: #fff; border: 1px solid var(--nd-line); border-radius: 9px; overflow: hidden; }
+.nd-card { flex: none; background: var(--nd-card); border: 1px solid var(--nd-line); border-radius: 9px; overflow: hidden; }
 .nd-card-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px 8px; }
 .nd-card-head > .nd-card-title { flex: 1; min-width: 0; }
 .nd-help-close { margin-left: 0; margin-right: -6px; }
@@ -411,15 +488,15 @@
 .nd-help-links { display: flex; flex-direction: column; gap: 5px; }
 .nd-help-link {
   font-size: 11px; font-weight: 600; color: var(--nd-teal-dark);
-  background: #e4f6f6; border: 1px solid #bfe9ea; border-radius: 7px; padding: 4px 9px; text-decoration: none;
+  background: var(--nd-teal-wash); border: 1px solid var(--nd-teal-wash-line); border-radius: 7px; padding: 4px 9px; text-decoration: none;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.nd-help-link:hover { background: var(--nd-teal-tint); border-color: #9fd6dc; }
+.nd-help-link:hover { background: var(--nd-teal-tint); border-color: var(--nd-card-line-hover); }
 .nd-help-how { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
 .nd-help-how li { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; line-height: 1.45; color: #24424c; font-weight: 500; }
 .nd-help-how-n {
   width: 16px; height: 16px; flex: none; border-radius: 5px; margin-top: 1px;
-  background: #e4f6f6; color: var(--nd-teal); font-size: 9.5px; font-weight: 600;
+  background: var(--nd-teal-wash); color: var(--nd-teal); font-size: 9.5px; font-weight: 600;
   display: flex; align-items: center; justify-content: center;
 }
 .nd-card-tabs .ant-tabs-nav { margin-bottom: 0; background: var(--nd-surface); }
@@ -442,12 +519,12 @@
 .nd-sim-empty {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
   padding: 24px; text-align: center; font-size: 12.5px; color: var(--nd-text-4); font-weight: 500;
-  border: 1px dashed #d3e1e7; border-radius: 10px; background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed var(--nd-empty-line); border-radius: 10px; background: var(--nd-empty-bg);
 }
 
 .nd-run {
   flex: none; display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
-  background: #fff; border: 1px solid #e5eff0; border-radius: 8px; padding: 9px 11px;
+  background: var(--nd-card); border: 1px solid var(--nd-card-line); border-radius: 8px; padding: 9px 11px;
   cursor: pointer; font: inherit; font-size: 12.5px; color: inherit;
   transition: border-color 160ms ease, background 160ms ease;
 }
@@ -483,7 +560,7 @@
 .nd-sim-detail-summary { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; line-height: 1.4; }
 .nd-sim-pane {
   flex: 1; min-height: 0; display: flex; flex-direction: column;
-  border: 1px solid #e4eff0; border-radius: 8px; background: #fff; overflow: hidden;
+  border: 1px solid var(--nd-page-line); border-radius: 8px; background: var(--nd-card); overflow: hidden;
 }
 .nd-sim-pane-ok { border-color: #c8ebda; }
 .nd-sim-pane-ok .nd-sim-pane-head { background: #f4fcf8; border-bottom-color: #ddf1e8; }
@@ -526,7 +603,7 @@
 /* "Simulate can't run yet" modal */
 .nd-blocked-title { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
 .nd-blocked-icon {
-  width: 26px; height: 26px; border-radius: 9px; background: #fbe7c7; color: var(--nd-amber);
+  width: 26px; height: 26px; border-radius: 9px; background: var(--nd-amber-strong-tint); color: var(--nd-amber);
   font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center;
 }
 .nd-blocked-body { margin: 0; font-size: 13px; line-height: 1.65; color: var(--nd-text-3); font-weight: 500; }
@@ -537,14 +614,14 @@
 .nd-export-head h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
 /* Deploy: two groups, each a heading and a wrapping grid of roomy cards. */
 .nd-deploy-group { --nd-accent: var(--nd-teal); --nd-accent-tint: var(--nd-teal-tint); flex: none; display: flex; flex-direction: column; gap: 10px; }
-.nd-deploy-group-blue { --nd-accent: var(--nd-blue); --nd-accent-tint: #e7f2fe; }
+.nd-deploy-group-blue { --nd-accent: var(--nd-blue); --nd-accent-tint: var(--nd-blue-tint); }
 .nd-deploy-group-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .nd-deploy-group-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
 .nd-deploy-group-head span { font-size: 12.5px; color: var(--nd-text-4); }
 .nd-deploy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 16px; }
 .nd-deploy-card {
   display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 16px;
-  background: #fff; border: 1px solid var(--nd-line); border-top: 3px solid var(--nd-accent); border-radius: 12px;
+  background: var(--nd-card); border: 1px solid var(--nd-line); border-top: 3px solid var(--nd-accent); border-radius: 12px;
   box-shadow: 0 1px 2px rgba(15, 32, 39, 0.04);
 }
 .nd-deploy-card-head { display: flex; align-items: center; gap: 12px; }
@@ -564,14 +641,15 @@
 .nd-preview-body { overflow-y: auto; padding: 24px; background: var(--nd-line-soft); }
 .nd-preview-page {
   max-width: 760px; margin: 0 auto;
-  background: #fff; border: 1px solid #e4eff0; border-radius: 8px; padding: 34px 32px; min-height: 200px;
+  background: var(--nd-card); border: 1px solid var(--nd-page-line); border-radius: 8px; padding: 34px 32px; min-height: 200px;
   box-shadow: 0 1px 3px rgba(15, 32, 39, 0.05);
 }
+.nd-preview-page-stale { opacity: 0.55; }
 
 /* Footer */
 .nd-footer {
   flex: none; min-height: 48px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  padding: 8px 20px; background: #fff; border-top: 1px solid var(--nd-line);
+  padding: 8px 20px; background: var(--nd-card); border-top: 1px solid var(--nd-line);
 }
 .nd-problem-pill { font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 6px 13px; white-space: nowrap; }
 .nd-problem-pill-ok { color: #0c8b57; background: #def3e9; }
@@ -589,10 +667,59 @@
 }
 .nd-badge-teal { background: var(--nd-teal-tint); color: var(--nd-teal); }
 .nd-badge-grey { background: var(--nd-line-soft); color: var(--nd-text-2); font-weight: 500; }
-.nd-badge-blue { background: #e7f2fe; color: var(--nd-blue); }
+.nd-badge-blue { background: var(--nd-blue-tint); color: var(--nd-blue); }
 .nd-badge-amber { background: var(--nd-amber-tint); color: var(--nd-amber); }
 .nd-badge-link { text-decoration: none; }
 .nd-badge-link:hover { text-decoration: underline; }
+
+/* Semantic status and accent colors stay legible on the dark surfaces. */
+html[data-theme="dark"] .nd-check { color: var(--nd-content-strong); }
+html[data-theme="dark"] .nd-help-note,
+html[data-theme="dark"] .nd-help-how li { color: var(--nd-content); }
+html[data-theme="dark"] .nd-logic-chip,
+html[data-theme="dark"] .nd-check-icon { background: var(--nd-input-surface); color: var(--nd-text-3); }
+html[data-theme="dark"] .nd-sample-art {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(90% 80% at 50% 100%, #293a40 0%, var(--nd-spine-tint) 100%);
+  background-size: 22px 22px, 22px 22px, 100% 100%;
+}
+html[data-theme="dark"] .nd-step-active { border-color: #42676c; }
+html[data-theme="dark"] .nd-sim-pane-ok .nd-sim-pane-head { background: #1d382f; border-bottom-color: #2c5143; }
+html[data-theme="dark"] .nd-sim-pane-failed { background: #3a2729; border-color: #63383b; }
+html[data-theme="dark"] .nd-sim-pane-failed .nd-sim-pane-head,
+html[data-theme="dark"] .nd-sim-note { background: #3a2729; border-bottom-color: #63383b; }
+html[data-theme="dark"] .nd-sim-error-message,
+html[data-theme="dark"] .nd-sim-note,
+html[data-theme="dark"] .nd-problem-text { color: #f0a3a5; }
+html[data-theme="dark"] .nd-sim-error-title,
+html[data-theme="dark"] .nd-status-err { color: #f0a3a5; }
+html[data-theme="dark"] .nd-run-active,
+html[data-theme="dark"] .nd-run-active:hover { background: #203b40; border-color: #42676c; }
+html[data-theme="dark"] .nd-text-toolbar .ant-btn:not(:disabled):hover { background: #423528; }
+html[data-theme="dark"] .nd-editor-icon-ink { background: #26383f; color: #a6d8e7; }
+html[data-theme="dark"] .nd-sample-card-ink { --nd-spine: #a6d8e7; --nd-spine-tint: #26383f; }
+html[data-theme="dark"] .nd-sample-card-current,
+html[data-theme="dark"] .nd-sample-card-current:hover { box-shadow: 0 0 0 3px #203b40; }
+html[data-theme="dark"] .nd-logic-done-all,
+html[data-theme="dark"] .nd-logic-chip-tag-done,
+html[data-theme="dark"] .nd-status-ok,
+html[data-theme="dark"] .nd-check-done .nd-check-icon,
+html[data-theme="dark"] .nd-problem-pill-ok,
+html[data-theme="dark"] .nd-run-status-ok { color: #7dd9ad; }
+html[data-theme="dark"] .nd-check-done .nd-check-icon,
+html[data-theme="dark"] .nd-problem-pill-ok,
+html[data-theme="dark"] .nd-run-status-ok { background: #1d382f; }
+html[data-theme="dark"] .nd-check-error .nd-check-icon,
+html[data-theme="dark"] .nd-run-id-failed,
+html[data-theme="dark"] .nd-problem-pill-err,
+html[data-theme="dark"] .nd-run-status-failed { color: #f0a3a5; background: #3a2729; }
+html[data-theme="dark"] .nd-run-failed { border-color: #63383b; }
+html[data-theme="dark"] .nd-run-failed .nd-run-summary,
+html[data-theme="dark"] .nd-logic-chip-tag-error { color: #f0a3a5; }
+html[data-theme="dark"] .nd-check-error .nd-check-icon { background: #3a2729; }
+html[data-theme="dark"] .nd-sim-pane-ok .nd-sim-tabs .ant-tabs-nav { background: #1d382f; }
 
 /* ---------- Placeholders ---------- */
 .nd-placeholder { display: block; background: var(--nd-placeholder); border-radius: 6px; }
@@ -621,4 +748,26 @@
     width: auto; flex: none; max-height: 40%;
     border-left: 0; border-top: 1px solid var(--nd-line);
   }
+  /*
+   * Stacked, the Logic column is a column-flex child, so its height has to come
+   * from its content — but container-type: size suppresses content-based sizing
+   * and collapses the column, so the card is drawn over the chips above it. Drop
+   * the containment here, let the column size itself, and scroll the body.
+   */
+  .nd-body-content:has(.nd-view-logic) { overflow-y: auto; }
+  .nd-view-logic { flex-direction: column; min-height: 0; overflow: visible; }
+  .nd-view-logic .nd-editor-column { container-type: normal; flex: none; min-height: auto; overflow: visible; }
+  .nd-view-logic .nd-logic-card { flex: none; min-height: 220px; overflow: visible; }
+  .nd-view-logic .nd-logic-empty { min-height: 180px; overflow: visible; }
+  /* The card no longer stretches to the viewport, so Monaco needs a height of its own. */
+  .nd-view-logic .nd-logic-editor { display: flex; flex: none; width: 100%; height: clamp(260px, 45vh, 380px); min-height: 260px; padding: 0; overflow: hidden; }
+  .nd-view-logic .nd-logic-editor .editorwrapper { flex: 1; width: 100%; height: 100%; min-width: 0; min-height: 0; }
+  .nd-view-logic .nd-help-rail { max-height: none; overflow: visible; }
+}
+/* Phones: the chip list takes a row of its own so each chip can wrap inside the card. */
+@media (max-width: 600px) {
+  .nd-logic-chips { width: 100%; }
+  .nd-logic-chip { width: 100%; min-width: 0; box-sizing: border-box; flex-wrap: wrap; white-space: normal; overflow-wrap: anywhere; }
+  .nd-logic-chip-label, .nd-logic-chip-tag { min-width: 0; max-width: 100%; }
+  .nd-logic-chip-action { max-width: 100%; white-space: normal; }
 }

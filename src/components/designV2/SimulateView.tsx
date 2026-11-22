@@ -191,6 +191,7 @@ const SimulateView = () => {
   const selectRun = useDesignV2Store((s) => s.selectRun);
   const setView = useDesignV2Store((s) => s.setView);
 
+  const [modal, modalContext] = Modal.useModal();
   const [blockedDismissed, setBlockedDismissed] = useState(false);
 
   const compiled = Boolean(compiledLogicJs);
@@ -203,14 +204,29 @@ const SimulateView = () => {
 
   const openLogic = () => setView(STEP_ID.logic);
 
-  const restart = async () => {
-    if (isTemplateStateful) {
+  const restart = () => {
+    const startNewContract = async () => {
+      if (isTemplateStateful) {
         await initContract();
-    } else {
+      } else {
         resetExecution();
+      }
+      selectRun(null);
+    };
+
+    if (!isContractInitialized && history.length === 0) {
+      void startNewContract();
+      return;
     }
 
-    selectRun(null);
+    void modal.confirm({
+      title: SIMULATE.restartConfirm.title,
+      content: SIMULATE.restartConfirm.content,
+      okText: SIMULATE.restartConfirm.okText,
+      cancelText: SIMULATE.restartConfirm.cancelText,
+      okButtonProps: { danger: true },
+      onOk: startNewContract,
+    });
   };
 
   const send = async () => {
@@ -220,7 +236,7 @@ const SimulateView = () => {
 
   const rerun = async (run: LogicExecutionResult) => {
     if (run.method === "init") {
-      await restart();
+      restart();
       return;
     }
     setRequestJson(pretty(run.request));
@@ -235,6 +251,7 @@ const SimulateView = () => {
 
   return (
     <div className="nd-view nd-view-simulate">
+      {modalContext}
       <div className="nd-sim-runs">
         <div className="nd-sim-head">
           <h1>{SIMULATE.title}</h1>
