@@ -220,7 +220,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
       ref={menuRef}
       className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 flex"
       style={{ 
-        left: Math.max(10, Math.min(225, window.innerWidth - 150)), 
+        left: Math.max(10, Math.min(position.x, window.innerWidth - 150)),
         top: Math.max(10, Math.min(position.y, window.innerHeight - 50)),
         minWidth: '120px'
       }}
@@ -261,23 +261,25 @@ export const useCodeSelection = (editorType: 'markdown' | 'concerto' | 'json') =
       const selectedText = editor.getModel()?.getValueInRange(selection).trim();
       if (selectedText && selectedText.length > 0) {
         const position = editor.getScrolledVisiblePosition(selection.getStartPosition());
-        const editorContainer = editor.getDomNode()?.closest('.editorwrapper');
-        const editorRect = editorContainer?.getBoundingClientRect();
-
-        let x: number, y: number;
-
-        if (editorRect && position) {
-          x = Math.max(editorRect.left + 20, Math.min(position.left, editorRect.right - 150));
-          y = Math.max(editorRect.top + 20, Math.min(position.top, editorRect.bottom - 50));
-
-          x = Math.max(10, Math.min(x, window.innerWidth - 150));
-          y = Math.max(10, Math.min(y, window.innerHeight - 50));
-        } else if (position) {
-          x = Math.max(10, Math.min(position.left, window.innerWidth - 150));
-          y = Math.max(10, Math.min(position.top, window.innerHeight - 50));
-        } else {
+        const editorNode = editor.getDomNode();
+        if (!position || !editorNode) {
           return;
         }
+
+        // the position is relative to the editor, but the menu is positioned in the viewport;
+        // place it below the first selected line so that it doesn't cover the selection
+        const editorNodeRect = editorNode.getBoundingClientRect();
+        let x = editorNodeRect.left + position.left;
+        let y = editorNodeRect.top + position.top + position.height;
+
+        const editorRect = editorNode.closest('.editorwrapper')?.getBoundingClientRect();
+        if (editorRect) {
+          x = Math.max(editorRect.left + 20, Math.min(x, editorRect.right - 150));
+          y = Math.max(editorRect.top + 20, Math.min(y, editorRect.bottom - 50));
+        }
+
+        x = Math.max(10, Math.min(x, window.innerWidth - 150));
+        y = Math.max(10, Math.min(y, window.innerHeight - 50));
 
         setSelectedText(selectedText);
         setMenuPosition({
