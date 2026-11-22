@@ -34,11 +34,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: NPM Install
-        run: npm ci
-
       - name: Advisory configuration integrity check (not a security boundary)
         run: node scripts/check-config-integrity.mjs
+
+      - name: NPM Install
+        run: npm ci
 
       - name: Run script tests
         run: npm run test:scripts
