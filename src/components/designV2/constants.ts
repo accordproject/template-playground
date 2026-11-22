@@ -437,6 +437,12 @@ export const SIMULATE = {
   restartHint: "Start the contract again and clear the runs",
   restartHintStateless: "Clear the runs and start a fresh simulation",
   noRunsStateless: "Nothing has happened yet — send a message to simulate this template.",
+  restartConfirm: {
+    title: "Restart the contract?",
+    content: "This clears the current simulation history and resets the contract state.",
+    okText: "Restart and clear runs",
+    cancelText: "Cancel",
+  },
   runsLabel: "Runs",
   /** "3 runs · 2 ok · 1 failed" — the pill next to the title. */
   stats: (runs: number, ok: number, failed: number) =>
