@@ -3,6 +3,8 @@ import JSZip from "jszip";
 import {
   EMPTY_FILTER,
   LIBRARIES,
+  MAX_ARCHIVE_DOWNLOAD_BYTES,
+  fetchArchive,
   fetchLibraryIndex,
   filterTemplates,
   groupTemplates,
@@ -105,5 +107,188 @@ describe("template library", () => {
     expect(groups.map((g) => g.title)).toEqual(["finance", "sales", "Other", "Archived"]);
     expect(groups[0].templates.map((t) => t.name)).toEqual(["a", "b"]);
     expect(groupTemplates(filterTemplates(list, EMPTY_FILTER), { untagged: "Other", archived: "Archived" }, ["sales"]).map((g) => g.title)).toEqual(["sales", "Other"]);
+  });
+
+  describe("fetchArchive", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    });
+
+    it("rejects invalid URLs and non-https protocols", async () => {
+      await expect(fetchArchive("not-a-valid-url")).rejects.toThrow("That is not a valid URL.");
+      await expect(fetchArchive("ftp://example.com/test.cta")).rejects.toThrow(
+        "Only https URLs can be imported.",
+      );
+      await expect(fetchArchive("javascript:alert(1)")).rejects.toThrow(
+        "Only https URLs can be imported.",
+      );
+      await expect(fetchArchive("http://example.com/archive.cta")).rejects.toThrow(
+        "Only https URLs can be imported.",
+      );
+      await expect(fetchArchive("http://localhost:3000/archive.cta")).rejects.toThrow(
+        "Only https URLs can be imported.",
+      );
+    });
+
+    it("downloads valid archives over HTTPS", async () => {
+      const payload = new Uint8Array([10, 20, 30]);
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          headers: new Headers({ "content-length": "3" }),
+          arrayBuffer: () => Promise.resolve(payload.buffer),
+        }),
+      );
+
+      const result = await fetchArchive("https://example.com/template.cta");
+      expect(result).toEqual(payload);
+    });
+
+    it("rejects immediately when Content-Length exceeds maxBytes", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          headers: new Headers({ "content-length": String(MAX_ARCHIVE_DOWNLOAD_BYTES + 100) }),
+          arrayBuffer: vi.fn(),
+        }),
+      );
+
+      await expect(fetchArchive("https://example.com/huge.cta")).rejects.toThrow(/exceeds the maximum allowed size/);
+    });
+
+    it("rejects when streamed chunks exceed maxBytes", async () => {
+      const chunk1 = new Uint8Array(50);
+      const chunk2 = new Uint8Array(60);
+      let step = 0;
+
+      const mockReader = {
+        read: vi.fn().mockImplementation(() => {
+          if (step === 0) {
+            step += 1;
+            return Promise.resolve({ done: false, value: chunk1 });
+          }
+          if (step === 1) {
+            step += 1;
+            return Promise.resolve({ done: false, value: chunk2 });
+          }
+          return Promise.resolve({ done: true, value: undefined });
+        }),
+        cancel: vi.fn().mockResolvedValue(undefined),
+      };
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          headers: new Headers(),
+          body: { getReader: () => mockReader },
+        }),
+      );
+
+      await expect(fetchArchive("https://example.com/stream.cta", { maxBytes: 80 })).rejects.toThrow(
+        /exceeds the maximum allowed size/,
+      );
+      expect(mockReader.cancel).toHaveBeenCalled();
+    });
+
+    it("streams and combines chunks when within maxBytes", async () => {
+      const chunk1 = new Uint8Array([1, 2]);
+      const chunk2 = new Uint8Array([3, 4]);
+      let step = 0;
+
+      const mockReader = {
+        read: vi.fn().mockImplementation(() => {
+          if (step === 0) {
+            step += 1;
+            return Promise.resolve({ done: false, value: chunk1 });
+          }
+          if (step === 1) {
+            step += 1;
+            return Promise.resolve({ done: false, value: chunk2 });
+          }
+          return Promise.resolve({ done: true, value: undefined });
+        }),
+      };
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          headers: new Headers(),
+          body: { getReader: () => mockReader },
+        }),
+      );
+
+      const result = await fetchArchive("https://example.com/stream.cta");
+      expect(result).toEqual(new Uint8Array([1, 2, 3, 4]));
+    });
+
+    it("rejects when fetch times out", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation((_url, { signal }: { signal?: AbortSignal } = {}) => {
+          return new Promise((_, reject) => {
+            signal?.addEventListener("abort", () => {
+              reject(new DOMException("The operation was aborted", "AbortError"));
+            });
+          });
+        }),
+      );
+
+      await expect(fetchArchive("https://example.com/slow.cta", { timeoutMs: 50 })).rejects.toThrow(
+        /timed out after/,
+      );
+    });
+
+    it("rejects when reading the body stalls and times out", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation((_url, { signal }: { signal: AbortSignal }) => {
+          const mockReader = {
+            read: vi.fn().mockImplementation(() => {
+              return new Promise((_, reject) => {
+                signal.addEventListener("abort", () => {
+                  reject(new Error("aborted"));
+                });
+              });
+            }),
+            cancel: vi.fn().mockResolvedValue(undefined),
+          };
+          return Promise.resolve({
+            ok: true,
+            headers: new Headers(),
+            body: { getReader: () => mockReader },
+          });
+        }),
+      );
+
+      await expect(fetchArchive("https://example.com/stalled-body.cta", { timeoutMs: 50 })).rejects.toThrow(
+        /timed out after/,
+      );
+    });
+
+    it("rejects when cancelled via external signal", async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(fetchArchive("https://example.com/cancel.cta", { signal: controller.signal })).rejects.toThrow(
+        "The download was cancelled.",
+      );
+    });
+
+    it("throws server error message on non-ok HTTP responses", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 404,
+        }),
+      );
+
+      await expect(fetchArchive("https://example.com/missing.cta")).rejects.toThrow("The server answered 404.");
+    });
   });
 });
