@@ -1,0 +1,2 @@
+# Netlify production publishes only this redirect; the app is served from CloudFront.
+/*    https://playground.accordproject.org/:splat    301!

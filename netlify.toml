@@ -1,0 +1,27 @@
+# Netlify config for template-playground.
+#
+# Netlify is used for PR deploy previews only. The real site,
+# https://playground.accordproject.org, is served from CloudFront
+# (see .github/workflows/build-and-publish.yml).
+#
+# A PR's copy of this file decides how its own preview is built, and fork PRs
+# build only after a maintainer approves them. Review changes to this file
+# before approving a fork PR's preview build.
+#
+# Some settings can only be set in the Netlify web app. They are listed in
+# DEVELOPERS.md under "Deploy Previews (Netlify)".
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Keep in line with package.json "engines" and the CI workflows.
+  NODE_VERSION = "22"
+
+# Production (pushes to main) does not deploy the app. It publishes a single
+# redirect to the canonical site, so there is no second live copy at
+# ap-template-playground.netlify.app.
+[context.production]
+  command = "echo 'Production is served from CloudFront; publishing a redirect only.'"
+  publish = "deploy/netlify-production"

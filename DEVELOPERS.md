@@ -139,6 +139,18 @@ The Playground allows sharing full state via URL fragments (`#data=...`).
 - `store.generateShareableLink()` serializes the active template, models, data, and logic (if present).
 - `store.loadFromLink()` decompresses the state. If logic is present, it automatically enables the logic feature panels and triggers compilation immediately upon load.
 
+## Deploy Previews (Netlify)
+
+Netlify builds a deploy preview for each pull request. Build settings live in [`netlify.toml`](netlify.toml). The real site is deployed to CloudFront by `.github/workflows/build-and-publish.yml`. Netlify production (pushes to `main`) publishes only a redirect to https://playground.accordproject.org, from `deploy/netlify-production/`.
+
+A PR's own `netlify.toml` decides how its preview is built. These settings can't be set from the repository, so they are kept in the Netlify web app:
+
+- **Fork PR builds need approval.** Previews for PRs from outside contributors build only after a maintainer approves them. Check the PR's changes to `netlify.toml`, `package.json` scripts, `vite.config.ts` and `public/_redirects` before approving.
+- **Production deploys come from git only.** Manual (CLI/API) production deploys are blocked.
+- **Branch deploys are limited to `main`.**
+- **No environment variables are defined.** Don't add secrets: preview builds run code from PRs.
+- **The Netlify Drawer is turned off on previews**, so no extra Netlify scripts are injected into the page.
+
 ## Testing Guide
 
 The playground implements a dual-layer testing strategy:
