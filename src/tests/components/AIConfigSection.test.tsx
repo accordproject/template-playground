@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AIConfigSection from '../../components/AIConfigSection';
 
@@ -150,6 +150,18 @@ async function selectModelAndSave(model: string) {
   await act(async () => {
     fireEvent.click(saveButton());
   });
+}
+
+async function openResetConfirmation() {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /Reset Configuration/i }));
+  });
+
+  await waitFor(() => {
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Reset AI Configuration?')).toBeInTheDocument();
+    expect(within(dialog).getByText(/This will clear your API key and all AI configuration settings/i)).toBeInTheDocument();
+  }, WAIT);
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -406,8 +418,19 @@ describe('AIConfigSection', () => {
 
   // ── Reset clears state ─────────────────────────────────────────────────────
 
-  it('clears localStorage and resets form state on confirmed reset', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('opens the reset confirmation dialog when Reset Configuration is clicked', async () => {
+    await act(async () => {
+      render(<AIConfigSection />);
+    });
+
+    await openResetConfirmation();
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: /Reset Configuration/i })).toBeInTheDocument();
+  });
+
+  it('clears localStorage and resets form state when reset is confirmed', async () => {
     localStorageMock.setItem('aiProvider', 'openai');
     localStorageMock.setItem('aiModel', 'gpt-4');
 
@@ -415,31 +438,41 @@ describe('AIConfigSection', () => {
       render(<AIConfigSection />);
     });
 
+    await openResetConfirmation();
+
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Reset Configuration/i }));
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Reset Configuration' }));
     });
 
-    expect(clearStoredKey).toHaveBeenCalled();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('aiProvider');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('aiModel');
-    expect(mockSetAIConfig).toHaveBeenCalledWith(null);
-  });
+    await waitFor(() => {
+      expect(clearStoredKey).toHaveBeenCalled();
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('aiProvider');
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('aiModel');
+      expect(mockSetAIConfig).toHaveBeenCalledWith(null);
+      expect(screen.queryByText('Reset AI Configuration?')).not.toBeInTheDocument();
+    }, WAIT);
+  }, 15000);
 
-  it('does NOT clear state when reset is cancelled', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+  it('does not clear state when the reset confirmation is cancelled', async () => {
     localStorageMock.setItem('aiProvider', 'openai');
 
     await act(async () => {
       render(<AIConfigSection />);
     });
 
+    await openResetConfirmation();
+
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Reset Configuration/i }));
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }));
     });
 
-    expect(clearStoredKey).not.toHaveBeenCalled();
-    expect(mockSetAIConfig).not.toHaveBeenCalled();
-  });
+    await waitFor(() => {
+      expect(clearStoredKey).not.toHaveBeenCalled();
+      expect(mockSetAIConfig).not.toHaveBeenCalled();
+      expect(localStorageMock.removeItem).not.toHaveBeenCalled();
+      expect(screen.queryByText('Reset AI Configuration?')).not.toBeInTheDocument();
+    }, WAIT);
+  }, 15000);
 
   // ── WebAuthn handling ──────────────────────────────────────────────────────
 
