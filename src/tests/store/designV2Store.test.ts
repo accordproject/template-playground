@@ -1,13 +1,62 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import useDesignV2Store from '../../store/designV2Store';
 import { STEPS, FIRST_STEP, LAST_STEP, STEPS_AFTER_TEMPLATE } from '../../types/designV2.types';
 
 describe('useDesignV2Store', () => {
   beforeEach(() => {
+    localStorage.clear();
     useDesignV2Store.setState({
       view: 'welcome', previewOpen: false, selectedTemplate: null,
       modelDataPanes: { model: true, data: true }, helpRailOpen: true, selectedRunId: null,
     });
+  });
+
+  afterEach(() => { vi.restoreAllMocks(); });
+
+  it('keeps the welcome for a first V2 visit, even after visiting V1', () => {
+    localStorage.setItem('hasVisited', 'true');
+    useDesignV2Store.getState().initialize();
+    expect(useDesignV2Store.getState().view).toBe('welcome');
+    expect(localStorage.getItem('designV2WelcomeSeen')).toBeNull();
+  });
+
+  it.each(['start', 'setView'] as const)('remembers leaving welcome through %s on the next visit', (action) => {
+    const store = useDesignV2Store.getState();
+    if (action === 'start') store.start();
+    else store.setView(LAST_STEP);
+    expect(localStorage.getItem('designV2WelcomeSeen')).toBe('true');
+    expect(localStorage.getItem('hasVisited')).toBeNull();
+
+    store.resetFlow();
+    store.initialize();
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+  });
+
+  it('does not move an active flow when initialized again', () => {
+    useDesignV2Store.getState().setView(LAST_STEP);
+    useDesignV2Store.getState().initialize();
+    expect(useDesignV2Store.getState().view).toBe(LAST_STEP);
+  });
+
+  it('allows replaying the welcome without forgetting the previous visit', () => {
+    const store = useDesignV2Store.getState();
+    store.start();
+    store.setView('welcome');
+    expect(useDesignV2Store.getState().view).toBe('welcome');
+    expect(localStorage.getItem('designV2WelcomeSeen')).toBe('true');
+  });
+
+  it('shows welcome when storage cannot be read', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked'); });
+    expect(() => useDesignV2Store.getState().initialize()).not.toThrow();
+    expect(useDesignV2Store.getState().view).toBe('welcome');
+  });
+
+  it('still lets the user start when storage cannot be written', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+    expect(() => useDesignV2Store.getState().start()).not.toThrow();
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
   });
 
   it('starts by following the latest run and selectRun() pins one', () => {

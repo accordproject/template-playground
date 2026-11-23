@@ -26,6 +26,8 @@ export interface DesignV2State {
   helpRailOpen: boolean;
 
   setView: (view: DesignV2View) => void;
+  /** Restore the welcome preference when the V2 layout opens. */
+  initialize: () => void;
   /** Leave the welcome hero and open the first step. */
   start: () => void;
   goBack: () => void;
@@ -68,8 +70,27 @@ const useDesignV2Store = create<DesignV2State>()(
       ...INITIAL_FLOW,
       helpRailOpen: true,
 
-      setView: (view) => set({ view }, false, "designV2/setView"),
-      start: () => set({ view: FIRST_STEP }, false, "designV2/start"),
+      initialize: () => {
+        if (get().view !== "welcome") return;
+        try {
+          if (localStorage.getItem("designV2WelcomeSeen") === "true") {
+            set({ view: FIRST_STEP }, false, "designV2/initialize");
+          }
+        } catch {
+          // Storage may be blocked; keep the welcome view.
+        }
+      },
+      setView: (view) => {
+        if (get().view === "welcome" && view !== "welcome") {
+          try {
+            localStorage.setItem("designV2WelcomeSeen", "true");
+          } catch {
+            // Storage may be blocked; navigation must still work.
+          }
+        }
+        set({ view }, false, "designV2/setView");
+      },
+      start: () => get().setView(FIRST_STEP),
       goBack: () => {
         const index = stepIndexOf(get().view);
         if (index > 0) set({ view: STEPS[index - 1].id }, false, "designV2/goBack");

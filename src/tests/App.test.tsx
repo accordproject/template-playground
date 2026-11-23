@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { act } from 'react-dom/test-utils';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import App from '../App';
+import useDesignV2Store from '../store/designV2Store';
+import { FIRST_STEP, STEP_ID } from '../types/designV2.types';
 
 /**
  * Covers the rollout boundary in App.tsx: the "/" route renders the Design v2
@@ -15,11 +18,12 @@ import App from '../App';
 const state = vi.hoisted(() => ({
   isDesignV2Enabled: false,
   init: vi.fn().mockResolvedValue(undefined),
-  loadFromLink: vi.fn().mockResolvedValue(undefined),
+  loadFromLink: vi.fn<[string, AbortSignal], Promise<boolean>>().mockResolvedValue(true),
 }));
 
 vi.mock('../store/store', () => ({
-  default: vi.fn((selector: (s: Record<string, unknown>) => unknown) =>
+  SHARED_TEMPLATE_NAME: 'Shared template',
+  default: Object.assign(vi.fn((selector: (s: Record<string, unknown>) => unknown) =>
     selector({
       init: state.init,
       loadFromLink: state.loadFromLink,
@@ -27,7 +31,7 @@ vi.mock('../store/store', () => ({
       textColor: '#121212',
       isDesignV2Enabled: state.isDesignV2Enabled,
     })
-  ),
+  ), { getState: () => ({ error: 'Failed to load shared content' }) }),
 }));
 
 vi.mock('../components/Tour', () => ({ default: { start: vi.fn().mockResolvedValue(undefined) } }));
@@ -49,6 +53,9 @@ describe('App - Design v2 feature flag routing', () => {
   beforeEach(() => {
     localStorage.setItem('hasVisited', 'true');
     state.isDesignV2Enabled = false;
+    state.init.mockClear();
+    state.loadFromLink.mockReset().mockResolvedValue(true);
+    useDesignV2Store.getState().resetFlow();
   });
 
   it('renders the legacy layout on "/" when the flag is off', async () => {
@@ -77,5 +84,89 @@ describe('App - Design v2 feature flag routing', () => {
     expect(await screen.findByTestId('learn-page')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId('legacy-navbar')).toBeInTheDocument());
     expect(screen.queryByTestId('design-v2-shell')).not.toBeInTheDocument();
+  });
+
+  it.each(['?data=valid', '#data=valid'])('routes a new %s link from an existing Template view', async (url) => {
+    state.isDesignV2Enabled = true;
+    useDesignV2Store.getState().start();
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/'] });
+    render(<RouterProvider router={router} />);
+    await screen.findByTestId('design-v2-shell');
+    await act(() => router.navigate('/' + url));
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.text));
+    expect(state.loadFromLink).toHaveBeenCalledWith('valid', expect.any(AbortSignal));
+    expect(useDesignV2Store.getState().selectedTemplate).toBe('Shared template');
+
+    act(() => useDesignV2Store.getState().setView(FIRST_STEP));
+    expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
+  });
+
+  it('initializes only once when navigating between ordinary routes', async () => {
+    state.isDesignV2Enabled = true;
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/'] });
+    render(<RouterProvider router={router} />);
+    await screen.findByTestId('design-v2-shell');
+    await act(() => router.navigate('/learn'));
+    await screen.findByTestId('learn-page');
+    await act(() => router.navigate('/'));
+    await screen.findByTestId('design-v2-shell');
+    expect(state.init).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels the pending store load when leaving a shared link', async () => {
+    state.isDesignV2Enabled = true;
+    let finish!: (loaded: boolean) => void;
+    const pending = new Promise<boolean>((resolve) => { finish = resolve; });
+    state.loadFromLink.mockReturnValueOnce(pending);
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/#data=pending'] });
+    render(<RouterProvider router={router} />);
+    await waitFor(() => expect(state.loadFromLink).toHaveBeenCalledTimes(1));
+    const [, signal] = state.loadFromLink.mock.calls[0];
+    await act(() => router.navigate('/'));
+    await screen.findByTestId('design-v2-shell');
+    expect(signal.aborted).toBe(true);
+    await act(async () => { finish(true); await pending; });
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+  });
+
+  it('a failed new link clears the old selection and returns to welcome', async () => {
+    state.isDesignV2Enabled = true;
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/?data=valid'] });
+    render(<RouterProvider router={router} />);
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.text));
+    state.loadFromLink.mockResolvedValue(false);
+    await act(() => router.navigate('/?data=invalid'));
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe('welcome'));
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+
+  });
+
+  it.each(['?data=valid', '#data=valid'])('preserves %s when redirecting a shared link from /learn', async (url) => {
+    state.isDesignV2Enabled = true;
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/learn' + url] });
+    render(<RouterProvider router={router} />);
+
+    await screen.findByTestId('design-v2-shell');
+    expect(router.state.location.pathname).toBe('/');
+    expect(router.state.location.search + router.state.location.hash).toBe(url);
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe(STEP_ID.text));
+    expect(state.loadFromLink).toHaveBeenCalledTimes(1);
+    expect(state.init).not.toHaveBeenCalled();
+  });
+
+  it.each(['?data=invalid', '#data=invalid', '?data=', '#data='])('keeps a failed %s redirect on welcome', async (url) => {
+    state.isDesignV2Enabled = true;
+    state.loadFromLink.mockResolvedValue(false);
+    useDesignV2Store.getState().start();
+    const router = createMemoryRouter([{ path: '*', element: <App /> }], { initialEntries: ['/learn' + url] });
+    render(<RouterProvider router={router} />);
+
+    await screen.findByTestId('design-v2-shell');
+    expect(router.state.location.pathname).toBe('/');
+    expect(router.state.location.search + router.state.location.hash).toBe(url);
+    await waitFor(() => expect(useDesignV2Store.getState().view).toBe('welcome'));
+    expect(useDesignV2Store.getState().selectedTemplate).toBeNull();
+    expect(state.loadFromLink).toHaveBeenCalledTimes(1);
+    expect(state.init).not.toHaveBeenCalled();
   });
 });

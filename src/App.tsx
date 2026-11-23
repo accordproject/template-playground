@@ -1,10 +1,12 @@
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { App as AntdApp, Layout, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Routes, Route, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import tour from "./components/Tour";
-import useAppStore from "./store/store";
+import useAppStore, { SHARED_TEMPLATE_NAME } from "./store/store";
+import useDesignV2Store from "./store/designV2Store";
+import { STEP_ID } from "./types/designV2.types";
 import LearnContent from "./components/Content";
 import PlaygroundSidebar from "./components/PlaygroundSidebar";
 import RebuildSandboxFrame from "./components/RebuildSandboxFrame";
@@ -28,36 +30,52 @@ const App = () => {
   // Design v2 ships its own header, so the legacy navbar is hidden on the playground route.
   const hideNavbar = isDesignV2Enabled && location.pathname === "/";
   const [loading, setLoading] = useState(true);
+  const [linkLoad, setLinkLoad] = useState<{ status: 'loaded' | 'failed'; error?: string } | null>(null);
+  const handledLink = useRef<typeof linkLoad>(null);
   const [searchParams] = useSearchParams();
-
+  const compressedData = location.hash.startsWith("#data=")
+    ? location.hash.substring(6)
+    : searchParams.get("data");
+  const redirectLink = compressedData !== null && location.pathname !== "/";
 
   useEffect(() => {
+    if (redirectLink) {
+      navigate({ pathname: "/", search: location.search, hash: location.hash }, { replace: true });
+    }
+  }, [redirectLink, navigate, location.search, location.hash]);
+
+  useEffect(() => {
+    if (redirectLink) return;
+    const controller = new AbortController();
     const initializeApp = async () => {
       try {
         setLoading(true);
-        // Prioritize hash for new links, fallback to searchParams for old links
-        let compressedData: string | null = null;
-        if (window.location.hash.startsWith("#data=")) {
-          compressedData = window.location.hash.substring(6);
-        } else {
-          compressedData = searchParams.get("data");
-        }
-        if (compressedData) {
-          await loadFromLink(compressedData);
-          if (window.location.pathname !== "/") {
-            navigate("/", { replace: true });
-          }
+        if (compressedData !== null) {
+          const loaded = await loadFromLink(compressedData, controller.signal);
+          if (controller.signal.aborted) return;
+          setLinkLoad(loaded ? { status: 'loaded' } : { status: 'failed', error: useAppStore.getState().error });
         } else {
           await init();
+          if (!controller.signal.aborted) setLinkLoad(null);
         }
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
     void initializeApp();
-  }, [init, loadFromLink, searchParams, navigate]);
+    return () => controller.abort();
+  }, [init, loadFromLink, compressedData, redirectLink]);
+
+  useEffect(() => {
+    if (!isDesignV2Enabled || !linkLoad || handledLink.current === linkLoad) return;
+    handledLink.current = linkLoad;
+    const flow = useDesignV2Store.getState();
+    const loaded = linkLoad.status === 'loaded';
+    flow.selectTemplate(loaded ? SHARED_TEMPLATE_NAME : null);
+    flow.setView(loaded ? STEP_ID.text : "welcome");
+  }, [isDesignV2Enabled, linkLoad]);
 
   useEffect(() => {
     const style = document.createElement("style");
@@ -130,7 +148,7 @@ const App = () => {
                     </div>
                   ) : (
                     <Suspense fallback={<div className="app-content-loading"><Spinner /></div>}>
-                      <DesignV2Layout />
+                      <DesignV2Layout linkStatus={linkLoad?.status} linkError={linkLoad?.error} />
                     </Suspense>
                   )
                 ) : (
