@@ -94,19 +94,29 @@ const DesignV2Layout = () => {
     const move = ++latestMove.current;
     const from = useDesignV2Store.getState().view;
     void (async () => {
-      if (target === STEP_ID.simulate) {
-        const result = await ensureLogicCompiles();
-        const superseded = move !== latestMove.current || useDesignV2Store.getState().view !== from;
-        if (superseded || result === "cancelled") return;
-        if (result === "failed") {
-          void message.error(FOOTER.logicBlocked);
-          return;
+      try {
+        if (target === STEP_ID.simulate) {
+          const result = await ensureLogicCompiles();
+          const superseded = move !== latestMove.current || useDesignV2Store.getState().view !== from;
+          if (superseded || result === "cancelled") return;
+          if (result === "failed") {
+            void message.error(FOOTER.logicBlocked);
+            return;
+          }
+          // The editor may have been emptied while the compile ran: then there is
+          // no logic to simulate. Read the store now, not this render's hasLogic.
+          if (pendingLogic(useAppStore.getState().editorLogicTs) === null) return;
         }
-        // The editor may have been emptied while the compile ran: then there is
-        // no logic to simulate. Read the store now, not this render's hasLogic.
-        if (pendingLogic(useAppStore.getState().editorLogicTs) === null) return;
+        setView(target);
+      } catch (error) {
+        // A failure that arrives after a newer move started, or after the step
+        // changed, belongs to a move the user has already left behind: drop it
+        // like the success path does, rather than interrupting them.
+        const superseded = move !== latestMove.current || useDesignV2Store.getState().view !== from;
+        if (superseded) return;
+        console.error("Navigation failed:", error);
+        void message.error(FOOTER.navigationFailed);
       }
-      setView(target);
     })();
   };
   /** The nearest step before (-1) or after (+1) the current one that is not skipped. */

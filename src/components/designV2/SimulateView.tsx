@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Dropdown, Modal, Tabs, message, type MenuProps } from "antd";
 import JSONEditor from "../../editors/JSONEditor";
 import ObligationsList from "../ObligationsList";
@@ -85,12 +85,25 @@ const JsonView = ({ id, value }: { id: string; value: string }) => (
 /** Right-hand column: the run's request on top, then Response / State after / Events tabs. */
 const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
   const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+    },
+    []
+  );
+
   const copyRequest = async () => {
     try {
       if (!navigator.clipboard) throw new Error("clipboard unavailable");
       await navigator.clipboard.writeText(pretty(run.request));
       setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
+      if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => {
+        copyTimer.current = null;
+        setCopied(false);
+      }, 1200);
     } catch {
       void message.error(SIMULATE.copyFailed);
     }
