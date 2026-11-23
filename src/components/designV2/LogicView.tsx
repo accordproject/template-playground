@@ -93,7 +93,7 @@ export const LogicView = () => {
             <h1>{LOGIC.title}</h1>
             <p className="nd-editor-subtitle">{LOGIC.subtitle}</p>
           </div>
-          <Button size="small" onClick={() => void copyLogic()}>
+          <Button size="small" onClick={() => void copyLogic()} disabled={!editorLogicTs.trim()}>
             {LOGIC.copy}
           </Button>
           <HelpRailReopen />

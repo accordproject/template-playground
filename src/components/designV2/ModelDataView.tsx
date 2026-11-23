@@ -222,7 +222,7 @@ export const ModelDataView = () => {
                   <Button type="text" size="small" onClick={formatModel} disabled={!editorModelCto.trim()}>
                     {MODEL_DATA.format}
                   </Button>
-                  <Button type="text" size="small" onClick={() => void copyModel()}>
+                  <Button type="text" size="small" onClick={() => void copyModel()} disabled={!editorModelCto.trim()}>
                     {MODEL_DATA.copy}
                   </Button>
                 </>

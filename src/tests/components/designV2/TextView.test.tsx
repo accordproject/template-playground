@@ -134,5 +134,11 @@ describe('TextView', () => {
       expect(message.success).toHaveBeenCalledWith(TEXT.copied);
       expect(message.error).not.toHaveBeenCalled();
     });
+
+    it('"copy" is disabled when text editor is empty', () => {
+      useAppStore.setState({ editorValue: '   ' });
+      render(<TextView />);
+      expect(pane().getByRole('button', { name: TEXT.copy })).toBeDisabled();
+    });
   });
 });
