@@ -16,23 +16,23 @@ interface ModelListResponse {
 
 /**
  * Fetches the list of available model IDs for the given provider.
- * Returns an empty array if the provider is unsupported, the required
- * credentials are missing, or the network request fails.
+ * Returns null when discovery fails or cannot run; an empty array means
+ * discovery succeeded but returned no models.
  */
 export async function fetchModels({
   provider,
   apiKey,
   customEndpoint,
   signal,
-}: FetchModelsOptions): Promise<string[]> {
+}: FetchModelsOptions): Promise<string[] | null> {
   try {
     switch (provider) {
       case 'openai':
       case 'openai-compatible': {
-        if (!apiKey) return [];
+        if (!apiKey) return null;
         let endpoint =
           provider === 'openai-compatible' ? customEndpoint : 'https://api.openai.com/v1';
-        if (!endpoint) return [];
+        if (!endpoint) return null;
         endpoint = endpoint.replace(/\/$/, '');
         const res = await fetch(`${endpoint}/models`, {
           headers: { Authorization: `Bearer ${apiKey}` },
@@ -40,14 +40,14 @@ export async function fetchModels({
         });
         if (!res.ok) {
           console.error(`Fetch error (${res.status}): ${res.statusText}`);
-          return [];
+          return null;
         }
         const data = (await res.json()) as ModelListResponse;
         return data.data?.map((m) => m.id).filter((id): id is string => Boolean(id)) ?? [];
       }
 
       case 'anthropic': {
-        if (!apiKey) return [];
+        if (!apiKey) return null;
         const res = await fetch('https://api.anthropic.com/v1/models', {
           headers: {
             'x-api-key': apiKey,
@@ -58,21 +58,21 @@ export async function fetchModels({
         });
         if (!res.ok) {
           console.error(`Fetch error (${res.status}): ${res.statusText}`);
-          return [];
+          return null;
         }
         const data = (await res.json()) as ModelListResponse;
         return data.data?.map((m) => m.id).filter((id): id is string => Boolean(id)) ?? [];
       }
 
       case 'google': {
-        if (!apiKey) return [];
+        if (!apiKey) return null;
         const res = await fetch(
           'https://generativelanguage.googleapis.com/v1beta2/models',
           { headers: { 'x-goog-api-key': apiKey }, signal }
         );
         if (!res.ok) {
           console.error(`Fetch error (${res.status}): ${res.statusText}`);
-          return [];
+          return null;
         }
         const data = (await res.json()) as ModelListResponse;
         return data.models?.map((m) => m.name).filter((name): name is string => Boolean(name)) ?? [];
@@ -82,28 +82,28 @@ export async function fetchModels({
         // Groq's API is OpenAI-compatible — same request shape and response
         // envelope (`{ data: [{ id }] }`) as OpenAI/OpenRouter below, just
         // against Groq's own base URL.
-        if (!apiKey) return [];
+        if (!apiKey) return null;
         const res = await fetch('https://api.groq.com/openai/v1/models', {
           headers: { Authorization: `Bearer ${apiKey}` },
           signal,
         });
         if (!res.ok) {
           console.error(`Fetch error (${res.status}): ${res.statusText}`);
-          return [];
+          return null;
         }
         const data = (await res.json()) as ModelListResponse;
         return data.data?.map((m) => m.id).filter((id): id is string => Boolean(id)) ?? [];
       }
 
       case 'mistral': {
-        if (!apiKey) return [];
+        if (!apiKey) return null;
         const res = await fetch('https://api.mistral.ai/v1/models', {
           headers: { Authorization: `Bearer ${apiKey}` },
           signal,
         });
         if (!res.ok) {
           console.error(`Fetch error (${res.status}): ${res.statusText}`);
-          return [];
+          return null;
         }
         const data = (await res.json()) as ModelListResponse;
         return data.data?.map((m) => m.id).filter((id): id is string => Boolean(id)) ?? [];
@@ -113,7 +113,7 @@ export async function fetchModels({
         const res = await fetch('http://localhost:11434/api/tags', { signal });
         if (!res.ok) {
           console.error(`Ollama fetch failed: ${res.statusText}`);
-          return [];
+          return null;
         }
         const data = (await res.json()) as ModelListResponse;
         return (
@@ -124,26 +124,26 @@ export async function fetchModels({
       }
 
       case 'openrouter': {
-        if (!apiKey) return [];
+        if (!apiKey) return null;
         const res = await fetch('https://openrouter.ai/api/v1/models', {
           headers: { Authorization: `Bearer ${apiKey}` },
           signal,
         });
         if (!res.ok) {
           console.error(`Fetch error (${res.status}): ${res.statusText}`);
-          return [];
+          return null;
         }
         const data = (await res.json()) as ModelListResponse;
         return data.data?.map((m) => m.id).filter((id): id is string => Boolean(id)) ?? [];
       }
 
       default:
-        return [];
+        return null;
     }
   } catch (err: unknown) {
     if (err instanceof Error && err.name !== 'AbortError') {
       console.error('Failed to fetch models:', err);
     }
-    return [];
+    return null;
   }
 }
