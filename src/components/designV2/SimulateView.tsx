@@ -146,7 +146,8 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
         <RunChip run={run} />
         <span className="nd-sim-detail-summary">{runSummary(run)}</span>
         <RunStatus run={run} />
-        <Button type="link" size="small" onClick={onRerun} disabled={busy}>
+        {/* A request that was not valid JSON is recorded as {}; re-running it would send that instead */}
+        <Button type="link" size="small" onClick={onRerun} disabled={busy || run.stage === "parse"}>
           {SIMULATE.rerun}
         </Button>
       </div>
@@ -199,7 +200,8 @@ const SimulateView = () => {
   const stats = runStats(history);
   const selected = history.find((run) => run.id === selectedRunId) ?? history[history.length - 1] ?? null;
   const canSend = !isTemplateStateful || isContractInitialized;
-  const triggerRuns = history.filter((run) => run.method === "trigger");
+  // Runs whose request can be sent again; one that was not valid JSON is recorded as {}
+  const triggerRuns = history.filter((run) => run.method === "trigger" && run.stage !== "parse");
   const lastTrigger = triggerRuns[triggerRuns.length - 1];
 
   const openLogic = () => setView(STEP_ID.logic);
