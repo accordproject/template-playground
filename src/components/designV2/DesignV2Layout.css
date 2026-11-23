@@ -202,6 +202,13 @@ html[data-theme="dark"] .nd-hero-actions .ant-btn-default.ant-btn-background-gho
   display: flex; align-items: stretch; flex-wrap: wrap; gap: 7px;
   padding: 2px 16px 11px;
 }
+/* Narrow screens swap the step cards for a compact picker (see Header.tsx). */
+.nd-stepper-compact { display: none; padding: 2px 16px 11px; }
+.nd-stepper-compact-button { width: 100%; display: flex; align-items: center; justify-content: space-between; text-align: left; font-weight: 600; }
+@media (max-width: 600px) {
+  .nd-stepper-cards { display: none; }
+  .nd-stepper-compact { display: block; }
+}
 .nd-step {
   flex: 1 1 118px; min-width: 118px;
   display: flex; align-items: center; gap: 9px;
@@ -637,6 +644,7 @@ html[data-theme="dark"] .nd-hero-actions .ant-btn-default.ant-btn-background-gho
   background: var(--nd-card); border: 1px solid var(--nd-page-line); border-radius: 8px; padding: 34px 32px; min-height: 200px;
   box-shadow: 0 1px 3px rgba(15, 32, 39, 0.05);
 }
+.nd-preview-page-stale { opacity: 0.55; }
 
 /* Footer */
 .nd-footer {
@@ -740,4 +748,26 @@ html[data-theme="dark"] .nd-sim-pane-ok .nd-sim-tabs .ant-tabs-nav { background:
     width: auto; flex: none; max-height: 40%;
     border-left: 0; border-top: 1px solid var(--nd-line);
   }
+  /*
+   * Stacked, the Logic column is a column-flex child, so its height has to come
+   * from its content — but container-type: size suppresses content-based sizing
+   * and collapses the column, so the card is drawn over the chips above it. Drop
+   * the containment here, let the column size itself, and scroll the body.
+   */
+  .nd-body-content:has(.nd-view-logic) { overflow-y: auto; }
+  .nd-view-logic { flex-direction: column; min-height: 0; overflow: visible; }
+  .nd-view-logic .nd-editor-column { container-type: normal; flex: none; min-height: auto; overflow: visible; }
+  .nd-view-logic .nd-logic-card { flex: none; min-height: 220px; overflow: visible; }
+  .nd-view-logic .nd-logic-empty { min-height: 180px; overflow: visible; }
+  /* The card no longer stretches to the viewport, so Monaco needs a height of its own. */
+  .nd-view-logic .nd-logic-editor { display: flex; flex: none; width: 100%; height: clamp(260px, 45vh, 380px); min-height: 260px; padding: 0; overflow: hidden; }
+  .nd-view-logic .nd-logic-editor .editorwrapper { flex: 1; width: 100%; height: 100%; min-width: 0; min-height: 0; }
+  .nd-view-logic .nd-help-rail { max-height: none; overflow: visible; }
+}
+/* Phones: the chip list takes a row of its own so each chip can wrap inside the card. */
+@media (max-width: 600px) {
+  .nd-logic-chips { width: 100%; }
+  .nd-logic-chip { width: 100%; min-width: 0; box-sizing: border-box; flex-wrap: wrap; white-space: normal; overflow-wrap: anywhere; }
+  .nd-logic-chip-label, .nd-logic-chip-tag { min-width: 0; max-width: 100%; }
+  .nd-logic-chip-action { max-width: 100%; white-space: normal; }
 }

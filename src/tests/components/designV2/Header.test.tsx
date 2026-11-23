@@ -5,7 +5,7 @@ import Header from "../../../components/designV2/Header";
 import { HEADER, URLS } from "../../../components/designV2/constants";
 import useAppStore from "../../../store/store";
 import useDesignV2Store from "../../../store/designV2Store";
-import { STEP_ID, type DesignV2View } from "../../../types/designV2.types";
+import { STEP_ID, STEPS, type DesignV2View } from "../../../types/designV2.types";
 
 describe("Design v2 Header", () => {
   const onNavigate = vi.fn();
@@ -65,5 +65,51 @@ describe("Design v2 Header", () => {
     expect(screen.getByText(HEADER.eyebrow)).toBeInTheDocument();
     expect(screen.queryByText("Employment Offer")).not.toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: HEADER.stepperLabel })).not.toBeInTheDocument();
+  });
+
+  describe("compact step picker", () => {
+    const labelFor = (view: DesignV2View) => {
+    const index = STEPS.findIndex((step) => step.id === view);
+      return HEADER.stepPosition(index + 1, STEPS.length, STEPS[index].label);
+    };
+
+    const openPicker = (view: DesignV2View) => {
+      fireEvent.click(screen.getByRole("button", { name: labelFor(view) }));
+      return screen.findAllByRole("menuitem");
+    };
+
+    it("names the current step and its position", () => {
+      render(<Header view={STEP_ID.logic} onNavigate={onNavigate} />);
+
+      expect(screen.getByRole("button", { name: labelFor(STEP_ID.logic) })).toBeInTheDocument();
+    });
+
+    it("lists every step and marks the current one as selected", async () => {
+      render(<Header view={STEP_ID.logic} onNavigate={onNavigate} />);
+      const items = await openPicker(STEP_ID.logic);
+      const logicIndex = STEPS.findIndex((step) => step.id === STEP_ID.logic);
+
+      expect(items).toHaveLength(STEPS.length);
+      expect(items[logicIndex]).toHaveClass("ant-dropdown-menu-item-selected");
+    });
+
+    it("triggers onNavigate when a step is chosen", async () => {
+      render(<Header view={STEP_ID.template} onNavigate={onNavigate} />);
+      const items = await openPicker(STEP_ID.template);
+      const deployIndex = STEPS.findIndex((step) => step.id === STEP_ID.deploy);
+
+      fireEvent.click(items[deployIndex]);
+      expect(onNavigate).toHaveBeenCalledWith(STEP_ID.deploy);
+    });
+
+    it("disables a skipped step and shows the skipped meta", async () => {
+      const isSkipped = (view: DesignV2View) => view === STEP_ID.simulate;
+      render(<Header view={STEP_ID.logic} onNavigate={onNavigate} isSkipped={isSkipped} />);
+      const items = await openPicker(STEP_ID.logic);
+      const simulateIndex = STEPS.findIndex((step) => step.id === STEP_ID.simulate);
+
+      expect(items[simulateIndex]).toHaveTextContent(HEADER.skippedMeta);
+      expect(items[simulateIndex]).toHaveClass("ant-dropdown-menu-item-disabled");
+    });
   });
 });

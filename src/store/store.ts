@@ -103,6 +103,7 @@ interface AppState {
   data: string;
   editorAgreementData: string;
   agreementHtml: string;
+  agreementRevision: number;
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
@@ -627,6 +628,7 @@ export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "
  * is undone while a render runs still voids that render.
  */
 let renderSourceRevision = 0;
+export const currentRenderRevision = () => renderSourceRevision;
 /**
  * Revision of the logic as edited (editorLogicTs), bumped the same way. Kept
  * apart from renderSourceRevision because the logic doesn't change the
@@ -728,6 +730,7 @@ const useAppStore = create<AppState>()(
         data: JSON.stringify(playground.DATA, null, 2),
         editorAgreementData: JSON.stringify(playground.DATA, null, 2),
         agreementHtml: "",
+        agreementRevision: 0,
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
         samples: SAMPLES,
@@ -960,6 +963,7 @@ const useAppStore = create<AppState>()(
               sampleName: sample.NAME,
               importedData: null,
               agreementHtml: undefined,
+              agreementRevision: 0,
               error: undefined,
               templateMarkdown: sample.TEMPLATE,
               editorValue: sample.TEMPLATE,
@@ -1048,13 +1052,14 @@ const useAppStore = create<AppState>()(
         rebuild: async () => {
           const run = ++latestPreviewRun;
           const { templateMarkdown, modelCto, data } = get();
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(
               templateMarkdown,
               modelCto,
               data,
             );
-            if (run === latestPreviewRun) set(() => ({ agreementHtml: result, error: undefined }));
+            if (run === latestPreviewRun) set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             if (run !== latestPreviewRun) return;
             set(() => ({
@@ -1097,6 +1102,7 @@ const useAppStore = create<AppState>()(
           });
           return `${window.location.origin}/#data=${compressedData}`;
         },
+        // The import installs its sources synchronously. Capture their generation and revision before awaiting its render.
         loadFromLink: async (compressedData, signal) => {
           if (signal?.aborted) return false;
           const run = ++latestLinkRun;

@@ -1,4 +1,4 @@
-import useAppStore, { DecompressedData, SHARED_TEMPLATE_NAME } from "../../store/store";
+import useAppStore, { currentRenderRevision, DecompressedData, SHARED_TEMPLATE_NAME } from "../../store/store";
 import { decompress } from "../../utils/compression/compression";
 import { vi } from "vitest";
 
@@ -134,6 +134,7 @@ describe("useAppStore loadFromLink", () => {
     finish();
     expect(await older).toBe(false);
     expect(useAppStore.getState()).toMatchObject({ editorValue: 'new', agreementHtml: 'new preview', error: undefined });
+    expect(useAppStore.getState().agreementRevision).toBe(currentRenderRevision());
     expect(compileLogic).not.toHaveBeenCalled();
   });
 
