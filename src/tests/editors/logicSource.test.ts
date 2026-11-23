@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_LOGIC_BOILERPLATE,
+  defaultRequestFromModel,
   describeLogicModel,
+  needsDefaultRequest,
   scaffoldFromModel,
   nextLogicSource,
   pendingLogic,
@@ -94,6 +96,131 @@ describe('scaffoldFromModel', () => {
   it('falls back to the generic boilerplate without request/response', () => {
     expect(scaffoldFromModel(describeLogicModel(helloworld.MODEL))).toBe(DEFAULT_LOGIC_BOILERPLATE);
     expect(scaffoldFromModel(null)).toBe(DEFAULT_LOGIC_BOILERPLATE);
+  });
+});
+
+const RUNTIME_REQUEST = JSON.stringify({ $class: 'org.accordproject.runtime@0.2.0.Request' }, null, 2);
+
+describe('defaultRequestFromModel', () => {
+  it('uses the model’s request transaction, filling its required fields', () => {
+    const request = JSON.parse(defaultRequestFromModel(describeLogicModel(latePayment.MODEL))) as {
+      $class: string;
+      forceMajeure: boolean;
+      invoiceValue: number;
+      agreedPayment: string;
+    };
+
+    expect(request.$class).toBe('org.acme.latepayment@1.0.0.LatePaymentRequest');
+    expect(request.forceMajeure).toBe(false);
+    expect(request.invoiceValue).toBe(0);
+    expect(Number.isNaN(Date.parse(request.agreedPayment))).toBe(false);
+  });
+
+  it('leaves optional fields out and fills required arrays', () => {
+    const model = describeLogicModel(`namespace org.acme.request@1.0.0
+
+transaction TestRequest {
+  o String[] tags
+  o String note optional
+}
+
+transaction TestResponse {
+  o String outcome
+}`);
+
+    expect(JSON.parse(defaultRequestFromModel(model))).toEqual({
+      $class: 'org.acme.request@1.0.0.TestRequest',
+      tags: [],
+    });
+  });
+
+  it('builds required concepts, enums and scalars', () => {
+    const model = describeLogicModel(`namespace org.acme.payment@1.0.0
+
+enum Status {
+  o PENDING
+  o PAID
+}
+
+scalar Percentage extends Double
+
+concept MonetaryAmount {
+  o Double amount
+  o String currency
+}
+
+transaction PaymentRequest {
+  o MonetaryAmount amount
+  o Status status
+  o Percentage rate
+}
+
+transaction PaymentResponse {
+  o String outcome
+}`);
+
+    expect(JSON.parse(defaultRequestFromModel(model))).toEqual({
+      $class: 'org.acme.payment@1.0.0.PaymentRequest',
+      amount: { $class: 'org.acme.payment@1.0.0.MonetaryAmount', amount: 0, currency: '' },
+      status: 'PENDING',
+      rate: 0,
+    });
+  });
+
+  it('stops at a concept that contains itself', () => {
+    const model = describeLogicModel(`namespace org.acme.tree@1.0.0
+
+concept Node {
+  o String label
+  o Node next
+}
+
+transaction TreeRequest {
+  o Node root
+}
+
+transaction TreeResponse {
+  o String outcome
+}`);
+
+    expect(JSON.parse(defaultRequestFromModel(model))).toEqual({
+      $class: 'org.acme.tree@1.0.0.TreeRequest',
+      root: { $class: 'org.acme.tree@1.0.0.Node', label: '' },
+    });
+  });
+
+  it('is the runtime Request when the model declares none, as the boilerplate expects', () => {
+    expect(defaultRequestFromModel(describeLogicModel(helloworld.MODEL))).toBe(RUNTIME_REQUEST);
+    expect(defaultRequestFromModel(null)).toBe(RUNTIME_REQUEST);
+  });
+});
+
+describe('needsDefaultRequest', () => {
+  const model = describeLogicModel(latePayment.MODEL);
+
+  it('replaces an empty request', () => {
+    expect(needsDefaultRequest('', model)).toBe(true);
+    expect(needsDefaultRequest('  \n', model)).toBe(true);
+  });
+
+  it('replaces JSON that is not a request', () => {
+    expect(needsDefaultRequest('{ "increment": 1 }', model)).toBe(true);
+    expect(needsDefaultRequest('{"$class":', model)).toBe(true);
+    expect(needsDefaultRequest('null', model)).toBe(true);
+  });
+
+  it('replaces another model’s request', () => {
+    expect(needsDefaultRequest(JSON.stringify(counter.REQUEST), model)).toBe(true);
+  });
+
+  it('keeps the model’s own request', () => {
+    expect(needsDefaultRequest(JSON.stringify(latePayment.REQUEST), model)).toBe(false);
+  });
+
+  it('keeps the runtime Request only when the model declares no request of its own', () => {
+    expect(needsDefaultRequest(RUNTIME_REQUEST, describeLogicModel(helloworld.MODEL))).toBe(false);
+    expect(needsDefaultRequest(RUNTIME_REQUEST, model)).toBe(true);
+    expect(needsDefaultRequest(RUNTIME_REQUEST, null)).toBe(false);
   });
 });
 

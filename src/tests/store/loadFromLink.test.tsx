@@ -75,7 +75,7 @@ describe("useAppStore loadFromLink", () => {
     expect(state.error).toContain("Invalid share link data");
   });
 
-  it("marks the template as shared and drops the previous template's request", async () => {
+  it("marks the template as shared and replaces the previous template's request", async () => {
     vi.mocked(decompress).mockReturnValue({
       templateMarkdown: "Sample Template",
       modelCto: "namespace test@1.0.0",
@@ -88,7 +88,11 @@ describe("useAppStore loadFromLink", () => {
 
     const state = useAppStore.getState();
     expect(state.sampleName).toBe(SHARED_TEMPLATE_NAME);
-    expect(state.requestJson).toBe("");
+    // Not the Counter request, and not empty (which cannot be parsed): a
+    // request for the shared model, so init and Send work without editing it.
+    expect((JSON.parse(state.requestJson) as { $class: string }).$class).toBe(
+      "org.accordproject.runtime@0.2.0.Request"
+    );
   });
 
   it("never names an import after a bundled sample, and remembers its data for reset", async () => {

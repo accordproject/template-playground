@@ -55,7 +55,7 @@ describe('LogicView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useDesignV2Store.setState({ helpRailOpen: true, view: STEP_ID.logic });
-    useAppStore.setState({ ...base, error: undefined, setLogicTs });
+    useAppStore.setState({ ...base, error: undefined, setLogicTs, requestJson: '' });
   });
 
   const pane = () => within(screen.getByRole('region', { name: LOGIC.paneLabel }));
@@ -130,6 +130,53 @@ describe('LogicView', () => {
     expect(useAppStore.getState().editorLogicTs).toContain("$class: 'org.acme.latepayment@1.0.0.LatePaymentResponse'");
   });
 
+  it('"Start from boilerplate" also fills a request the model accepts', () => {
+    useAppStore.setState({ editorLogicTs: '', logicTs: '' });
+    render(<LogicView />);
+    fireEvent.click(pane().getByRole('button', { name: LOGIC.empty.start }));
+
+    const request = JSON.parse(useAppStore.getState().requestJson) as { $class: string; invoiceValue: number };
+    expect(request.$class).toBe('org.acme.latepayment@1.0.0.LatePaymentRequest');
+    expect(request.invoiceValue).toBe(0);
+  });
+
+  it('"Start from boilerplate" keeps a request the user typed for this model', () => {
+    const typed = JSON.stringify({ $class: 'org.acme.latepayment@1.0.0.LatePaymentRequest', invoiceValue: 250 });
+    useAppStore.setState({ editorLogicTs: '', logicTs: '', requestJson: typed });
+    render(<LogicView />);
+    fireEvent.click(pane().getByRole('button', { name: LOGIC.empty.start }));
+
+    expect(useAppStore.getState().requestJson).toBe(typed);
+  });
+
+  it('"Start from boilerplate" replaces a request left behind by another template', () => {
+    useAppStore.setState({
+      editorLogicTs: '',
+      logicTs: '',
+      requestJson: '{"$class":"org.acme.counter@1.0.0.CounterRequest","increment":1}',
+    });
+    render(<LogicView />);
+    fireEvent.click(pane().getByRole('button', { name: LOGIC.empty.start }));
+
+    expect((JSON.parse(useAppStore.getState().requestJson) as { $class: string }).$class).toBe(
+      'org.acme.latepayment@1.0.0.LatePaymentRequest'
+    );
+  });
+
+  it('"Start from boilerplate" replaces the boilerplate runtime Request when the model declares its own', () => {
+    useAppStore.setState({
+      editorLogicTs: '',
+      logicTs: '',
+      requestJson: JSON.stringify({ $class: 'org.accordproject.runtime@0.2.0.Request' }, null, 2),
+    });
+    render(<LogicView />);
+    fireEvent.click(pane().getByRole('button', { name: LOGIC.empty.start }));
+
+    expect((JSON.parse(useAppStore.getState().requestJson) as { $class: string }).$class).toBe(
+      'org.acme.latepayment@1.0.0.LatePaymentRequest'
+    );
+  });
+
   it('keeps the editor when it is cleared to be retyped', () => {
     render(<LogicView />);
     expect(pane().getByTestId('monaco-typescript')).toBeInTheDocument();
@@ -143,6 +190,9 @@ describe('LogicView', () => {
     render(<LogicView />);
     fireEvent.click(pane().getByRole('button', { name: LOGIC.empty.start }));
     expect(useAppStore.getState().editorLogicTs).toBe(DEFAULT_LOGIC_BOILERPLATE);
+    expect((JSON.parse(useAppStore.getState().requestJson) as { $class: string }).$class).toBe(
+      'org.accordproject.runtime@0.2.0.Request'
+    );
   });
 
   it('fills the help rail from LOGIC.help', () => {
