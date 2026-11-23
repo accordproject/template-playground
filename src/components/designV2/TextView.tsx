@@ -88,7 +88,7 @@ export const TextView = () => {
               <span className="nd-badge nd-badge-amber">{TEXT.badge}</span>
               <div className="nd-spacer" />
               <TextToolbar />
-              <Button type="text" size="small" onClick={() => void copyText()}>
+              <Button type="text" size="small" onClick={() => void copyText()} disabled={!editorValue.trim()}>
                 {TEXT.copy}
               </Button>
             </div>

@@ -112,6 +112,13 @@ describe('LogicView', () => {
   it('leaves existing logic alone', () => {
     render(<LogicView />);
     expect(useAppStore.getState().editorLogicTs).toBe(latePayment.LOGIC);
+    expect(screen.getByRole('button', { name: LOGIC.copy })).toBeEnabled();
+  });
+
+  it('"copy" is disabled when logic is empty', () => {
+    useAppStore.setState({ editorLogicTs: '   ' });
+    render(<LogicView />);
+    expect(screen.getByRole('button', { name: LOGIC.copy })).toBeDisabled();
   });
 
   it('says a template without logic has none, and writes nothing by itself', () => {

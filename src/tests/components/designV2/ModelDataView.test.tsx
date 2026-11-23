@@ -341,5 +341,11 @@ describe('ModelDataView', () => {
       expect(message.success).toHaveBeenCalledWith(MODEL_DATA.model.copied);
       expect(message.error).not.toHaveBeenCalled();
     });
+
+    it('"copy" is disabled when model editor is empty', () => {
+      useAppStore.setState({ editorModelCto: '   ' });
+      render(<ModelDataView />);
+      expect(pane(MODEL_DATA.model.paneLabel).getByRole('button', { name: MODEL_DATA.copy })).toBeDisabled();
+    });
   });
 });
