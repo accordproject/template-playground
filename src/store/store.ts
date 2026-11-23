@@ -22,7 +22,8 @@ import type {
 import { validateBeforeRebuild } from "../utils/validators";
 import { templateFromContent } from "../utils/templateArchive";
 import { sandboxResolvers } from "./sandboxResolvers";
-import { rebuildInSandbox } from "./rebuildSandbox";
+import { rebuildInSandbox, templateMayRunCode } from "./rebuildSandbox";
+import { isRebuildTemplateLogic, type RebuildTemplateLogic } from "../constants/rebuildSandbox";
 import tour from "../components/Tour";
 import {
   readDesignV2Preference,
@@ -125,6 +126,12 @@ interface AppState {
   editorLogicTs: string;
   // Resulting compiled JS payload. Null while compilation is stale/failed.
   compiledLogicJs: string | null;
+  /**
+   * The compiled logic in the shape formulas consume, produced by the engine
+   * when `compileLogic` succeeds and sent with every render so formulas can
+   * call the helpers logic.ts declares. Null until the logic has compiled.
+   */
+  compiledTemplateLogic: RebuildTemplateLogic | null;
   // model.cto the last compilation ran against; logic compiled against an older model is stale.
   compiledModelCto: string | null;
   // True while compilation is running.
@@ -457,10 +464,43 @@ export interface DecompressedData {
 
 const rebuildDeBounce = debounce(rebuild, 500);
 
+/**
+ * Asks the engine for the compiled logic in the shape formulas consume.
+ *
+ * `compileUserLogicForDraft()` is what `TemplateArchiveProcessor.draft()`
+ * uses to let formulas call helpers from logic.ts. It is a public method at
+ * runtime but marked private in the package's typings, hence the narrow cast
+ * and the guard. It reuses the logic that `compileLogic(true)` has just
+ * compiled, so all it adds is a parse of logic.ts for its top-level names.
+ *
+ * TODO: drop the cast once template-engine offers this through its public
+ * API (https://github.com/accordproject/template-engine/issues/231).
+ *
+ * @returns the compiled logic, or null when the engine does not provide it
+ *   (formulas then fail to resolve helpers, as they did before)
+ */
+async function compileTemplateLogicForFormulas(processor: unknown): Promise<RebuildTemplateLogic | null> {
+  const candidate = processor as { compileUserLogicForDraft?: () => Promise<unknown> };
+  if (typeof candidate.compileUserLogicForDraft !== "function") {
+    console.warn(
+      "TemplateArchiveProcessor.compileUserLogicForDraft() is missing from this version of @accordproject/template-engine, so formulas cannot call helpers from the template logic.",
+    );
+    return null;
+  }
+  try {
+    const logic = await candidate.compileUserLogicForDraft();
+    return isRebuildTemplateLogic(logic) ? logic : null;
+  } catch (error: unknown) {
+    console.error("Could not prepare the template logic for formulas", error);
+    return null;
+  }
+}
+
 async function rebuild(
   template: string,
   model: string,
   dataString: string,
+  templateLogic: RebuildTemplateLogic | null,
   format: AgreementFormat = "html",
 ): Promise<string> {
   /*
@@ -479,7 +519,7 @@ async function rebuild(
   // imported statically; that lets the UI render before it arrives. The
   // download starts here so it overlaps with rendering in the sandbox.
   const markdownTransform = import("@accordproject/markdown-transform");
-  const ciceroMarkJson = await rebuildInSandbox(template, model, dataString);
+  const ciceroMarkJson = await rebuildInSandbox(template, model, dataString, templateLogic ?? undefined);
   return convertCiceroMark(ciceroMarkJson, format, markdownTransform);
 }
 
@@ -757,6 +797,7 @@ const useAppStore = create<AppState>()(
         logicTs: "",
         editorLogicTs: "",
         compiledLogicJs: null,
+        compiledTemplateLogic: null,
         compiledModelCto: null,
         isCompiling: false,
         compilationErrors: [],
@@ -966,6 +1007,7 @@ const useAppStore = create<AppState>()(
               logicTs,
               editorLogicTs: logicTs,
               compiledLogicJs: null,
+              compiledTemplateLogic: null,
               compilationErrors: [],
               isCompiling: false,
               // A new sample is a new contract — nothing the last one produced
@@ -1017,11 +1059,11 @@ const useAppStore = create<AppState>()(
         },
 
         renderAgreement: async (format: AgreementFormat = "html") => {
-          const { templateMarkdown, modelCto, data } = get();
+          const { templateMarkdown, modelCto, data, compiledTemplateLogic } = get();
           const revision = renderSourceRevision;
           let html: string;
           try {
-            html = await rebuild(templateMarkdown, modelCto, data, format);
+            html = await rebuild(templateMarkdown, modelCto, data, compiledTemplateLogic, format);
           } catch (error: unknown) {
             // A render that failed after the sources changed failed for sources that are gone.
             if (renderSourceRevision !== revision) throw new SourcesChangedError();
@@ -1040,13 +1082,14 @@ const useAppStore = create<AppState>()(
           return html;
         },
         rebuild: async () => {
-          const { templateMarkdown, modelCto, data } = get();
+          const { templateMarkdown, modelCto, data, compiledTemplateLogic } = get();
           const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(
               templateMarkdown,
               modelCto,
               data,
+              compiledTemplateLogic,
             );
             set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
@@ -1061,7 +1104,7 @@ const useAppStore = create<AppState>()(
           const { modelCto, data } = get();
           const revision = renderSourceRevision;
           try {
-            const result = await rebuildDeBounce(template, modelCto, data);
+            const result = await rebuildDeBounce(template, modelCto, data, get().compiledTemplateLogic);
             set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
@@ -1078,7 +1121,7 @@ const useAppStore = create<AppState>()(
           const { templateMarkdown, data } = get();
           const revision = renderSourceRevision;
           try {
-            const result = await rebuildDeBounce(templateMarkdown, model, data);
+            const result = await rebuildDeBounce(templateMarkdown, model, data, get().compiledTemplateLogic);
             set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
@@ -1098,6 +1141,7 @@ const useAppStore = create<AppState>()(
               get().templateMarkdown,
               get().modelCto,
               data,
+              get().compiledTemplateLogic,
             );
             set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
@@ -1193,6 +1237,7 @@ const useAppStore = create<AppState>()(
             logicTs: logicTs || "",
             editorLogicTs: logicTs || "",
             compiledLogicJs: null,
+            compiledTemplateLogic: null,
             compilationErrors: [],
             isCompiling: false,
             isLogicPanelVisible: hasLogic,
@@ -1200,10 +1245,14 @@ const useAppStore = create<AppState>()(
           if (hasLogic) {
             savePanelState({ ...get(), isLogicPanelVisible: true });
           }
-          await get().rebuild();
+          /*
+           * Compile before rendering: formulas may call helpers from the
+           * logic, and the render needs the compiled logic to resolve them.
+           */
           if (hasLogic) {
             await get().compileLogic();
           }
+          await get().rebuild();
         },
         toggleDarkMode: () => {
           set((state) => {
@@ -1260,6 +1309,10 @@ const useAppStore = create<AppState>()(
         setLogicTs: async (ts: string) => {
           set(() => ({ logicTs: ts, editorLogicTs: ts }));
           await get().compileLogic();
+          // Formulas may call the helpers just compiled: re-render if the template has any code.
+          if (get().compiledTemplateLogic && templateMayRunCode(get().templateMarkdown)) {
+            await get().rebuild();
+          }
         },
 
         buildTemplateFromMemory: async (sources) => {
@@ -1320,6 +1373,7 @@ const useAppStore = create<AppState>()(
             isCompiling: true,
             compilationErrors: [],
             compiledLogicJs: null,
+            compiledTemplateLogic: null,
             compiledModelCto: null,
           });
           try {
@@ -1357,7 +1411,8 @@ const useAppStore = create<AppState>()(
             }
 
             const processor = new TemplateArchiveProcessor(templateToCompile);
-            const compiledCode = await processor.compileLogic();
+            // Cached on the processor, so preparing the logic for formulas below reuses it.
+            const compiledCode = await processor.compileLogic(true);
             const result = compiledCode["logic/logic.ts"];
 
             // Filter out bogus error 2391 caused by syntax errors in the engine's own shim (TemplateLogic.init)
@@ -1443,9 +1498,11 @@ const useAppStore = create<AppState>()(
               }
               code += `\nreturn ${match[1]};\n`;
 
+              const compiledTemplateLogic = await compileTemplateLogicForFormulas(processor);
               publish({
                 isCompiling: false,
                 compiledLogicJs: code,
+                compiledTemplateLogic,
                 compilationErrors: [],
               });
             }

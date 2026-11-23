@@ -20,6 +20,35 @@ describe("generateCiceroMark", () => {
       generateCiceroMark(helloworld.TEMPLATE, helloworld.MODEL, JSON.stringify({ $class: "nope" })),
     ).rejects.toBeDefined();
   }, 30_000);
+
+  const HELPER_TEMPLATE = "Hello {{% return shout(name) %}}";
+  const HELPER_LOGIC = {
+    source: 'export function shout(s: string): string { return s.toUpperCase() + "!"; }',
+    compiledJs: 'export function shout(s) { return s.toUpperCase() + "!"; }',
+    prelude: 'function shout(s) { return s.toUpperCase() + "!"; }',
+    symbols: ["shout"],
+  };
+
+  it("lets a formula call a helper from the template's compiled logic", async () => {
+    const doc = await generateCiceroMark(
+      HELPER_TEMPLATE,
+      helloworld.MODEL,
+      JSON.stringify(helloworld.DATA),
+      HELPER_LOGIC,
+    );
+    expect(JSON.stringify(doc)).toContain("JOHN DOE!");
+  }, 60_000);
+
+  it("cannot resolve the helper without the compiled logic", async () => {
+    let caught: unknown;
+    try {
+      await generateCiceroMark(HELPER_TEMPLATE, helloworld.MODEL, JSON.stringify(helloworld.DATA));
+    } catch (error: unknown) {
+      caught = error;
+    }
+    const message = caught instanceof Error ? caught.message : JSON.stringify(caught ?? "no error");
+    expect(message).toContain("Cannot find name 'shout'");
+  }, 60_000);
 });
 
 describe("serializeRebuildError", () => {

@@ -17,8 +17,8 @@ concept HelloWorld {
 const DATA = JSON.stringify({ $class: 'hello@1.0.0.HelloWorld', name: 'Ada' });
 
 /** Builds the same "#data=" link the Share button produces. */
-function shareLink(templateMarkdown: string): string {
-  const payload = { templateMarkdown, modelCto: MODEL, data: DATA, agreementHtml: '' };
+function shareLink(templateMarkdown: string, logicTs?: string): string {
+  const payload = { templateMarkdown, modelCto: MODEL, data: DATA, agreementHtml: '', ...(logicTs ? { logicTs } : {}) };
   return `/#data=${LZString.compressToEncodedURIComponent(JSON.stringify(payload))}`;
 }
 
@@ -84,6 +84,32 @@ test.describe('Template rendering sandbox', () => {
     await expect(page.locator('.main-container-agreement')).toContainText('Ada has 3 letters.', {
       timeout: RENDER_TIMEOUT,
     });
+  });
+
+  test('a formula can call a helper function from the template logic', async ({ page }) => {
+    const logic = [
+      'function shout(s: string): string {',
+      '  return s.toUpperCase() + "!";',
+      '}',
+      '',
+      'class HelloLogic extends TemplateLogic<any> {',
+      '  async init(data: any) {',
+      '    return { state: { $class: "hello@1.0.0.HelloState", $identifier: "hello" }, events: [] };',
+      '  }',
+      '  async trigger(data: any, request: any, state: any) {',
+      '    return { result: { $class: "hello@1.0.0.HelloResponse", $timestamp: new Date().toISOString() }, state, events: [] };',
+      '  }',
+      '}',
+      '',
+      'export default HelloLogic;',
+    ].join('\n');
+
+    await page.goto(shareLink('Hello {{% return shout(name) %}}', logic));
+    // The link compiles the logic, then renders; the formula resolves `shout` from it.
+    await expect(page.locator('.main-container-agreement')).toContainText(/Hello "?ADA!"?/, {
+      timeout: RENDER_TIMEOUT,
+    });
+    await expect(page.getByText(/Cannot find name 'shout'/)).toHaveCount(0);
   });
 
   test('a formula that throws is reported in the Problems panel, not lost', async ({ page }) => {
