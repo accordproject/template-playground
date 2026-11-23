@@ -132,6 +132,123 @@ describe('useAppStore - execution engine selection', () => {
     expect(triggerArgs[2]).toEqual({});
   });
 
+  describe('chain step selection between Classic and Design V2', () => {
+    const step0 = {
+      label: 'Init',
+      request: null,
+      priorState: null,
+      result: null,
+      state: { count: 0 },
+      events: [],
+      edited: false,
+    };
+    const step1 = {
+      label: 'Trigger 1',
+      request: { op: 'inc' },
+      priorState: { count: 0 },
+      result: { status: 'ok' },
+      state: { count: 1 },
+      events: [],
+      edited: false,
+    };
+
+    it('requires the latest step to be selected when in classic mode', async () => {
+      useAppStore.setState({
+        isDesignV2Enabled: false,
+        isTemplateStateful: true,
+        executionChain: [step0, step1],
+        selectedChainIndex: 0,
+        executionState: JSON.stringify(step0.state),
+      });
+
+      await useAppStore.getState().triggerContract();
+
+      expect(executeInSandbox).not.toHaveBeenCalled();
+      expect(useAppStore.getState().compilationErrors[0].message).toContain(
+        'Select the latest step in the chain before sending a new request.',
+      );
+    });
+
+    it('automatically selects the latest step when triggering in Design V2', async () => {
+      useAppStore.setState({
+        isDesignV2Enabled: true,
+        isTemplateStateful: true,
+        executionChain: [step0, step1],
+        selectedChainIndex: 0,
+        executionState: JSON.stringify(step0.state),
+      });
+
+      await useAppStore.getState().triggerContract();
+
+      // Trigger succeeded and targeted step 1's state ({ count: 1 })
+      expect(executeInSandbox).toHaveBeenCalledTimes(1);
+      const triggerArgs = executeInSandbox.mock.calls[0][2] as unknown[];
+      expect(triggerArgs[2]).toEqual({ count: 1 });
+      // A successful trigger extends the chain, selecting the newly appended step (index 2)
+      expect(useAppStore.getState().selectedChainIndex).toBe(2);
+      expect(useAppStore.getState().executionChain).toHaveLength(3);
+    });
+
+    it('automatically selects the latest step when triggering via forced LLM in Design V2', async () => {
+      useAppStore.setState({
+        isDesignV2Enabled: true,
+        isTemplateStateful: true,
+        llmExecutionMode: LLMMode.Force,
+        executionChain: [step0, step1],
+        selectedChainIndex: 0,
+        executionState: JSON.stringify(step0.state),
+      });
+
+      await useAppStore.getState().triggerContract();
+
+      expect(executeWithLLM).toHaveBeenCalledTimes(1);
+      const llmArgs = executeWithLLM.mock.calls[0][1] as { priorState: unknown };
+      expect(llmArgs.priorState).toEqual({ count: 1 });
+      expect(useAppStore.getState().selectedChainIndex).toBe(2);
+    });
+
+    it('preserves prior state when trigger response omits replacement state in Design V2', async () => {
+      executeInSandbox.mockResolvedValueOnce({ result: { ok: true }, state: undefined, events: [] });
+
+      useAppStore.setState({
+        isDesignV2Enabled: true,
+        isTemplateStateful: true,
+        executionChain: [step0, step1],
+        selectedChainIndex: 0,
+        executionState: JSON.stringify(step0.state),
+      });
+
+      await useAppStore.getState().triggerContract();
+
+      const state = useAppStore.getState();
+      expect(executeInSandbox).toHaveBeenCalledTimes(1);
+      // executionState falls back to step 1's state
+      expect(JSON.parse(state.executionState)).toEqual({ count: 1 });
+      // The newly created step in executionChain preserves step 1's state
+      const latestStep = state.executionChain[state.executionChain.length - 1];
+      expect(latestStep.state).toEqual({ count: 1 });
+      // executionHistory stateAfter preserves step 1's state
+      const latestRun = state.executionHistory[state.executionHistory.length - 1];
+      expect(latestRun.stateAfter).toEqual({ count: 1 });
+    });
+
+    it('syncs to the latest chain step when enabling Design V2', () => {
+      useAppStore.setState({
+        isDesignV2Enabled: false,
+        executionChain: [step0, step1],
+        selectedChainIndex: 0,
+        executionState: JSON.stringify(step0.state),
+      });
+
+      useAppStore.getState().setDesignV2Enabled(true);
+
+      const state = useAppStore.getState();
+      expect(state.isDesignV2Enabled).toBe(true);
+      expect(state.selectedChainIndex).toBe(1);
+      expect(JSON.parse(state.executionState)).toEqual({ count: 1 });
+    });
+  });
+
   /*
    * Artifacts belong to the engine that produced them, so switching engines
    * starts over rather than presenting the previous engine's run as this one's.
