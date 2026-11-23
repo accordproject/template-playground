@@ -67,10 +67,18 @@ const DesignV2Layout = () => {
    * kept rather than replaced.
    */
   const handleStart = () => {
-    if (!selectedTemplate) {
-      const app = useAppStore.getState();
+    const app = useAppStore.getState();
+    const currentTemplate = app.sampleName === SHARED_TEMPLATE_NAME
+      ? SHARED_TEMPLATE_NAME
+      : cardNameFor(app.sampleName);
+    if (selectedTemplate && selectedTemplate !== currentTemplate) {
+      // The classic playground can load a different sample while this layout
+      // is hidden. Keep the current work, but update the gallery selection to
+      // match the sample that is actually in the app store.
+      selectTemplate(currentTemplate);
+    } else if (!selectedTemplate) {
       if (app.sampleName === SHARED_TEMPLATE_NAME) selectTemplate(SHARED_TEMPLATE_NAME);
-      else if (hasWorkInProgress(app)) selectTemplate(cardNameFor(app.sampleName));
+      else if (hasWorkInProgress(app)) selectTemplate(currentTemplate);
       else pick(DEFAULT_TEMPLATE);
     }
     start();

@@ -153,11 +153,26 @@ describe('DesignV2Layout — Start building', () => {
 
   it('keeps a template that was already picked', () => {
     useDesignV2Store.setState({ selectedTemplate: START_SAMPLES[1].name });
+    useAppStore.setState({ sampleName: START_SAMPLES[1].sampleName });
     renderLayout();
     fireEvent.click(screen.getByRole('button', { name: `${WELCOME.start} →` }));
 
     expect(useDesignV2Store.getState().view).toBe(FIRST_STEP);
     expect(useDesignV2Store.getState().selectedTemplate).toBe(START_SAMPLES[1].name);
+    expect(loadSample).not.toHaveBeenCalled();
+  });
+
+  it('updates an old gallery selection to a sample loaded in the classic playground', () => {
+    const previouslyPicked = START_SAMPLES[0];
+    const loadedInClassic = START_SAMPLES[1];
+    useDesignV2Store.setState({ selectedTemplate: previouslyPicked.name });
+    useAppStore.setState({ sampleName: loadedInClassic.sampleName, editorValue: 'Edited in classic' });
+    renderLayout();
+
+    fireEvent.click(screen.getByRole('button', { name: /Start building/ }));
+
+    expect(useDesignV2Store.getState().selectedTemplate).toBe(loadedInClassic.name);
+    expect(useAppStore.getState().editorValue).toBe('Edited in classic');
     expect(loadSample).not.toHaveBeenCalled();
   });
 
