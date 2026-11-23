@@ -160,6 +160,39 @@ describe("useAppStore - executionHistory", () => {
     expect(useAppStore.getState().executionHistory).toEqual([]);
   });
 
+  it("initContract with template data that is not valid JSON keeps the last run and does not call the logic", async () => {
+    const executeInSandbox = vi.fn().mockResolvedValueOnce({ state: { count: 0 }, events: [] });
+    useAppStore.setState({ executeInSandbox });
+    await useAppStore.getState().initContract();
+    const before = useAppStore.getState();
+
+    useAppStore.setState({ data: '{ "owner": "Alice", }' });
+    await useAppStore.getState().initContract();
+
+    const state = useAppStore.getState();
+    expect(executeInSandbox).toHaveBeenCalledTimes(1);
+    expect(state.executionHistory).toEqual(before.executionHistory);
+    expect(state.executionChain).toEqual(before.executionChain);
+    expect(state.isContractInitialized).toBe(true);
+    expect(state.compilationErrors[0].message).toMatch(/template data is not valid JSON/i);
+    expect(state.isProblemPanelVisible).toBe(true);
+  });
+
+  it("triggerContract with template data that is not valid JSON records nothing and does not call the logic", async () => {
+    const executeInSandbox = vi.fn().mockResolvedValueOnce({ state: { count: 0 }, events: [] });
+    useAppStore.setState({ executeInSandbox });
+    await useAppStore.getState().initContract();
+
+    useAppStore.setState({ data: '{ "owner": "Alice", }' });
+    await useAppStore.getState().triggerContract();
+
+    const state = useAppStore.getState();
+    expect(executeInSandbox).toHaveBeenCalledTimes(1);
+    expect(state.executionHistory.map((r) => r.id)).toEqual(["init"]);
+    expect(state.compilationErrors[0].message).toMatch(/template data is not valid JSON/i);
+    expect(state.isProblemPanelVisible).toBe(true);
+  });
+
   it("clearExecutionHistory empties the list", () => {
     useAppStore.setState({ executionHistory: [{ id: "init" } as never] });
     useAppStore.getState().clearExecutionHistory();

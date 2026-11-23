@@ -600,6 +600,16 @@ const getInitialChain = (): ChainStep[] => {
   return [];
 };
 
+/** The error to show when the template data is not valid JSON, or null when it parses. */
+const invalidDataError = (data: string): { message: string } | null => {
+  try {
+    JSON.parse(data);
+    return null;
+  } catch (err) {
+    return { message: `Execution Error: Template data is not valid JSON: ${formatError(err)}` };
+  }
+};
+
 /** Persists the execution chain, or clears storage once it's empty. */
 const persistChain = (chain: ChainStep[]) => {
   if (typeof window === "undefined") return;
@@ -1629,6 +1639,13 @@ const useAppStore = create<AppState>()(
             return;
           }
 
+          // Nothing can run without the data, so keep the last run instead of resetting it
+          const dataError = invalidDataError(data);
+          if (dataError) {
+            set({ compilationErrors: [dataError], isProblemPanelVisible: true });
+            return;
+          }
+
           /*
            * Init starts a fresh run of the contract, so anything left over from
            * the last one goes first — otherwise the Response tab keeps showing
@@ -1741,6 +1758,13 @@ const useAppStore = create<AppState>()(
               compilationErrors: [{ message: "Execution Error: Contract must be initialized before triggering." }],
               isProblemPanelVisible: true
             });
+            return;
+          }
+
+          // The logic never sees the request without the data, so this is not a trigger() failure
+          const dataError = invalidDataError(data);
+          if (dataError) {
+            set({ compilationErrors: [dataError], isProblemPanelVisible: true });
             return;
           }
 
