@@ -588,17 +588,47 @@ const CHAIN_STORAGE_KEY = "contractRunnerChain";
  * runner last had on screen. `loadSample`/`loadFromLink` clear it, so a
  * chain from one template never bleeds into another.
  */
+
+const isChainRecord = (
+  value: unknown,
+): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isChainStep = (value: unknown): value is ChainStep => {
+  if (!isChainRecord(value)) return false;
+
+  const isNullableRecord = (candidate: unknown) =>
+    candidate === null || isChainRecord(candidate);
+
+  return (
+    typeof value.label === "string" &&
+    isNullableRecord(value.request) &&
+    isNullableRecord(value.priorState) &&
+    isNullableRecord(value.result) &&
+    isChainRecord(value.state) &&
+    Array.isArray(value.events) &&
+    value.events.every(isChainRecord) &&
+    typeof value.edited === "boolean"
+  );
+};
+
 const getInitialChain = (): ChainStep[] => {
   if (typeof window !== "undefined") {
     try {
       const saved = localStorage.getItem(CHAIN_STORAGE_KEY);
-      if (saved) return JSON.parse(saved) as ChainStep[];
-    } catch (e) {
-      // ignore malformed/stale data
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.every(isChainStep)) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Ignore malformed or stale data.
     }
   }
   return [];
 };
+
 
 /** Persists the execution chain, or clears storage once it's empty. */
 const persistChain = (chain: ChainStep[]) => {
