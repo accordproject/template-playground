@@ -122,6 +122,11 @@ export const sendMessage = async (
     setChatAbortController
   } = useAppStore.getState();
 
+  // Automatic suggestions yield to chat, including chat started during their debounce.
+  if (promptPreset === 'inlineSuggestion' && chatState.isLoading) {
+    return;
+  }
+
   if (chatAbortController) {
     chatAbortController.abort();
     setChatAbortController(null);

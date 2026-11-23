@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, Space, Spin, Typography, message } from "antd";
 import DOMPurify from "dompurify";
-import useAppStore from "../../store/store";
+import useAppStore, { currentRenderRevision } from "../../store/store";
 import { downloadMarkdown } from "../../utils/download";
 import { saveAgreementPdf } from "../../utils/agreementPdf";
 import { PREVIEW } from "./constants";
@@ -23,9 +23,19 @@ import { PREVIEW } from "./constants";
  */
 const PreviewPane = () => {
   const agreementHtml = useAppStore((s) => s.agreementHtml);
+  const agreementRevision = useAppStore((s) => s.agreementRevision);
   const error = useAppStore((s) => s.error);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingMarkdown, setIsSavingMarkdown] = useState(false);
+
+  /*
+   * Stale when an error exists, or when the rendered revision lags current sources.
+   * currentRenderRevision() is not reactive, but the pane only mounts/re-renders
+   * when switching to Preview or when the store updates, by which point the editor
+   * is hidden.
+   */
+  const isStale = Boolean(error) || Boolean(agreementHtml && agreementRevision !== currentRenderRevision());
+  const canDownload = Boolean(agreementHtml && !isStale);
 
   const saveMarkdown = async () => {
     setIsSavingMarkdown(true);
@@ -55,25 +65,40 @@ const PreviewPane = () => {
     <section className="nd-editor-card nd-preview-card" aria-label={PREVIEW.ariaLabel}>
       <div className="nd-editor-card-head">
         <span className="nd-preview-title">{PREVIEW.title}</span>
-        <span className="nd-badge nd-badge-teal">{PREVIEW.liveBadge}</span>
+
+        <span
+          className={`nd-badge ${isStale ? "nd-badge-amber" : "nd-badge-teal"}`}
+          aria-live="polite"
+        >
+          {isStale ? PREVIEW.staleBadge : PREVIEW.liveBadge}
+        </span>
+
         <div className="nd-spacer" />
         <Button
           type="text"
           size="small"
-          disabled={!agreementHtml}
+          disabled={!canDownload}
           loading={isSavingMarkdown}
           onClick={() => void saveMarkdown()}
+          title={!canDownload && isStale ? PREVIEW.disabledStale : undefined}
         >
           {PREVIEW.markdown}
         </Button>
-        <Button type="text" size="small" disabled={!agreementHtml} loading={isSaving} onClick={() => void savePdf()}>
+        <Button
+          type="text"
+          size="small"
+          disabled={!canDownload}
+          loading={isSaving}
+          onClick={() => void savePdf()}
+          title={!canDownload && isStale ? PREVIEW.disabledStale : undefined}
+        >
           {PREVIEW.pdf}
         </Button>
       </div>
       <div className="nd-editor-card-body nd-preview-body">
         {agreementHtml ? (
           <div
-            className="nd-preview-page"
+            className={`nd-preview-page ${isStale ? "nd-preview-page-stale" : ""}`}
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
           />
         ) : (
