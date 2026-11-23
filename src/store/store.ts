@@ -104,6 +104,7 @@ interface AppState {
   data: string;
   editorAgreementData: string;
   agreementHtml: string;
+  agreementRevision: number;
   error: string | undefined;
   samples: Array<Sample>;
   sampleName: string;
@@ -663,6 +664,7 @@ export type TemplateSources = Pick<AppState, "templateMarkdown" | "modelCto" | "
  * is undone while a render runs still voids that render.
  */
 let renderSourceRevision = 0;
+export const currentRenderRevision = () => renderSourceRevision;
 /**
  * Revision of the logic as edited (editorLogicTs), bumped the same way. Kept
  * apart from renderSourceRevision because the logic doesn't change the
@@ -759,6 +761,7 @@ const useAppStore = create<AppState>()(
         data: JSON.stringify(playground.DATA, null, 2),
         editorAgreementData: JSON.stringify(playground.DATA, null, 2),
         agreementHtml: "",
+        agreementRevision: 0,
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
         samples: SAMPLES,
@@ -991,6 +994,7 @@ const useAppStore = create<AppState>()(
               sampleName: sample.NAME,
               importedData: null,
               agreementHtml: undefined,
+              agreementRevision: 0,
               error: undefined,
               templateMarkdown: sample.TEMPLATE,
               editorValue: sample.TEMPLATE,
@@ -1079,6 +1083,7 @@ const useAppStore = create<AppState>()(
         },
         rebuild: async () => {
           const { templateMarkdown, modelCto, data, compiledTemplateLogic } = get();
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(
               templateMarkdown,
@@ -1086,7 +1091,7 @@ const useAppStore = create<AppState>()(
               data,
               compiledTemplateLogic,
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -1097,9 +1102,10 @@ const useAppStore = create<AppState>()(
         setTemplateMarkdown: async (template: string) => {
           set(() => ({ templateMarkdown: template }));
           const { modelCto, data } = get();
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(template, modelCto, data, get().compiledTemplateLogic);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -1113,9 +1119,10 @@ const useAppStore = create<AppState>()(
         setModelCto: async (model: string) => {
           set(() => ({ modelCto: model }));
           const { templateMarkdown, data } = get();
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(templateMarkdown, model, data, get().compiledTemplateLogic);
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),
@@ -1128,6 +1135,7 @@ const useAppStore = create<AppState>()(
         },
         setData: async (data: string) => {
           set(() => ({ data }));
+          const revision = renderSourceRevision;
           try {
             const result = await rebuildDeBounce(
               get().templateMarkdown,
@@ -1135,7 +1143,7 @@ const useAppStore = create<AppState>()(
               data,
               get().compiledTemplateLogic,
             );
-            set(() => ({ agreementHtml: result, error: undefined }));
+            set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
             set(() => ({
               error: formatError(error),

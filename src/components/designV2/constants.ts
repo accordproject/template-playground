@@ -70,6 +70,11 @@ export const HEADER = {
   helpGroupInfo: "Info",
   helpGroupDocs: "Documentation",
   stepperLabel: "Steps",
+  /** The compact step picker shown in place of the cards on narrow screens (see Header.tsx). */
+  stepPickerLabel: "Choose a step",
+  /** Its button: "Step 4 of 6 · Logic". */
+  stepPosition: (position: number, total: number, label: string) =>
+    `Step ${position} of ${total} · ${label}`,
   /** Under a step the flow passes over (Simulate for a template without logic), and its tooltip. */
   skippedMeta: "no logic",
   skippedHint: "This template has no logic. Add some on the Logic step to simulate it.",
@@ -115,6 +120,8 @@ export const PREVIEW = {
   toggleLabel: "Write or preview",
   title: "Preview",
   liveBadge: "live",
+  staleBadge: "out of date",
+  disabledStale: "Cannot export while the template has an error or is out of date",
   pdf: "↓ PDF",
   markdown: "↓ Markdown",
   markdownFailed: "Couldn’t create the Markdown — try again.",
@@ -428,6 +435,12 @@ export const SIMULATE = {
   restartHint: "Start the contract again and clear the runs",
   restartHintStateless: "Clear the runs and start a fresh simulation",
   noRunsStateless: "Nothing has happened yet — send a message to simulate this template.",
+  restartConfirm: {
+    title: "Restart the contract?",
+    content: "This clears the current simulation history and resets the contract state.",
+    okText: "Restart and clear runs",
+    cancelText: "Cancel",
+  },
   runsLabel: "Runs",
   /** "3 runs · 2 ok · 1 failed" — the pill next to the title. */
   stats: (runs: number, ok: number, failed: number) =>
@@ -657,15 +670,6 @@ export const IMPORT = {
     hint: "A .cta template archive (Cicero 2.0 or later)",
     inputLabel: "Template archive (.cta)",
     accept: ".cta,.zip",
-  },
-  url: {
-    button: "From a URL",
-    hint: "A .cta link, e.g. from another library",
-    modalTitle: "Import from a URL",
-    label: "Archive URL",
-    placeholder: "https://example.org/archives/my-template@1.0.0.cta",
-    submit: "Import",
-    cancel: "Cancel",
   },
   imported: (name: string) => `Imported ${name}`,
   failed: (reason: string) => `Import failed: ${reason}`,
