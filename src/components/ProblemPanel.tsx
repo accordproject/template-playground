@@ -35,24 +35,29 @@ const ProblemPanel: React.FC = () => {
       const columnMatch = part.match(/[Cc]olumn? (\d+)/);
 
       let type: 'error' | 'warning' | 'info' = 'error';
-      let source: EditorSource = 'Template Compilation';
+      let source: EditorSource = 'TemplateMark';
 
-      if (part.includes('Warning') || part.includes('warning')) {
-        type = 'warning';
-      } else if (part.includes('Info') || part.includes('info')) {
-        type = 'info';
-      }
-
-      // Detect source based on error content
-      // c: prefix indicates Concerto/CTO errors
-      if (part.startsWith('c:') || part.includes('CTO') || part.includes('.cto') ||
-        (part.includes('model') && !part.includes('grammar'))) {
-        source = 'Concerto Model';
-      } else if (part.includes('JSON') || part.includes('json') || part.includes('data')) {
-        source = 'JSON Data';
-      } else if (part.includes('template') || part.includes('Template') ||
-        part.includes('grammar') || part.includes('mark')) {
+      if (part.startsWith('Unknown variable')) {
         source = 'TemplateMark';
+        type = 'error';
+      } else {
+        if (part.includes('Warning') || part.includes('warning')) {
+          type = 'warning';
+        } else if (part.includes('Info') || part.includes('info')) {
+          type = 'info';
+        }
+
+        // Detect source based on error content
+        // c: prefix indicates Concerto/CTO errors
+        if (part.startsWith('c:') || part.includes('CTO') || part.includes('.cto') ||
+          (part.includes('model') && !part.includes('grammar'))) {
+          source = 'Concerto Model';
+        } else if (part.includes('JSON') || part.includes('json') || part.includes('data')) {
+          source = 'JSON Data';
+        } else if (part.includes('template') || part.includes('Template') ||
+          part.includes('grammar') || part.includes('mark')) {
+          source = 'TemplateMark';
+        }
       }
 
       errors.push({

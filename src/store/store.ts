@@ -105,6 +105,7 @@ interface AppState {
   agreementHtml: string;
   agreementRevision: number;
   error: string | undefined;
+  templateErrorLocation: { line: number; column: number, endColumn: number } | null;
   samples: Array<Sample>;
   sampleName: string;
   /**
@@ -724,6 +725,7 @@ const useAppStore = create<AppState>()(
         agreementRevision: 0,
         isAIChatOpen: initialPanels.isAIChatOpen,
         error: undefined,
+        templateErrorLocation: null,
         samples: SAMPLES,
         chatState: {
           messages: [],
@@ -1050,8 +1052,13 @@ const useAppStore = create<AppState>()(
             );
             set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
+            const msg = formatError(error);
+            if (get().error !== msg) {
+              console.error("[template rebuild]", error);
+            }
             set(() => ({
-              error: formatError(error),
+              error: msg,
+              templateErrorLocation: findTemplateErrorLocation(msg, get().templateMarkdown),
               isProblemPanelVisible: true,
             }));
           }
@@ -1064,8 +1071,13 @@ const useAppStore = create<AppState>()(
             const result = await rebuildDeBounce(template, modelCto, data);
             set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
+            const msg = formatError(error);
+            if (get().error !== msg) {
+              console.error("[template rebuild]", error);
+            }
             set(() => ({
-              error: formatError(error),
+              error: msg,
+              templateErrorLocation: findTemplateErrorLocation(msg, get().templateMarkdown),
               isProblemPanelVisible: true,
             }));
           }
@@ -1081,8 +1093,13 @@ const useAppStore = create<AppState>()(
             const result = await rebuildDeBounce(templateMarkdown, model, data);
             set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
+            const msg = formatError(error);
+            if (get().error !== msg) {
+              console.error("[template rebuild]", error);
+            }
             set(() => ({
-              error: formatError(error),
+              error: msg,
+              templateErrorLocation: findTemplateErrorLocation(msg, get().templateMarkdown),
               isProblemPanelVisible: true,
             }));
           }
@@ -1101,8 +1118,13 @@ const useAppStore = create<AppState>()(
             );
             set(() => ({ agreementHtml: result, agreementRevision: revision, error: undefined }));
           } catch (error: unknown) {
+            const msg = formatError(error);
+            if (get().error !== msg) {
+              console.error("[template rebuild]", error);
+            }
             set(() => ({
-              error: formatError(error),
+              error: msg,
+              templateErrorLocation: findTemplateErrorLocation(msg, get().templateMarkdown),
               isProblemPanelVisible: true,
             }));
           }
@@ -1904,11 +1926,59 @@ function logicDefinesInit(source: string): boolean {
   return /(^|[\s;}])init\s*\(/.test(source);
 }
 
+export function cleanTemplateErrorMessage(raw: string): string {
+  const isTemplateError =
+    /Unknown property/i.test(raw) ||
+    /Unknown variable/i.test(raw) ||
+    /text\/grammar\.tem\.md/i.test(raw) ||
+    /template not on an/i.test(raw);
+
+  let cleaned = raw;
+  if (isTemplateError) {
+    cleaned = cleaned
+      .replace(/^[A-Za-z0-9_$]+:\s*/, "")
+      .replace(/\s+File\s+text\/grammar\.tem\.md/gi, "")
+      .replace(/\s+[Ll]ine\s+-?\d+(\s+[Cc]olumn?\s+-?\d+)?/gi, "")
+      .trim();
+
+    const unknownProp = cleaned.match(/Unknown (?:property:\s*|variable\s*`?)([A-Za-z0-9_$]+)`?/i);
+    if (unknownProp) {
+      return `Unknown variable \`${unknownProp[1]}\` — add it to the template model`;
+    }
+  }
+
+  return cleaned;
+}
+
+export function findTemplateErrorLocation(
+  message: string,
+  templateText: string,
+): { line: number; column: number; endColumn: number } | null {
+  const match = message.match(/Unknown (?:property:\s*|variable\s*`?)([A-Za-z0-9_$]+)/i);
+  if (!match) return null;
+
+  const varName = match[1];
+  const escapedName = varName.replace(/[$]/g, "\\$&");
+
+  const tagRegex = new RegExp(`\\{\\{\\s*(?:#[a-zA-Z]+\\s+)?${escapedName}\\b`);
+  const lines = templateText.split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    const matchLine = lines[i].match(tagRegex);
+    if (matchLine && matchLine.index !== undefined) {
+      const col = matchLine.index;
+      const closeIndex = lines[i].indexOf("}}", col);
+      const endCol = closeIndex !== -1 ? closeIndex + 3 : col + matchLine[0].length + 1;
+      return { line: i + 1, column: col + 1, endColumn: endCol };
+    }
+  }
+  return null;
+}
+
 function formatError(error: unknown): string {
-  console.error(error);
   switch (true) {
     case typeof error === "string":
-      return error as string;
+      return cleanTemplateErrorMessage(error as string);
     case Array.isArray(error):
       return (error as unknown[]).map((e) => formatError(e)).join("\n");
     case Boolean(error && typeof error === "object" && "code" in error): {
@@ -1922,6 +1992,6 @@ function formatError(error: unknown): string {
       return `Error: ${String(errorObj.code ?? "")} ${sub} ${msg}`;
     }
     default:
-      return String(error);
+      return cleanTemplateErrorMessage(String(error));
   }
 }

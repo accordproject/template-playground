@@ -227,4 +227,30 @@ describe("ProblemPanel", () => {
 
     expect(screen.getByText(/Logic Editor has unsaved changes. Please click/i)).toBeInTheDocument();
   });
+
+  it("should classify Unknown variable as TemplateMark even with data, info or warning in the variable name", () => {
+    useAppStore.setState({
+      error: "Unknown variable `metadata` — add it to the template model",
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.getByText("TemplateMark")).toBeInTheDocument();
+    expect(screen.getByText("ERROR")).toBeInTheDocument();
+    expect(screen.queryByText("JSON Data")).not.toBeInTheDocument();
+  });
+
+  it("should classify @template decorator errors as Concerto Model", () => {
+    useAppStore.setState({
+      error: "Invalid model: @template decorator must be on a concept",
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.getByText("Concerto Model")).toBeInTheDocument();
+  });
 });
