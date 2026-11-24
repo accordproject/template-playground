@@ -143,12 +143,13 @@ The Playground allows sharing full state via URL fragments (`#data=...`).
 
 The playground implements a dual-layer testing strategy:
 
-1. **Unit Tests (Vitest)**: `src/tests/logic/runtimeAdapter.test.ts`
-   - Validates the Zustand store behavior, state accumulation, event emission, and error handling.
-   
-2. **End-to-End Tests (Playwright)**: `e2e/logic-lifecycle.spec.ts`
-   - Validates the complete user workflow in a real browser.
-   - **Note**: The E2E tests intercept network requests for TypeScript declaration files (`*.d.ts`) that `@typescript/twoslash` attempts to fetch from the TypeScript CDN. The interceptor forces a `404` response, making the compiler instantly fall back to its bundled definitions and preventing test flakiness.
+1. **Unit Tests (Vitest)**: cover the logic workflow and sandbox bridge across the Zustand store slices.
+   - `src/tests/store/compileLogic.test.ts` — logic compilation flow, error reporting, and store updates.
+   - `src/tests/store/executionEngine.test.ts` — request dispatch, sandbox messaging, and result handling.
+   - `src/tests/store/executionHistory.test.ts` — history accumulation, replay, and clearing behaviour.
+   - `src/tests/components/SandboxFrame.test.tsx` — hidden iframe wiring and lifecycle.
+
+2. **End-to-End Tests (Playwright)**: `e2e/rebuild-sandbox.spec.ts` validates the template rendering sandbox in a real browser (including the first-render `lib.*.d.ts` download, which is why the spec uses extended timeouts). No E2E spec covers the logic workflow yet.
 
 ## Key Files Reference
 
