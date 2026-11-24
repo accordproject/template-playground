@@ -123,13 +123,29 @@ test.describe('Template rendering sandbox', () => {
     // lost, so the pick is retried until the sample is selected.
     // The trigger alone: the open menu's sample buttons sit inside .samples-element too.
     const samples = page.getByRole('button', { name: /^Samples:/ });
-    // Named after its icon too ("file-text Hello World").
     const hello = page.getByRole('button', { name: /(^|\s)Hello World$/ });
-    const confirm = page.getByRole('button', { name: 'Continue' });
+    const confirmModal = page.locator('.ant-modal-confirm');
+    const confirm = confirmModal.getByRole('button', { name: 'Continue' });
+
     await expect(async () => {
-      if (!(await hello.isVisible())) await samples.click();
-      await hello.click({ timeout: 5_000 });
-      if (await confirm.isVisible({ timeout: 3_000 }).catch(() => false)) await confirm.click();
+      // Complete a confirmation dialog left open by an earlier retry.
+      if (await confirmModal.isVisible().catch(() => false)) {
+        await confirm.click();
+        await expect(confirmModal).toBeHidden({ timeout: 5_000 });
+      } else {
+        if (!(await hello.isVisible())) {
+          await samples.click();
+        }
+
+        await hello.click({ timeout: 5_000 });
+
+        // Confirm only when loading the sample requires confirmation.
+        if (await confirmModal.isVisible().catch(() => false)) {
+          await confirm.click();
+          await expect(confirmModal).toBeHidden({ timeout: 5_000 });
+        }
+      }
+
       await expect(samples).toContainText('Hello World', { timeout: 5_000 });
     }).toPass({ timeout: 60_000 });
 
