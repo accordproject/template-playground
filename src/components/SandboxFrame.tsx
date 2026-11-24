@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useLayoutEffect, useRef } from "react";
 import useAppStore from "../store/store";
 import { sandboxResolvers } from "../store/sandboxResolvers";
 import "../styles/components/SandboxFrame.css";
@@ -27,24 +27,33 @@ export default function SandboxFrame() {
   const setSandboxRef = useAppStore((s) => s.setSandboxRef);
   const setSandboxReady = useAppStore((s) => s.setSandboxReady);
 
-  const handleMessage = useCallback(
-    (event: MessageEvent<SandboxMessage>) => {
+  /*
+   * A layout effect, not a passive one: it runs in the same task that
+   * inserts the iframe, so the listener exists before the iframe can post
+   * its one-off ready signal. A passive effect runs after paint, possibly
+   * after that message has already been dispatched and lost.
+   */
+  useLayoutEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const handleMessage = (event: MessageEvent<SandboxMessage>) => {
       /*
        * Sandboxed iframes (sandbox="allow-scripts" without allow-same-origin)
        * are assigned an opaque origin by the browser, which serializes to the
-       * literal string "null". This is intentional and is NOT a bug — it is
-       * the standard way browsers represent opaque origins in postMessage events.
+       * literal string "null". Checking both the origin and event.source ensures
+       * the message came specifically from this execution sandbox and not from
+       * another sandboxed frame (e.g. RebuildSandboxFrame) or foreign window.
        */
       if (event.origin !== "null") return;
+      if (event.source !== iframe.contentWindow) return;
 
       const msg = event.data;
       if (!msg || typeof msg !== "object" || !msg.type) return;
 
       switch (msg.type) {
         case SANDBOX_READY:
-          if (iframeRef.current) {
-            setSandboxRef(iframeRef.current);
-          }
+          setSandboxRef(iframe);
           setSandboxReady(true);
           break;
 
@@ -60,11 +69,8 @@ export default function SandboxFrame() {
           break;
         }
       }
-    },
-    [setSandboxRef, setSandboxReady],
-  );
+    };
 
-  useEffect(() => {
     window.addEventListener("message", handleMessage);
     return () => {
       window.removeEventListener("message", handleMessage);
@@ -81,7 +87,7 @@ export default function SandboxFrame() {
         sandboxResolvers.delete(id);
       }
     };
-  }, [handleMessage, setSandboxRef, setSandboxReady]);
+  }, [setSandboxRef, setSandboxReady]);
 
   return (
     <iframe
