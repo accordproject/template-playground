@@ -1,91 +1,87 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { TemplateArchiveProcessor } from "@accordproject/template-engine";
+import useAppStore from "../../store/store";
 
-/*
- * Tests for the regex-based code transformation that prepares compiled
- * TypeScript output for evaluation via `new Function()` inside the sandbox.
- *
- * The transformation:
- *   1. Strips `export class` → `class`
- *   2. Strips `export default` → ``
- *   3. Appends `return ClassName;` if a class extends TemplateLogic
- *   4. Reports an error if no such class is found
- */
+vi.mock("@accordproject/template-engine", () => ({
+  TemplateArchiveProcessor: vi.fn(),
+}));
 
-function transformCode(code: string): { code: string } | { error: string } {
-  // Strip export keywords
-  code = code.replace(/export\s+class/g, "class");
-  code = code.replace(/export\s+default/g, "");
+const initialState = useAppStore.getState();
+type LogicClass = new () => { trigger(): string };
 
-  // Find the class extending TemplateLogic
-  const match = code.match(/class\s+(\w+)\s+extends\s+TemplateLogic/);
-  if (!match) {
-    return {
-      error:
-        "Compiled output does not contain a class extending TemplateLogic. Ensure your logic class extends TemplateLogic.",
-    };
-  }
-  code += `\nreturn ${match[1]};\n`;
+// Supply emitted JavaScript at the compiler boundary, then exercise the store's
+// actual transformation and the same new Function invocation as the sandbox.
+const compile = async (code: string) => {
+  vi.mocked(TemplateArchiveProcessor).mockImplementation(() => (
+    {
+      compileLogic: vi.fn().mockResolvedValue({
+        "logic/logic.ts": { code, errors: [] },
+      }),
+    } as unknown as InstanceType<typeof TemplateArchiveProcessor>
+  ));
+  await useAppStore.getState().compileLogic();
+  return useAppStore.getState();
+};
 
-  return { code };
+describe("compileLogic emitted JavaScript", () => {
+  beforeEach(() => {
+    useAppStore.setState({
+      logicTs: "class RealLogic extends TemplateLogic {}",
+      modelCto: "model",
+      buildTemplateFromMemory: vi.fn().mockResolvedValue({}),
+    });
+  });
+
+  afterEach(() => {
+    useAppStore.setState(initialState, true);
+    vi.clearAllMocks();
+  });
+
+  it.each([
+    ["named class", "export class RealLogic extends TemplateLogic {}"],
+    ["default class", "export default class RealLogic extends TemplateLogic {}"],
+    [
+      "default assignment",
+      "class RealLogic extends TemplateLogic {}\nexport default RealLogic;",
+    ],
+    ["empty module marker", "class RealLogic extends TemplateLogic {}\nexport {};"],
+    ["named export list", "class RealLogic extends TemplateLogic {}\nexport { RealLogic };"],
+  ])("executes a %s export", async (_name, code) => {
+    const state = await compile(`class TemplateLogic {}\n${code}`);
+    expect(state.compilationErrors).toEqual([]);
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval -- Match sandbox execution.
+    const Constructor = new Function(state.compiledLogicJs!)() as LogicClass;
+    expect(new Constructor()).toBeInstanceOf(Constructor);
+  });
+
+  it("preserves comments and unrelated source around export tokens", async () => {
+    const comment = [
+      "/*", "export default documentation;", "export class Example {}", "export {};", "*/",
+    ].join("\n");
+    const code = `${comment}\nclass TemplateLogic {}\nexport /* class note */ class RealLogic extends TemplateLogic {
+  trigger() { return 'export default value;'; }
 }
-
-describe("Code Transformation (export stripping + return injection)", () => {
-  it("should strip export class and append return", () => {
-    const input = `export class CounterLogic extends TemplateLogic<any> {
-  async init(data) { return {}; }
-  async trigger(data, req, state) { return {}; }
-}`;
-    const result = transformCode(input);
-    expect("code" in result).toBe(true);
-    if ("code" in result) {
-      expect(result.code).not.toContain("export class");
-      expect(result.code).toContain("class CounterLogic");
-      expect(result.code).toContain("return CounterLogic;");
+export /* default note */ default RealLogic;
+export { /* marker note */ };`;
+    const state = await compile(code);
+    expect(state.compilationErrors).toEqual([]);
+    expect(state.compiledLogicJs).toContain(comment);
+    for (const note of ["class note", "default note", "marker note"]) {
+      expect(state.compiledLogicJs).toContain(`/* ${note} */`);
     }
+    expect(state.compiledLogicJs).toContain(
+      "trigger() { return 'export default value;'; }",
+    );
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval -- Match sandbox execution.
+    const Constructor = new Function(state.compiledLogicJs!)() as LogicClass;
+    expect(new Constructor().trigger()).toBe("export default value;");
   });
 
-  it("should strip export default", () => {
-    const input = `class MyLogic extends TemplateLogic<any> {}
-export default MyLogic;`;
-    const result = transformCode(input);
-    expect("code" in result).toBe(true);
-    if ("code" in result) {
-      expect(result.code).not.toContain("export default");
-      expect(result.code).toContain("return MyLogic;");
-    }
-  });
-
-  it("should return an error when no class extends TemplateLogic", () => {
-    const input = `class SomeOtherClass {
-  doStuff() { return 42; }
-}`;
-    const result = transformCode(input);
-    expect("error" in result).toBe(true);
-    if ("error" in result) {
-      expect(result.error).toContain(
-        "does not contain a class extending TemplateLogic",
-      );
-    }
-  });
-
-  it("should return an error for empty code", () => {
-    const result = transformCode("");
-    expect("error" in result).toBe(true);
-  });
-
-  it("should handle export in a string/comment without breaking", () => {
-    const input = `// This has export class in a comment
-class RealLogic extends TemplateLogic<any> {
-  async init(data) { return { state: {} }; }
-  async trigger(data, req, state) {
-    const msg = "export class fake";
-    return { result: {}, state };
-  }
-}`;
-    const result = transformCode(input);
-    expect("code" in result).toBe(true);
-    if ("code" in result) {
-      expect(result.code).toContain("return RealLogic;");
-    }
+  it.each(["", "class SomeOtherClass {}"])("reports missing logic classes for %j", async (code) => {
+    const state = await compile(code);
+    expect(state.compiledLogicJs).toBeNull();
+    expect(state.compilationErrors[0]?.message).toContain(
+      "does not contain a class extending TemplateLogic",
+    );
   });
 });

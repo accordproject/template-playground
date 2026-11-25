@@ -1409,15 +1409,49 @@ const useAppStore = create<AppState>()(
             } else {
               let code = result.code;
 
-              /*
-               * Strip export keywords so we can evaluate natively via new Function().
-               * This handles: export class Foo, export default class Foo, export default Foo,
-               * and the `export {};` marker TypeScript emits for a module whose only
-               * imports are type-only and which has no exports of its own.
-               */
-              code = code.replace(/^export\s*\{\s*\};?\s*$/gm, "");
-              code = code.replace(/^export\s+class/gm, "class");
-              code = code.replace(/^export\s+default/gm, "");
+              // Remove only parsed export syntax for new Function(). Editing token
+              // ranges preserves literals, comments and all other emitted source.
+              const ts = (await import("typescript")).default;
+              const sourceFile = ts.createSourceFile(
+                "logic.js",
+                code,
+                ts.ScriptTarget.ES2022,
+                false,
+                ts.ScriptKind.JS,
+              );
+              const removals: Array<[number, number]> = [];
+              const removeTokens = (node: import("typescript").Node) => {
+                if (ts.isToken(node)) {
+                  removals.push([node.getStart(sourceFile), node.getEnd()]);
+                } else {
+                  node.getChildren(sourceFile).forEach(removeTokens);
+                }
+              };
+              const isExportKeyword = (node: import("typescript").Node) =>
+                node.kind === ts.SyntaxKind.ExportKeyword ||
+                node.kind === ts.SyntaxKind.DefaultKeyword;
+
+              for (const statement of sourceFile.statements) {
+                if (
+                  ts.isExportDeclaration(statement) && !statement.moduleSpecifier
+                ) {
+                  // Includes the `export {};` marker emitted for type-only imports.
+                  // Remove tokens individually so comments within the list survive.
+                  removeTokens(statement);
+                } else if (
+                  ts.isExportAssignment(statement) && !statement.isExportEquals
+                ) {
+                  // Keep the expression, as before, for `export default Foo;`.
+                  statement.getChildren(sourceFile)
+                    .filter(isExportKeyword).forEach(removeTokens);
+                } else if (ts.canHaveModifiers(statement)) {
+                  ts.getModifiers(statement)
+                    ?.filter(isExportKeyword).forEach(removeTokens);
+                }
+              }
+              for (const [start, end] of removals.sort((a, b) => b[0] - a[0])) {
+                code = code.slice(0, start) + code.slice(end);
+              }
 
               /*
                * Append a return statement so new Function() yields the class constructor.
