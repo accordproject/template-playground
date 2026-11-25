@@ -201,13 +201,15 @@ export const scaffoldFromModel = (model: LogicModel | null): string => {
   if (!model?.request || !model.response) return DEFAULT_LOGIC_BOILERPLATE;
   const { template, request, response, state } = model;
   const dataType = template ? `I${template.name}` : "any";
-  const imported = [template, request].filter((t): t is LogicType => Boolean(t)).map((t) => `I${t.name}`);
+  const imported = Array.from(
+    new Set([template, request].filter((t): t is LogicType => Boolean(t)).map((t) => `I${t.name}`))
+  );
 
   const stateLines = state
     ? [
         `        $class: '${state.fqn}',`,
         `        $identifier: 'contract-state',`,
-        ...(state.identifier ? [`        ${state.identifier}: 'contract-state',`] : []),
+        ...(state.identifier && state.identifier !== "$identifier" ? [`        ${state.identifier}: 'contract-state',`] : []),
         ...fieldLines(state, "        ", state.identifier ? [state.identifier] : []),
       ]
     : [`        $class: '${RUNTIME_STATE_FQN}',`, `        $identifier: 'contract-state',`];
