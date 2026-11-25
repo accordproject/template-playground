@@ -95,6 +95,45 @@ describe('scaffoldFromModel', () => {
     expect(scaffoldFromModel(describeLogicModel(helloworld.MODEL))).toBe(DEFAULT_LOGIC_BOILERPLATE);
     expect(scaffoldFromModel(null)).toBe(DEFAULT_LOGIC_BOILERPLATE);
   });
+
+  it('deduplicates import type identifiers when template concept and request share the same name', () => {
+    const cto = `
+      namespace org.test.duplicate@1.0.0
+      concept Action {
+        o String name
+      }
+      transaction Action {
+        o String reason
+      }
+      transaction ActionResponse {
+        o String status
+      }
+    `;
+    const src = scaffoldFromModel(describeLogicModel(cto));
+    expect(src).toContain("import type { IAction } from './generated/org.test.duplicate@1.0.0';");
+    expect(src).not.toContain("import type { IAction, IAction }");
+  });
+
+  it('does not duplicate $identifier when state is identified by $identifier', () => {
+    const cto = `
+      namespace org.test.stateid@1.0.0
+      concept ContractData {
+        o String terms
+      }
+      transaction TriggerRequest {
+        o String input
+      }
+      transaction TriggerResponse {
+        o String output
+      }
+      asset ContractState identified by $identifier {
+        o String description
+      }
+    `;
+    const src = scaffoldFromModel(describeLogicModel(cto));
+    const identifierMatches = src.match(/\$identifier: 'contract-state'/g);
+    expect(identifierMatches).toHaveLength(1);
+  });
 });
 
 describe('nextLogicSource', () => {
