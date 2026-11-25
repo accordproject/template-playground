@@ -176,6 +176,53 @@ describe("template archive", () => {
     expect(typeof data.exampleField).toBe("string");
   }, TIMEOUT);
 
+  it.each([true, false])("imports a legacy archive with a commented declaration: %s", async (commented) => {
+    const example = commented
+      ? "/* Documentation example:\nasset HelloWorldContract extends Contract {}\n*/\n"
+      : "";
+    const declaration = "asset HelloWorldContract extends Contract {";
+    const model = libraryModel.replace(declaration, `${example}${declaration}`);
+    const expected = libraryModel.replace(declaration, `${example}@template\n${declaration}`);
+    const data = { $class: "org.acme.hello@1.0.0.HelloWorldContract", contractId: "c", name: "Ana" };
+    const zip = new JSZip();
+    zip.file("package.json", JSON.stringify({
+      name: "legacy-contract", version: "1.0.0",
+      accordproject: { template: "contract", runtime: "typescript", cicero: "^3.0.0" },
+    }));
+    zip.file("model/model.cto", model);
+    zip.file("text/grammar.tem.md", "Hello {{name}}.");
+    zip.file("data.json", JSON.stringify(data));
+
+    const back = await readTemplateArchive(await zip.generateAsync({ type: "uint8array" }), "fallback");
+    expect(back.modelCto).toBe(expected);
+    const mm = new ModelManager({ offline: true });
+    loadBundledModels(mm);
+    mm.addCTOModel(back.modelCto, undefined, true);
+    expect(mm.getType(data.$class).getDecorator("template")).toBeTruthy();
+    expect(JSON.parse(back.data)).toEqual(data);
+    const html = await render(back.templateMarkdown, back.modelCto, data);
+    expect(new DOMParser().parseFromString(html, "text/html").body.textContent).toContain("Hello Ana.");
+  }, TIMEOUT);
+
+  it.each(["\n", "\r\n", "\r"])("preserves indentation, decorators and comments with %j line endings", async (newline) => {
+    const declaration = "asset HelloWorldContract extends Contract {";
+    const decorated = `\t@description("Legacy contract")\n\t${declaration}`;
+    const comment = `// Unicode example 😀: ${declaration}\n/*\n${declaration}\n*/\n`;
+    const model = libraryModel.replace(declaration, `${comment}${decorated}`).replace(/\n/g, newline);
+    const expected = model.replace('\t@description', `\t@template${newline}\t@description`);
+    expect(await ensureTemplateDecorator(model)).toBe(expected);
+    expect(await ensureTemplateDecorator(expected)).toBe(expected);
+  }, TIMEOUT);
+
+  it("leaves already-decorated, abstract-only and non-template models unchanged", async () => {
+    const marked = libraryModel.replace("asset HelloWorldContract", "@template\nasset HelloWorldContract");
+    expect(await ensureTemplateDecorator(marked)).toBe(marked);
+    const abstract = libraryModel.replace("asset HelloWorldContract", "abstract asset HelloWorldContract");
+    expect(await ensureTemplateDecorator(abstract)).toBe(abstract);
+    const plain = "namespace org.example@1.0.0\nconcept Data { o String name }";
+    expect(await ensureTemplateDecorator(plain)).toBe(plain);
+  }, TIMEOUT);
+
   it("generates sample data for a template whose own namespace starts with org.accordproject.", async () => {
     const data = JSON.parse(await sampleDataFromModel(perishable.MODEL)) as Record<string, unknown>;
     expect(String(data.$class)).toContain("org.accordproject.perishablegoods");

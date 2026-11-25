@@ -234,7 +234,7 @@ export const exportTemplateFiles = async (content: TemplateContent, name: string
 
 const loadModel = async (modelCto: string): Promise<ModelManagerInstance> => {
   const { ModelManager } = await import("@accordproject/concerto-core");
-  const modelManager = new ModelManager({ offline: true });
+  const modelManager = new ModelManager({ offline: true, skipLocationNodes: false });
   loadBundledModels(modelManager);
   modelManager.addCTOModel(modelCto, undefined, true);
   return modelManager;
@@ -289,11 +289,15 @@ const findUndecoratedTemplate = (modelManager: ModelManagerInstance, kind?: Temp
 export const ensureTemplateDecorator = async (modelCto: string, kind?: TemplateKind): Promise<string> => {
   const target = findUndecoratedTemplate(await loadModel(modelCto), kind);
   if (!target) return modelCto;
-  const declaration = new RegExp(
-    `^([ \\t]*)((?:abstract[ \\t]+)?(?:asset|concept|participant|transaction|event)[ \\t]+${target.getName()}\\b)`,
-    "m",
-  );
-  return modelCto.replace(declaration, "$1@template\n$1$2");
+  // The parsed declaration starts at its first decorator (if any), excluding
+  // comments. A text search could instead match an example inside a comment.
+  const start = target.ast.location?.start.offset;
+  if (start === undefined) throw new Error(`Could not locate template declaration ${target.getName()}.`);
+  const lineStart = Math.max(modelCto.lastIndexOf("\n", start - 1), modelCto.lastIndexOf("\r", start - 1)) + 1;
+  const prefix = modelCto.slice(lineStart, start);
+  const indent = /^[ \t]*$/.test(prefix) ? prefix : "";
+  const newline = /\r\n|\n|\r/.exec(modelCto)?.[0] ?? "\n";
+  return `${modelCto.slice(0, start)}@template${newline}${indent}${modelCto.slice(start)}`;
 };
 
 /**
