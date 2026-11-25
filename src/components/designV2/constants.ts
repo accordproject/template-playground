@@ -509,7 +509,7 @@ export interface DeployCard {
   href?: string;
   /** Which in-app action the button runs when there is no `href`. */
   action?: "pdf" | "markdown" | "share" | "copy" | "archive" | "vscode";
-  /** A second, link-only button under the main one. */
+  /** Link-only buttons under the main one, one per editor target. */
   editorTargets?: readonly { label: string; href: string }[];
   /** Toast shown when the action succeeds. */
   done?: string;
