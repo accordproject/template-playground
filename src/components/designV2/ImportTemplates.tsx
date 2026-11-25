@@ -8,8 +8,8 @@ import {
   LIBRARIES,
   archiveUrl,
   fetchArchive,
-  fetchLibraryIndex,
   filterTemplates,
+  loadLibraryIndex,
   groupTemplates,
   libraryTags,
   type LibraryFilter,
@@ -101,7 +101,7 @@ const LibraryModal = ({ open, onClose }: LibraryModalProps) => {
     if (!open || templates) return;
     let cancelled = false;
     setLoadError(null);
-    fetchLibraryIndex(library)
+    loadLibraryIndex(library)
       .then((list) => !cancelled && setTemplates(list))
       .catch((error: unknown) => !cancelled && setLoadError(errorText(error)));
     return () => {

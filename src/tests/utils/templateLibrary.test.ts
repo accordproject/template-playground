@@ -9,7 +9,9 @@ import {
   filterTemplates,
   groupTemplates,
   libraryTags,
+  loadLibraryIndex,
   parseLibraryIndex,
+  resetLibraryIndexesForTests,
 } from "../../utils/templateLibrary";
 import { ciceroAccepts } from "../../utils/cicero";
 
@@ -78,6 +80,43 @@ describe("template library", () => {
       // Each archive is downloaded at most once, older ones only after a newer one is refused.
       const downloaded = fetchMock.mock.calls.map(([url]) => url).filter((url) => url.endsWith(".cta"));
       expect(downloaded.map((url) => /archives\/(.+)\.cta$/.exec(url)![1]).sort()).toEqual(Object.keys(archives).sort());
+    });
+
+    describe("loadLibraryIndex", () => {
+      afterEach(() => {
+        resetLibraryIndexesForTests();
+      });
+
+      const library = LIBRARIES[0];
+      const indexUrl = `${library.baseUrl}/template-library.json`;
+      const indexCalls = (calls: unknown[][]) => calls.filter(([url]) => url === indexUrl).length;
+
+      it("builds the list once and shares it, even with a call made while it is loading", async () => {
+        const bytes = await archive("^2.0.0");
+        const fetchMock = vi.fn((url: string) =>
+          Promise.resolve(
+            url === indexUrl
+              ? { ok: true, json: () => Promise.resolve({ "x@1.0.0": { name: "x", version: "1.0.0", ciceroVersion: "^2.0.0" } }) }
+              : { ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }
+          )
+        );
+        vi.stubGlobal("fetch", fetchMock);
+        const [first, second] = await Promise.all([loadLibraryIndex(library), loadLibraryIndex(library)]);
+        const third = await loadLibraryIndex(library);
+        expect(first.map((t) => t.name)).toEqual(["x"]);
+        expect(second).toBe(first);
+        expect(third).toBe(first);
+        expect(indexCalls(fetchMock.mock.calls)).toBe(1);
+        expect(fetchMock.mock.calls.filter(([url]) => url.endsWith(".cta"))).toHaveLength(1);
+      });
+
+      it("tries again after a list that failed", async () => {
+        const fetchMock = vi.fn<[url: string], Promise<unknown>>().mockResolvedValueOnce({ ok: false, status: 503 }).mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
+        vi.stubGlobal("fetch", fetchMock);
+        await expect(loadLibraryIndex(library)).rejects.toThrow("503");
+        await expect(loadLibraryIndex(library)).resolves.toEqual([]);
+        expect(indexCalls(fetchMock.mock.calls)).toBe(2);
+      });
     });
   });
 
