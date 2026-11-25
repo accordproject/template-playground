@@ -146,6 +146,31 @@ export const fetchLibraryIndex = async (library: TemplateLibrary): Promise<Libra
   return sortByName(listed);
 };
 
+/**
+ * Each library's list, by base URL, kept for the session. Building it
+ * downloads the index and an archive per template, so the dialog builds it
+ * once instead of every time it opens. A list that fails is dropped, so the
+ * next open tries again.
+ */
+const libraryLists = new Map<string, Promise<LibraryTemplate[]>>();
+
+/** fetchLibraryIndex, run once per library: later calls share the same list, even while it is still loading. */
+export const loadLibraryIndex = (library: TemplateLibrary): Promise<LibraryTemplate[]> => {
+  const cached = libraryLists.get(library.baseUrl);
+  if (cached) return cached;
+  const list = fetchLibraryIndex(library);
+  libraryLists.set(library.baseUrl, list);
+  list.catch(() => {
+    if (libraryLists.get(library.baseUrl) === list) libraryLists.delete(library.baseUrl);
+  });
+  return list;
+};
+
+/** Forgets the lists loadLibraryIndex kept. Intended for tests. */
+export function resetLibraryIndexesForTests(): void {
+  libraryLists.clear();
+}
+
 export interface LibraryFilter {
   query: string;
   type: "" | LibraryTemplate["type"];

@@ -8,6 +8,7 @@ import useDesignV2Store from '../../../store/designV2Store';
 import { STEPS } from '../../../types/designV2.types';
 import { IMPORT } from '../../../components/designV2/constants';
 import * as blank from '../../../samples/blank';
+import { resetLibraryIndexesForTests } from '../../../utils/templateLibrary';
 
 const makeArchive = async (cicero = '^3.0.0', name = 'imported-nda') => {
   const zip = new JSZip();
@@ -37,6 +38,7 @@ describe('ImportTemplates', () => {
   });
   afterEach(() => {
     vi.unstubAllGlobals();
+    resetLibraryIndexesForTests();
   });
 
   it('loads an uploaded .cta and opens the next step', async () => {
@@ -110,5 +112,30 @@ describe('ImportTemplates', () => {
     fireEvent.click(await screen.findByRole('button', { name: IMPORT.library.pick('Late Fees', '1.0.0') }, SLOW));
     await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
     expect(fetchMock).toHaveBeenCalledWith('https://templates.accordproject.org/archives/late-fees@1.0.0.cta', expect.anything());
+  }, 30_000);
+
+  it('keeps the library list after leaving the Template step, so opening it again downloads nothing', async () => {
+    const bytes = await makeArchive();
+    const fetchMock = vi.fn((url: string) =>
+      Promise.resolve(
+        url.endsWith('template-library.json')
+          ? { ok: true, json: () => Promise.resolve({
+              'helloworld@1.0.0': { name: 'helloworld', displayName: 'Hello World', version: '1.0.0', description: 'Say hello', ciceroVersion: '^2.0.0', tags: ['reference'] },
+            }) }
+          : { ok: true, arrayBuffer: () => Promise.resolve(bytes.buffer) }
+      )
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    // Leaving the Template step unmounts the gallery, and the dialog with it.
+    const { unmount } = render(<ImportTemplates />);
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.library.button }));
+    expect(await screen.findByText('Hello World', undefined, SLOW)).toBeInTheDocument();
+    unmount();
+    const downloads = fetchMock.mock.calls.length;
+
+    render(<ImportTemplates />);
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.library.button }));
+    expect(await screen.findByText('Hello World')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(downloads);
   }, 30_000);
 });
