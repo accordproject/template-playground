@@ -290,7 +290,7 @@ describe('DeployView', () => {
     expect(writeText).not.toHaveBeenCalled();
   }, 30_000);
 
-  describe('Open in vscode.dev', () => {
+  describe('Open in an editor', () => {
     const files: string[] = [];
     const dir = (name: string): DirectoryHandle => ({
       name,
@@ -331,13 +331,15 @@ describe('DeployView', () => {
       // Synchronously from the click, before the archive is built (user activation).
       expect(picker).toHaveBeenCalledTimes(1);
       await waitFor(() => expect(success).toHaveBeenCalled(), SLOW);
-      // vscode.dev is the card's own link, not a pop-up after the save.
+      // Editor targets are links, not pop-ups after the save.
       expect(open).not.toHaveBeenCalled();
       success.mockRestore();
       expect(files).toEqual(expect.arrayContaining([
         'Documents/my-template/package.json',
         'Documents/my-template/text/grammar.tem.md',
         'Documents/my-template/model/model.cto',
+        'Documents/my-template/AGENTS.md',
+        'Documents/my-template/.vscode/extensions.json',
       ]));
     }, 30_000);
 
@@ -410,11 +412,19 @@ describe('DeployView', () => {
       error.mockRestore();
     }, 30_000);
 
-    it('also links straight to vscode.dev', () => {
+    it('provides links to all three editor targets', () => {
       render(<DeployView />);
-      const link = within(screen.getByRole('article', { name: 'Open in vscode.dev' })).getByRole('link', { name: /^2\. Open vscode\.dev/ });
-      expect(link).toHaveAttribute('href', URLS.vscodeDev);
-      expect(link).toHaveAttribute('target', '_blank');
+      const card = within(screen.getByRole('article', { name: 'Open in an editor' }));
+      const targets = [
+        { label: 'VS Code for the Web', href: URLS.vscodeDev },
+        { label: 'Desktop VS Code', href: URLS.vscodeDownload },
+        { label: 'Claude Code', href: URLS.claudeCodeDocs },
+      ];
+      for (const target of targets) {
+        const link = card.getByRole('link', { name: new RegExp(`^${target.label}`) });
+        expect(link).toHaveAttribute('href', target.href);
+        expect(link).toHaveAttribute('target', '_blank');
+      }
     });
   });
 
