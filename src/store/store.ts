@@ -823,6 +823,11 @@ const useAppStore = create<AppState>()(
           const { executionChain, selectedChainIndex } = get();
           const step = executionChain[selectedChainIndex];
           if (!step) return "No step selected.";
+          // Later steps were computed from this state, so only the latest can be edited
+          // (discardChainAfter drops them first).
+          if (selectedChainIndex !== executionChain.length - 1) {
+            return "Only the latest step's state can be edited.";
+          }
 
           let parsed: object;
           try {
@@ -1766,6 +1771,8 @@ const useAppStore = create<AppState>()(
 
           set({ executingOperation: 'trigger' });
 
+          // The run can take seconds; if the template is replaced meanwhile its result is discarded.
+          const generation = templateGeneration;
           const startedAt = Date.now();
           const triggerCount = executionHistory.filter((r) => r.method === "trigger").length;
           const historyId = `#${triggerCount + 1}`;
@@ -1793,7 +1800,12 @@ const useAppStore = create<AppState>()(
               ? (await executeInSandbox(compiledLogicJs!, 'trigger', [parsedData, parsedRequest, parsedState])) as { result?: unknown, state?: unknown, events?: unknown[] }
               : (await get().executeWithLLM('trigger', { data: parsedData, request: parsedRequest, priorState: parsedState })) as { result?: unknown, state?: unknown, events?: unknown[] };
 
+            if (templateGeneration !== generation) return;
+
             const events = Array.isArray(output.events) ? (output.events as object[]) : [];
+            // Read now, not before the run: the chain or history may have been edited meanwhile.
+            const currentChain = get().executionChain;
+            const currentHistory = get().executionHistory;
 
             /*
              * Extract and store execution artifacts.
@@ -1805,7 +1817,7 @@ const useAppStore = create<AppState>()(
               executionState: output.state ? JSON.stringify(output.state, null, 2) : executionState,
               executionEvents: output.events ? JSON.stringify(output.events, null, 2) : '[]',
               lastExecutionEngine: useTypeScript ? ExecutionEngine.TypeScript : ExecutionEngine.LLM,
-              executionHistory: [...executionHistory, {
+              executionHistory: [...currentHistory, {
                 id: historyId,
                 method: 'trigger',
                 request: parsedRequest,
@@ -1828,7 +1840,7 @@ const useAppStore = create<AppState>()(
              */
             if (isTemplateStateful) {
               const newStep: ChainStep = {
-                label: `Trigger ${executionChain.length}`,
+                label: `Trigger ${currentChain.length}`,
                 request: parsedRequest as object,
                 priorState: parsedState as object,
                 result: (output.result ?? {}) as object,
@@ -1836,14 +1848,15 @@ const useAppStore = create<AppState>()(
                 events,
                 edited: false,
               };
-              const chain = [...executionChain, newStep];
+              const chain = [...currentChain, newStep];
               set({ executionChain: chain, selectedChainIndex: chain.length - 1 });
               persistChain(chain);
             }
           } catch (err: unknown) {
+            if (templateGeneration !== generation) return;
             const message = formatError(err);
             set({
-              executionHistory: [...executionHistory, {
+              executionHistory: [...get().executionHistory, {
                 id: historyId,
                 method: 'trigger',
                 request: parsedRequest,

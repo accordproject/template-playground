@@ -6,7 +6,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "antd";
 import JSONEditor from "../editors/JSONEditor";
 import useAppStore from "../store/store";
@@ -53,6 +53,12 @@ const ChainStateTab: React.FC<ChainStateTabProps> = ({ textColor }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draftValue, setDraftValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // A draft belongs to the step it was started on: leave edit mode when another step is selected.
+  useEffect(() => {
+    setIsEditing(false);
+    setError(null);
+  }, [selectedChainIndex]);
 
   const step = executionChain[selectedChainIndex];
   if (!step) {
