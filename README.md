@@ -1,6 +1,6 @@
 <h1 align="center">Accord Project Template Playground</h1>
 <p align="center">
-  <a href="https://github.com/accordproject/models/blob/master/LICENSE"><img src="https://img.shields.io/github/license/accordproject/models" alt="GitHub license"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/accordproject/template-playground" alt="GitHub license"></a>
   <a href="https://www.accordproject.org/">
     <img src="https://img.shields.io/badge/powered%20by-accord%20project-19C6C8.svg" alt="Accord Project" />
   </a>
@@ -70,7 +70,7 @@ The Template Playground is deployed at: [https://playground.accordproject.org](h
 
 <p align="center">
   <a href="./LICENSE">
-    <img src="https://img.shields.io/github/license/accordproject/cicero?color=bright-green" alt="GitHub license">
+    <img src="https://img.shields.io/github/license/accordproject/template-playground?color=bright-green" alt="GitHub license">
   </a>
   <a href="https://discord.gg/Zm99SKhhtA">
     <img src="https://img.shields.io/badge/Accord%20Project-Join%20Discord-blue" alt="Join the Accord Project Discord"/>
@@ -116,7 +116,7 @@ Copyright 2018-2019 Clause, Inc. All trademarks are the property of their respec
 [apblog]: https://accordproject.org/news
 [apdoc]: https://docs.accordproject.org/
 [apdiscord]: https://discord.gg/Zm99SKhhtA
-[contributing]: https://github.com/accordproject/models/blob/master/CONTRIBUTING.md
-[developers]: https://github.com/accordproject/models/blob/master/DEVELOPERS.md
-[apache]: https://github.com/accordproject/models/blob/master/LICENSE
+[contributing]: ./CONTRIBUTING.md
+[developers]: ./DEVELOPERS.md
+[apache]: ./LICENSE
 [creativecommons]: http://creativecommons.org/licenses/by/4.0/
