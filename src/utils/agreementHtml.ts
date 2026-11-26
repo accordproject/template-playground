@@ -2,7 +2,7 @@ import DOMPurify from "dompurify";
 
 /**
  * Block elements that get their own text direction. Each takes it from its
- * first strong character (dir="auto"), so an Arabic, Hebrew or Persian
+ * first strong character (dir="auto"), so an Arabic, Hebrew, Persian or Urdu
  * paragraph reads right to left while English paragraphs stay as they are,
  * even in one agreement that mixes both.
  */
