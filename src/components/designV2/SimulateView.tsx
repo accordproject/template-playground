@@ -160,7 +160,7 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
             {copied ? SIMULATE.copied : SIMULATE.requestActions}
           </Button>
         </div>
-        <JsonView id="simulate-message" value={pretty(run.request)} />
+        <JsonView id="simulate-message" value={run.requestText ?? pretty(run.request)} />
       </section>
 
       <section
@@ -239,14 +239,14 @@ const SimulateView = () => {
       restart();
       return;
     }
-    setRequestJson(pretty(run.request));
+    setRequestJson(run.requestText ?? pretty(run.request));
     await send();
   };
 
   const reuseItems: MenuProps["items"] = triggerRuns.map((run) => ({
     key: run.id,
     label: `${run.id} · ${runSummary(run)}`,
-    onClick: () => setRequestJson(pretty(run.request)),
+    onClick: () => setRequestJson(run.requestText ?? pretty(run.request)),
   }));
 
   return (

@@ -130,6 +130,7 @@ describe("useAppStore - executionHistory", () => {
       id: "#1",
       stage: "parse",
       request: {},
+      requestText: '{ "increment": 2 }}',
       response: null,
       stateBefore: { count: 0 },
       stateAfter: { count: 0 },

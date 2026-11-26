@@ -60,6 +60,7 @@ export const parseFailedRun: LogicExecutionResult = {
   method: 'trigger',
   stage: 'parse',
   request: {},
+  requestText: '{"$class":"org.acme.latepayment@1.0.0.LatePaymentRequest",',
   response: null,
   stateBefore: stateAfterOne,
   stateAfter: stateAfterOne,

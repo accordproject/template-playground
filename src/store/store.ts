@@ -76,6 +76,8 @@ export interface LogicExecutionResult {
   method: "init" | "trigger";
   /** Contract data for `init`, the request payload for `trigger`. */
   request: object;
+  /** Original request editor text for `trigger`, including malformed JSON that could not be parsed. */
+  requestText?: string;
   /** `result` of a trigger, or `{ state, events }` of an init. Null when the run failed. */
   response: object | null;
   stateBefore: object | null;
@@ -1809,6 +1811,7 @@ const useAppStore = create<AppState>()(
                 id: historyId,
                 method: 'trigger',
                 request: parsedRequest,
+                requestText: requestJson,
                 response: (output.result as object | undefined) ?? null,
                 stateBefore: parsedState,
                 stateAfter: (output.state as object | undefined) ?? parsedState,
@@ -1847,6 +1850,7 @@ const useAppStore = create<AppState>()(
                 id: historyId,
                 method: 'trigger',
                 request: parsedRequest,
+                requestText: requestJson,
                 response: null,
                 // State is left untouched by a failed trigger, so before === after
                 stateBefore: parsedState,
