@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify";
+import { prepareAgreementHtml } from "./agreementHtml";
 
 /** File name of the rendered agreement as a PDF (Preview and the Deploy step). */
 export const AGREEMENT_PDF_FILE = "agreement.pdf";
@@ -14,7 +14,7 @@ export const saveAgreementPdf = async (html: string, fileName: string = AGREEMEN
   const page = document.createElement("div");
   page.className = "nd-preview-page";
   page.style.cssText = "background:#fff;color:#000;padding:16px";
-  page.innerHTML = DOMPurify.sanitize(html);
+  page.innerHTML = prepareAgreementHtml(html);
   await html2pdf()
     .set({
       margin: 10,
