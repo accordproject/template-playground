@@ -16,7 +16,8 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   const [isExplaining, setIsExplaining] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const explanationRef = useRef<HTMLDivElement>(null);
-  const { aiConfig, setSettingsOpen, setAIChatOpen } = useAppStore();
+  const { aiConfig, setSettingsOpen, setAIChatOpen, backgroundColor } = useAppStore();
+  const isDarkMode = backgroundColor === '#121212';
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const handleClose = useCallback(() => {
@@ -149,7 +150,9 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
     return (
       <div
         ref={explanationRef}
-        className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-md z-50"
+        className={`twp fixed border rounded-lg shadow-lg p-4 max-w-md z-50 ${
+          isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+        }`}
         style={{
           left: popupPosition.left,
           top: popupPosition.top,
@@ -159,7 +162,11 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
       >
         <button
           onClick={handleClose}
-          className="absolute top-0.5 right-0.5 text-gray-400 hover:text-gray-600 w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 transition-colors"
+          className={`absolute top-0.5 right-0.5 w-6 h-6 flex items-center justify-center rounded transition-colors ${
+            isDarkMode
+              ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+          }`}
           aria-label="Close explanation"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,7 +175,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
         </button>
         <div className={`max-h-64 pr-6 ${isExplaining ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {isExplaining ? (
-            <div className="flex items-center text-gray-500 text-sm">
+            <div className={`flex items-center text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
               <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
@@ -188,7 +195,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
               Explaining...
             </div>
           ) : (
-            <div className="text-sm text-gray-700 prose lg:prose-md">
+            <div className={`text-sm prose lg:prose-md ${isDarkMode ? 'text-gray-200 prose-invert' : 'text-gray-700'}`}>
               <ReactMarkdown
                 components={{
                   pre: ({ children }) => {
@@ -200,7 +207,7 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
                   },
                   code: ({ children, className }) => {
                     return (
-                      <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className || ''}`}>
+                      <code className={`p-1 rounded-md before:content-[''] after:content-[''] ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200'} ${className || ''}`}>
                         {children}
                       </code>
                     );
@@ -218,7 +225,9 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   return (
     <div
       ref={menuRef}
-      className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 flex"
+      className={`twp fixed border rounded-lg shadow-lg py-1 z-50 flex ${
+        isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+      }`}
       style={{ 
         left: Math.max(10, Math.min(225, window.innerWidth - 150)), 
         top: Math.max(10, Math.min(position.y, window.innerHeight - 50)),
@@ -227,7 +236,11 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
     >
       <button
         onClick={() => void handleExplain()}
-        className="flex-1 px-1 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-center border-r border-gray-200"
+        className={`flex-1 px-1 py-1 text-left text-sm flex items-center justify-center border-r ${
+          isDarkMode
+            ? 'text-gray-200 hover:bg-gray-700 border-gray-600'
+            : 'text-gray-700 hover:bg-gray-100 border-gray-200'
+        }`}
       >
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -236,7 +249,11 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
       </button>
       <button
         onClick={() => void handleChat()}
-        className="flex-1 px-1 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-center"
+        className={`flex-1 px-1 py-1 text-left text-sm flex items-center justify-center ${
+          isDarkMode
+            ? 'text-gray-200 hover:bg-gray-700'
+            : 'text-gray-700 hover:bg-gray-100'
+        }`}
       >
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-4.126-.98L3 21l1.98-5.874A8.955 8.955 0 013 12a8 8 0 018-8c4.418 0 8 3.582 8 8z" />
