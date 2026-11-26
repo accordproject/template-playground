@@ -412,6 +412,18 @@ describe('SimulateView', () => {
       expect(JSON.parse(useAppStore.getState().requestJson)).toEqual(okRun.request);
     });
 
+    it('shows and reruns the original text of a request that failed JSON parsing', async () => {
+      useAppStore.setState({ executionHistory: [initRun, okRun, parseFailedRun] });
+      useDesignV2Store.setState({ selectedRunId: parseFailedRun.id });
+      render(<SimulateView />);
+
+      expect(screen.getByLabelText('simulate-message editor')).toHaveValue(parseFailedRun.requestText);
+      fireEvent.click(screen.getByRole('button', { name: SIMULATE.rerun }));
+
+      await waitFor(() => expect(triggerContract).toHaveBeenCalledTimes(1));
+      expect(useAppStore.getState().requestJson).toBe(parseFailedRun.requestText);
+    });
+
     it('re-run on the init run uses the restart confirmation', async () => {
       useDesignV2Store.setState({ selectedRunId: 'init' });
       render(<SimulateView />);
