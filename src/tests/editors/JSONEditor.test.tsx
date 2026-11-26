@@ -3,11 +3,13 @@ import { render, waitFor } from '@testing-library/react';
 import JSONEditor from '../../editors/JSONEditor';
 import { registerAutocompletion } from '../../ai-assistant/autocompletion';
 
+const monacoStub = vi.hoisted(() => ({ editor: { defineTheme: vi.fn() } }));
+
 vi.mock('../../ai-assistant/autocompletion', () => ({ registerAutocompletion: vi.fn() }));
 // Monaco stands in as a component that runs beforeMount, as the real one does on each mount.
 vi.mock('@monaco-editor/react', () => ({
   Editor: ({ beforeMount }: { beforeMount?: (m: unknown) => void }) => {
-    beforeMount?.({});
+    beforeMount?.(monacoStub);
     return <div data-testid="monaco" />;
   },
 }));
@@ -20,7 +22,7 @@ describe('JSONEditor', () => {
   it('registers inline completions for an editable editor', async () => {
     const { findByTestId } = render(<JSONEditor id="request" value="{}" />);
     await findByTestId('monaco');
-    expect(registerAutocompletion).toHaveBeenCalledWith('json', {});
+    expect(registerAutocompletion).toHaveBeenCalledWith('json', monacoStub);
   });
 
   it('registers none for read-only panes, however often they remount', async () => {

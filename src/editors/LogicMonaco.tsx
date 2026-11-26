@@ -4,6 +4,7 @@ import type * as monacoNS from 'monaco-editor';
 import useAppStore from '../store/store';
 import useThemeName from '../hooks/useThemeName';
 import { registerEditor, unregisterEditor } from '../utils/editorNavigation';
+import defineEditorThemes from './editorThemes';
 
 const MonacoEditor = lazy(() =>
   import('@monaco-editor/react').then((mod) => ({ default: mod.Editor }))
@@ -135,6 +136,7 @@ export default function LogicMonaco() {
           theme={themeName}
           options={editorOptions}
           onChange={handleChange}
+          beforeMount={defineEditorThemes}
           onMount={(editor) => registerEditor('logic', editor)}
         />
       </Suspense>

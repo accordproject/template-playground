@@ -6,6 +6,7 @@ import { useCodeSelection } from "../components/CodeSelectionMenu";
 import type { editor } from "monaco-editor";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
+import defineEditorThemes from "./editorThemes";
 
 
 const MonacoEditor = lazy(() =>
@@ -33,29 +34,6 @@ export default function MarkdownEditor({
   const monaco = useMonaco();
 
   const themeName = useThemeName();
-
-  useEffect(() => {
-    if (monaco) {
-      const defineTheme = (name: string, base: "vs" | "vs-dark") => {
-        monaco.editor.defineTheme(name, {
-          base,
-          inherit: true,
-          rules: [],
-          colors: {
-            "editor.background": backgroundColor,
-            "editor.foreground": textColor,
-            "editor.lineHighlightBorder": "#EDE8DC",
-            "editorGhostText.foreground": "#9c9a9a"
-          },
-        });
-      };
-
-      defineTheme("lightTheme", "vs");
-      defineTheme("darkTheme", "vs-dark");
-
-      monaco.editor.setTheme(themeName);
-    }
-  }, [monaco, backgroundColor, textColor, themeName]);
 
   const editorOptions: editor.IStandaloneEditorConstructionOptions = useMemo(() => ({
     minimap: { enabled: false },
@@ -136,6 +114,7 @@ export default function MarkdownEditor({
           language="markdown"
           height="100%"
           value={value}
+          beforeMount={defineEditorThemes}
           onMount={handleEditorDidMount}
           onChange={handleChange}
           theme={themeName}
