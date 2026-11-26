@@ -44,6 +44,20 @@ describe('PreviewPane', () => {
     expect(container.ownerDocument.querySelector('.nd-preview-page img')).not.toHaveAttribute('onerror');
   });
 
+  it('gives each block its own text direction so right-to-left text reads correctly', () => {
+    useAppStore.setState({
+      agreementHtml:
+        '<h2>البند 6. القانون الواجب التطبيق</h2>' +
+        '<p>يخضع هذا العقد لقوانين جمهورية مصر العربية، والعميل هو <strong>Northwind Logistics Ltd</strong>.</p>' +
+        '<p dir="ltr">Kept as written</p>',
+    });
+    renderPane();
+    expect(screen.getByRole('heading', { name: 'البند 6. القانون الواجب التطبيق' })).toHaveAttribute('dir', 'auto');
+    expect(screen.getByText(/يخضع هذا العقد/)).toHaveAttribute('dir', 'auto');
+    // An explicit direction in the template is left alone.
+    expect(screen.getByText('Kept as written')).toHaveAttribute('dir', 'ltr');
+  });
+
   it('keeps the last good agreement when a later render fails', () => {
     useAppStore.setState({ agreementHtml: '<p>Last good render</p>', error: 'Unknown variable' });
     renderPane();
@@ -143,6 +157,7 @@ describe('PreviewPane', () => {
     expect(page.innerHTML).toContain('Fresh terms');
     expect(page.innerHTML).not.toContain('Stale terms');
     expect(page.querySelector('script')).toBeNull();
+    expect(page.querySelector('p')).toHaveAttribute('dir', 'auto');
   });
 
   it('saves no PDF when the current sources do not render', async () => {
