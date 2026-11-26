@@ -129,9 +129,35 @@ const archiveAccepted = async (library: TemplateLibrary, template: LibraryTempla
  * is tried, and so on; a template with no accepted archive is not listed.
  */
 export const fetchLibraryIndex = async (library: TemplateLibrary): Promise<LibraryTemplate[]> => {
-  const response = await fetch(`${library.baseUrl}/template-library.json`);
-  if (!response.ok) throw new Error(`The library answered ${response.status}.`);
-  let candidates = await compatibleEntries((await response.json()) as Index);
+  const controller = new AbortController();
+  let timedOut = false;
+  let timeout: ReturnType<typeof setTimeout>;
+  const timeoutError = new Promise<never>((_resolve, reject) => {
+    timeout = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+      reject(new Error(`The library request timed out after ${LIBRARY_INDEX_TIMEOUT_MS / 1000} seconds.`));
+    }, LIBRARY_INDEX_TIMEOUT_MS);
+  });
+
+  let index: Index;
+  try {
+    const response = await Promise.race([
+      fetch(`${library.baseUrl}/template-library.json`, { signal: controller.signal }),
+      timeoutError,
+    ]);
+    if (!response.ok) throw new Error(`The library answered ${response.status}.`);
+    index = (await Promise.race([response.json(), timeoutError])) as Index;
+  } catch (error) {
+    if (timedOut) {
+      throw new Error(`The library request timed out after ${LIBRARY_INDEX_TIMEOUT_MS / 1000} seconds.`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout!);
+  }
+
+  let candidates = await compatibleEntries(index);
   const listed: LibraryTemplate[] = [];
   while (Object.keys(candidates).length) {
     const newest = Object.entries(await newestOf(candidates));
@@ -210,6 +236,9 @@ export const MAX_ARCHIVE_DOWNLOAD_BYTES = 25 * 1024 * 1024;
 
 /** Default timeout for remote template archive downloads (15 seconds). */
 export const ARCHIVE_DOWNLOAD_TIMEOUT_MS = 15_000;
+
+/** Default timeout for loading a library's template index (15 seconds). */
+export const LIBRARY_INDEX_TIMEOUT_MS = 15_000;
 
 export interface FetchArchiveOptions {
   timeoutMs?: number;

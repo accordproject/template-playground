@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import {
   EMPTY_FILTER,
   LIBRARIES,
+  LIBRARY_INDEX_TIMEOUT_MS,
   MAX_ARCHIVE_DOWNLOAD_BYTES,
   fetchArchive,
   fetchLibraryIndex,
@@ -23,6 +24,45 @@ const index = {
 };
 
 describe("template library", () => {
+  describe("fetchLibraryIndex timeout", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    });
+
+    it("aborts and rejects when the library index request stalls", async () => {
+      vi.useFakeTimers();
+      let signal: AbortSignal | undefined;
+      vi.stubGlobal(
+        "fetch",
+        vi.fn((_url: string, options: { signal?: AbortSignal } = {}) => {
+          signal = options.signal;
+          return new Promise(() => {});
+        }),
+      );
+
+      const loading = fetchLibraryIndex(LIBRARIES[0]);
+      const rejected = expect(loading).rejects.toThrow(/timed out after 15 seconds/);
+      await vi.advanceTimersByTimeAsync(LIBRARY_INDEX_TIMEOUT_MS);
+      await rejected;
+
+      expect(signal?.aborted).toBe(true);
+    });
+
+    it("also times out while the index response body is being read", async () => {
+      vi.useFakeTimers();
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({ ok: true, json: () => new Promise(() => {}) }),
+      );
+
+      const loading = fetchLibraryIndex(LIBRARIES[0]);
+      const rejected = expect(loading).rejects.toThrow(/timed out after 15 seconds/);
+      await vi.advanceTimersByTimeAsync(LIBRARY_INDEX_TIMEOUT_MS);
+      await rejected;
+    });
+  });
+
   it("accepts the Cicero versions Cicero itself does: 2.0 and later, not 1.x or 0.x", async () => {
     expect(await ciceroAccepts("^2.0.0")).toBe(true);
     expect(await ciceroAccepts("^3.0.0")).toBe(true);
