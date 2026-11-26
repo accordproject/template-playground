@@ -111,4 +111,20 @@ describe('ImportTemplates', () => {
     await waitFor(() => expect(loadImportedTemplate).toHaveBeenCalled(), SLOW);
     expect(fetchMock).toHaveBeenCalledWith('https://templates.accordproject.org/archives/late-fees@1.0.0.cta', expect.anything());
   }, 30_000);
+
+  it('lets the user retry after the library index fails to load', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('network unavailable'))
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) });
+    vi.stubGlobal('fetch', fetchMock);
+    render(<ImportTemplates />);
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.library.button }));
+
+    expect(await screen.findByText(IMPORT.library.loadFailed('network unavailable'), undefined, SLOW)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: IMPORT.library.retry }));
+
+    expect(await screen.findByText(IMPORT.library.empty, undefined, SLOW)).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  }, 30_000);
 });

@@ -94,6 +94,7 @@ const LibraryModal = ({ open, onClose }: LibraryModalProps) => {
   };
   const [templates, setTemplates] = useState<LibraryTemplate[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [filter, setFilter] = useState<LibraryFilter>(EMPTY_FILTER);
   const update = (patch: Partial<LibraryFilter>) => setFilter((f) => ({ ...f, ...patch }));
 
@@ -107,7 +108,12 @@ const LibraryModal = ({ open, onClose }: LibraryModalProps) => {
     return () => {
       cancelled = true;
     };
-  }, [open, templates, library]);
+  }, [open, templates, library, loadAttempt]);
+
+  const retryLoad = () => {
+    setLoadError(null);
+    setLoadAttempt((attempt) => attempt + 1);
+  };
 
   const tags = useMemo(() => libraryTags((templates ?? []).filter((t) => !t.archived)), [templates]);
   const shown = useMemo(() => filterTemplates(templates ?? [], filter), [templates, filter]);
@@ -203,7 +209,10 @@ const LibraryModal = ({ open, onClose }: LibraryModalProps) => {
           {IMPORT.library.compatibleNote}
         </Typography.Text>
         {loadError ? (
-          <Typography.Text type="danger">{IMPORT.library.loadFailed(loadError)}</Typography.Text>
+          <Space direction="vertical" size={8}>
+            <Typography.Text type="danger">{IMPORT.library.loadFailed(loadError)}</Typography.Text>
+            <Button onClick={retryLoad}>{IMPORT.library.retry}</Button>
+          </Space>
         ) : !templates ? (
           <Space>
             <Spin size="small" />

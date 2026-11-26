@@ -662,6 +662,7 @@ export const IMPORT = {
     loading: "Loading the library…",
     empty: "No templates match.",
     loadFailed: (reason: string) => `The library could not be loaded: ${reason}`,
+    retry: "Try again",
     pick: (name: string, version: string) => `Import ${name} ${version}`,
     use: "Import",
   },
