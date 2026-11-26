@@ -4,6 +4,36 @@ import { prepareAgreementHtml } from "./agreementHtml";
 export const AGREEMENT_PDF_FILE = "agreement.pdf";
 
 /**
+ * html2canvas draws list markers on the left whatever the list's direction,
+ * so in a right-to-left list the bullets and numbers end up far from their
+ * text. For the PDF, those lists get their markers as text at the start of
+ * each item instead, which lands them right beside it, on the right.
+ */
+export const inlineRtlListMarkers = (page: HTMLElement) => {
+  page.querySelectorAll<HTMLElement>('ul[dir="rtl"], ol[dir="rtl"]').forEach((list) => {
+    const ordered = list.tagName === "OL";
+    const start = ordered ? Number(list.getAttribute("start") ?? 1) || 1 : 1;
+    list.style.listStyle = "none";
+    list.style.paddingLeft = "0";
+    list.style.paddingRight = "1.5em";
+    Array.from(list.children)
+      .filter((item) => item.tagName === "LI")
+      .forEach((item, i) => {
+        const marker = document.createElement("span");
+        marker.className = "nd-pdf-list-marker";
+        marker.setAttribute("aria-hidden", "true");
+        marker.textContent = ordered ? `${start + i}. ` : "• ";
+        // A loose list wraps each item's text in a paragraph; put the marker in it.
+        const first = item.firstElementChild;
+        const textBefore = first && Array.from(item.childNodes).slice(0, Array.from(item.childNodes).indexOf(first));
+        const isLoose = first?.tagName === "P" && textBefore?.every((n) => !n.textContent?.trim());
+        const target = isLoose && first ? first : item;
+        target.insertBefore(marker, target.firstChild);
+      });
+  });
+};
+
+/**
  * Saves rendered agreement HTML as an A4 PDF: sanitised, black on white, in
  * an element of its own rather than whatever the page is showing. Callers
  * pass HTML rendered afresh (store.renderAgreement), so a PDF never holds an
@@ -15,6 +45,7 @@ export const saveAgreementPdf = async (html: string, fileName: string = AGREEMEN
   page.className = "nd-preview-page";
   page.style.cssText = "background:#fff;color:#000;padding:16px";
   page.innerHTML = prepareAgreementHtml(html);
+  inlineRtlListMarkers(page);
   await html2pdf()
     .set({
       margin: 10,

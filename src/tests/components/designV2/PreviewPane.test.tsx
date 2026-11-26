@@ -52,8 +52,8 @@ describe('PreviewPane', () => {
         '<p dir="ltr">Kept as written</p>',
     });
     renderPane();
-    expect(screen.getByRole('heading', { name: 'البند 6. القانون الواجب التطبيق' })).toHaveAttribute('dir', 'auto');
-    expect(screen.getByText(/يخضع هذا العقد/)).toHaveAttribute('dir', 'auto');
+    expect(screen.getByRole('heading', { name: 'البند 6. القانون الواجب التطبيق' })).toHaveAttribute('dir', 'rtl');
+    expect(screen.getByText(/يخضع هذا العقد/)).toHaveAttribute('dir', 'rtl');
     // An explicit direction in the template is left alone.
     expect(screen.getByText('Kept as written')).toHaveAttribute('dir', 'ltr');
   });
@@ -157,7 +157,26 @@ describe('PreviewPane', () => {
     expect(page.innerHTML).toContain('Fresh terms');
     expect(page.innerHTML).not.toContain('Stale terms');
     expect(page.querySelector('script')).toBeNull();
-    expect(page.querySelector('p')).toHaveAttribute('dir', 'auto');
+    expect(page.querySelector('p')).toHaveAttribute('dir', 'ltr');
+  });
+
+  it('puts the markers of a right-to-left list beside their text in the PDF', async () => {
+    useAppStore.setState({
+      agreementHtml: '<p>x</p>',
+      agreementRevision: 0,
+      renderAgreement: vi.fn().mockResolvedValue('<ol start="3"><li>البند الأول</li><li>البند الثاني</li></ol><ul><li>English item</li></ul>'),
+    });
+    renderPane();
+    fireEvent.click(pdfButton());
+    await waitFor(() => expect(html2pdf.chain.save).toHaveBeenCalledTimes(1));
+    const page = (html2pdf.chain.from.mock.calls as unknown[][])[0][0] as HTMLElement;
+    const ol = page.querySelector('ol') as HTMLElement;
+    expect(ol).toHaveAttribute('dir', 'rtl');
+    expect(ol.style.listStyle).toBe('none');
+    expect(Array.from(ol.querySelectorAll('li')).map((li) => li.textContent)).toEqual(['3. البند الأول', '4. البند الثاني']);
+    // A left-to-right list keeps its native markers.
+    expect(page.querySelector('ul')).toHaveAttribute('dir', 'ltr');
+    expect(page.querySelector('ul .nd-pdf-list-marker')).toBeNull();
   });
 
   it('saves no PDF when the current sources do not render', async () => {
