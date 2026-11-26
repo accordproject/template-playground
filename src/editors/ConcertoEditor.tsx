@@ -6,6 +6,7 @@ import useThemeName from "../hooks/useThemeName";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
+import defineEditorThemes from "./editorThemes";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -45,6 +46,8 @@ const concertoTypes = [
 ];
 
 const handleEditorWillMount = (monacoInstance: typeof monaco) => {
+  defineEditorThemes(monacoInstance);
+
   monacoInstance.languages.register({
     id: "concerto",
     extensions: [".cto"],

@@ -5,6 +5,7 @@ import useThemeName from "../hooks/useThemeName";
 import { useCodeSelection } from "../components/CodeSelectionMenu";
 import { registerAutocompletion } from "../ai-assistant/autocompletion";
 import { registerEditor, unregisterEditor } from "../utils/editorNavigation";
+import defineEditorThemes from "./editorThemes";
 
 const MonacoEditor = lazy(() =>
   import("@monaco-editor/react").then((mod) => ({ default: mod.Editor }))
@@ -67,6 +68,7 @@ export default function JSONEditor({
    * would register another one.
    */
   const handleEditorWillMount = (monacoInstance: typeof monaco) => {
+    defineEditorThemes(monacoInstance);
     if (monacoInstance && !readOnly) {
       registerAutocompletion('json', monacoInstance);
     }
