@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Button, Space, Spin, Typography, message } from "antd";
-import DOMPurify from "dompurify";
 import useAppStore, { currentRenderRevision } from "../../store/store";
 import { downloadMarkdown } from "../../utils/download";
 import { saveAgreementPdf } from "../../utils/agreementPdf";
+import { prepareAgreementHtml } from "../../utils/agreementHtml";
 import { PREVIEW } from "./constants";
 
 /**
@@ -99,7 +99,7 @@ const PreviewPane = () => {
         {agreementHtml ? (
           <div
             className={`nd-preview-page ${isStale ? "nd-preview-page-stale" : ""}`}
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agreementHtml) }}
+            dangerouslySetInnerHTML={{ __html: prepareAgreementHtml(agreementHtml) }}
           />
         ) : (
           <div className="nd-preview-page">
