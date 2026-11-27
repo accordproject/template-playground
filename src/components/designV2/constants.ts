@@ -276,6 +276,9 @@ export const LOGIC = {
   typesFound: (request: string, response: string) => `${request} → ${response}`,
   typesMissing: "not in model.cto",
   typesMissingHint: "Declare a request and a response transaction in model.cto",
+  /** Tag when model.cto has errors, so its transactions can't be read yet. */
+  typesUnchecked: "fix model.cto first",
+  typesUncheckedHint: "model.cto has errors; fix them in the Data step to find its request and response",
   /** Shown in place of the editor while there is no logic; the button writes the model-based skeleton. */
   empty: {
     title: "This template has no logic",

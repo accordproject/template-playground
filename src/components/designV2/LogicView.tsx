@@ -55,8 +55,15 @@ export const LogicView = () => {
 
   const model = useMemo(() => describeLogicModel(modelCto), [modelCto]);
   const typesOk = Boolean(model?.request && model?.response);
+  // describeLogicModel gives null for a model.cto that doesn't parse; its transactions may well be there.
+  const modelBroken = model === null && modelCto.trim() !== "";
   const typesTag =
-    model?.request && model.response ? LOGIC.typesFound(model.request.name, model.response.name) : LOGIC.typesMissing;
+    model?.request && model.response
+      ? LOGIC.typesFound(model.request.name, model.response.name)
+      : modelBroken
+        ? LOGIC.typesUnchecked
+        : LOGIC.typesMissing;
+  const typesHint = typesOk ? LOGIC.chips.types.hint : modelBroken ? LOGIC.typesUncheckedHint : LOGIC.typesMissingHint;
 
   const status = logicStatus({ editorLogicTs, logicTs, isCompiling, compilationErrors, compiledLogicJs });
   const pair = PAIR[status];
@@ -105,7 +112,7 @@ export const LogicView = () => {
               <span className="nd-badge nd-badge-blue">{LOGIC.badge}</span>
               <span className="nd-mono nd-editor-file">{LOGIC.file}</span>
               <ol className="nd-logic-chips" aria-label={LOGIC.chipsLabel}>
-                <li className="nd-logic-chip" title={typesOk ? LOGIC.chips.types.hint : LOGIC.typesMissingHint}>
+                <li className="nd-logic-chip" title={typesHint}>
                   <span className={`nd-check-icon nd-check-icon-${typesOk ? "done" : "todo"}`} aria-hidden="true">
                     {typesOk ? "✓" : "○"}
                   </span>
