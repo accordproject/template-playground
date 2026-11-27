@@ -1,5 +1,11 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Button, Space, Typography, message } from "antd";
+import {
+  CheckOutlined,
+  CloseOutlined,
+  LoadingOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import useAppStore from "../../store/store";
 import useDesignV2Store from "../../store/designV2Store";
 import LogicMonaco from "../../editors/LogicMonaco";
@@ -11,13 +17,13 @@ import { logicStatus, type LogicStatus } from "./logicStatus";
 import { useCompileOnArrival } from "./useCompileOnArrival";
 
 /** Icon and tone of the "init() & trigger()" chip for each compile state. */
-const PAIR: Record<LogicStatus, { icon: string; tone: ChecklistTone }> = {
-  compiled: { icon: "✓", tone: "done" },
-  failed: { icon: "✕", tone: "error" },
-  compiling: { icon: "◌", tone: "todo" },
-  dirty: { icon: "◉", tone: "todo" },
-  notCompiled: { icon: "◉", tone: "todo" },
-  empty: { icon: "○", tone: "todo" },
+const PAIR: Record<LogicStatus, { icon: React.ReactNode; tone: ChecklistTone }> = {
+  compiled: { icon: <CheckOutlined />, tone: "done" },
+  failed: { icon: <CloseOutlined />, tone: "error" },
+  compiling: { icon: <LoadingOutlined spin />, tone: "todo" },
+  dirty: { icon: <ExclamationCircleOutlined />, tone: "todo" },
+  notCompiled: { icon: <ExclamationCircleOutlined />, tone: "todo" },
+  empty: { icon: <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", border: "1.5px solid currentColor" }} />, tone: "todo" },
 };
 
 /**
@@ -107,7 +113,7 @@ export const LogicView = () => {
               <ol className="nd-logic-chips" aria-label={LOGIC.chipsLabel}>
                 <li className="nd-logic-chip" title={typesOk ? LOGIC.chips.types.hint : LOGIC.typesMissingHint}>
                   <span className={`nd-check-icon nd-check-icon-${typesOk ? "done" : "todo"}`} aria-hidden="true">
-                    {typesOk ? "✓" : "○"}
+                    {typesOk ? <CheckOutlined /> : <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", border: "1.5px solid currentColor" }} />}
                   </span>
                   <span className="nd-mono nd-logic-chip-label">{LOGIC.chips.types.label}</span>
                   <span className={`nd-logic-chip-tag nd-logic-chip-tag-${typesOk ? "done" : "todo"}`}>{typesTag}</span>
