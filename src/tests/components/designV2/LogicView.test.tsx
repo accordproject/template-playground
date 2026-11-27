@@ -103,6 +103,15 @@ describe('LogicView', () => {
     expect(rail().getByText(LOGIC.chips.types.label).closest('li')).not.toHaveClass('nd-check-done');
   });
 
+  it('asks to fix model.cto, not to declare the types, while model.cto has errors', () => {
+    useAppStore.setState({ modelCto: latePayment.MODEL + '\nconcept Oops {' });
+    render(<LogicView />);
+    const chip = pane().getByText(LOGIC.chips.types.label).closest('li');
+    expect(pane().getByText(LOGIC.typesUnchecked)).toBeInTheDocument();
+    expect(pane().queryByText(LOGIC.typesMissing)).not.toBeInTheDocument();
+    expect(chip).toHaveAttribute('title', LOGIC.typesUncheckedHint);
+  });
+
   it('the types row points back at the Data step', () => {
     render(<LogicView />);
     fireEvent.click(pane().getByRole('button', { name: LOGIC.chips.types.action }));
