@@ -172,7 +172,7 @@ const PRIMITIVE_PLACEHOLDER: Record<string, string> = {
   Long: "0",
   Double: "0",
   Boolean: "false",
-  DateTime: "new Date()",
+  DateTime: "new Date().toISOString()",
 };
 
 /** A first value for a field, with the type as a comment when it is not a primitive. */

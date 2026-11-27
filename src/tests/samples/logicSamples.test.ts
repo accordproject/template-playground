@@ -72,6 +72,49 @@ describe('the Logic step skeleton', () => {
       expect(response.result?.$class).toBeTruthy();
     }, 60000);
   }
+
+  it('compiles and runs for a model with required DateTime fields on State and Response', async () => {
+    const model = `namespace org.example.datetime@1.0.0
+
+import org.accordproject.runtime@0.2.0.{Request,Response,State} from https://models.accordproject.org/accordproject/runtime@0.2.0.cto
+
+@template
+concept DateAgreement {
+  o String party
+}
+
+transaction DateRequest extends Request {
+  o DateTime requestedAt
+}
+
+transaction DateResponse extends Response {
+  o DateTime respondedAt
+}
+
+asset DateState extends State {
+  o DateTime initializedAt
+}
+`;
+    const template = `Party: {{party}}`;
+    const skeleton = scaffoldFromModel(describeLogicModel(model));
+    const state = await compile(model, template, skeleton);
+    expect(state.compilationErrors).toEqual([]);
+    expect(state.compiledLogicJs).toBeTruthy();
+
+    const logic = new (loadLogicClass(state.compiledLogicJs!))();
+    const data = { $class: 'org.example.datetime@1.0.0.DateAgreement', party: 'Alice' };
+    const initResponse = await logic.init!(data);
+    const initState = initResponse?.state as { initializedAt?: unknown } | undefined;
+    expect(typeof initState?.initializedAt).toBe('string');
+
+    const response = await logic.trigger(
+      data,
+      { $class: 'org.example.datetime@1.0.0.DateRequest', requestedAt: new Date().toISOString() },
+      initResponse?.state,
+    );
+    const result = response.result as { respondedAt?: unknown } | undefined;
+    expect(typeof result?.respondedAt).toBe('string');
+  }, 60000);
 });
 
 describe('compileLogic output', () => {
