@@ -98,6 +98,8 @@ interface AppState {
   setActiveTab: (tab: "build" | "simulate") => void;
   templateMarkdown: string;
   editorValue: string;
+  /** Advances when a sample, shared link, or archive replaces the template. */
+  templateGeneration: number;
   modelCto: string;
   editorModelCto: string;
   data: string;
@@ -652,28 +654,18 @@ export const currentExportRevision = () => exportSourceRevision;
 
 /** Id of the latest compileLogic run; older runs drop their result (see compileLogic). */
 let latestCompileRun = 0;
-/**
- * Generation of the template sources, bumped each time they are replaced (a
- * sample or a shared link is loaded). Work started for one template — such
- * as the design-v2 gate in front of Simulate — compares it to cancel itself
- * once the template has changed underneath it.
- */
-let templateGeneration = 0;
-export const currentTemplateGeneration = () => templateGeneration;
 /** Id of the latest buildTemplateFromMemory call; older builds do not update templateObject. */
 let latestTemplateBuild = 0;
 /**
  * Called when the template sources are replaced: drops the result of any
  * compilation still running, so a compile of the discarded logic cannot
  * publish into the new template, cancels template builds still running, so
- * none can put the discarded template back in templateObject, and starts a
- * new template generation. The caller resets the cached template itself
- * (TEMPLATE_CACHE_RESET) in the same update as the new sources.
+ * none can put the discarded template back in templateObject. The caller
+ * resets the cache and advances the generation when it publishes the new sources.
  */
 const invalidateCompilations = () => {
   latestCompileRun++;
   latestTemplateBuild++;
-  templateGeneration++;
 };
 
 /**
@@ -716,6 +708,7 @@ const useAppStore = create<AppState>()(
         importedData: null,
         templateMarkdown: playground.TEMPLATE,
         editorValue: playground.TEMPLATE,
+        templateGeneration: 0,
         modelCto: playground.MODEL,
         editorModelCto: playground.MODEL,
         data: JSON.stringify(playground.DATA, null, 2),
@@ -948,8 +941,9 @@ const useAppStore = create<AppState>()(
             const defaultRequest = '{\n  "$class": "org.acme.counter@1.0.0.CounterRequest",\n  "increment": 1\n}';
             const requestJson = sample.REQUEST ? JSON.stringify(sample.REQUEST, null, 2) : defaultRequest;
             invalidateCompilations();
-            set(() => ({
+            set((state) => ({
               ...TEMPLATE_CACHE_RESET,
+              templateGeneration: state.templateGeneration + 1,
               sampleName: sample.NAME,
               importedData: null,
               agreementHtml: undefined,
@@ -1176,8 +1170,9 @@ const useAppStore = create<AppState>()(
           get().resetExecution();
           // Compiles still running belong to the previous template (see invalidateCompilations).
           invalidateCompilations();
-          set(() => ({
+          set((state) => ({
             ...TEMPLATE_CACHE_RESET,
+            templateGeneration: state.templateGeneration + 1,
             sampleName: importedTemplateName(name),
             importedData: data,
             // The previous template's request means nothing to this one.
@@ -1890,6 +1885,8 @@ useAppStore.subscribe((state, previous) => {
     exportSourceRevision++;
   }
 });
+
+export const currentTemplateGeneration = () => useAppStore.getState().templateGeneration;
 
 export default useAppStore;
 

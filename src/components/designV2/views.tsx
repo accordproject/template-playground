@@ -1,4 +1,5 @@
-import { Button } from "antd";
+import { useEffect, useState } from "react";
+import { Button, Row } from "antd";
 import { ModelDataView } from "./ModelDataView";
 import { TextView } from "./TextView";
 import { LogicView } from "./LogicView";
@@ -170,11 +171,37 @@ interface ViewSwitchProps {
 }
 
 export const ViewSwitch = ({ view, onStart }: ViewSwitchProps) => {
+  const templateGeneration = useAppStore((s) => s.templateGeneration);
+  const textActive = view !== "welcome" && STEP_KEY[view] === "text";
+
+  return (
+    <>
+      <TextSession key={templateGeneration} active={textActive} />
+      {!textActive && <OtherView view={view} onStart={onStart} />}
+    </>
+  );
+};
+
+/** Keep the Text editor (and Monaco's undo stack) alive only for this template. */
+const TextSession = ({ active }: { active: boolean }) => {
+  const [visited, setVisited] = useState(false);
+  useEffect(() => {
+    if (active) setVisited(true);
+  }, [active]);
+
+  if (!active && !visited) return null;
+  return (
+    <Row wrap={false} style={{ display: active ? "flex" : "none", flex: 1, minWidth: 0, minHeight: 0 }}>
+      <TextView />
+    </Row>
+  );
+};
+
+const OtherView = ({ view, onStart }: ViewSwitchProps) => {
   if (view === "welcome") return <WelcomeView onStart={onStart} />;
   const key = STEP_KEY[view];
   if (key === "template") return <StartView />;
   if (key === "modelData") return <ModelDataView />;
-  if (key === "text") return <TextView />;
   if (key === "logic") return <LogicView />;
   if (key === "simulate") return <SimulateView />;
   return <DeployView />;
