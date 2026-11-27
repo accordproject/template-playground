@@ -1,22 +1,42 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Button, Card, ConfigProvider, Divider, Space, Spin, Typography, theme } from 'antd';
+import { CloseOutlined, InfoCircleOutlined, MessageOutlined } from '@ant-design/icons';
 import { sendMessage } from '../ai-assistant/chatRelay';
 import { CodeSelectionMenuProps } from '../types/components/AIAssistant.types';
 import useAppStore from '../store/store';
 import ReactMarkdown from "react-markdown";
 import * as monaco from 'monaco-editor';
 
-const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
+const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = (props) => {
+  const backgroundColor = useAppStore((state) => state.backgroundColor);
+  const isDarkMode = backgroundColor === '#121212';
+
+  return (
+    <ConfigProvider
+      theme={{
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
+      <CodeSelectionMenuContent {...props} />
+    </ConfigProvider>
+  );
+};
+
+const CodeSelectionMenuContent: React.FC<CodeSelectionMenuProps> = ({
   selectedText,
   position,
   onClose,
   editorType,
 }) => {
+  const { token } = theme.useToken();
   const [showExplanation, setShowExplanation] = useState(false);
   const [explanation, setExplanation] = useState('');
   const [isExplaining, setIsExplaining] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const explanationRef = useRef<HTMLDivElement>(null);
-  const { aiConfig, setSettingsOpen, setAIChatOpen } = useAppStore();
+  const aiConfig = useAppStore((state) => state.aiConfig);
+  const setSettingsOpen = useAppStore((state) => state.setSettingsOpen);
+  const setAIChatOpen = useAppStore((state) => state.setAIChatOpen);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const handleClose = useCallback(() => {
@@ -149,68 +169,81 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
     return (
       <div
         ref={explanationRef}
-        className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-md z-50"
         style={{
+          position: 'fixed',
           left: popupPosition.left,
           top: popupPosition.top,
           maxHeight: '80vh',
-          maxWidth: '80vw',
+          maxWidth: 'min(28rem, 80vw)',
+          zIndex: 50,
         }}
       >
-        <button
-          onClick={handleClose}
-          className="absolute top-0.5 right-0.5 text-gray-400 hover:text-gray-600 w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 transition-colors"
-          aria-label="Close explanation"
+        <Card
+          size="small"
+          bodyStyle={{ padding: 16, position: 'relative' }}
+          style={{
+            boxShadow: token.boxShadowSecondary,
+          }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <div className={`max-h-64 pr-6 ${isExplaining ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-          {isExplaining ? (
-            <div className="flex items-center text-gray-500 text-sm">
-              <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Explaining...
-            </div>
-          ) : (
-            <div className="text-sm text-gray-700 prose lg:prose-md">
-              <ReactMarkdown
-                components={{
-                  pre: ({ children }) => {
-                    return (
-                      <pre className="[&_code]:bg-transparent">
+          <Button
+            type="text"
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={handleClose}
+            aria-label="Close explanation"
+            style={{ position: 'absolute', top: 4, right: 4 }}
+          />
+          <div
+            style={{
+              maxHeight: 256,
+              paddingRight: 24,
+              overflowY: isExplaining ? 'hidden' : 'auto',
+            }}
+          >
+            {isExplaining ? (
+              <Space align="center" size={8}>
+                <Spin size="small" />
+                <Typography.Text type="secondary" style={{ fontSize: 14 }}>
+                  Explaining...
+                </Typography.Text>
+              </Space>
+            ) : (
+              <Typography.Text style={{ fontSize: 14, display: 'block' }}>
+                <ReactMarkdown
+                  components={{
+                    pre: ({ children }) => (
+                      <pre
+                        style={{
+                          backgroundColor: token.colorFillTertiary,
+                          padding: 8,
+                          borderRadius: token.borderRadiusSM,
+                          overflowX: 'auto',
+                        }}
+                      >
                         {children}
                       </pre>
-                    );
-                  },
-                  code: ({ children, className }) => {
-                    return (
-                      <code className={`bg-gray-200 p-1 rounded-md before:content-[''] after:content-[''] ${className || ''}`}>
+                    ),
+                    code: ({ children, className }) => (
+                      <code
+                        className={className}
+                        style={{
+                          backgroundColor: token.colorFillSecondary,
+                          color: token.colorText,
+                          padding: '2px 4px',
+                          borderRadius: token.borderRadiusSM,
+                        }}
+                      >
                         {children}
                       </code>
-                    );
-                  }
-              }}>
-                {explanation}
-              </ReactMarkdown>
-            </div>
-          )}
-        </div>
+                    ),
+                  }}
+                >
+                  {explanation}
+                </ReactMarkdown>
+              </Typography.Text>
+            )}
+          </div>
+        </Card>
       </div>
     );
   }
@@ -218,31 +251,44 @@ const CodeSelectionMenu: React.FC<CodeSelectionMenuProps> = ({
   return (
     <div
       ref={menuRef}
-      className="twp fixed bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 flex"
-      style={{ 
-        left: Math.max(10, Math.min(225, window.innerWidth - 150)), 
+      data-testid="code-selection-menu"
+      style={{
+        position: 'fixed',
+        left: Math.max(10, Math.min(225, window.innerWidth - 150)),
         top: Math.max(10, Math.min(position.y, window.innerHeight - 50)),
-        minWidth: '120px'
+        minWidth: 120,
+        zIndex: 50,
       }}
     >
-      <button
-        onClick={() => void handleExplain()}
-        className="flex-1 px-1 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-center border-r border-gray-200"
+      <Card
+        size="small"
+        bodyStyle={{ padding: 4 }}
+        style={{
+          boxShadow: token.boxShadowSecondary,
+        }}
       >
-        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Explain
-      </button>
-      <button
-        onClick={() => void handleChat()}
-        className="flex-1 px-1 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-center"
-      >
-        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-4.126-.98L3 21l1.98-5.874A8.955 8.955 0 013 12a8 8 0 018-8c4.418 0 8 3.582 8 8z" />
-        </svg>
-        Chat
-      </button>
+        <Space align="center" size={0} style={{ display: 'flex', width: '100%' }}>
+          <Button
+            type="text"
+            size="small"
+            icon={<InfoCircleOutlined />}
+            onClick={() => void handleExplain()}
+            style={{ flex: 1 }}
+          >
+            Explain
+          </Button>
+          <Divider type="vertical" style={{ margin: '0 2px' }} />
+          <Button
+            type="text"
+            size="small"
+            icon={<MessageOutlined />}
+            onClick={() => void handleChat()}
+            style={{ flex: 1 }}
+          >
+            Chat
+          </Button>
+        </Space>
+      </Card>
     </div>
   );
 };
