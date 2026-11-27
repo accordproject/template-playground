@@ -107,9 +107,12 @@ const RunDetail = ({ run, busy, onRerun, onOpenLogic }: RunDetailProps) => {
           <span className="nd-mono nd-sim-error-at">
             {run.stage === "parse" ? SIMULATE.notSent : SIMULATE.thrownIn(run.method)}
           </span>
-          <Button type="link" size="small" className="nd-sim-error-link" onClick={onOpenLogic}>
-            {SIMULATE.openTrigger}
-          </Button>
+          {/* A message that wasn't valid JSON never reached trigger(); the fix is in the message, not the logic. */}
+          {run.stage !== "parse" && (
+            <Button type="link" size="small" className="nd-sim-error-link" onClick={onOpenLogic}>
+              {SIMULATE.openTrigger}
+            </Button>
+          )}
         </div>
       ) : (
         <JsonView id="simulate-response" value={pretty(run.response)} />
