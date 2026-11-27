@@ -330,6 +330,7 @@ describe('SimulateView', () => {
       expect(screen.getByText(parseFailedRun.error!)).toBeInTheDocument();
       expect(screen.getByText(SIMULATE.notSent)).toBeInTheDocument();
       expect(screen.queryByText(SIMULATE.thrownIn('trigger'))).toBeNull();
+      expect(screen.queryByRole('button', { name: SIMULATE.openTrigger })).toBeNull();
     });
 
     it('selecting a run pins it and shows its request, response, state and events', () => {
