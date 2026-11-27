@@ -78,8 +78,11 @@ export const writeTemplateFiles = async (
     for (const part of parts) dir = await dir.getDirectoryHandle(part, { create: true });
     const file = await dir.getFileHandle(fileName, { create: true });
     const writable = await file.createWritable();
-    await writable.write(contents);
-    await writable.close();
+    try {
+      await writable.write(contents);
+    } finally {
+      await writable.close();
+    }
   }
   return root.name;
 };
