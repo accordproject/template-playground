@@ -86,6 +86,34 @@ describe('scaffoldFromModel', () => {
     expect(src).toContain('sellerMayTerminate: false,');
   });
 
+  it('uses ISO strings for DateTime fields in generated init() and trigger() skeletons', () => {
+    const modelWithDateTime = `namespace org.example.datetime@1.0.0
+
+import org.accordproject.runtime@0.2.0.{Request,Response,State} from https://models.accordproject.org/accordproject/runtime@0.2.0.cto
+
+@template
+concept Agreement {
+  o String party
+}
+
+transaction PingRequest extends Request {
+  o DateTime sentAt
+}
+
+transaction PingResponse extends Response {
+  o DateTime recordedAt
+}
+
+asset PingState extends State {
+  o DateTime lastUpdated
+}
+`;
+    const src = scaffoldFromModel(describeLogicModel(modelWithDateTime));
+    expect(src).toContain('lastUpdated: new Date().toISOString(),');
+    expect(src).toContain('recordedAt: new Date().toISOString(),');
+    expect(src).not.toMatch(/:\s*new Date\(\),/);
+  });
+
   it('gives the state the runtime State $class when the model declares no state asset', () => {
     expect(DEFAULT_LOGIC_BOILERPLATE).toContain("$class: 'org.accordproject.runtime@0.2.0.State'");
     expect(DEFAULT_LOGIC_BOILERPLATE).toContain('$timestamp: new Date().toISOString(),');
