@@ -16,8 +16,8 @@ This repository is the **Accord Project Template Playground** - a web-based IDE 
 - **Testing**: 
   - Unit: Vitest with jsdom and Testing Library
   - E2E: Playwright with 30s timeouts and localStorage presets
-- **Routing**: React Router v6 with hash-based routing for shareable links
-- **AI Integrations**: OpenAI, Anthropic, Google Genai, Mistral AI SDKs
+- **Routing**: React Router v6 (`BrowserRouter`) with `#data=` URL hash fragments for shareable links
+- **AI Integrations**: OpenAI, Anthropic, Google Genai, Mistral AI, Groq, OpenRouter SDKs
 - **Core Dependencies**: @accordproject/concerto-core, @accordproject/template-engine, @accordproject/markdown-template, @accordproject/markdown-transform
 
 ### File Structure
@@ -154,21 +154,21 @@ import { App as AntdApp, Layout } from "antd";
 
 // 2. Local components
 import Navbar from "./components/Navbar";
-import SampleDropdown from "./components/SampleDropdown";
+import PlaygroundSidebar from "./components/PlaygroundSidebar";
 
 // 3. Types and interfaces
-import type { AIConfig, Message } from "./types";
+import type { AIConfig, Message } from "./types/components/AIAssistant.types";
 
 // 4. Utilities and hooks
 import useAppStore from "./store/store";
-import { compressData, decompressData } from "./utils/compression";
+import { compress, decompress } from "./utils/compression/compression";
 
 // 5. Styles
 import "./styles/App.css";
 ```
 
 ### Naming Conventions
-- **Components**: PascalCase (e.g., `SampleDropdown.tsx`, `AgreementHtml.tsx`)
+- **Components**: PascalCase (e.g., `PlaygroundSidebar.tsx`, `AgreementHtml.tsx`)
 - **Utilities**: camelCase (e.g., `chatRelay.ts`, `autocompletion.ts`)
 - **Types/Interfaces**: PascalCase, optionally prefixed with `I` (e.g., `IMessage`, `AIConfig`)
 - **Constants**: UPPER_SNAKE_CASE for sample exports (e.g., `MODEL`, `TEMPLATE`, `DATA`)
@@ -233,7 +233,7 @@ export default useAppStore;
 ### Critical Store Patterns
 1. **Shareable Link State**: `agreementHtml` must be included in shareable link compression (PR #90 issue)
 2. **Debouncing**: `rebuild()` is debounced to 500ms - avoid calling directly in tight loops
-3. **Error State**: Prefix errors with context: `"c:"` for Concerto, `"t:"` for Template
+3. **Error State**: Store template/model/data validation and render errors in `error` via `formatError()`, and logic compilation/execution errors in `compilationErrors`
 4. **Immutable Updates**: Use immer's draft API, don't mutate state directly
 5. **Theme Management**: `backgroundColor` and `textColor` stored for dynamic Ant Design theming
 
@@ -301,7 +301,7 @@ export default useAppStore;
 ### TemplateMark Templates
 - **Syntax**: Natural language with `{{variable}}` placeholders and `{{#blocks}}`
 - **Context Scoping**: Known issue with `{{#if}}` and `{{#optional}}` blocks losing parent context (Issue #2)
-- **Validation**: Errors prefixed with `"t:"` in store
+- **Validation**: Errors are formatted via `formatError()` and stored in `error` in the store
 - **Line Wrapping**: Toggle available for long template lines
 
 ### Template Engine Integration
@@ -333,7 +333,7 @@ export const TEMPLATE = `Hello {{name}}!`;
 ## AI Assistant Features
 
 ### Provider Integration
-- **Supported**: OpenAI, Anthropic, Google Genai, Mistral AI
+- **Supported**: OpenAI, Anthropic, Google Genai, Mistral AI, Groq, OpenRouter
 - **Persistence**: API keys and config stored in localStorage (never committed)
 - **Streaming**: Use abort controllers for cancellable requests
 - **Context**: Include template, model, and data in AI prompts for better suggestions
@@ -394,15 +394,15 @@ export const TEMPLATE = `Hello {{name}}!`;
 ## CI/CD and Deployment
 
 ### GitHub Actions
-- **Node Version**: 20.x (LTS)
-- **Timeout**: 30 minutes for full workflow (build + test + e2e)
-- **Sequential**: Workflows run build → test → e2e in order
+- **Node Version**: 22.x
+- **Timeout**: 30 minutes per workflow
+- **Parallel PR Checks**: `pr-check.yml` (build), `test.yml` (unit tests), and `e2e.yml` (Playwright) run in parallel on pull requests
 - **Deployment**: Automatic to AWS S3 + CloudFront on `main` branch merges
 
 ### Build Requirements
 - **Memory**: 8GB allocation via `NODE_OPTIONS`
 - **Cross-Platform**: All scripts must work on Windows, macOS, and Linux
-- **Environment**: `.env` file not committed (use `.env.example` for documentation)
+- **Environment**: `.env` file not committed
 
 ---
 
@@ -443,7 +443,7 @@ When contributing code, ensure:
 - [ ] TypeScript strict mode satisfied (no `any` without justification)
 - [ ] Ant Design theme compatibility checked
 - [ ] Responsive design tested on mobile and desktop
-- [ ] Error handling implemented with context prefixes
+- [ ] Error handling implemented and surfaced via the store (`error` / `compilationErrors`)
 - [ ] State management uses Zustand immer pattern
 - [ ] Performance considerations applied (debouncing, memoization)
 - [ ] Accord Project branding and conventions followed
