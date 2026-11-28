@@ -14,7 +14,7 @@ import { failedRun, initRun, okRun } from './runFixtures';
 describe('Design v2 Footer', () => {
   const noop = vi.fn();
   beforeEach(() => {
-    useAppStore.setState({ error: undefined, executionHistory: [] });
+    useAppStore.setState({ error: undefined, compilationErrors: [], executionError: null, executionHistory: [] });
   });
 
   it('on Simulate: names the failed runs, otherwise no problems', () => {
@@ -45,5 +45,29 @@ describe('Design v2 Footer', () => {
     expect(screen.getByText(FOOTER.problem)).toBeInTheDocument();
     expect(screen.getByText('Invalid CTO model: Expected "-->", "@", "o"')).toBeInTheDocument();
     expect(screen.queryByText(FOOTER.noProblems)).not.toBeInTheDocument();
+  });
+
+  it('keeps Logic footer clean when only executionError or failed executionHistory exists', () => {
+    useAppStore.setState({
+      executionError: 'Execution Error: Contract must be initialized before triggering.',
+      executionHistory: [initRun, failedRun],
+      compilationErrors: [],
+    });
+    render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
+    expect(screen.getByText(FOOTER.noProblems)).toBeInTheDocument();
+    expect(screen.queryByText(FOOTER.problem)).not.toBeInTheDocument();
+  });
+
+  it('shows genuine compilation errors on the Logic step and executionError on Simulate', () => {
+    useAppStore.setState({ compilationErrors: [{ message: "Cannot find name 'foo'." }] });
+    const { rerender } = render(<Footer view={STEP_ID.logic} onBack={noop} onNext={noop} />);
+    expect(screen.getByText("Cannot find name 'foo'.")).toBeInTheDocument();
+
+    useAppStore.setState({
+      compilationErrors: [],
+      executionError: 'Execution Error: Contract must be initialized before triggering.',
+    });
+    rerender(<Footer view={STEP_ID.simulate} onBack={noop} onNext={noop} />);
+    expect(screen.getByText('Execution Error: Contract must be initialized before triggering.')).toBeInTheDocument();
   });
 });

@@ -28,6 +28,7 @@ describe('useAppStore - execution engine selection', () => {
       executionResponse: '',
       executionEvents: '',
       compilationErrors: [],
+      executionError: null,
       isProblemPanelVisible: false,
       isTemplateStateful: true,
       // Trigger is gated on init having run, so the shared fixture stands in
@@ -57,9 +58,10 @@ describe('useAppStore - execution engine selection', () => {
 
     expect(executeInSandbox).not.toHaveBeenCalled();
     expect(executeWithLLM).not.toHaveBeenCalled();
-    expect(useAppStore.getState().compilationErrors[0].message).toContain(
+    expect(useAppStore.getState().executionError).toContain(
       'No executable logic found and LLM fallback is disabled',
     );
+    expect(useAppStore.getState().compilationErrors).toEqual([]);
     expect(useAppStore.getState().isProblemPanelVisible).toBe(true);
   });
 
@@ -100,9 +102,10 @@ describe('useAppStore - execution engine selection', () => {
     await useAppStore.getState().triggerContract();
 
     expect(executeInSandbox).not.toHaveBeenCalled();
-    expect(useAppStore.getState().compilationErrors[0].message).toContain(
+    expect(useAppStore.getState().executionError).toContain(
       'Contract must be initialized before triggering',
     );
+    expect(useAppStore.getState().compilationErrors).toEqual([]);
   });
 
   /*
@@ -162,9 +165,10 @@ describe('useAppStore - execution engine selection', () => {
 
       expect(executeInSandbox).not.toHaveBeenCalled();
       expect(executeWithLLM).not.toHaveBeenCalled();
-      expect(useAppStore.getState().compilationErrors[0].message).toContain(
+      expect(useAppStore.getState().executionError).toContain(
         'Contract must be initialized before triggering',
       );
+      expect(useAppStore.getState().compilationErrors).toEqual([]);
     });
 
     it('leaves the artifacts alone when the mode does not actually change', () => {

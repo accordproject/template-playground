@@ -21,13 +21,20 @@ interface FooterProps {
 const Footer = ({ view, onBack, onNext }: FooterProps) => {
   const rebuildError = useAppStore((s) => s.error);
   const compilationErrors = useAppStore((s) => s.compilationErrors);
+  const executionError = useAppStore((s) => s.executionError);
   const isCompiling = useAppStore((s) => s.isCompiling);
   const executionHistory = useAppStore((s) => s.executionHistory);
   const canBack = view !== FIRST_STEP;
   const canNext = view !== LAST_STEP;
   const isLogic = view === STEP_ID.logic;
   const isSimulate = view === STEP_ID.simulate;
-  const error = rebuildError ?? (isLogic || isSimulate ? compilationErrors[0]?.message : undefined);
+  const error =
+    rebuildError ??
+    (isLogic
+      ? compilationErrors[0]?.message
+      : isSimulate
+        ? executionError ?? compilationErrors[0]?.message
+        : undefined);
   const runs = runStats(executionHistory);
   const failedRuns = isSimulate && runs.lastFailedId ? FOOTER.failedRuns(runs.failed, runs.lastFailedId) : undefined;
 
