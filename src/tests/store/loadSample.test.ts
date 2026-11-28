@@ -19,6 +19,8 @@ vi.mock('../../utils/validators', () => ({
 import useAppStore from '../../store/store';
 import { SAMPLES } from '../../samples';
 
+const settle = () => new Promise((r) => setTimeout(r, 0));
+
 describe('useAppStore.loadSample', () => {
   beforeEach(() => {
     sandbox.resolve = null;
@@ -34,7 +36,8 @@ describe('useAppStore.loadSample', () => {
     // Synchronously reset before rebuild resolves
     expect(useAppStore.getState().agreementHtml).toBe('');
 
-    sandbox.resolve?.({ html: '<p>Rebuilt</p>' });
+    await settle();
+    sandbox.resolve!({ html: '<p>Rebuilt</p>' });
     await pending;
   });
 });
