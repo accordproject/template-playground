@@ -5,7 +5,9 @@ export const downloadBlob = (blob: Blob, fileName: string) => {
   link.href = url;
   link.download = fileName;
   link.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 };
 
 /** File name of the rendered agreement as Markdown (Preview and the Deploy step). */

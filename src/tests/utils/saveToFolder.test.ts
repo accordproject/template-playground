@@ -73,4 +73,36 @@ describe("saveToFolder", () => {
         .recommendations,
     ).toContain("accordproject.concerto-vscode-extension");
   }, 60_000);
+
+  it("closes the writable stream even if writing contents rejects", async () => {
+    let closed = false;
+    const makeFolder = (name: string, tree = new Map<string, string>()): DirectoryHandle => ({
+      name,
+      getDirectoryHandle: (child: string, options?: { create?: boolean }) => {
+        const path = `${name}/${child}`;
+        if (!options?.create && ![...tree.keys()].some((k) => k.startsWith(`${path}/`)) && !tree.has(`${path}/`)) {
+          return Promise.reject(new DOMException("missing", "NotFoundError"));
+        }
+        tree.set(`${path}/`, "");
+        return Promise.resolve(makeFolder(path, tree));
+      },
+      getFileHandle: () =>
+        Promise.resolve({
+          createWritable: () =>
+            Promise.resolve({
+              write: () => Promise.reject(new Error("disk full")),
+              close: () => {
+                closed = true;
+                return Promise.resolve();
+              },
+            }),
+        }),
+    });
+
+    const parent = makeFolder("Docs");
+    await expect(
+      writeTemplateFiles(files({ "package.json": "{}" }), parent, "nda"),
+    ).rejects.toThrow("disk full");
+    expect(closed).toBe(true);
+  });
 });
