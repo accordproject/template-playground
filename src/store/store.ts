@@ -136,6 +136,8 @@ interface AppState {
     column?: number;
     length?: number;
   }[];
+  // Pre-execution guard error (when init/trigger cannot start and adds no history entry).
+  executionError: string | null;
   // Official Template object instance loaded from cicero-core
   templateObject: import("@accordproject/cicero-core").Template | null;
   // Reference to the sandbox iframe element
@@ -760,6 +762,7 @@ const useAppStore = create<AppState>()(
         compiledModelCto: null,
         isCompiling: false,
         compilationErrors: [],
+        executionError: null,
         templateObject: null,
         sandboxIframe: null,
         isSandboxReady: false,
@@ -772,7 +775,7 @@ const useAppStore = create<AppState>()(
         executionResponse: initialChainStep?.result ? JSON.stringify(initialChainStep.result, null, 2) : '',
 
         executionHistory: [],
-        clearExecutionHistory: () => set({ executionHistory: [] }),
+        clearExecutionHistory: () => set({ executionHistory: [], executionError: null }),
 
         llmExecutionMode: getInitialLLMExecutionMode(),
         setLLMExecutionMode: (mode: LLMMode) => {
@@ -806,6 +809,7 @@ const useAppStore = create<AppState>()(
             executionChain: [],
             selectedChainIndex: -1,
             executionHistory: [],
+            executionError: null,
           });
           persistChain([]);
         },
@@ -1623,7 +1627,7 @@ const useAppStore = create<AppState>()(
           if (!useTypeScript && !useLLM) {
             if (compiledLogicJs) return;
             set({
-              compilationErrors: [{ message: "Execution Error: No executable logic found and LLM fallback is disabled." }],
+              executionError: "Execution Error: No executable logic found and LLM fallback is disabled.",
               isProblemPanelVisible: true
             });
             return;
@@ -1636,7 +1640,7 @@ const useAppStore = create<AppState>()(
            * executionHistory, since a fresh init starts a fresh history too.
            */
           get().resetExecution();
-          set({ executingOperation: 'init' });
+          set({ executingOperation: 'init', executionError: null });
 
           const startedAt = Date.now();
           let parsedData: object = {};
@@ -1685,7 +1689,7 @@ const useAppStore = create<AppState>()(
               executionHistory: [historyEntry],
               isContractInitialized: true,
               lastExecutionEngine: useTypeScript ? ExecutionEngine.TypeScript : ExecutionEngine.LLM,
-              compilationErrors: []
+              executionError: null
             });
             syncChainDisplay(initStep);
             persistChain(chain);
@@ -1705,7 +1709,7 @@ const useAppStore = create<AppState>()(
                 durationMs: Date.now() - startedAt,
                 executedAt: new Date(startedAt).toISOString(),
               }],
-              compilationErrors: [{ message: `Execution Error: ${message}` }],
+              executionError: null,
               isProblemPanelVisible: true
             });
           } finally {
@@ -1723,7 +1727,7 @@ const useAppStore = create<AppState>()(
           if (!useTypeScript && !useLLM) {
             if (compiledLogicJs) return;
             set({
-              compilationErrors: [{ message: "Execution Error: No executable logic found and LLM fallback is disabled." }],
+              executionError: "Execution Error: No executable logic found and LLM fallback is disabled.",
               isProblemPanelVisible: true
             });
             return;
@@ -1738,7 +1742,7 @@ const useAppStore = create<AppState>()(
            */
           if (isTemplateStateful && !isContractInitialized) {
             set({
-              compilationErrors: [{ message: "Execution Error: Contract must be initialized before triggering." }],
+              executionError: "Execution Error: Contract must be initialized before triggering.",
               isProblemPanelVisible: true
             });
             return;
@@ -1758,13 +1762,13 @@ const useAppStore = create<AppState>()(
             selectedChainIndex !== executionChain.length - 1
           ) {
             set({
-              compilationErrors: [{ message: "Execution Error: Select the latest step in the chain before sending a new request." }],
+              executionError: "Execution Error: Select the latest step in the chain before sending a new request.",
               isProblemPanelVisible: true
             });
             return;
           }
 
-          set({ executingOperation: 'trigger' });
+          set({ executingOperation: 'trigger', executionError: null });
 
           const startedAt = Date.now();
           const triggerCount = executionHistory.filter((r) => r.method === "trigger").length;
@@ -1818,7 +1822,7 @@ const useAppStore = create<AppState>()(
                 durationMs: Date.now() - startedAt,
                 executedAt: new Date(startedAt).toISOString(),
               }],
-              compilationErrors: []
+              executionError: null
             });
 
             /*
@@ -1857,7 +1861,7 @@ const useAppStore = create<AppState>()(
                 durationMs: Date.now() - startedAt,
                 executedAt: new Date(startedAt).toISOString(),
               }],
-              compilationErrors: [{ message: `Execution Error: ${message}` }],
+              executionError: null,
               isProblemPanelVisible: true
             });
           } finally {

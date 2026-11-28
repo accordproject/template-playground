@@ -17,7 +17,14 @@ vi.mock("../../utils/editorNavigation", async () => {
 describe("ProblemPanel", () => {
   beforeEach(() => {
     // Clear store state and reset mocks
-    useAppStore.setState({ error: undefined, backgroundColor: '#ffffff', textColor: '#000000' });
+    useAppStore.setState({
+      error: undefined,
+      compilationErrors: [],
+      executionError: null,
+      executionHistory: [],
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
     vi.clearAllMocks();
   });
 
@@ -226,5 +233,69 @@ describe("ProblemPanel", () => {
     render(<ProblemPanel />);
 
     expect(screen.getByText(/Logic Editor has unsaved changes. Please click/i)).toBeInTheDocument();
+  });
+
+  it("should render failed executionHistory runtime error classified as Contract Execution", () => {
+    useAppStore.setState({
+      executionHistory: [{
+        id: '#1',
+        method: 'trigger',
+        request: {},
+        response: null,
+        stateBefore: {},
+        stateAfter: {},
+        events: [],
+        error: "TypeError: Cannot read properties of null (reading 'forceMajeure')",
+        stage: 'run',
+        durationMs: 2,
+        executedAt: '2026-11-28T10:00:00.000Z',
+      }],
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.getByText('Contract Execution')).toBeInTheDocument();
+    expect(screen.getByText(/Execution Error: TypeError: Cannot read properties of null/i)).toBeInTheDocument();
+    expect(screen.queryAllByRole("button")).toHaveLength(0);
+  });
+
+  it("should classify parse-stage executionHistory error as JSON Data", () => {
+    useAppStore.setState({
+      executionHistory: [{
+        id: '#1',
+        method: 'trigger',
+        request: {},
+        response: null,
+        stateBefore: {},
+        stateAfter: {},
+        events: [],
+        error: 'SyntaxError: Unexpected token',
+        stage: 'parse',
+        durationMs: 1,
+        executedAt: '2026-11-28T10:00:00.000Z',
+      }],
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.getByText('JSON Data')).toBeInTheDocument();
+    expect(screen.getByText(/Execution Error: SyntaxError: Unexpected token/i)).toBeInTheDocument();
+  });
+
+  it("should render pre-execution guard error classified as Contract Execution", () => {
+    useAppStore.setState({
+      executionError: 'Execution Error: Contract must be initialized before triggering.',
+      backgroundColor: '#ffffff',
+      textColor: '#000000'
+    });
+
+    render(<ProblemPanel />);
+
+    expect(screen.getByText('Contract Execution')).toBeInTheDocument();
+    expect(screen.getByText('Execution Error: Contract must be initialized before triggering.')).toBeInTheDocument();
   });
 });

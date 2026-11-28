@@ -3,20 +3,27 @@ import useAppStore from '../store/store';
 import { navigateToLine, EditorSource } from '../utils/editorNavigation';
 import '../styles/components/ProblemPanel.css';
 
+export type ProblemSource = EditorSource | 'Contract Execution';
+
 export interface ProblemItem {
   id: string;
   type: 'error' | 'warning' | 'info';
   message: string;
-  source?: EditorSource;
+  source?: ProblemSource;
   line?: number;
   column?: number;
   timestamp: Date;
 }
 
+const isEditorSource = (source: ProblemSource | undefined): source is EditorSource =>
+  Boolean(source && source !== 'Contract Execution');
+
 const ProblemPanel: React.FC = () => {
-  const { error, compilationErrors, editorLogicTs, logicTs, backgroundColor, textColor } = useAppStore((state) => ({
+  const { error, compilationErrors, executionError, executionHistory, editorLogicTs, logicTs, backgroundColor, textColor } = useAppStore((state) => ({
     error: state.error,
     compilationErrors: state.compilationErrors,
+    executionError: state.executionError,
+    executionHistory: state.executionHistory,
     editorLogicTs: state.editorLogicTs,
     logicTs: state.logicTs,
     backgroundColor: state.backgroundColor,
@@ -96,8 +103,29 @@ const ProblemPanel: React.FC = () => {
       });
     }
 
+    if (executionError) {
+      list.push({
+        id: 'execution-guard-error',
+        timestamp: new Date(),
+        type: 'error',
+        source: 'Contract Execution',
+        message: executionError,
+      });
+    } else {
+      const lastExecution = executionHistory[executionHistory.length - 1];
+      if (lastExecution?.error) {
+        list.push({
+          id: `execution-error-${lastExecution.id}`,
+          timestamp: new Date(lastExecution.executedAt),
+          type: 'error',
+          source: lastExecution.stage === 'parse' ? 'JSON Data' : 'Contract Execution',
+          message: `Execution Error: ${lastExecution.error}`,
+        });
+      }
+    }
+
     return list;
-  }, [error, compilationErrors]);
+  }, [error, compilationErrors, executionError, executionHistory]);
 
   const formatTimestamp = (timestamp: Date) => {
     return timestamp.toLocaleTimeString('en-US', {
@@ -109,13 +137,13 @@ const ProblemPanel: React.FC = () => {
   };
 
   const handleProblemClick = useCallback((problem: ProblemItem) => {
-    if (problem.source && problem.line && problem.line > 0) {
+    if (isEditorSource(problem.source) && problem.line && problem.line > 0) {
       navigateToLine(problem.source, problem.line, problem.column);
     }
   }, []);
 
   const isClickable = (problem: ProblemItem) => {
-    return problem.source && problem.line && problem.line > 0;
+    return isEditorSource(problem.source) && problem.line && problem.line > 0;
   };
 
   return (

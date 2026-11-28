@@ -17,6 +17,7 @@ describe("useAppStore - executionHistory", () => {
       executionResponse: "",
       executionHistory: [],
       compilationErrors: [],
+      executionError: null,
       isProblemPanelVisible: false,
       isTemplateStateful: true,
       isContractInitialized: false,
@@ -56,6 +57,7 @@ describe("useAppStore - executionHistory", () => {
     const history = useAppStore.getState().executionHistory;
     expect(history).toHaveLength(1);
     expect(history[0]).toMatchObject({ id: "init", response: null, stateAfter: null, error: "Error: Init failed" });
+    expect(useAppStore.getState().compilationErrors).toEqual([]);
   });
 
   it("triggerContract appends numbered runs with state before / after", async () => {
@@ -111,6 +113,7 @@ describe("useAppStore - executionHistory", () => {
       error: "Error: Count 11 exceeds the maximum",
     });
     expect(state.executionState).toContain('"count": 0');
+    expect(state.compilationErrors).toEqual([]);
     expect(state.isProblemPanelVisible).toBe(true);
   });
 
