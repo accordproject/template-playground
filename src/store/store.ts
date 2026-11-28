@@ -952,7 +952,7 @@ const useAppStore = create<AppState>()(
               ...TEMPLATE_CACHE_RESET,
               sampleName: sample.NAME,
               importedData: null,
-              agreementHtml: undefined,
+              agreementHtml: "",
               agreementRevision: 0,
               error: undefined,
               templateMarkdown: sample.TEMPLATE,
